@@ -46,20 +46,27 @@
 body {
     background: linear-gradient(to bottom, #07111f, #102a43);
 }
-        }
-        header {
+        
+ header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
     text-align: center;
-    padding: 40px 20px;
+
+    padding: 80px 20px;
+
     color: white;
 }
         header h1 {
-    color: white;
-    font-size: 48px;
+     font-size: 56px;
+    margin: 20px 0;
 }
 
 header p {
+      font-size: 22px;
     color: rgba(255,255,255,0.85);
-    font-size: 20px;
 }
         }
         nav {
@@ -87,6 +94,7 @@ header p {
             object-fit: cover;
             border: 4px solid white;
             margin-bottom: 20px;
+             display: block;
         }
         .card {
             background: white;

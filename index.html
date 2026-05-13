@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <title>君雪的个人网站</title>
     <style>
-        <div class="cursor-light"></div>
-
+       
 <script>
         
 </script>
@@ -140,19 +139,13 @@ header p {
 </head>
 
 <body>
+<div class="cursor-light"></div>
 <div class="stars"></div>
 <div class="stars stars2"></div>
 <div class="stars stars3"></div>
 <header>
     <img src="avatar.png" class="avatar">
-    <script>
-const light = document.querySelector(".cursor-light");
-
-document.addEventListener("mousemove", (e) => {
-    light.style.left = e.clientX + "px";
-    light.style.top = e.clientY + "px";
-});
-</script>
+   
     <h1>除却君身三重雪，天下谁人配白衣
         <span style="color: gold;">⭐</span></h1>
     <p>欢迎来到我的个人网站</p>
@@ -188,6 +181,13 @@ document.addEventListener("mousemove", (e) => {
 <footer>
     <p>© 2026 我的个人网站</p>
 </footer>
+ <script>
+const light = document.querySelector(".cursor-light");
 
+document.addEventListener("mousemove", (e) => {
+    light.style.left = e.clientX + "px";
+    light.style.top = e.clientY + "px";
+});
+</script>
 </body>
 </html>

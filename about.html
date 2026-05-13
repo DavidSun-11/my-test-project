@@ -26,24 +26,46 @@
             color: cyan;
             text-decoration: none;
         }
+        .game-card {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.game-card img {
+    width: 180px;
+    height: 110px;
+    object-fit: cover;
+    border-radius: 15px;
+}
+
+.game-button {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 10px 18px;
+    background: cyan;
+    color: #00111f;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: bold;
+}
     </style>
 </head>
 
 <body>
 
-    <div class="card">
-        <h1>关于我</h1>
+  <div class="card">
+    <h2>我的游戏展示</h2>
 
-        <p>聪明善良勇敢大方完美无瑕</p>
-
-        <p>喜欢游戏 / 星空 / 技术 / AI</p>
-
-        <p>这是我的个人介绍页面</p>
-
-        <br>
-
-        <a href="index.html">返回首页</a>
+    <div class="game-card">
+        <img src="wutheringwaves.jpg" alt="王者">
+        <div>
+            <h3>永劫无间</h3>
+            <p>龙骧双刀，天下无双。</p>
+            <a href="wutheringwaves.html" class="game-button">进入展示页</a>
+        </div>
     </div>
+</div>
 
 </body>
 </html>

@@ -7,12 +7,7 @@
         <div class="cursor-light"></div>
 
 <script>
-const light = document.querySelector(".cursor-light");
-
-document.addEventListener("mousemove", (e) => {
-    light.style.left = e.clientX + "px";
-    light.style.top = e.clientY + "px";
-});
+        
 </script>
         body {
             font-family: Arial, sans-serif;
@@ -150,6 +145,14 @@ header p {
 <div class="stars stars3"></div>
 <header>
     <img src="avatar.png" class="avatar">
+    <script>
+const light = document.querySelector(".cursor-light");
+
+document.addEventListener("mousemove", (e) => {
+    light.style.left = e.clientX + "px";
+    light.style.top = e.clientY + "px";
+});
+</script>
     <h1>除却君身三重雪，天下谁人配白衣
         <span style="color: gold;">⭐</span></h1>
     <p>欢迎来到我的个人网站</p>

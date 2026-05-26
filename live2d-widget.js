@@ -40,6 +40,8 @@
         }
     }
 
+    say("Pio 加载中...", true);
+
     if (!window.PIXI || !PIXI.live2d || !PIXI.live2d.Live2DModel) {
         say("Live2D CDN 还没加载好，请检查网络或脚本地址。", true);
         return;

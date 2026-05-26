@@ -1,99 +1,91 @@
 /*
  * Live2D 看板娘初始化脚本。
- * 默认使用 OhMyLive2D 提供的 Pio 模型；换模型时可在页面里设置 window.Live2DWidgetConfig.modelPath。
+ * 使用 OhMyLive2D 官方 CDN 链路加载 Pio 模型；它自带运行时，适合直接部署到 GitHub Pages。
  */
 (function () {
-    const widget = document.getElementById("live2d-widget");
-    const canvas = document.getElementById("live2d-canvas");
-    const message = widget ? widget.querySelector(".live2d-message") : null;
-
-    if (!widget || !canvas) {
-        return;
-    }
-
+    const placeholder = document.getElementById("live2d-widget");
+    const message = placeholder ? placeholder.querySelector(".live2d-message") : null;
     const config = window.Live2DWidgetConfig || {};
     const localPlaceholderPath = "live2d/model/model.json";
     const defaultModelPath = "https://model.oml2d.com/Pio/model.json";
     const modelPath = config.modelPath && config.modelPath !== localPlaceholderPath
         ? config.modelPath
         : defaultModelPath;
-    const messages = config.messages || [
-        "欢迎来到星空主页。",
-        "今天也要打出漂亮操作。",
-        "我是来自 OhMyLive2D 的 Pio。",
-        "点击我会切换一句小提示。"
-    ];
 
-    function say(text, keepVisible) {
-        if (!message) {
+    function setMessage(text) {
+        if (message) {
+            message.textContent = text;
+            placeholder.classList.add("is-talking");
+        }
+    }
+
+    function loadScript(src, onLoad, onError) {
+        const script = document.createElement("script");
+        script.src = src;
+        script.async = true;
+        script.onload = onLoad;
+        script.onerror = onError;
+        document.head.appendChild(script);
+    }
+
+    function bootOml2d() {
+        if (!window.OML2D || typeof OML2D.loadOml2d !== "function") {
+            setMessage("OhMyLive2D 没有加载成功，请检查 CDN 是否可访问。");
             return;
         }
 
-        message.textContent = text;
-        widget.classList.add("is-talking");
-
-        if (!keepVisible) {
-            window.clearTimeout(widget._talkTimer);
-            widget._talkTimer = window.setTimeout(function () {
-                widget.classList.remove("is-talking");
-            }, 2600);
+        if (placeholder) {
+            placeholder.remove();
         }
+
+        OML2D.loadOml2d({
+            primaryColor: "#38d9ff",
+            sayHello: true,
+            models: [
+                {
+                    name: "Pio",
+                    path: modelPath,
+                    position: config.position || [0, 70],
+                    scale: config.scale || 0.4,
+                    stageStyle: {
+                        width: config.width || 280,
+                        height: config.height || 380
+                    }
+                }
+            ],
+            statusBar: {
+                disable: false,
+                loadingMessage: "Pio 加载中...",
+                loadSuccessMessage: "Pio 已上线"
+            },
+            tips: {
+                idleTips: {
+                    message: config.messages || [
+                        "欢迎来到星空主页。",
+                        "今天也要打出漂亮操作。",
+                        "我是来自 OhMyLive2D 的 Pio。"
+                    ]
+                }
+            },
+            menus: {
+                disable: true
+            },
+            mobileDisplay: true
+        });
     }
 
-    say("Pio 加载中...", true);
+    setMessage("Pio 加载中...");
 
-    if (!window.PIXI || !PIXI.live2d || !PIXI.live2d.Live2DModel) {
-        say("Live2D CDN 还没加载好，请检查网络或脚本地址。", true);
+    if (window.OML2D) {
+        bootOml2d();
         return;
     }
 
-    const app = new PIXI.Application({
-        view: canvas,
-        autoStart: true,
-        backgroundAlpha: 0,
-        transparent: true,
-        antialias: true,
-        width: widget.clientWidth,
-        height: widget.clientHeight
-    });
-
-    function resizeRenderer() {
-        app.renderer.resize(widget.clientWidth, widget.clientHeight);
-    }
-
-    resizeRenderer();
-    window.addEventListener("resize", resizeRenderer);
-
-    PIXI.live2d.Live2DModel.from(modelPath, { autoInteract: true })
-        .then(function (model) {
-            widget.classList.add("is-loaded");
-            app.stage.addChild(model);
-
-            model.anchor.set(0.5, 1);
-
-            function fitModel() {
-                resizeRenderer();
-
-                const scaleX = widget.clientWidth / model.width;
-                const scaleY = widget.clientHeight / model.height;
-                const scale = Math.min(scaleX, scaleY) * (config.scale || 0.9);
-
-                model.scale.set(scale);
-                model.x = app.renderer.width / 2 + (config.offsetX || 0);
-                model.y = app.renderer.height + (config.offsetY || 0);
-            }
-
-            fitModel();
-            window.addEventListener("resize", fitModel);
-
-            say(messages[0]);
-
-            widget.addEventListener("click", function () {
-                const text = messages[Math.floor(Math.random() * messages.length)];
-                say(text);
-            });
-        })
-        .catch(function () {
-            say("Pio 模型加载失败，请检查 https://model.oml2d.com/Pio/model.json 是否可访问。", true);
-        });
+    loadScript(
+        "https://cdn.jsdelivr.net/npm/oh-my-live2d@0.19.3/dist/index.min.js",
+        bootOml2d,
+        function () {
+            setMessage("OhMyLive2D CDN 加载失败，请检查网络或稍后刷新。");
+        }
+    );
 })();

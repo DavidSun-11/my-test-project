@@ -39,6 +39,7 @@
         }
 
         OML2D.loadOml2d({
+            dockedPosition: "right",
             primaryColor: "#38d9ff",
             sayHello: true,
             models: [
@@ -50,6 +51,12 @@
                     stageStyle: {
                         width: config.width || 280,
                         height: config.height || 380
+                    },
+                    mobilePosition: config.mobilePosition || [0, 40],
+                    mobileScale: config.mobileScale || 0.32,
+                    mobileStageStyle: {
+                        width: config.mobileWidth || 180,
+                        height: config.mobileHeight || 260
                     }
                 }
             ],
@@ -74,6 +81,22 @@
         });
     }
 
+    function loadOml2dFromCdn() {
+        loadScript(
+            "https://cdn.jsdelivr.net/npm/oh-my-live2d@0.19.3/dist/index.min.js",
+            bootOml2d,
+            function () {
+                loadScript(
+                    "https://unpkg.com/oh-my-live2d@0.19.3/dist/index.min.js",
+                    bootOml2d,
+                    function () {
+                        setMessage("OhMyLive2D CDN 加载失败，请检查网络或稍后刷新。");
+                    }
+                );
+            }
+        );
+    }
+
     setMessage("Pio 加载中...");
 
     if (window.OML2D) {
@@ -81,11 +104,5 @@
         return;
     }
 
-    loadScript(
-        "https://cdn.jsdelivr.net/npm/oh-my-live2d@0.19.3/dist/index.min.js",
-        bootOml2d,
-        function () {
-            setMessage("OhMyLive2D CDN 加载失败，请检查网络或稍后刷新。");
-        }
-    );
+    loadOml2dFromCdn();
 })();

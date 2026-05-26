@@ -206,7 +206,7 @@
 <!-- Live2D 看板娘：右下角固定悬浮，不影响原有星空、鼠标光效和水波纹。 -->
 <div class="live2d-widget" id="live2d-widget" aria-label="Live2D 看板娘">
     <canvas id="live2d-canvas"></canvas>
-    <div class="live2d-message">模型资源待添加</div>
+    <div class="live2d-message">Pio 加载中...</div>
 </div>
 
 <script>
@@ -231,14 +231,14 @@ document.addEventListener("click", (e) => {
     }, 800);
 });
 </script>
-<script src="https://cdn.jsdelivr.net/npm/ylan-live2d@1.0.8/live2d.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/pixi.js@6.5.10/dist/browser/pixi.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/index.min.js"></script>
 <script>
     window.Live2DWidgetConfig = {
-        modelPath: "live2d/model/model.json"
+        modelPath: "https://model.oml2d.com/Pio/model.json",
+        scale: 0.4,
+        position: [0, 70]
     };
 </script>
-<script src="live2d-widget.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/oh-my-live2d@0.19.3/dist/index.min.js"></script>
+<script src="live2d-widget.js?v=20260526-2"></script>
 </body>
 </html>

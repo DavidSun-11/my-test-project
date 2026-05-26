@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>关于我</title>
+    <link rel="stylesheet" href="live2d-widget.css">
 
     <style>
         body{
@@ -67,5 +68,19 @@
     </div>
 </div>
 
+<!-- Live2D 看板娘：右下角固定悬浮，不影响关于页卡片布局。 -->
+<div class="live2d-widget" id="live2d-widget" aria-label="Live2D 看板娘">
+    <canvas id="live2d-canvas"></canvas>
+    <div class="live2d-message">模型资源待添加</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/ylan-live2d@1.0.8/live2d.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pixi.js@6.5.10/dist/browser/pixi.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/index.min.js"></script>
+<script>
+    window.Live2DWidgetConfig = {
+        modelPath: "live2d/model/model.json"
+    };
+</script>
+<script src="live2d-widget.js"></script>
 </body>
 </html>

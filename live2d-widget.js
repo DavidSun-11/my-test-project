@@ -1,6 +1,6 @@
 /*
  * Live2D 看板娘初始化脚本。
- * 默认读取 live2d/model/model.json；换模型时可在页面里设置 window.Live2DWidgetConfig.modelPath。
+ * 默认使用 OhMyLive2D 提供的 Pio 模型；换模型时可在页面里设置 window.Live2DWidgetConfig.modelPath。
  */
 (function () {
     const widget = document.getElementById("live2d-widget");
@@ -12,11 +12,16 @@
     }
 
     const config = window.Live2DWidgetConfig || {};
-    const modelPath = config.modelPath || "live2d/model/model.json";
+    const localPlaceholderPath = "live2d/model/model.json";
+    const defaultModelPath = "https://model.oml2d.com/Pio/model.json";
+    const modelPath = config.modelPath && config.modelPath !== localPlaceholderPath
+        ? config.modelPath
+        : defaultModelPath;
     const messages = config.messages || [
         "欢迎来到星空主页。",
         "今天也要打出漂亮操作。",
-        "把模型文件放进 live2d/model 就能召唤我。"
+        "我是来自 OhMyLive2D 的 Pio。",
+        "点击我会切换一句小提示。"
     ];
 
     function say(text, keepVisible) {
@@ -69,7 +74,7 @@
 
                 const scaleX = widget.clientWidth / model.width;
                 const scaleY = widget.clientHeight / model.height;
-                const scale = Math.min(scaleX, scaleY) * (config.scale || 0.95);
+                const scale = Math.min(scaleX, scaleY) * (config.scale || 0.9);
 
                 model.scale.set(scale);
                 model.x = app.renderer.width / 2 + (config.offsetX || 0);
@@ -87,6 +92,6 @@
             });
         })
         .catch(function () {
-            say("模型资源待添加：请把 model.json 或 model3.json 放到 live2d/model。", true);
+            say("Pio 模型加载失败，请检查 https://model.oml2d.com/Pio/model.json 是否可访问。", true);
         });
 })();

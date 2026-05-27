@@ -1,14 +1,14 @@
 /*
  * Live2D 看板娘初始化脚本。
  * 使用 OhMyLive2D 的纯前端 CDN 运行时，适合直接部署到 GitHub Pages。
- * 模型优先读取 live2d/models/miku-style/model.json；如果还没上传模型，则自动回退到 CDN 示例模型，避免页面空白。
+ * 当前默认使用 OhMyLive2D 模型资源页中的 Senko_Normals 模型。
  */
 (function () {
     const config = window.Live2DWidgetConfig || {};
     const widget = document.getElementById("live2d-widget");
     const message = widget ? widget.querySelector(".live2d-message") : null;
-    const defaultLocalModel = "live2d/models/miku-style/model.json";
-    const fallbackModel = "https://model.oml2d.com/Pio/model.json";
+    const senkoModel = "https://model.oml2d.com/Senko_Normals/senko.model3.json";
+    const legacyLocalModel = "live2d/models/miku-style/model.json";
 
     function setMessage(text) {
         if (!message || !widget) {
@@ -39,9 +39,15 @@
         });
     }
 
-    async function resolveModelPath() {
-        const requestedPath = config.modelPath || defaultLocalModel;
+    function getRequestedModelPath() {
+        if (!config.modelPath || config.modelPath === legacyLocalModel) {
+            return senkoModel;
+        }
 
+        return config.modelPath;
+    }
+
+    async function resolveModelPath(requestedPath) {
         if (isRemotePath(requestedPath)) {
             return requestedPath;
         }
@@ -56,11 +62,11 @@
                 return requestedPath;
             }
         } catch (error) {
-            // GitHub Pages 可正常 HEAD；本地 file:// 预览失败时走兜底模型。
+            // GitHub Pages 可正常 HEAD；本地 file:// 预览失败时走官方 Senko 模型。
         }
 
-        setMessage("本地 Live2D 模型未找到，已临时使用示例模型。");
-        return config.fallbackModelPath || fallbackModel;
+        setMessage("本地 Live2D 模型未找到，已临时使用 Senko_Normals。");
+        return config.fallbackModelPath || senkoModel;
     }
 
     async function ensureRuntime() {
@@ -75,7 +81,51 @@
         }
     }
 
+    function buildModelConfig(modelPath, usesDefaultSenko) {
+        const modelConfig = {
+            name: usesDefaultSenko ? "Senko_Normals" : (config.name || "Live2D"),
+            path: modelPath,
+            position: usesDefaultSenko ? [-10, 20] : (config.position || [0, 70])
+        };
+
+        if (!usesDefaultSenko && config.scale != null) {
+            modelConfig.scale = config.scale;
+        }
+
+        if (config.width || config.height || config.stageStyle) {
+            modelConfig.stageStyle = config.stageStyle || {
+                width: config.width,
+                height: config.height
+            };
+        }
+
+        if (config.mobilePosition) {
+            modelConfig.mobilePosition = config.mobilePosition;
+        }
+
+        if (config.mobileScale != null) {
+            modelConfig.mobileScale = config.mobileScale;
+        }
+
+        if (config.mobileWidth || config.mobileHeight || config.mobileStageStyle) {
+            modelConfig.mobileStageStyle = config.mobileStageStyle || {
+                width: config.mobileWidth,
+                height: config.mobileHeight
+            };
+        }
+
+        return modelConfig;
+    }
+
     async function boot() {
+        const requestedPath = getRequestedModelPath();
+        const usesDefaultSenko = requestedPath === senkoModel;
+        const dockedPosition = config.dockedPosition || (usesDefaultSenko ? "left" : "right");
+
+        if (widget && dockedPosition === "left") {
+            widget.classList.add("is-left");
+        }
+
         setMessage("Live2D 加载中...");
 
         try {
@@ -90,7 +140,7 @@
             return;
         }
 
-        const modelPath = await resolveModelPath();
+        const modelPath = await resolveModelPath(requestedPath);
 
         if (widget) {
             widget.classList.add("is-loaded");
@@ -100,7 +150,7 @@
         }
 
         window.OML2D.loadOml2d({
-            dockedPosition: "right",
+            dockedPosition: dockedPosition,
             primaryColor: "#38d9ff",
             sayHello: true,
             mobileDisplay: true,
@@ -110,32 +160,15 @@
             statusBar: {
                 disable: false,
                 loadingMessage: "Live2D 加载中...",
-                loadSuccessMessage: "看板娘已上线"
+                loadSuccessMessage: "Senko_Normals 已上线"
             },
-            models: [
-                {
-                    name: "Miku Style",
-                    path: modelPath,
-                    position: config.position || [0, 70],
-                    scale: config.scale || 0.4,
-                    stageStyle: {
-                        width: config.width || 280,
-                        height: config.height || 380
-                    },
-                    mobilePosition: config.mobilePosition || [0, 40],
-                    mobileScale: config.mobileScale || 0.32,
-                    mobileStageStyle: {
-                        width: config.mobileWidth || 180,
-                        height: config.mobileHeight || 260
-                    }
-                }
-            ],
+            models: [buildModelConfig(modelPath, usesDefaultSenko)],
             tips: {
                 idleTips: {
                     message: config.messages || [
                         "欢迎来到星空主页。",
-                        "今天也要元气满满。",
-                        "我会固定待在右下角，不挡住游戏展示。"
+                        "我换成 Senko_Normals 啦。",
+                        "我会待在左下角，不影响游戏展示。"
                     ]
                 }
             }

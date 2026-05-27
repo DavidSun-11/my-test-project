@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const AUDIO_PATH = "assets/audio/zuichibi.mp3";
-    const AUDIO_VERSION = "20260527-2";
+    const AUDIO_PATH = "assets/audio/music.mp3";
+    const AUDIO_VERSION = "20260527-3";
 
     function getProjectRoot() {
         const marker = "/my-test-project/";

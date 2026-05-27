@@ -23,7 +23,8 @@
     line-height: 1;
 }
 
-.netease-player iframe {
+.netease-player iframe,
+.netease-player audio {
     display: block;
     width: 330px;
     max-width: 100%;
@@ -31,6 +32,15 @@
     border: 0;
     border-radius: 6px;
     background: rgba(255, 255, 255, 0.08);
+}
+
+.netease-player audio {
+    height: 42px;
+    margin-top: 4px;
+}
+
+.netease-player.is-local-audio {
+    width: 330px;
 }
 
 @media (max-width: 720px) {
@@ -41,8 +51,16 @@
         padding: 6px;
     }
 
-    .netease-player iframe {
+    .netease-player iframe,
+    .netease-player audio {
         width: 300px;
+    }
+
+    .netease-player iframe {
         height: 86px;
+    }
+
+    .netease-player audio {
+        height: 42px;
     }
 }

@@ -1,4 +1,4 @@
-/* Live2D 看板娘悬浮层：固定在右下角，不参与页面布局，避免影响星空、鼠标光效、水波纹和游戏展示页。 */
+/* Live2D 看板娘悬浮层：固定停靠在页面角落，不参与页面布局，避免影响星空、鼠标光效、水波纹和游戏展示页。 */
 .live2d-widget {
     position: fixed;
     right: 18px;
@@ -8,6 +8,11 @@
     z-index: 30;
     pointer-events: none;
     filter: drop-shadow(0 0 18px rgba(0, 210, 255, 0.28));
+}
+
+.live2d-widget.is-left {
+    right: auto;
+    left: 18px;
 }
 
 .live2d-widget::before {
@@ -40,6 +45,12 @@
     pointer-events: none;
 }
 
+.live2d-widget.is-left .live2d-message {
+    right: auto;
+    left: 10px;
+    border-radius: 14px 14px 14px 4px;
+}
+
 .live2d-widget.is-loaded .live2d-message {
     opacity: 0;
     transform: translateY(-6px);
@@ -66,11 +77,21 @@
         height: 240px;
     }
 
+    .live2d-widget.is-left {
+        right: auto;
+        left: 8px;
+    }
+
     .live2d-message {
         max-width: 132px;
         top: 10px;
         right: 4px;
         font-size: 12px;
         padding: 8px 10px;
+    }
+
+    .live2d-widget.is-left .live2d-message {
+        right: auto;
+        left: 4px;
     }
 }

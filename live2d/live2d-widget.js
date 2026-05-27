@@ -1,13 +1,18 @@
 /*
  * Live2D 看板娘初始化脚本。
  * 使用 OhMyLive2D 的纯前端 CDN 运行时，适合直接部署到 GitHub Pages。
- * 当前默认使用 OhMyLive2D 模型资源页中的 Senko_Normals 模型。
+ * 当前默认使用 OhMyLive2D 模型资源页中的 Senko_Normals 模型，并配置多源兜底避免单个模型 CDN 加载失败。
  */
 (function () {
     const config = window.Live2DWidgetConfig || {};
     const widget = document.getElementById("live2d-widget");
     const message = widget ? widget.querySelector(".live2d-message") : null;
-    const senkoModel = "https://model.oml2d.com/Senko_Normals/senko.model3.json";
+    const senkoModelPaths = [
+        "https://model.oml2d.com/Senko_Normals/senko.model3.json",
+        "https://registry.npmmirror.com/oml2d-models/latest/files/models/Senko_Normals/senko.model3.json",
+        "https://cdn.jsdelivr.net/gh/Eikanya/Live2d-model/Live2D/Senko_Normals/senko.model3.json"
+    ];
+    const senkoModel = senkoModelPaths[0];
     const legacyLocalModel = "live2d/models/miku-style/model.json";
     const senkoMessages = [
         "欢迎来到星空主页。",
@@ -45,14 +50,18 @@
     }
 
     function getRequestedModelPath() {
-        if (!config.modelPath || config.modelPath === legacyLocalModel) {
-            return senkoModel;
+        if (!config.modelPath || config.modelPath === legacyLocalModel || config.modelPath === senkoModel) {
+            return senkoModelPaths;
         }
 
         return config.modelPath;
     }
 
     async function resolveModelPath(requestedPath) {
+        if (Array.isArray(requestedPath)) {
+            return requestedPath;
+        }
+
         if (isRemotePath(requestedPath)) {
             return requestedPath;
         }
@@ -67,11 +76,11 @@
                 return requestedPath;
             }
         } catch (error) {
-            // GitHub Pages 可正常 HEAD；本地 file:// 预览失败时走官方 Senko 模型。
+            // GitHub Pages 可正常 HEAD；本地 file:// 预览失败时走官方 Senko 多源兜底模型。
         }
 
         setMessage("本地 Live2D 模型未找到，已临时使用 Senko_Normals。");
-        return config.fallbackModelPath || senkoModel;
+        return config.fallbackModelPath || senkoModelPaths;
     }
 
     async function ensureRuntime() {
@@ -93,7 +102,22 @@
             position: usesDefaultSenko ? [-10, 20] : (config.position || [0, 70])
         };
 
-        if (!usesDefaultSenko && config.scale != null) {
+        if (usesDefaultSenko) {
+            modelConfig.scale = 0.08;
+            modelConfig.stageStyle = {
+                width: 350,
+                height: 450
+            };
+            modelConfig.mobileScale = 0.06;
+            modelConfig.mobilePosition = [0, 40];
+            modelConfig.mobileStageStyle = {
+                width: 250,
+                height: 300
+            };
+            return modelConfig;
+        }
+
+        if (config.scale != null) {
             modelConfig.scale = config.scale;
         }
 
@@ -124,7 +148,9 @@
 
     async function boot() {
         const requestedPath = getRequestedModelPath();
-        const usesDefaultSenko = requestedPath === senkoModel;
+        const usesDefaultSenko = Array.isArray(requestedPath)
+            ? requestedPath[0] === senkoModel
+            : requestedPath === senkoModel;
         const dockedPosition = config.dockedPosition || (usesDefaultSenko ? "left" : "right");
         const idleMessages = usesDefaultSenko ? senkoMessages : (config.messages || senkoMessages);
 
@@ -166,7 +192,8 @@
             statusBar: {
                 disable: false,
                 loadingMessage: "Live2D 加载中...",
-                loadSuccessMessage: "Senko_Normals 已上线"
+                loadSuccessMessage: "Senko_Normals 已上线",
+                loadFailMessage: "模型加载失败，请刷新或稍后再试"
             },
             models: [buildModelConfig(modelPath, usesDefaultSenko)],
             tips: {

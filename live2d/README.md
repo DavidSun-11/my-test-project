@@ -1,18 +1,37 @@
-# Live2D 模型资源说明
+# Live2D 模型放置说明
 
-当前网站已经接入右下角 Live2D 看板娘，默认使用 OhMyLive2D 模型资源页提供的 Pio 模型：
-
-```text
-https://model.oml2d.com/Pio/model.json
-```
-
-来源页面：
+当前网站已经接入 GitHub Pages 可用的纯前端 Live2D 加载方式，页面会优先读取：
 
 ```text
-https://oml2d.hacxy.cn/guide/models.html
+live2d/models/miku-style/model.json
 ```
 
-该模型是远程公开资源，GitHub Pages 可以直接加载，所以你现在不需要额外上传模型文件。
+请下载一个你有权使用和发布的 Live2D Web 模型，风格可选择蓝绿色双马尾、二次元看板娘。模型目录里通常会包含：
+
+```text
+model.json 或 *.model3.json
+*.moc 或 *.moc3
+textures/
+motions/ 或 expressions/
+physics.json 或 *.physics3.json
+```
+
+## 推荐放置位置
+
+如果下载到的是 Cubism 2 模型，并且入口文件名是 `model.json`，直接放成：
+
+```text
+live2d/models/miku-style/model.json
+live2d/models/miku-style/*.moc
+live2d/models/miku-style/textures/
+live2d/models/miku-style/motions/
+```
+
+如果下载到的是 Cubism 3/4 模型，并且入口文件名是 `xxx.model3.json`，请把它重命名为 `model.json`，或者把页面里的配置改成对应文件名：
+
+```html
+modelPath: "live2d/models/miku-style/xxx.model3.json"
+```
 
 ## 当前已接入页面
 
@@ -20,61 +39,15 @@ https://oml2d.hacxy.cn/guide/models.html
 - `about.html`
 - `games.html`
 
-样式在 `live2d-widget.css`，初始化逻辑在 `live2d-widget.js`。
-
-## 想换成自己的本地模型
-
-如果以后你想把模型文件放进自己的仓库，可以新建：
+三个页面都会加载同一套文件：
 
 ```text
-live2d/model/
+live2d/live2d-widget.css
+live2d/live2d-widget.js
 ```
 
-然后把 Cubism 2 模型资源放进去，例如：
+## 说明
 
-```text
-live2d/model/model.json
-live2d/model/*.moc
-live2d/model/textures/
-live2d/model/motions/
-live2d/model/physics.json
-```
-
-再把 HTML 里的配置改成本地路径：
-
-```html
-<script>
-    window.Live2DWidgetConfig = {
-        modelPath: "live2d/model/model.json"
-    };
-</script>
-```
-
-## 使用 Cubism 3 / Cubism 4 模型
-
-Cubism 3 / 4 常见入口文件是 `*.model3.json`，同目录通常还会包含：
-
-```text
-live2d/model/角色名.model3.json
-live2d/model/角色名.moc3
-live2d/model/textures/
-live2d/model/motions/
-live2d/model/角色名.physics3.json
-live2d/model/角色名.cdi3.json
-```
-
-如果使用 Cubism 3 / 4 模型，页面还需要在 `pixi-live2d-display` 前引入 `live2dcubismcore.min.js`。该文件通常来自 Live2D Cubism SDK，请确认授权后放入仓库，例如：
-
-```text
-live2d/runtime/live2dcubismcore.min.js
-```
-
-然后在 HTML 中加入：
-
-```html
-<script src="live2d/runtime/live2dcubismcore.min.js"></script>
-```
-
-## 使用限制提醒
-
-OhMyLive2D 模型资源页说明这些模型主要用于参考和学习，不建议用于商业盈利项目。公开模型地址依赖第三方服务器，如果对稳定性要求很高，后续可以把授权允许的模型资源下载后放到本仓库中。
+- 没有上传本地模型时，脚本会临时使用 CDN 示例模型，保证页面不会空白。
+- 想要接近初音未来风格，请使用合法授权的蓝绿色双马尾 Live2D 模型资源；不要直接上传未授权的商业角色模型。
+- 所有资源都使用相对路径，部署到 GitHub Pages 后可以直接运行。

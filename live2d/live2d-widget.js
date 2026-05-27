@@ -9,6 +9,11 @@
     const message = widget ? widget.querySelector(".live2d-message") : null;
     const senkoModel = "https://model.oml2d.com/Senko_Normals/senko.model3.json";
     const legacyLocalModel = "live2d/models/miku-style/model.json";
+    const senkoMessages = [
+        "欢迎来到星空主页。",
+        "我换成 Senko_Normals 啦。",
+        "我会待在左下角，不影响游戏展示。"
+    ];
 
     function setMessage(text) {
         if (!message || !widget) {
@@ -121,6 +126,7 @@
         const requestedPath = getRequestedModelPath();
         const usesDefaultSenko = requestedPath === senkoModel;
         const dockedPosition = config.dockedPosition || (usesDefaultSenko ? "left" : "right");
+        const idleMessages = usesDefaultSenko ? senkoMessages : (config.messages || senkoMessages);
 
         if (widget && dockedPosition === "left") {
             widget.classList.add("is-left");
@@ -165,11 +171,7 @@
             models: [buildModelConfig(modelPath, usesDefaultSenko)],
             tips: {
                 idleTips: {
-                    message: config.messages || [
-                        "欢迎来到星空主页。",
-                        "我换成 Senko_Normals 啦。",
-                        "我会待在左下角，不影响游戏展示。"
-                    ]
+                    message: idleMessages
                 }
             }
         });

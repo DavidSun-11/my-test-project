@@ -2,22 +2,33 @@
 
 当前网站已经接入截图中的 OhMyLive2D 模型资源页同款左下角模型：`Senko_Normals`。
 
-模型地址：
+模型主地址：
 
 ```text
 https://model.oml2d.com/Senko_Normals/senko.model3.json
 ```
 
-官方示例配置：
+为避免单个模型 CDN 在某些网络下加载失败，`live2d/live2d-widget.js` 已配置多源兜底：
+
+```text
+https://model.oml2d.com/Senko_Normals/senko.model3.json
+https://registry.npmmirror.com/oml2d-models/latest/files/models/Senko_Normals/senko.model3.json
+https://cdn.jsdelivr.net/gh/Eikanya/Live2d-model/Live2D/Senko_Normals/senko.model3.json
+```
+
+当前模型配置包含：
 
 ```js
 {
-    path: "https://model.oml2d.com/Senko_Normals/senko.model3.json",
-    position: [-10, 20]
+    path: [/* 多源地址 */],
+    position: [-10, 20],
+    scale: 0.08,
+    stageStyle: {
+        width: 350,
+        height: 450
+    }
 }
 ```
-
-站点现在由 `live2d/live2d-widget.js` 自动加载这个模型，并默认停靠在左下角。它使用 OhMyLive2D CDN 运行时，部署到 GitHub Pages 后可以直接运行。
 
 ## 当前已接入页面
 
@@ -31,6 +42,10 @@ https://model.oml2d.com/Senko_Normals/senko.model3.json
 live2d/live2d-widget.css
 live2d/live2d-widget.js
 ```
+
+## 加载失败原因
+
+页面出现红色“加载失败”时，说明 OhMyLive2D 运行时已经加载成功，失败发生在模型文件请求阶段。常见原因是模型 CDN 请求失败、跨域/CDN 临时异常，或模型子资源被网络拦截。当前代码已通过多源模型地址降低这个问题出现的概率。
 
 ## 资源来源
 

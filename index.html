@@ -204,9 +204,11 @@
     <p>© 2026 我的个人网站</p>
 </footer>
 
-<!-- 网易云音乐外链播放器：醉赤壁，歌曲 ID 108478；如版权限制无法播放，只替换 src 里的 id 即可。 -->
-<div class="netease-player" aria-label="网易云音乐播放器：醉赤壁">
-    <iframe title="网易云音乐播放器：醉赤壁" src="https://music.163.com/outchain/player?type=2&id=108478&auto=0&height=66" width="330" height="86" allow="autoplay"></iframe>
+<!-- 本地音乐播放器：音频文件应位于 assets/audio/zuichibi.mp3。 -->
+<div class="music-player" aria-label="本地音乐播放器：醉赤壁">
+    <audio controls loop>
+        <source src="assets/audio/zuichibi.mp3" type="audio/mpeg">
+    </audio>
 </div>
 
 <!-- Live2D 看板娘：左下角固定悬浮，脚本会先检查模型入口和必要贴图文件。 -->

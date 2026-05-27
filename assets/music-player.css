@@ -1,7 +1,7 @@
-/* 网易云音乐播放器：固定左下角，不参与页面布局，避开星空、鼠标光效、水波纹和主要内容。 */
-.netease-player {
+/* 本地音乐播放器：固定右下角，不参与页面布局，避开星空、鼠标光效、水波纹和主要内容。 */
+.music-player {
     position: fixed;
-    left: 16px;
+    right: 16px;
     bottom: 16px;
     width: 330px;
     max-width: calc(100vw - 32px);
@@ -14,7 +14,7 @@
     backdrop-filter: blur(10px);
 }
 
-.netease-player::before {
+.music-player::before {
     content: "醉赤壁";
     display: block;
     margin: 0 0 6px 2px;
@@ -23,44 +23,24 @@
     line-height: 1;
 }
 
-.netease-player iframe,
-.netease-player audio {
+.music-player audio {
     display: block;
     width: 330px;
     max-width: 100%;
-    height: 86px;
-    border: 0;
+    height: 42px;
     border-radius: 6px;
     background: rgba(255, 255, 255, 0.08);
 }
 
-.netease-player audio {
-    height: 42px;
-    margin-top: 4px;
-}
-
-.netease-player.is-local-audio {
-    width: 330px;
-}
-
 @media (max-width: 720px) {
-    .netease-player {
-        left: 8px;
+    .music-player {
+        right: 8px;
         bottom: 8px;
         width: 300px;
         padding: 6px;
     }
 
-    .netease-player iframe,
-    .netease-player audio {
+    .music-player audio {
         width: 300px;
-    }
-
-    .netease-player iframe {
-        height: 86px;
-    }
-
-    .netease-player audio {
-        height: 42px;
     }
 }

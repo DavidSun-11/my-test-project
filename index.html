@@ -203,7 +203,7 @@
     <p>© 2026 我的个人网站</p>
 </footer>
 
-<!-- Live2D 看板娘：右下角固定悬浮，脚本会优先加载本地模型，缺失时自动使用 CDN 兜底模型。 -->
+<!-- Live2D 看板娘：左下角固定悬浮，脚本会使用多源模型地址兜底加载。 -->
 <div class="live2d-widget" id="live2d-widget" aria-label="Live2D 看板娘">
     <div class="live2d-message">Live2D 加载中...</div>
 </div>
@@ -232,17 +232,10 @@ document.addEventListener("click", (e) => {
 </script>
 <script>
     window.Live2DWidgetConfig = {
-        modelPath: "live2d/models/miku-style/model.json",
-        fallbackModelPath: "https://model.oml2d.com/Pio/model.json",
-        scale: 0.4,
-        position: [0, 70],
-        messages: [
-            "欢迎来到星空主页。",
-            "今天也要打出漂亮操作。",
-            "把模型放到 live2d/models/miku-style/ 后，我就会换装上线。"
-        ]
+        modelPath: "https://model.oml2d.com/Senko_Normals/senko.model3.json",
+        dockedPosition: "left"
     };
 </script>
-<script src="live2d/live2d-widget.js?v=20260527"></script>
+<script src="live2d/live2d-widget.js?v=20260527-2"></script>
 </body>
 </html>

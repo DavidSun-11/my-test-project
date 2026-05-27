@@ -1,22 +1,21 @@
 /*
  * Live2D 看板娘初始化脚本。
  * 使用 OhMyLive2D 的纯前端 CDN 运行时，适合直接部署到 GitHub Pages。
- * 当前默认使用 OhMyLive2D 模型资源页中的 Senko_Normals 模型，并配置多源兜底避免单个模型 CDN 加载失败。
+ * 当前默认使用 npm 上稳定公开的 shizuku 示例模型，并在加载前检查 model / moc / textures 是否可访问。
  */
 (function () {
     const config = window.Live2DWidgetConfig || {};
     const widget = document.getElementById("live2d-widget");
     const message = widget ? widget.querySelector(".live2d-message") : null;
-    const senkoModelPaths = [
-        "https://model.oml2d.com/Senko_Normals/senko.model3.json",
-        "https://registry.npmmirror.com/oml2d-models/latest/files/models/Senko_Normals/senko.model3.json",
-        "https://cdn.jsdelivr.net/gh/Eikanya/Live2d-model/Live2D/Senko_Normals/senko.model3.json"
-    ];
-    const senkoModel = senkoModelPaths[0];
     const legacyLocalModel = "live2d/models/miku-style/model.json";
-    const senkoMessages = [
+    const senkoModel = "https://model.oml2d.com/Senko_Normals/senko.model3.json";
+    const stableModels = [
+        "https://cdn.jsdelivr.net/npm/live2d-widget-model-shizuku@1.0.5/assets/shizuku.model.json",
+        "https://unpkg.com/live2d-widget-model-shizuku@1.0.5/assets/shizuku.model.json"
+    ];
+    const stableMessages = [
         "欢迎来到星空主页。",
-        "我换成 Senko_Normals 啦。",
+        "我已切换到稳定示例模型。",
         "我会待在左下角，不影响游戏展示。"
     ];
 
@@ -34,10 +33,6 @@
         }, 3000);
     }
 
-    function isRemotePath(path) {
-        return /^https?:\/\//i.test(path);
-    }
-
     function loadScript(src) {
         return new Promise(function (resolve, reject) {
             const script = document.createElement("script");
@@ -49,38 +44,98 @@
         });
     }
 
-    function getRequestedModelPath() {
-        if (!config.modelPath || config.modelPath === legacyLocalModel || config.modelPath === senkoModel) {
-            return senkoModelPaths;
-        }
-
-        return config.modelPath;
+    function asAbsoluteUrl(path, baseUrl) {
+        return new URL(path, baseUrl).href;
     }
 
-    async function resolveModelPath(requestedPath) {
-        if (Array.isArray(requestedPath)) {
-            return requestedPath;
+    function collectModelFiles(modelJson, modelUrl) {
+        const files = [];
+
+        if (modelJson.model) {
+            files.push(modelJson.model);
         }
 
-        if (isRemotePath(requestedPath)) {
-            return requestedPath;
+        if (Array.isArray(modelJson.textures)) {
+            files.push.apply(files, modelJson.textures);
         }
 
+        if (modelJson.physics) {
+            files.push(modelJson.physics);
+        }
+
+        if (modelJson.pose) {
+            files.push(modelJson.pose);
+        }
+
+        return files.map(function (file) {
+            return asAbsoluteUrl(file, modelUrl);
+        });
+    }
+
+    async function canFetch(url) {
         try {
-            const response = await fetch(requestedPath, {
-                method: "HEAD",
+            const response = await fetch(url, {
+                method: "GET",
+                cache: "no-store"
+            });
+            return response.ok;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    async function checkModelEntry(modelUrl) {
+        try {
+            const response = await fetch(modelUrl, {
+                method: "GET",
                 cache: "no-store"
             });
 
-            if (response.ok) {
+            if (!response.ok) {
+                return false;
+            }
+
+            const modelJson = await response.json();
+            const requiredFiles = collectModelFiles(modelJson, modelUrl);
+
+            for (const fileUrl of requiredFiles) {
+                const ok = await canFetch(fileUrl);
+
+                if (!ok) {
+                    return false;
+                }
+            }
+
+            return true;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    function shouldUseStableModel(path) {
+        return !path || path === legacyLocalModel || path === senkoModel;
+    }
+
+    async function resolveModelPath() {
+        const requestedPath = config.modelPath;
+
+        if (!shouldUseStableModel(requestedPath)) {
+            const ok = await checkModelEntry(requestedPath);
+
+            if (ok) {
                 return requestedPath;
             }
-        } catch (error) {
-            // GitHub Pages 可正常 HEAD；本地 file:// 预览失败时走官方 Senko 多源兜底模型。
         }
 
-        setMessage("本地 Live2D 模型未找到，已临时使用 Senko_Normals。");
-        return config.fallbackModelPath || senkoModelPaths;
+        for (const modelUrl of stableModels) {
+            const ok = await checkModelEntry(modelUrl);
+
+            if (ok) {
+                return modelUrl;
+            }
+        }
+
+        return "";
     }
 
     async function ensureRuntime() {
@@ -95,64 +150,28 @@
         }
     }
 
-    function buildModelConfig(modelPath, usesDefaultSenko) {
-        const modelConfig = {
-            name: usesDefaultSenko ? "Senko_Normals" : (config.name || "Live2D"),
+    function buildModelConfig(modelPath) {
+        return {
+            name: "shizuku",
             path: modelPath,
-            position: usesDefaultSenko ? [-10, 20] : (config.position || [0, 70])
+            position: config.position || [0, 20],
+            scale: config.scale || 0.18,
+            stageStyle: config.stageStyle || {
+                width: config.width || 280,
+                height: config.height || 380
+            },
+            mobilePosition: config.mobilePosition || [0, 25],
+            mobileScale: config.mobileScale || 0.14,
+            mobileStageStyle: config.mobileStageStyle || {
+                width: config.mobileWidth || 190,
+                height: config.mobileHeight || 260
+            }
         };
-
-        if (usesDefaultSenko) {
-            modelConfig.scale = 0.08;
-            modelConfig.stageStyle = {
-                width: 350,
-                height: 450
-            };
-            modelConfig.mobileScale = 0.06;
-            modelConfig.mobilePosition = [0, 40];
-            modelConfig.mobileStageStyle = {
-                width: 250,
-                height: 300
-            };
-            return modelConfig;
-        }
-
-        if (config.scale != null) {
-            modelConfig.scale = config.scale;
-        }
-
-        if (config.width || config.height || config.stageStyle) {
-            modelConfig.stageStyle = config.stageStyle || {
-                width: config.width,
-                height: config.height
-            };
-        }
-
-        if (config.mobilePosition) {
-            modelConfig.mobilePosition = config.mobilePosition;
-        }
-
-        if (config.mobileScale != null) {
-            modelConfig.mobileScale = config.mobileScale;
-        }
-
-        if (config.mobileWidth || config.mobileHeight || config.mobileStageStyle) {
-            modelConfig.mobileStageStyle = config.mobileStageStyle || {
-                width: config.mobileWidth,
-                height: config.mobileHeight
-            };
-        }
-
-        return modelConfig;
     }
 
     async function boot() {
-        const requestedPath = getRequestedModelPath();
-        const usesDefaultSenko = Array.isArray(requestedPath)
-            ? requestedPath[0] === senkoModel
-            : requestedPath === senkoModel;
-        const dockedPosition = config.dockedPosition || (usesDefaultSenko ? "left" : "right");
-        const idleMessages = usesDefaultSenko ? senkoMessages : (config.messages || senkoMessages);
+        const dockedPosition = config.dockedPosition || "left";
+        const idleMessages = config.messages || stableMessages;
 
         if (widget && dockedPosition === "left") {
             widget.classList.add("is-left");
@@ -172,7 +191,12 @@
             return;
         }
 
-        const modelPath = await resolveModelPath(requestedPath);
+        const modelPath = await resolveModelPath();
+
+        if (!modelPath) {
+            setMessage("模型文件不可访问，请检查网络或 CDN。 ");
+            return;
+        }
 
         if (widget) {
             widget.classList.add("is-loaded");
@@ -192,10 +216,10 @@
             statusBar: {
                 disable: false,
                 loadingMessage: "Live2D 加载中...",
-                loadSuccessMessage: "Senko_Normals 已上线",
+                loadSuccessMessage: "看板娘已上线",
                 loadFailMessage: "模型加载失败，请刷新或稍后再试"
             },
-            models: [buildModelConfig(modelPath, usesDefaultSenko)],
+            models: [buildModelConfig(modelPath)],
             tips: {
                 idleTips: {
                     message: idleMessages

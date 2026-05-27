@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>君雪的个人网站</title>
-    <link rel="stylesheet" href="live2d-widget.css">
+    <link rel="stylesheet" href="live2d/live2d-widget.css">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -203,10 +203,9 @@
     <p>© 2026 我的个人网站</p>
 </footer>
 
-<!-- Live2D 看板娘：右下角固定悬浮，不影响原有星空、鼠标光效和水波纹。 -->
+<!-- Live2D 看板娘：右下角固定悬浮，脚本会优先加载本地模型，缺失时自动使用 CDN 兜底模型。 -->
 <div class="live2d-widget" id="live2d-widget" aria-label="Live2D 看板娘">
-    <canvas id="live2d-canvas"></canvas>
-    <div class="live2d-message">Pio 加载中...</div>
+    <div class="live2d-message">Live2D 加载中...</div>
 </div>
 
 <script>
@@ -233,12 +232,17 @@ document.addEventListener("click", (e) => {
 </script>
 <script>
     window.Live2DWidgetConfig = {
-        modelPath: "https://model.oml2d.com/Pio/model.json",
+        modelPath: "live2d/models/miku-style/model.json",
+        fallbackModelPath: "https://model.oml2d.com/Pio/model.json",
         scale: 0.4,
-        position: [0, 70]
+        position: [0, 70],
+        messages: [
+            "欢迎来到星空主页。",
+            "今天也要打出漂亮操作。",
+            "把模型放到 live2d/models/miku-style/ 后，我就会换装上线。"
+        ]
     };
 </script>
-<script src="https://cdn.jsdelivr.net/npm/oh-my-live2d@0.19.3/dist/index.min.js"></script>
-<script src="live2d-widget.js?v=20260526-2"></script>
+<script src="live2d/live2d-widget.js?v=20260527"></script>
 </body>
 </html>

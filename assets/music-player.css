@@ -15,7 +15,7 @@
 }
 
 .music-player::before {
-    content: "醉赤壁";
+    content: "感谢你曾来过";
     display: block;
     margin: 0 0 6px 2px;
     color: rgba(255, 255, 255, 0.88);

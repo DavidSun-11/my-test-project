@@ -13,6 +13,7 @@
 .live2d-widget.is-left {
     right: auto;
     left: 18px;
+    bottom: 118px;
 }
 
 .live2d-widget::before {
@@ -69,6 +70,11 @@
     z-index: 30 !important;
 }
 
+#oml2d-main,
+.oml2d-main {
+    bottom: 112px !important;
+}
+
 @media (max-width: 720px) {
     .live2d-widget {
         right: 8px;
@@ -80,6 +86,7 @@
     .live2d-widget.is-left {
         right: auto;
         left: 8px;
+        bottom: 102px;
     }
 
     .live2d-message {
@@ -93,5 +100,10 @@
     .live2d-widget.is-left .live2d-message {
         right: auto;
         left: 4px;
+    }
+
+    #oml2d-main,
+    .oml2d-main {
+        bottom: 96px !important;
     }
 }

@@ -5,7 +5,7 @@
     bottom: 14px;
     width: 260px;
     height: 360px;
-    z-index: 30;
+    z-index: 42;
     pointer-events: auto;
     filter: drop-shadow(0 0 18px rgba(0, 210, 255, 0.28));
 }
@@ -66,13 +66,29 @@
 
 #oml2d-main,
 .oml2d-main,
-.oml2d-stage {
-    z-index: 30 !important;
+.oml2d-stage,
+.oml2d-canvas,
+[id^="oml2d"],
+[class*="oml2d"] {
+    z-index: 42 !important;
+    pointer-events: auto !important;
 }
 
 #oml2d-main,
 .oml2d-main {
     bottom: 112px !important;
+}
+
+.live2d-hit-area {
+    position: fixed;
+    left: 10px;
+    bottom: 96px;
+    width: 300px;
+    height: 390px;
+    z-index: 44;
+    cursor: pointer;
+    background: transparent;
+    pointer-events: auto;
 }
 
 .live2d-quiz {
@@ -81,7 +97,7 @@
     bottom: 190px;
     width: 310px;
     max-width: calc(100vw - 32px);
-    z-index: 45;
+    z-index: 60;
     padding: 16px;
     border: 1px solid rgba(108, 229, 255, 0.54);
     border-radius: 16px;
@@ -196,6 +212,13 @@
     #oml2d-main,
     .oml2d-main {
         bottom: 96px !important;
+    }
+
+    .live2d-hit-area {
+        left: 4px;
+        bottom: 88px;
+        width: 210px;
+        height: 280px;
     }
 
     .live2d-quiz {

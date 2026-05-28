@@ -16,7 +16,8 @@
     const stableMessages = [
         "欢迎来到星空主页。",
         "我已切换到稳定示例模型。",
-        "我会待在左下角，不影响游戏展示。"
+        "我会待在左下角，不影响游戏展示。",
+        "点我一下，有个小问题想问你。"
     ];
 
     function setMessage(text) {
@@ -169,9 +170,99 @@
         };
     }
 
+    function createQuizDialog() {
+        const dialog = document.createElement("div");
+        dialog.className = "live2d-quiz";
+        dialog.setAttribute("role", "dialog");
+        dialog.setAttribute("aria-live", "polite");
+        dialog.setAttribute("aria-label", "Live2D 问答");
+        dialog.innerHTML = [
+            '<button class="live2d-quiz__close" type="button" aria-label="关闭">×</button>',
+            '<div class="live2d-quiz__question">你觉得君雪是怎么样的人？</div>',
+            '<div class="live2d-quiz__options">',
+            '    <button class="live2d-quiz__option" type="button" data-answer="good">A：天资卓越</button>',
+            '    <button class="live2d-quiz__option" type="button" data-answer="good">B：完美无瑕</button>',
+            '    <button class="live2d-quiz__option" type="button" data-answer="good">C：才富五车</button>',
+            '    <button class="live2d-quiz__option" type="button" data-answer="lie">D：一般</button>',
+            '</div>',
+            '<div class="live2d-quiz__result"></div>'
+        ].join("");
+        document.body.appendChild(dialog);
+        return dialog;
+    }
+
+    function initLive2DQuiz() {
+        const dialog = createQuizDialog();
+        const closeButton = dialog.querySelector(".live2d-quiz__close");
+        const result = dialog.querySelector(".live2d-quiz__result");
+        const live2dSelector = "#live2d-widget, #oml2d-main, .oml2d-main, .oml2d-stage, .oml2d-canvas";
+
+        function openDialog() {
+            dialog.classList.add("is-open");
+            result.textContent = "";
+            result.classList.remove("is-warning");
+            window.clearTimeout(openDialog.closeTimer);
+        }
+
+        function closeDialog() {
+            dialog.classList.remove("is-open");
+            window.clearTimeout(openDialog.closeTimer);
+        }
+
+        function isLive2DClick(event) {
+            if (event.target.closest(live2dSelector)) {
+                return true;
+            }
+
+            const live2dRoot = document.getElementById("oml2d-main") || document.querySelector(".oml2d-main, .oml2d-stage");
+
+            if (!live2dRoot) {
+                return false;
+            }
+
+            const rect = live2dRoot.getBoundingClientRect();
+            return event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
+        }
+
+        closeButton.addEventListener("click", closeDialog);
+
+        dialog.addEventListener("click", function (event) {
+            const option = event.target.closest(".live2d-quiz__option");
+
+            if (!option) {
+                return;
+            }
+
+            const isPraise = option.dataset.answer === "good";
+            result.textContent = isPraise ? "你的眼光真不错" : "你骗人";
+            result.classList.toggle("is-warning", !isPraise);
+
+            window.clearTimeout(openDialog.closeTimer);
+            openDialog.closeTimer = window.setTimeout(closeDialog, 3500);
+        });
+
+        document.addEventListener("click", function (event) {
+            if (dialog.contains(event.target)) {
+                return;
+            }
+
+            if (isLive2DClick(event)) {
+                openDialog();
+            }
+        }, true);
+
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape") {
+                closeDialog();
+            }
+        });
+    }
+
     async function boot() {
         const dockedPosition = config.dockedPosition || "left";
         const idleMessages = config.messages || stableMessages;
+
+        initLive2DQuiz();
 
         if (widget && dockedPosition === "left") {
             widget.classList.add("is-left");

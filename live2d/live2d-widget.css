@@ -86,8 +86,12 @@
     width: 300px;
     height: 390px;
     z-index: 44;
+    padding: 0;
+    border: 0;
+    appearance: none;
     cursor: pointer;
     background: transparent;
+    color: transparent;
     pointer-events: auto;
 }
 

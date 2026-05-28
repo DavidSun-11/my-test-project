@@ -19,6 +19,45 @@
         "我会待在左下角，不影响游戏展示。",
         "点我一下，有个小问题想问你。"
     ];
+    const quizBank = [
+        {
+            question: "你觉得君雪是怎么样的人？",
+            options: [
+                { label: "A：天资卓越", reply: "你的眼光真不错", mood: "good" },
+                { label: "B：完美无瑕", reply: "你的眼光真不错", mood: "good" },
+                { label: "C：才富五车", reply: "你的眼光真不错", mood: "good" },
+                { label: "D：一般", reply: "你骗人", mood: "warning" }
+            ]
+        },
+        {
+            question: "如果君雪打游戏坑了怎么办？",
+            options: [
+                { label: "A：继续带飞", reply: "果然还是你懂我", mood: "good" },
+                { label: "B：安慰她", reply: "果然还是你懂我", mood: "good" },
+                { label: "C：偷偷举报", reply: "坏！记仇了！", mood: "warning" },
+                { label: "D：压力队友", reply: "坏！记仇了！", mood: "warning" }
+            ]
+        },
+        {
+            question: "你会一直留在这个网站吗？",
+            options: [
+                { label: "A：会", reply: "那就约好了哦", mood: "good" },
+                { label: "B：当然会", reply: "那就约好了哦", mood: "good" },
+                { label: "C：每天都来", reply: "那就约好了哦", mood: "good" },
+                { label: "D：不会", reply: "呜呜，不许走", mood: "warning" }
+            ]
+        },
+        {
+            question: "君雪和游戏哪个更重要？",
+            options: [
+                { label: "A：君雪", reply: "回答满分", mood: "good" },
+                { label: "B：都重要", reply: "勉强接受", mood: "neutral" },
+                { label: "C：先看情况", reply: "勉强接受", mood: "neutral" },
+                { label: "D：游戏！", reply: "你今晚别想上分了", mood: "warning" }
+            ]
+        }
+    ];
+    let currentQuiz = null;
 
     function setMessage(text) {
         if (!message || !widget) {
@@ -178,13 +217,8 @@
         dialog.setAttribute("aria-label", "Live2D 问答");
         dialog.innerHTML = [
             '<button class="live2d-quiz__close" type="button" aria-label="关闭">×</button>',
-            '<div class="live2d-quiz__question">你觉得君雪是怎么样的人？</div>',
-            '<div class="live2d-quiz__options">',
-            '    <button class="live2d-quiz__option" type="button" data-answer="good">A：天资卓越</button>',
-            '    <button class="live2d-quiz__option" type="button" data-answer="good">B：完美无瑕</button>',
-            '    <button class="live2d-quiz__option" type="button" data-answer="good">C：才富五车</button>',
-            '    <button class="live2d-quiz__option" type="button" data-answer="lie">D：一般</button>',
-            '</div>',
+            '<div class="live2d-quiz__question"></div>',
+            '<div class="live2d-quiz__options"></div>',
             '<div class="live2d-quiz__result"></div>'
         ].join("");
         document.body.appendChild(dialog);
@@ -229,26 +263,68 @@
         return roots;
     }
 
+    function pickQuiz() {
+        if (quizBank.length <= 1) {
+            currentQuiz = quizBank[0];
+            return currentQuiz;
+        }
+
+        let nextQuiz = quizBank[Math.floor(Math.random() * quizBank.length)];
+
+        if (nextQuiz === currentQuiz) {
+            const currentIndex = quizBank.indexOf(currentQuiz);
+            nextQuiz = quizBank[(currentIndex + 1) % quizBank.length];
+        }
+
+        currentQuiz = nextQuiz;
+        return currentQuiz;
+    }
+
     function initLive2DQuiz() {
         const dialog = createQuizDialog();
         const hitArea = createHitArea();
         const closeButton = dialog.querySelector(".live2d-quiz__close");
+        const question = dialog.querySelector(".live2d-quiz__question");
+        const options = dialog.querySelector(".live2d-quiz__options");
         const result = dialog.querySelector(".live2d-quiz__result");
         const boundNodes = new WeakSet();
+
+        function renderQuiz(quiz) {
+            question.textContent = quiz.question;
+            options.innerHTML = "";
+            result.textContent = "";
+            result.className = "live2d-quiz__result";
+
+            quiz.options.forEach(function (option) {
+                const button = document.createElement("button");
+                button.className = "live2d-quiz__option";
+                button.type = "button";
+                button.textContent = option.label;
+                button.dataset.reply = option.reply;
+                button.dataset.mood = option.mood;
+                options.appendChild(button);
+            });
+        }
+
+        function replayOpenAnimation() {
+            dialog.classList.remove("is-opening");
+            void dialog.offsetWidth;
+            dialog.classList.add("is-opening");
+        }
 
         function openDialog(event) {
             if (event) {
                 event.preventDefault();
             }
 
+            renderQuiz(pickQuiz());
             dialog.classList.add("is-open");
-            result.textContent = "";
-            result.classList.remove("is-warning");
+            replayOpenAnimation();
             window.clearTimeout(openDialog.closeTimer);
         }
 
         function closeDialog() {
-            dialog.classList.remove("is-open");
+            dialog.classList.remove("is-open", "is-opening");
             window.clearTimeout(openDialog.closeTimer);
         }
 
@@ -302,9 +378,8 @@
 
             event.stopPropagation();
 
-            const isPraise = option.dataset.answer === "good";
-            result.textContent = isPraise ? "你的眼光真不错" : "你骗人";
-            result.classList.toggle("is-warning", !isPraise);
+            result.textContent = option.dataset.reply;
+            result.className = "live2d-quiz__result is-" + option.dataset.mood;
 
             window.clearTimeout(openDialog.closeTimer);
             openDialog.closeTimer = window.setTimeout(closeDialog, 3500);

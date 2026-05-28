@@ -75,6 +75,97 @@
     bottom: 112px !important;
 }
 
+.live2d-quiz {
+    position: fixed;
+    left: 260px;
+    bottom: 190px;
+    width: 310px;
+    max-width: calc(100vw - 32px);
+    z-index: 45;
+    padding: 16px;
+    border: 1px solid rgba(108, 229, 255, 0.54);
+    border-radius: 16px;
+    background:
+        radial-gradient(circle at 18% 12%, rgba(116, 229, 255, 0.2), transparent 34%),
+        linear-gradient(145deg, rgba(7, 17, 31, 0.92), rgba(12, 31, 58, 0.88));
+    color: rgba(255, 255, 255, 0.94);
+    box-shadow: 0 0 26px rgba(0, 190, 255, 0.28), inset 0 0 18px rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px);
+    transform: translateY(12px) scale(0.96);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.live2d-quiz.is-open {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.live2d-quiz__close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 28px;
+    height: 28px;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.live2d-quiz__close:hover {
+    border-color: rgba(108, 229, 255, 0.72);
+    box-shadow: 0 0 14px rgba(0, 190, 255, 0.32);
+}
+
+.live2d-quiz__question {
+    margin: 4px 34px 14px 0;
+    font-size: 16px;
+    font-weight: bold;
+    line-height: 1.5;
+    text-shadow: 0 0 12px rgba(108, 229, 255, 0.42);
+}
+
+.live2d-quiz__options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.live2d-quiz__option {
+    min-height: 38px;
+    border: 1px solid rgba(108, 229, 255, 0.36);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.94);
+    font-size: 14px;
+    cursor: pointer;
+    transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.live2d-quiz__option:hover {
+    transform: translateY(-1px);
+    border-color: rgba(255, 221, 114, 0.72);
+    box-shadow: 0 0 16px rgba(255, 221, 114, 0.22);
+}
+
+.live2d-quiz__result {
+    min-height: 22px;
+    margin-top: 12px;
+    color: #9ff5ff;
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+.live2d-quiz__result.is-warning {
+    color: #ffb3c0;
+}
+
 @media (max-width: 720px) {
     .live2d-widget {
         right: 8px;
@@ -105,5 +196,17 @@
     #oml2d-main,
     .oml2d-main {
         bottom: 96px !important;
+    }
+
+    .live2d-quiz {
+        left: 8px;
+        bottom: 348px;
+        width: 282px;
+        padding: 14px;
+    }
+
+    .live2d-quiz__options {
+        grid-template-columns: 1fr;
+        gap: 8px;
     }
 }

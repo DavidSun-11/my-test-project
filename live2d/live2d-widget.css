@@ -6,7 +6,7 @@
     width: 260px;
     height: 360px;
     z-index: 30;
-    pointer-events: none;
+    pointer-events: auto;
     filter: drop-shadow(0 0 18px rgba(0, 210, 255, 0.28));
 }
 

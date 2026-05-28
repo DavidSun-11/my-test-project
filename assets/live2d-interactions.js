@@ -194,14 +194,14 @@
             button.textContent = label;
             button.addEventListener("click", function (event) {
                 event.stopPropagation();
-                onClick(button);
+                onClick(button, event);
             });
             options.appendChild(button);
             return button;
         }
 
         function showMenu(event) {
-            if (event) {
+            if (event && typeof event.preventDefault === "function") {
                 event.preventDefault();
             }
 
@@ -303,7 +303,9 @@
             question.textContent = "挑战结束！你答对了 " + challengeState.correct + " / 10 题。";
             options.classList.add("live2d-quiz__menu");
             addOption("再来一局", startChallenge);
-            addOption("回到菜单", showMenu);
+            addOption("回到菜单", function () {
+                showMenu();
+            });
             result.textContent = challengeState.correct >= 8 ? "不错嘛，君雪认可你了" : "还得练练，君雪在旁边看着呢";
             result.className = challengeState.correct >= 8 ? "live2d-quiz__result is-good" : "live2d-quiz__result is-neutral";
         }

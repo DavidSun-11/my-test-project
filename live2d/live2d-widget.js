@@ -239,7 +239,6 @@
         function openDialog(event) {
             if (event) {
                 event.preventDefault();
-                event.stopPropagation();
             }
 
             dialog.classList.add("is-open");

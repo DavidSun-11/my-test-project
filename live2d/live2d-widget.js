@@ -191,13 +191,57 @@
         return dialog;
     }
 
+    function createHitArea() {
+        const hitArea = document.createElement("button");
+        hitArea.className = "live2d-hit-area";
+        hitArea.type = "button";
+        hitArea.setAttribute("aria-label", "点击 Live2D 看板娘");
+        document.body.appendChild(hitArea);
+        return hitArea;
+    }
+
+    function findLive2DRoots() {
+        const selectors = [
+            "#live2d-widget",
+            "#oml2d-main",
+            "#oml2d-stage",
+            "#oml2d-canvas",
+            ".oml2d-main",
+            ".oml2d-stage",
+            ".oml2d-canvas",
+            "[id^='oml2d']",
+            "[class*='oml2d']",
+            "canvas"
+        ];
+        const roots = [];
+
+        selectors.forEach(function (selector) {
+            document.querySelectorAll(selector).forEach(function (node) {
+                const rect = node.getBoundingClientRect();
+                const isLeftBottom = rect.left < 360 && rect.bottom > window.innerHeight - 520;
+
+                if ((selector !== "canvas" || isLeftBottom) && !roots.includes(node)) {
+                    roots.push(node);
+                }
+            });
+        });
+
+        return roots;
+    }
+
     function initLive2DQuiz() {
         const dialog = createQuizDialog();
+        const hitArea = createHitArea();
         const closeButton = dialog.querySelector(".live2d-quiz__close");
         const result = dialog.querySelector(".live2d-quiz__result");
-        const live2dSelector = "#live2d-widget, #oml2d-main, .oml2d-main, .oml2d-stage, .oml2d-canvas";
+        const boundNodes = new WeakSet();
 
-        function openDialog() {
+        function openDialog(event) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+
             dialog.classList.add("is-open");
             result.textContent = "";
             result.classList.remove("is-warning");
@@ -209,22 +253,46 @@
             window.clearTimeout(openDialog.closeTimer);
         }
 
-        function isLive2DClick(event) {
-            if (event.target.closest(live2dSelector)) {
-                return true;
+        function bindNode(node) {
+            if (!node || boundNodes.has(node) || node === dialog || dialog.contains(node)) {
+                return;
             }
 
-            const live2dRoot = document.getElementById("oml2d-main") || document.querySelector(".oml2d-main, .oml2d-stage");
+            boundNodes.add(node);
+            node.style.pointerEvents = "auto";
 
-            if (!live2dRoot) {
-                return false;
+            if (node !== hitArea) {
+                node.style.zIndex = node.style.zIndex || "42";
             }
 
-            const rect = live2dRoot.getBoundingClientRect();
-            return event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
+            node.addEventListener("click", openDialog, true);
+            node.addEventListener("touchstart", openDialog, {
+                capture: true,
+                passive: false
+            });
         }
 
-        closeButton.addEventListener("click", closeDialog);
+        function bindLive2DRoots() {
+            findLive2DRoots().forEach(bindNode);
+        }
+
+        bindNode(hitArea);
+        bindLive2DRoots();
+
+        const observer = new MutationObserver(bindLive2DRoots);
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+
+        window.setTimeout(bindLive2DRoots, 500);
+        window.setTimeout(bindLive2DRoots, 1500);
+        window.setTimeout(bindLive2DRoots, 3000);
+
+        closeButton.addEventListener("click", function (event) {
+            event.stopPropagation();
+            closeDialog();
+        });
 
         dialog.addEventListener("click", function (event) {
             const option = event.target.closest(".live2d-quiz__option");
@@ -233,6 +301,8 @@
                 return;
             }
 
+            event.stopPropagation();
+
             const isPraise = option.dataset.answer === "good";
             result.textContent = isPraise ? "你的眼光真不错" : "你骗人";
             result.classList.toggle("is-warning", !isPraise);
@@ -240,16 +310,6 @@
             window.clearTimeout(openDialog.closeTimer);
             openDialog.closeTimer = window.setTimeout(closeDialog, 3500);
         });
-
-        document.addEventListener("click", function (event) {
-            if (dialog.contains(event.target)) {
-                return;
-            }
-
-            if (isLive2DClick(event)) {
-                openDialog();
-            }
-        }, true);
 
         document.addEventListener("keydown", function (event) {
             if (event.key === "Escape") {

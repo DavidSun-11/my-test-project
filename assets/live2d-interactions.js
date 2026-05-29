@@ -1,4 +1,4 @@
-/* Live2D 互动模块：菜单、闲聊题库、答题小游戏都集中在这里，方便后续继续加题。 */
+/* Live2D 互动模块：菜单、闲聊题库、答题小游戏、英雄池转盘都集中在这里，方便后续继续加题。 */
 (function () {
     const chatBank = [
         {
@@ -62,9 +62,30 @@
         { question: "什么桥下面没有水？", options: ["木桥", "天桥", "石桥", "铁桥"], answer: 1 }
     ];
 
+    // 王者荣耀英雄池可继续补充英雄；这里先按常见主要分路分类，方便后续增删。
+    const heroPools = {
+        jungle: ["澜", "镜", "露娜", "韩信", "李白", "赵云", "孙悟空", "娜可露露", "云缨", "暃", "裴擒虎", "兰陵王", "阿轲", "曜", "宫本武藏"],
+        marksman: ["孙尚香", "公孙离", "马可波罗", "伽罗", "后羿", "鲁班七号", "狄仁杰", "虞姬", "李元芳", "蒙犽", "百里守约", "黄忠", "戈娅", "莱西奥"],
+        mid: ["貂蝉", "上官婉儿", "不知火舞", "诸葛亮", "干将莫邪", "王昭君", "小乔", "安琪拉", "西施", "弈星", "沈梦溪", "海月", "嬴政", "周瑜", "嫦娥"],
+        support: ["瑶", "蔡文姬", "大乔", "孙膑", "张飞", "牛魔", "太乙真人", "鲁班大师", "明世隐", "庄周", "盾山", "鬼谷子", "桑启", "刘禅"],
+        clash: ["花木兰", "马超", "关羽", "吕布", "夏洛特", "狂铁", "孙策", "亚瑟", "老夫子", "铠", "司空震", "白起", "项羽", "廉颇", "姬小满"]
+    };
+
+    const laneLabels = {
+        jungle: "打野",
+        marksman: "射手",
+        mid: "中路",
+        support: "辅助",
+        clash: "对抗路"
+    };
+
     const letters = ["A", "B", "C", "D"];
     let currentChat = null;
     let challengeState = null;
+    let selectedLane = "jungle";
+    let wheelRotation = 0;
+    let heroSpinTimer = null;
+    let heroSpinTimeout = null;
 
     function shuffle(items) {
         const copy = items.slice();
@@ -161,7 +182,16 @@
         const result = dialog.querySelector(".live2d-quiz__result");
         const boundNodes = new WeakSet();
 
+        function clearSpinTimers() {
+            window.clearInterval(heroSpinTimer);
+            window.clearTimeout(heroSpinTimeout);
+            heroSpinTimer = null;
+            heroSpinTimeout = null;
+        }
+
         function clearDialog() {
+            clearSpinTimers();
+            dialog.classList.remove("is-wheel");
             meta.textContent = "";
             question.textContent = "";
             options.innerHTML = "";
@@ -183,6 +213,7 @@
         }
 
         function closeDialog() {
+            clearSpinTimers();
             dialog.classList.remove("is-open", "is-opening");
             window.clearTimeout(showDialog.closeTimer);
         }
@@ -210,6 +241,7 @@
             options.classList.add("live2d-quiz__menu");
             addOption("闲聊", showChat);
             addOption("我们比比看", startChallenge);
+            addOption("英雄池转盘", showHeroWheel);
             showDialog();
         }
 
@@ -308,6 +340,120 @@
             });
             result.textContent = challengeState.correct >= 8 ? "不错嘛，君雪认可你了" : "还得练练，君雪在旁边看着呢";
             result.className = challengeState.correct >= 8 ? "live2d-quiz__result is-good" : "live2d-quiz__result is-neutral";
+        }
+
+        function showHeroWheel() {
+            clearDialog();
+            dialog.classList.add("is-wheel");
+            options.classList.add("live2d-quiz__wheel-panel");
+            meta.textContent = "英雄池转盘";
+            question.textContent = "先选分路，再让君雪帮你抽一个英雄。";
+            options.innerHTML = [
+                '<div class="live2d-wheel__lanes" aria-label="选择分路"></div>',
+                '<div class="live2d-wheel" aria-label="英雄转盘">',
+                    '<div class="live2d-wheel__pointer"></div>',
+                    '<div class="live2d-wheel__disc">',
+                        '<div class="live2d-wheel__ring"></div>',
+                        '<div class="live2d-wheel__hero">准备抽取</div>',
+                    '</div>',
+                '</div>',
+                '<button class="live2d-wheel__draw" type="button">开始抽取</button>',
+                '<div class="live2d-wheel__actions">',
+                    '<button class="live2d-wheel__small" type="button" data-action="again">重新抽取</button>',
+                    '<button class="live2d-wheel__small" type="button" data-action="back">回到菜单</button>',
+                '</div>'
+            ].join("");
+
+            const lanes = options.querySelector(".live2d-wheel__lanes");
+            const disc = options.querySelector(".live2d-wheel__disc");
+            const heroName = options.querySelector(".live2d-wheel__hero");
+            const drawButton = options.querySelector(".live2d-wheel__draw");
+            const againButton = options.querySelector('[data-action="again"]');
+            const backButton = options.querySelector('[data-action="back"]');
+
+            Object.keys(heroPools).forEach(function (lane) {
+                const button = document.createElement("button");
+                button.className = "live2d-wheel__lane";
+                button.type = "button";
+                button.dataset.lane = lane;
+                button.textContent = laneLabels[lane];
+                button.addEventListener("click", function (event) {
+                    event.stopPropagation();
+                    if (drawButton.disabled) {
+                        return;
+                    }
+
+                    selectedLane = lane;
+                    updateLaneButtons();
+                    previewHeroNames();
+                    result.textContent = "已选择：" + laneLabels[selectedLane];
+                    result.className = "live2d-quiz__result is-neutral";
+                });
+                lanes.appendChild(button);
+            });
+
+            function setControlsDisabled(disabled) {
+                drawButton.disabled = disabled;
+                againButton.disabled = disabled;
+                lanes.querySelectorAll("button").forEach(function (button) {
+                    button.disabled = disabled;
+                });
+            }
+
+            function updateLaneButtons() {
+                lanes.querySelectorAll("button").forEach(function (button) {
+                    button.classList.toggle("is-active", button.dataset.lane === selectedLane);
+                });
+            }
+
+            function previewHeroNames() {
+                heroName.textContent = shuffle(heroPools[selectedLane]).slice(0, 3).join(" / ");
+            }
+
+            function drawHero() {
+                const pool = heroPools[selectedLane];
+                const hero = pool[Math.floor(Math.random() * pool.length)];
+
+                clearSpinTimers();
+                setControlsDisabled(true);
+                result.textContent = "转盘启动中，君雪正在认真思考...";
+                result.className = "live2d-quiz__result is-neutral";
+                disc.classList.add("is-spinning");
+                wheelRotation += 1440 + Math.floor(Math.random() * 720);
+                disc.style.transform = "rotate(" + wheelRotation + "deg)";
+
+                heroSpinTimer = window.setInterval(function () {
+                    heroName.textContent = pool[Math.floor(Math.random() * pool.length)];
+                }, 80);
+
+                heroSpinTimeout = window.setTimeout(function () {
+                    clearSpinTimers();
+                    heroName.textContent = hero;
+                    disc.classList.remove("is-spinning");
+                    setControlsDisabled(false);
+                    result.textContent = "君雪为你抽到了：" + hero;
+                    result.className = "live2d-quiz__result is-good";
+                }, 1900);
+            }
+
+            drawButton.addEventListener("click", function (event) {
+                event.stopPropagation();
+                drawHero();
+            });
+            againButton.addEventListener("click", function (event) {
+                event.stopPropagation();
+                drawHero();
+            });
+            backButton.addEventListener("click", function (event) {
+                event.stopPropagation();
+                showMenu();
+            });
+
+            updateLaneButtons();
+            previewHeroNames();
+            result.textContent = "已选择：" + laneLabels[selectedLane];
+            result.className = "live2d-quiz__result is-neutral";
+            showDialog();
         }
 
         function bindNode(node) {

@@ -44,6 +44,10 @@
         return new URL(path, baseUrl).href;
     }
 
+    function toAbsoluteUrl(path) {
+        return new URL(path, document.baseURI).href;
+    }
+
     function addFile(files, file) {
         if (file && !files.includes(file)) {
             files.push(file);
@@ -53,6 +57,7 @@
     function collectModelFiles(modelJson, modelUrl) {
         const files = [];
         const references = modelJson.FileReferences || {};
+        const absoluteModelUrl = toAbsoluteUrl(modelUrl);
 
         addFile(files, modelJson.model);
         addFile(files, modelJson.physics);
@@ -90,7 +95,7 @@
         }
 
         return files.map(function (file) {
-            return asAbsoluteUrl(file, modelUrl);
+            return asAbsoluteUrl(file, absoluteModelUrl);
         });
     }
 
@@ -121,15 +126,17 @@
     }
 
     async function checkModelEntry(modelUrl) {
+        const absoluteModelUrl = toAbsoluteUrl(modelUrl);
+
         try {
-            const response = await fetch(modelUrl, {
+            const response = await fetch(absoluteModelUrl, {
                 method: "GET",
                 cache: "no-store"
             });
 
             if (!response.ok) {
                 console.error("Live2D Ganyu model entry missing", {
-                    url: modelUrl,
+                    url: absoluteModelUrl,
                     status: response.status,
                     statusText: response.statusText
                 });
@@ -137,7 +144,7 @@
             }
 
             const modelJson = await response.json();
-            const requiredFiles = collectModelFiles(modelJson, modelUrl);
+            const requiredFiles = collectModelFiles(modelJson, absoluteModelUrl);
 
             for (const fileUrl of requiredFiles) {
                 const ok = await fetchRequiredFile(fileUrl);
@@ -150,7 +157,7 @@
             return true;
         } catch (error) {
             console.error("Live2D Ganyu model check failed", {
-                url: modelUrl,
+                url: absoluteModelUrl,
                 error: error
             });
             return false;

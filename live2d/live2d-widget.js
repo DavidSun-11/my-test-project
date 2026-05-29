@@ -1,7 +1,7 @@
 /*
  * Live2D 看板娘初始化脚本。
  * 使用 OhMyLive2D 的纯前端 CDN 运行时，适合直接部署到 GitHub Pages。
- * 当前默认使用 npm 上稳定公开的 shizuku 示例模型，并在加载前检查 model / moc / textures 是否可访问。
+ * 优先加载站内模型；如果模型入口、moc/moc3 或 textures 缺失，会自动回退到稳定公开模型。
  */
 (function () {
     const config = window.Live2DWidgetConfig || {};
@@ -15,9 +15,9 @@
     ];
     const stableMessages = [
         "欢迎来到星空主页。",
-        "我已切换到稳定示例模型。",
+        "点我一下，来和君雪互动吧。",
         "我会待在左下角，不影响游戏展示。",
-        "点我一下，来和君雪互动吧。"
+        "如果站内模型缺文件，我会自动切回稳定模型。"
     ];
 
     function setMessage(text) {
@@ -49,23 +49,49 @@
         return new URL(path, baseUrl).href;
     }
 
+    function addFile(files, file) {
+        if (file && !files.includes(file)) {
+            files.push(file);
+        }
+    }
+
     function collectModelFiles(modelJson, modelUrl) {
         const files = [];
+        const references = modelJson.FileReferences || {};
 
-        if (modelJson.model) {
-            files.push(modelJson.model);
-        }
+        addFile(files, modelJson.model);
+        addFile(files, modelJson.physics);
+        addFile(files, modelJson.pose);
 
         if (Array.isArray(modelJson.textures)) {
-            files.push.apply(files, modelJson.textures);
+            modelJson.textures.forEach(function (texture) {
+                addFile(files, texture);
+            });
         }
 
-        if (modelJson.physics) {
-            files.push(modelJson.physics);
+        addFile(files, references.Moc);
+        addFile(files, references.Physics);
+        addFile(files, references.Pose);
+        addFile(files, references.DisplayInfo);
+
+        if (Array.isArray(references.Textures)) {
+            references.Textures.forEach(function (texture) {
+                addFile(files, texture);
+            });
         }
 
-        if (modelJson.pose) {
-            files.push(modelJson.pose);
+        if (references.Motions) {
+            Object.keys(references.Motions).forEach(function (groupName) {
+                references.Motions[groupName].forEach(function (motion) {
+                    addFile(files, motion.File);
+                });
+            });
+        }
+
+        if (references.Expressions) {
+            references.Expressions.forEach(function (expression) {
+                addFile(files, expression.File);
+            });
         }
 
         return files.map(function (file) {
@@ -153,7 +179,7 @@
 
     function buildModelConfig(modelPath) {
         return {
-            name: "shizuku",
+            name: config.modelName || "ganyu",
             path: modelPath,
             position: config.position || [0, 20],
             scale: config.scale || 0.18,

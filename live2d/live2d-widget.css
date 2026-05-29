@@ -314,7 +314,7 @@
     position: absolute;
     top: -5px;
     left: 50%;
-    z-index: 2;
+    z-index: 4;
     width: 0;
     height: 0;
     transform: translateX(-50%);
@@ -355,23 +355,29 @@
 }
 
 .live2d-wheel__hero {
-    position: relative;
-    z-index: 1;
-    width: 94px;
-    min-height: 54px;
-    display: grid;
-    place-items: center;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 3;
+    width: 100px;
+    min-height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     padding: 8px;
-    border: 1px solid rgba(108, 229, 255, 0.42);
+    border: 1px solid rgba(108, 229, 255, 0.52);
     border-radius: 18px;
-    background: rgba(7, 17, 31, 0.86);
+    background: rgba(7, 17, 31, 0.9);
     color: #fff;
-    font-size: 15px;
+    font-size: 16px;
     font-weight: bold;
     line-height: 1.35;
     text-align: center;
-    text-shadow: 0 0 12px rgba(108, 229, 255, 0.42);
-    box-shadow: inset 0 0 14px rgba(108, 229, 255, 0.12);
+    text-shadow: 0 0 12px rgba(108, 229, 255, 0.5);
+    box-shadow: inset 0 0 14px rgba(108, 229, 255, 0.12), 0 0 18px rgba(0, 190, 255, 0.22);
+    transform: translate(-50%, -50%);
+    white-space: normal;
+    word-break: keep-all;
 }
 
 .live2d-wheel__draw {
@@ -461,8 +467,8 @@
     }
 
     .live2d-wheel__hero {
-        width: 82px;
+        width: 86px;
         min-height: 48px;
-        font-size: 13px;
+        font-size: 14px;
     }
 }

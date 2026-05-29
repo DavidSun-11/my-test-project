@@ -31,13 +31,14 @@
 
 .live2d-message {
     position: absolute;
-    right: 10px;
-    top: 20px;
-    max-width: 190px;
-    padding: 10px 12px;
+    right: -18px;
+    top: 18px;
+    width: 220px;
+    max-width: 220px;
+    padding: 9px 11px;
     border: 1px solid rgba(108, 229, 255, 0.42);
-    border-radius: 14px 14px 4px 14px;
-    background: rgba(7, 17, 31, 0.72);
+    border-radius: 13px 13px 13px 4px;
+    background: rgba(7, 17, 31, 0.76);
     color: rgba(255, 255, 255, 0.92);
     font-size: 13px;
     line-height: 1.45;
@@ -47,9 +48,8 @@
 }
 
 .live2d-widget.is-left .live2d-message {
-    right: auto;
-    left: 10px;
-    border-radius: 14px 14px 14px 4px;
+    right: -18px;
+    left: auto;
 }
 
 .live2d-widget.is-loaded .live2d-message {
@@ -77,6 +77,40 @@
 #oml2d-main,
 .oml2d-main {
     bottom: 112px !important;
+}
+
+/* OhMyLive2D 普通提示框：只显示一句话，放在模型右上侧，避免遮住模型主体；带选项的互动大弹窗仍使用 .live2d-quiz。 */
+#oml2d-tips,
+.oml2d-tips,
+#oml2d-statusBar,
+.oml2d-statusBar,
+.oml2d-status-bar,
+[class*="oml2d"][class*="tips"],
+[class*="oml2d"][class*="Tips"],
+[class*="oml2d"][class*="statusBar"],
+[class*="oml2d"][class*="StatusBar"] {
+    position: fixed !important;
+    left: 220px !important;
+    right: auto !important;
+    bottom: 430px !important;
+    width: 220px !important;
+    max-width: 220px !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    padding: 9px 12px !important;
+    border: 1px solid rgba(108, 229, 255, 0.46) !important;
+    border-radius: 14px 14px 14px 4px !important;
+    background: rgba(7, 17, 31, 0.78) !important;
+    color: rgba(255, 255, 255, 0.94) !important;
+    font-size: 13px !important;
+    line-height: 1.45 !important;
+    text-align: left !important;
+    box-shadow: 0 0 18px rgba(0, 180, 255, 0.2) !important;
+    backdrop-filter: blur(10px) !important;
+    pointer-events: none !important;
+    white-space: normal !important;
+    overflow: hidden !important;
 }
 
 .live2d-hit-area {
@@ -416,21 +450,39 @@
     }
 
     .live2d-message {
-        max-width: 132px;
-        top: 10px;
-        right: 4px;
+        width: 180px;
+        max-width: 180px;
+        top: 8px;
+        right: -168px;
         font-size: 12px;
         padding: 8px 10px;
     }
 
     .live2d-widget.is-left .live2d-message {
-        right: auto;
-        left: 4px;
+        right: -168px;
+        left: auto;
     }
 
     #oml2d-main,
     .oml2d-main {
         bottom: 96px !important;
+    }
+
+    #oml2d-tips,
+    .oml2d-tips,
+    #oml2d-statusBar,
+    .oml2d-statusBar,
+    .oml2d-status-bar,
+    [class*="oml2d"][class*="tips"],
+    [class*="oml2d"][class*="Tips"],
+    [class*="oml2d"][class*="statusBar"],
+    [class*="oml2d"][class*="StatusBar"] {
+        left: 168px !important;
+        bottom: 334px !important;
+        width: 180px !important;
+        max-width: calc(100vw - 184px) !important;
+        font-size: 12px !important;
+        padding: 8px 10px !important;
     }
 
     .live2d-hit-area {

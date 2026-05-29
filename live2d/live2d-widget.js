@@ -1,23 +1,18 @@
 /*
  * Live2D 看板娘初始化脚本。
  * 使用 OhMyLive2D 的纯前端 CDN 运行时，适合直接部署到 GitHub Pages。
- * 优先加载站内模型；如果模型入口、moc/moc3 或 textures 缺失，会自动回退到稳定公开模型。
+ * 只加载仓库内甘雨模型；如果入口、moc3 或 textures 缺失，会在控制台明确输出错误，不再回退到旧模型。
  */
 (function () {
     const config = window.Live2DWidgetConfig || {};
     const widget = document.getElementById("live2d-widget");
     const message = widget ? widget.querySelector(".live2d-message") : null;
-    const legacyLocalModel = "live2d/models/miku-style/model.json";
-    const senkoModel = "https://model.oml2d.com/Senko_Normals/senko.model3.json";
-    const stableModels = [
-        "https://cdn.jsdelivr.net/npm/live2d-widget-model-shizuku@1.0.5/assets/shizuku.model.json",
-        "https://unpkg.com/live2d-widget-model-shizuku@1.0.5/assets/shizuku.model.json"
-    ];
+    const defaultGanyuModel = "live2d/models/ganyu/Ganyu1024.model3.json";
     const stableMessages = [
         "欢迎来到星空主页。",
         "点我一下，来和君雪互动吧。",
         "我会待在左下角，不影响游戏展示。",
-        "如果站内模型缺文件，我会自动切回稳定模型。"
+        "甘雨模型正在从站内资源加载。"
     ];
 
     function setMessage(text) {
@@ -99,14 +94,28 @@
         });
     }
 
-    async function canFetch(url) {
+    async function fetchRequiredFile(url) {
         try {
             const response = await fetch(url, {
                 method: "GET",
                 cache: "no-store"
             });
-            return response.ok;
+
+            if (!response.ok) {
+                console.error("Live2D Ganyu resource missing", {
+                    url: url,
+                    status: response.status,
+                    statusText: response.statusText
+                });
+                return false;
+            }
+
+            return true;
         } catch (error) {
+            console.error("Live2D Ganyu resource fetch failed", {
+                url: url,
+                error: error
+            });
             return false;
         }
     }
@@ -119,6 +128,11 @@
             });
 
             if (!response.ok) {
+                console.error("Live2D Ganyu model entry missing", {
+                    url: modelUrl,
+                    status: response.status,
+                    statusText: response.statusText
+                });
                 return false;
             }
 
@@ -126,7 +140,7 @@
             const requiredFiles = collectModelFiles(modelJson, modelUrl);
 
             for (const fileUrl of requiredFiles) {
-                const ok = await canFetch(fileUrl);
+                const ok = await fetchRequiredFile(fileUrl);
 
                 if (!ok) {
                     return false;
@@ -135,34 +149,12 @@
 
             return true;
         } catch (error) {
+            console.error("Live2D Ganyu model check failed", {
+                url: modelUrl,
+                error: error
+            });
             return false;
         }
-    }
-
-    function shouldUseStableModel(path) {
-        return !path || path === legacyLocalModel || path === senkoModel;
-    }
-
-    async function resolveModelPath() {
-        const requestedPath = config.modelPath;
-
-        if (!shouldUseStableModel(requestedPath)) {
-            const ok = await checkModelEntry(requestedPath);
-
-            if (ok) {
-                return requestedPath;
-            }
-        }
-
-        for (const modelUrl of stableModels) {
-            const ok = await checkModelEntry(modelUrl);
-
-            if (ok) {
-                return modelUrl;
-            }
-        }
-
-        return "";
     }
 
     async function ensureRuntime() {
@@ -182,16 +174,16 @@
             name: config.modelName || "ganyu",
             path: modelPath,
             position: config.position || [0, 20],
-            scale: config.scale || 0.18,
+            scale: config.scale || 0.216,
             stageStyle: config.stageStyle || {
-                width: config.width || 280,
-                height: config.height || 380
+                width: config.width || 336,
+                height: config.height || 456
             },
             mobilePosition: config.mobilePosition || [0, 25],
-            mobileScale: config.mobileScale || 0.14,
+            mobileScale: config.mobileScale || 0.168,
             mobileStageStyle: config.mobileStageStyle || {
-                width: config.mobileWidth || 190,
-                height: config.mobileHeight || 260
+                width: config.mobileWidth || 228,
+                height: config.mobileHeight || 312
             }
         };
     }
@@ -199,6 +191,7 @@
     async function boot() {
         const dockedPosition = config.dockedPosition || "left";
         const idleMessages = config.messages || stableMessages;
+        const modelPath = config.modelPath || defaultGanyuModel;
 
         if (widget && dockedPosition === "left") {
             widget.classList.add("is-left");
@@ -209,19 +202,21 @@
         try {
             await ensureRuntime();
         } catch (error) {
+            console.error("Live2D runtime load failed", error);
             setMessage("Live2D 运行时加载失败，请检查 CDN 是否可访问。");
             return;
         }
 
         if (!window.OML2D || typeof window.OML2D.loadOml2d !== "function") {
+            console.error("Live2D runtime is unavailable", window.OML2D);
             setMessage("Live2D 运行时不可用，请稍后刷新页面。");
             return;
         }
 
-        const modelPath = await resolveModelPath();
+        const modelReady = await checkModelEntry(modelPath);
 
-        if (!modelPath) {
-            setMessage("模型文件不可访问，请检查网络或 CDN。 ");
+        if (!modelReady) {
+            setMessage("甘雨模型资源不可访问，请检查 GitHub Pages 文件路径。");
             return;
         }
 
@@ -243,8 +238,8 @@
             statusBar: {
                 disable: false,
                 loadingMessage: "Live2D 加载中...",
-                loadSuccessMessage: "看板娘已上线",
-                loadFailMessage: "模型加载失败，请刷新或稍后再试"
+                loadSuccessMessage: "甘雨已上线",
+                loadFailMessage: "甘雨模型加载失败，请检查 Console 资源错误"
             },
             models: [buildModelConfig(modelPath)],
             tips: {

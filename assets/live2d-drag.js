@@ -159,12 +159,15 @@
 
     function isLive2DTarget(target) {
         const hitArea = getHitArea();
+        const closestLive2D = target && typeof target.closest === "function"
+            ? target.closest("#live2d-widget, #oml2d-main, .oml2d-main, [id^='oml2d'], [class*='oml2d']")
+            : null;
 
         return Boolean(
             target && (
                 target === hitArea ||
                 (hitArea && hitArea.contains(target)) ||
-                target.closest("#live2d-widget, #oml2d-main, .oml2d-main, [id^='oml2d'], [class*='oml2d']")
+                closestLive2D
             )
         );
     }

@@ -11,10 +11,10 @@
             font-family: Arial, sans-serif;
             margin: 0;
             background:
-                radial-gradient(circle at 18% 20%, rgba(78, 162, 210, 0.26) 0, rgba(78, 162, 210, 0.08) 22%, transparent 42%),
-                radial-gradient(circle at 78% 8%, rgba(120, 185, 255, 0.18) 0, transparent 34%),
-                radial-gradient(circle at 52% 60%, rgba(35, 91, 145, 0.24) 0, transparent 46%),
-                linear-gradient(to bottom, #030914 0%, #071a2f 46%, #102a43 100%);
+                radial-gradient(ellipse at 44% 30%, rgba(155, 183, 224, 0.30) 0%, rgba(70, 111, 165, 0.14) 18%, transparent 46%),
+                radial-gradient(ellipse at 28% 58%, rgba(111, 152, 205, 0.18) 0%, rgba(48, 85, 137, 0.12) 28%, transparent 58%),
+                radial-gradient(circle at 80% 12%, rgba(108, 178, 255, 0.14) 0, transparent 34%),
+                linear-gradient(to bottom, #01040b 0%, #04111f 42%, #0a2239 100%);
             color: #333;
             overflow-x: hidden;
         }
@@ -33,34 +33,46 @@
 
         .stars {
             background-image:
-                radial-gradient(circle at 11px 18px, rgba(255,255,255,0.52) 0 1px, transparent 1.4px),
-                radial-gradient(circle at 68px 92px, rgba(185,224,255,0.34) 0 1px, transparent 1.5px),
-                radial-gradient(circle at 142px 44px, rgba(255,255,255,0.42) 0 0.8px, transparent 1.2px),
-                radial-gradient(circle at 212px 126px, rgba(152,204,255,0.28) 0 0.9px, transparent 1.3px);
-            background-size: 260px 190px;
-            animation: driftStars 110s linear infinite, starBreath 7s ease-in-out infinite alternate;
-            opacity: 0.72;
+                radial-gradient(circle at 7px 12px, rgba(255,255,255,0.54) 0 0.75px, transparent 1.1px),
+                radial-gradient(circle at 23px 88px, rgba(210,230,255,0.42) 0 0.7px, transparent 1.05px),
+                radial-gradient(circle at 48px 34px, rgba(255,255,255,0.34) 0 0.65px, transparent 1px),
+                radial-gradient(circle at 76px 132px, rgba(170,212,255,0.36) 0 0.75px, transparent 1.1px),
+                radial-gradient(circle at 108px 54px, rgba(255,255,255,0.48) 0 0.7px, transparent 1.05px),
+                radial-gradient(circle at 142px 156px, rgba(190,222,255,0.30) 0 0.65px, transparent 1px),
+                radial-gradient(circle at 174px 26px, rgba(255,255,255,0.42) 0 0.8px, transparent 1.15px),
+                radial-gradient(circle at 216px 108px, rgba(146,198,255,0.32) 0 0.7px, transparent 1.1px),
+                radial-gradient(circle at 248px 66px, rgba(255,255,255,0.40) 0 0.75px, transparent 1.1px),
+                radial-gradient(circle at 286px 174px, rgba(255,255,255,0.28) 0 0.65px, transparent 1px);
+            background-size: 310px 210px;
+            animation: driftStars 125s linear infinite, starBreath 8s ease-in-out infinite alternate;
+            opacity: 0.92;
         }
 
         .stars2 {
             background-image:
-                radial-gradient(circle at 34px 28px, rgba(255,255,255,0.88) 0 1.2px, transparent 1.8px),
-                radial-gradient(circle at 118px 86px, rgba(150,218,255,0.72) 0 1px, transparent 1.7px),
-                radial-gradient(circle at 198px 48px, rgba(255,255,255,0.66) 0 1.1px, transparent 1.7px),
-                radial-gradient(circle at 258px 138px, rgba(188,232,255,0.56) 0 1px, transparent 1.6px);
-            background-size: 320px 220px;
-            animation: driftStars 150s linear infinite, twinkleStars 4.8s ease-in-out infinite alternate;
-            opacity: 0.58;
+                radial-gradient(circle at 18px 28px, rgba(255,255,255,0.86) 0 1.1px, transparent 1.75px),
+                radial-gradient(circle at 58px 144px, rgba(170,222,255,0.70) 0 1px, transparent 1.65px),
+                radial-gradient(circle at 96px 72px, rgba(255,255,255,0.76) 0 1px, transparent 1.7px),
+                radial-gradient(circle at 136px 188px, rgba(140,205,255,0.54) 0 0.95px, transparent 1.55px),
+                radial-gradient(circle at 182px 38px, rgba(255,255,255,0.78) 0 1.05px, transparent 1.7px),
+                radial-gradient(circle at 236px 116px, rgba(194,232,255,0.66) 0 1px, transparent 1.65px),
+                radial-gradient(circle at 292px 82px, rgba(255,255,255,0.68) 0 0.95px, transparent 1.6px),
+                radial-gradient(circle at 346px 164px, rgba(156,216,255,0.50) 0 1px, transparent 1.7px);
+            background-size: 390px 260px;
+            animation: driftStars 165s linear infinite, twinkleStars 4.2s ease-in-out infinite alternate;
+            opacity: 0.72;
         }
 
         .stars3 {
             background-image:
-                radial-gradient(circle at 52px 54px, rgba(255,255,255,0.95) 0 1.7px, rgba(126,210,255,0.22) 2.6px, transparent 5px),
-                radial-gradient(circle at 180px 28px, rgba(164,224,255,0.82) 0 1.5px, rgba(164,224,255,0.18) 3px, transparent 6px),
-                radial-gradient(circle at 286px 158px, rgba(255,255,255,0.72) 0 1.4px, rgba(255,255,255,0.14) 3px, transparent 5px);
-            background-size: 380px 260px;
-            animation: driftStars 190s linear infinite, glowStars 6.4s ease-in-out infinite alternate;
-            opacity: 0.42;
+                radial-gradient(circle at 38px 54px, rgba(255,255,255,0.98) 0 1.7px, rgba(126,210,255,0.34) 2.8px, transparent 6px),
+                radial-gradient(circle at 112px 178px, rgba(165,225,255,0.88) 0 1.5px, rgba(96,182,255,0.24) 3.2px, transparent 7px),
+                radial-gradient(circle at 204px 36px, rgba(255,255,255,0.84) 0 1.4px, rgba(255,255,255,0.20) 3px, transparent 6px),
+                radial-gradient(circle at 318px 132px, rgba(132,210,255,0.80) 0 1.5px, rgba(132,210,255,0.22) 3.4px, transparent 7px),
+                radial-gradient(circle at 408px 226px, rgba(255,255,255,0.72) 0 1.3px, rgba(255,255,255,0.16) 3px, transparent 6px);
+            background-size: 470px 310px;
+            animation: driftStars 210s linear infinite, glowStars 5.8s ease-in-out infinite alternate;
+            opacity: 0.56;
         }
 
         .meteor-layer {
@@ -73,27 +85,36 @@
 
         .meteor {
             position: absolute;
-            width: var(--meteor-length, 160px);
+            width: var(--meteor-length, 300px);
             height: 2px;
             border-radius: 999px;
-            background: linear-gradient(90deg, transparent 0%, rgba(130, 216, 255, 0.18) 24%, rgba(224, 248, 255, 0.96) 100%);
-            box-shadow: 0 0 14px rgba(116, 212, 255, 0.75), 0 0 28px rgba(116, 212, 255, 0.28);
+            background: linear-gradient(90deg, transparent 0%, rgba(90, 190, 255, 0.12) 18%, rgba(156, 226, 255, 0.52) 54%, rgba(245, 252, 255, 1) 100%);
+            box-shadow: 0 0 18px rgba(135, 220, 255, 0.95), 0 0 38px rgba(94, 190, 255, 0.52), 0 0 72px rgba(94, 190, 255, 0.22);
             opacity: 0;
-            transform: rotate(-34deg) translate3d(0, 0, 0);
-            animation: meteorFall var(--meteor-duration, 2200ms) ease-out forwards;
+            transform: rotate(-28deg) translate3d(0, 0, 0);
+            animation: meteorFall var(--meteor-duration, 2400ms) cubic-bezier(0.08, 0.7, 0.2, 1) forwards;
             will-change: transform, opacity;
+        }
+
+        .meteor::before {
+            content: "";
+            position: absolute;
+            inset: -3px 8px -3px 20%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, transparent, rgba(170, 232, 255, 0.22), rgba(255,255,255,0.62));
+            filter: blur(3px);
         }
 
         .meteor::after {
             content: "";
             position: absolute;
-            right: -2px;
+            right: -3px;
             top: 50%;
-            width: 5px;
-            height: 5px;
+            width: 7px;
+            height: 7px;
             border-radius: 50%;
             background: white;
-            box-shadow: 0 0 12px rgba(255,255,255,0.95), 0 0 24px rgba(111,210,255,0.75);
+            box-shadow: 0 0 16px rgba(255,255,255,1), 0 0 34px rgba(126,220,255,0.95), 0 0 60px rgba(126,220,255,0.46);
             transform: translateY(-50%);
         }
 
@@ -102,52 +123,55 @@
                 transform: translate3d(0, 0, 0);
             }
             to {
-                transform: translate3d(-120px, -720px, 0);
+                transform: translate3d(-140px, -760px, 0);
             }
         }
 
         @keyframes starBreath {
             from {
-                opacity: 0.5;
+                opacity: 0.66;
             }
             to {
-                opacity: 0.78;
+                opacity: 0.96;
             }
         }
 
         @keyframes twinkleStars {
             0%, 100% {
-                opacity: 0.42;
-                filter: brightness(0.9);
+                opacity: 0.50;
+                filter: brightness(0.86);
             }
-            45% {
-                opacity: 0.72;
-                filter: brightness(1.28);
+            48% {
+                opacity: 0.82;
+                filter: brightness(1.34);
             }
         }
 
         @keyframes glowStars {
             from {
-                opacity: 0.28;
-                filter: drop-shadow(0 0 2px rgba(126,210,255,0.35));
+                opacity: 0.34;
+                filter: drop-shadow(0 0 2px rgba(126,210,255,0.42));
             }
             to {
-                opacity: 0.56;
-                filter: drop-shadow(0 0 7px rgba(126,210,255,0.55));
+                opacity: 0.64;
+                filter: drop-shadow(0 0 9px rgba(126,210,255,0.72));
             }
         }
 
         @keyframes meteorFall {
             0% {
                 opacity: 0;
-                transform: rotate(-34deg) translate3d(0, 0, 0) scaleX(0.7);
+                transform: rotate(-28deg) translate3d(0, 0, 0) scaleX(0.65);
             }
-            12% {
-                opacity: var(--meteor-opacity, 0.95);
+            10% {
+                opacity: var(--meteor-opacity, 1);
+            }
+            78% {
+                opacity: var(--meteor-opacity, 1);
             }
             100% {
                 opacity: 0;
-                transform: rotate(-34deg) translate3d(var(--meteor-travel-x, -760px), var(--meteor-travel-y, 520px), 0) scaleX(1);
+                transform: rotate(-28deg) translate3d(var(--meteor-travel-x, -920px), var(--meteor-travel-y, 510px), 0) scaleX(1);
             }
         }
 
@@ -374,30 +398,30 @@ document.addEventListener("click", (e) => {
         }
 
         const meteor = document.createElement("span");
-        const duration = randomBetween(1700, 3100);
-        const startLeft = randomBetween(window.innerWidth * 0.48, window.innerWidth + 160);
-        const startTop = randomBetween(-80, window.innerHeight * 0.34);
+        const duration = randomBetween(1800, 3200);
+        const startLeft = randomBetween(window.innerWidth * 0.56, window.innerWidth + 220);
+        const startTop = randomBetween(-120, window.innerHeight * 0.28);
 
         meteor.className = "meteor";
         meteor.style.left = startLeft + "px";
         meteor.style.top = startTop + "px";
-        meteor.style.setProperty("--meteor-length", randomBetween(110, 210) + "px");
+        meteor.style.setProperty("--meteor-length", randomBetween(220, 380) + "px");
         meteor.style.setProperty("--meteor-duration", duration + "ms");
-        meteor.style.setProperty("--meteor-opacity", randomBetween(0.68, 0.96));
-        meteor.style.setProperty("--meteor-travel-x", randomBetween(-620, -900) + "px");
-        meteor.style.setProperty("--meteor-travel-y", randomBetween(360, 620) + "px");
+        meteor.style.setProperty("--meteor-opacity", randomBetween(0.84, 1));
+        meteor.style.setProperty("--meteor-travel-x", randomBetween(-760, -1080) + "px");
+        meteor.style.setProperty("--meteor-travel-y", randomBetween(390, 660) + "px");
         layer.appendChild(meteor);
 
         window.setTimeout(() => {
             meteor.remove();
-        }, duration + 120);
+        }, duration + 160);
 
         scheduleNextMeteor();
     }
 
     function scheduleNextMeteor() {
         window.clearTimeout(timer);
-        timer = window.setTimeout(spawnMeteor, randomBetween(2600, 7200));
+        timer = window.setTimeout(spawnMeteor, randomBetween(3000, 8000));
     }
 
     scheduleNextMeteor();

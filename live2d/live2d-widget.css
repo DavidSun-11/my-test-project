@@ -41,18 +41,18 @@
 
 .live2d-message {
     position: absolute;
-    right: -214px;
-    top: 70px;
-    width: 200px;
-    max-width: 200px;
+    right: -194px;
+    top: 104px;
+    width: 180px;
+    max-width: 180px;
     box-sizing: border-box;
-    padding: 8px 10px;
+    padding: 7px 9px;
     border: 1px solid rgba(108, 229, 255, 0.42);
     border-radius: 14px 14px 14px 4px;
     background: rgba(7, 17, 31, 0.72);
     color: rgba(255, 255, 255, 0.92);
-    font-size: 12px;
-    line-height: 1.4;
+    font-size: 13px;
+    line-height: 1.38;
     white-space: normal;
     overflow-wrap: anywhere;
     box-shadow: 0 0 18px rgba(0, 180, 255, 0.18);
@@ -62,8 +62,8 @@
 
 .live2d-widget.is-left .live2d-message {
     right: auto;
-    left: calc(100% + 10px);
-    top: 76px;
+    left: calc(100% + 12px);
+    top: 116px;
     border-radius: 14px 14px 14px 4px;
 }
 
@@ -578,18 +578,18 @@
     }
 
     .live2d-message {
-        right: -178px;
-        top: 52px;
-        width: 168px;
-        max-width: 168px;
-        font-size: 11px;
-        padding: 7px 9px;
+        right: -168px;
+        top: 84px;
+        width: 160px;
+        max-width: 160px;
+        font-size: 12px;
+        padding: 6px 8px;
     }
 
     .live2d-widget.is-left .live2d-message {
         right: auto;
         left: calc(100% + 8px);
-        top: 56px;
+        top: 92px;
     }
 
     #oml2d-main,

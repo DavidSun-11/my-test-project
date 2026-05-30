@@ -247,6 +247,153 @@
     text-shadow: 0 0 12px rgba(255, 116, 160, 0.28);
 }
 
+.live2d-consult-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.live2d-consult-card {
+    min-height: 76px;
+    padding: 12px;
+    border: 1px solid rgba(108, 229, 255, 0.36);
+    border-radius: 14px;
+    background:
+        radial-gradient(circle at 12% 18%, rgba(159, 245, 255, 0.15), transparent 38%),
+        rgba(255, 255, 255, 0.075);
+    color: rgba(255, 255, 255, 0.94);
+    cursor: pointer;
+    text-align: left;
+    transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+}
+
+.live2d-consult-card:hover:not(:disabled) {
+    transform: translateY(-1px);
+    border-color: rgba(159, 245, 255, 0.8);
+    box-shadow: 0 0 18px rgba(0, 190, 255, 0.24);
+    background: rgba(73, 214, 255, 0.14);
+}
+
+.live2d-consult-card:disabled {
+    cursor: default;
+    opacity: 0.52;
+}
+
+.live2d-consult-card__title,
+.live2d-consult-card__desc {
+    display: block;
+}
+
+.live2d-consult-card__title {
+    margin-bottom: 6px;
+    color: #eafcff;
+    font-size: 15px;
+    font-weight: bold;
+    text-shadow: 0 0 12px rgba(108, 229, 255, 0.38);
+}
+
+.live2d-consult-card__desc {
+    color: rgba(214, 246, 255, 0.72);
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.live2d-quiz.is-weather {
+    width: 374px;
+}
+
+.live2d-weather-panel {
+    display: block;
+}
+
+.live2d-weather-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 74px;
+    gap: 8px;
+}
+
+.live2d-weather-input {
+    min-width: 0;
+    min-height: 38px;
+    padding: 0 12px;
+    border: 1px solid rgba(108, 229, 255, 0.38);
+    border-radius: 12px;
+    outline: none;
+    background: rgba(3, 9, 20, 0.62);
+    color: rgba(255, 255, 255, 0.94);
+    box-shadow: inset 0 0 12px rgba(108, 229, 255, 0.08);
+}
+
+.live2d-weather-input::placeholder {
+    color: rgba(214, 246, 255, 0.48);
+}
+
+.live2d-weather-input:focus {
+    border-color: rgba(159, 245, 255, 0.86);
+    box-shadow: 0 0 14px rgba(0, 190, 255, 0.22), inset 0 0 12px rgba(108, 229, 255, 0.1);
+}
+
+.live2d-weather-submit {
+    min-height: 38px;
+    border: 1px solid rgba(108, 229, 255, 0.48);
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(73, 214, 255, 0.24), rgba(255, 255, 255, 0.1));
+    color: rgba(255, 255, 255, 0.94);
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.live2d-weather-submit:hover {
+    border-color: rgba(255, 221, 114, 0.72);
+    box-shadow: 0 0 16px rgba(255, 221, 114, 0.2);
+}
+
+.live2d-weather-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.live2d-weather-card {
+    display: grid;
+    gap: 8px;
+}
+
+.live2d-weather-day {
+    padding: 10px 12px;
+    border: 1px solid rgba(108, 229, 255, 0.32);
+    border-radius: 14px;
+    background:
+        radial-gradient(circle at 8% 16%, rgba(108, 229, 255, 0.14), transparent 38%),
+        rgba(255, 255, 255, 0.07);
+    box-shadow: inset 0 0 14px rgba(108, 229, 255, 0.06);
+}
+
+.live2d-weather-day__label {
+    color: #eafcff;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.live2d-weather-day__date,
+.live2d-weather-day__rain {
+    color: rgba(214, 246, 255, 0.68);
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.live2d-weather-day__status {
+    margin-top: 4px;
+    color: #9ff5ff;
+    font-size: 13px;
+    text-shadow: 0 0 10px rgba(108, 229, 255, 0.32);
+}
+
+.live2d-weather-day__temp {
+    margin-top: 2px;
+    color: #ffe8a3;
+    font-size: 13px;
+}
+
 /* 英雄池转盘样式：只服务 Live2D 弹窗里的第三个互动功能，保持星空毛玻璃和蓝白发光风格。 */
 .live2d-quiz.is-wheel {
     width: 390px;
@@ -447,9 +594,19 @@
         padding: 14px;
     }
 
-    .live2d-quiz__options {
+    .live2d-quiz__options,
+    .live2d-consult-grid {
         grid-template-columns: 1fr;
         gap: 8px;
+    }
+
+    .live2d-quiz.is-weather {
+        width: min(304px, calc(100vw - 44px));
+    }
+
+    .live2d-weather-form,
+    .live2d-weather-actions {
+        grid-template-columns: 1fr;
     }
 
     .live2d-quiz.is-wheel {

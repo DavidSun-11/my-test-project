@@ -10,8 +10,13 @@
         body {
             font-family: Arial, sans-serif;
             margin: 0;
-            background: linear-gradient(to bottom, #07111f, #102a43);
+            background:
+                radial-gradient(circle at 18% 20%, rgba(78, 162, 210, 0.26) 0, rgba(78, 162, 210, 0.08) 22%, transparent 42%),
+                radial-gradient(circle at 78% 8%, rgba(120, 185, 255, 0.18) 0, transparent 34%),
+                radial-gradient(circle at 52% 60%, rgba(35, 91, 145, 0.24) 0, transparent 46%),
+                linear-gradient(to bottom, #030914 0%, #071a2f 46%, #102a43 100%);
             color: #333;
+            overflow-x: hidden;
         }
 
         .stars, .stars2, .stars3  {
@@ -21,30 +26,138 @@
             width: 100%;
             height: 200%;
             background-repeat: repeat;
-            background-image: radial-gradient(white 1px, transparent 1px);
-            background-size: 80px 80px;
-            animation: moveStars 60s linear infinite;
-            z-index: -1;
+            pointer-events: none;
+            z-index: -3;
+            will-change: transform, opacity;
+        }
+
+        .stars {
+            background-image:
+                radial-gradient(circle at 11px 18px, rgba(255,255,255,0.52) 0 1px, transparent 1.4px),
+                radial-gradient(circle at 68px 92px, rgba(185,224,255,0.34) 0 1px, transparent 1.5px),
+                radial-gradient(circle at 142px 44px, rgba(255,255,255,0.42) 0 0.8px, transparent 1.2px),
+                radial-gradient(circle at 212px 126px, rgba(152,204,255,0.28) 0 0.9px, transparent 1.3px);
+            background-size: 260px 190px;
+            animation: driftStars 110s linear infinite, starBreath 7s ease-in-out infinite alternate;
+            opacity: 0.72;
         }
 
         .stars2 {
-            background-size: 120px 120px;
-            opacity: 0.6;
-            animation-duration: 90s;
+            background-image:
+                radial-gradient(circle at 34px 28px, rgba(255,255,255,0.88) 0 1.2px, transparent 1.8px),
+                radial-gradient(circle at 118px 86px, rgba(150,218,255,0.72) 0 1px, transparent 1.7px),
+                radial-gradient(circle at 198px 48px, rgba(255,255,255,0.66) 0 1.1px, transparent 1.7px),
+                radial-gradient(circle at 258px 138px, rgba(188,232,255,0.56) 0 1px, transparent 1.6px);
+            background-size: 320px 220px;
+            animation: driftStars 150s linear infinite, twinkleStars 4.8s ease-in-out infinite alternate;
+            opacity: 0.58;
         }
 
         .stars3 {
-            background-size: 160px 160px;
-            opacity: 0.4;
-            animation-duration: 120s;
+            background-image:
+                radial-gradient(circle at 52px 54px, rgba(255,255,255,0.95) 0 1.7px, rgba(126,210,255,0.22) 2.6px, transparent 5px),
+                radial-gradient(circle at 180px 28px, rgba(164,224,255,0.82) 0 1.5px, rgba(164,224,255,0.18) 3px, transparent 6px),
+                radial-gradient(circle at 286px 158px, rgba(255,255,255,0.72) 0 1.4px, rgba(255,255,255,0.14) 3px, transparent 5px);
+            background-size: 380px 260px;
+            animation: driftStars 190s linear infinite, glowStars 6.4s ease-in-out infinite alternate;
+            opacity: 0.42;
         }
 
-        @keyframes moveStars {
+        .meteor-layer {
+            position: fixed;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: -2;
+        }
+
+        .meteor {
+            position: absolute;
+            width: var(--meteor-length, 160px);
+            height: 2px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, transparent 0%, rgba(130, 216, 255, 0.18) 24%, rgba(224, 248, 255, 0.96) 100%);
+            box-shadow: 0 0 14px rgba(116, 212, 255, 0.75), 0 0 28px rgba(116, 212, 255, 0.28);
+            opacity: 0;
+            transform: rotate(-34deg) translate3d(0, 0, 0);
+            animation: meteorFall var(--meteor-duration, 2200ms) ease-out forwards;
+            will-change: transform, opacity;
+        }
+
+        .meteor::after {
+            content: "";
+            position: absolute;
+            right: -2px;
+            top: 50%;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: white;
+            box-shadow: 0 0 12px rgba(255,255,255,0.95), 0 0 24px rgba(111,210,255,0.75);
+            transform: translateY(-50%);
+        }
+
+        @keyframes driftStars {
             from {
-                transform: translateY(0);
+                transform: translate3d(0, 0, 0);
             }
             to {
-                transform: translateY(-800px);
+                transform: translate3d(-120px, -720px, 0);
+            }
+        }
+
+        @keyframes starBreath {
+            from {
+                opacity: 0.5;
+            }
+            to {
+                opacity: 0.78;
+            }
+        }
+
+        @keyframes twinkleStars {
+            0%, 100% {
+                opacity: 0.42;
+                filter: brightness(0.9);
+            }
+            45% {
+                opacity: 0.72;
+                filter: brightness(1.28);
+            }
+        }
+
+        @keyframes glowStars {
+            from {
+                opacity: 0.28;
+                filter: drop-shadow(0 0 2px rgba(126,210,255,0.35));
+            }
+            to {
+                opacity: 0.56;
+                filter: drop-shadow(0 0 7px rgba(126,210,255,0.55));
+            }
+        }
+
+        @keyframes meteorFall {
+            0% {
+                opacity: 0;
+                transform: rotate(-34deg) translate3d(0, 0, 0) scaleX(0.7);
+            }
+            12% {
+                opacity: var(--meteor-opacity, 0.95);
+            }
+            100% {
+                opacity: 0;
+                transform: rotate(-34deg) translate3d(var(--meteor-travel-x, -760px), var(--meteor-travel-y, 520px), 0) scaleX(1);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .stars, .stars2, .stars3 {
+                animation: none;
+            }
+
+            .meteor-layer {
+                display: none;
             }
         }
 
@@ -165,6 +278,7 @@
 <div class="stars"></div>
 <div class="stars stars2"></div>
 <div class="stars stars3"></div>
+<div class="meteor-layer" aria-hidden="true"></div>
 <header>
     <img src="avatar.png" class="avatar" alt="头像">
 
@@ -238,6 +352,56 @@ document.addEventListener("click", (e) => {
         ripple.remove();
     }, 800);
 });
+
+(function initMeteors() {
+    const layer = document.querySelector(".meteor-layer");
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const maxMeteors = 3;
+    let timer = null;
+
+    if (!layer || reduceMotion.matches) {
+        return;
+    }
+
+    function randomBetween(min, max) {
+        return Math.random() * (max - min) + min;
+    }
+
+    function spawnMeteor() {
+        if (layer.children.length >= maxMeteors) {
+            scheduleNextMeteor();
+            return;
+        }
+
+        const meteor = document.createElement("span");
+        const duration = randomBetween(1700, 3100);
+        const startLeft = randomBetween(window.innerWidth * 0.48, window.innerWidth + 160);
+        const startTop = randomBetween(-80, window.innerHeight * 0.34);
+
+        meteor.className = "meteor";
+        meteor.style.left = startLeft + "px";
+        meteor.style.top = startTop + "px";
+        meteor.style.setProperty("--meteor-length", randomBetween(110, 210) + "px");
+        meteor.style.setProperty("--meteor-duration", duration + "ms");
+        meteor.style.setProperty("--meteor-opacity", randomBetween(0.68, 0.96));
+        meteor.style.setProperty("--meteor-travel-x", randomBetween(-620, -900) + "px");
+        meteor.style.setProperty("--meteor-travel-y", randomBetween(360, 620) + "px");
+        layer.appendChild(meteor);
+
+        window.setTimeout(() => {
+            meteor.remove();
+        }, duration + 120);
+
+        scheduleNextMeteor();
+    }
+
+    function scheduleNextMeteor() {
+        window.clearTimeout(timer);
+        timer = window.setTimeout(spawnMeteor, randomBetween(2600, 7200));
+    }
+
+    scheduleNextMeteor();
+})();
 </script>
 <script>
     window.Live2DWidgetConfig = {

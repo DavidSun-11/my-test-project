@@ -1,8 +1,11 @@
-/* Live2D 拖动定位：只接管外层 hit-area，并同步移动模型外层节点。 */
+/* Live2D 拖动定位：绑定 OhMyLive2D 真实外层容器，并同步移动兜底 hit-area。 */
 (function () {
     const STORAGE_KEY = "junxue-live2d-position";
     const DRAG_THRESHOLD = 5;
+    const LAYER_Z_INDEX = 55;
     const DEFAULT_RESULT_TEXT = "君雪回到左下角啦。";
+    const REAL_CONTAINER_SELECTOR = "#oml2d-main, .oml2d-main";
+    const INTERACTIVE_SELECTOR = "#oml2d-main, .oml2d-main, .oml2d-stage, .oml2d-canvas, #oml2d-canvas, canvas, .live2d-hit-area";
     let currentPosition = null;
     let dragState = null;
     let suppressClickUntil = 0;
@@ -16,8 +19,9 @@
         const style = document.createElement("style");
         style.id = "live2d-drag-style";
         style.textContent = [
-            ".live2d-hit-area{touch-action:none;}",
-            ".live2d-hit-area.is-dragging{cursor:grabbing;}",
+            "#oml2d-main,.oml2d-main,.oml2d-stage,.oml2d-canvas,#oml2d-canvas,canvas,.live2d-hit-area{pointer-events:auto!important;touch-action:none;}",
+            "#oml2d-main,.oml2d-main,.live2d-hit-area{z-index:" + LAYER_Z_INDEX + "!important;cursor:grab;}",
+            "#oml2d-main.is-live2d-dragging,.oml2d-main.is-live2d-dragging,.live2d-hit-area.is-live2d-dragging{cursor:grabbing!important;}",
             "body.is-live2d-dragging,body.is-live2d-dragging *{cursor:grabbing!important;user-select:none;}",
             ".live2d-position-reset{border-color:rgba(255,221,114,.62)!important;background:rgba(255,221,114,.11)!important;color:#ffe8a3!important;}"
         ].join("\n");
@@ -33,10 +37,6 @@
         callback();
     }
 
-    function getHitArea() {
-        return document.querySelector(".live2d-hit-area");
-    }
-
     function uniqueNodes(nodes) {
         const result = [];
 
@@ -49,27 +49,60 @@
         return result;
     }
 
-    function getMoveTargets() {
-        return uniqueNodes([
-            getHitArea(),
-            document.getElementById("live2d-widget")
-        ].concat(Array.from(document.querySelectorAll("#oml2d-main, .oml2d-main"))));
+    function getHitArea() {
+        return document.querySelector(".live2d-hit-area");
     }
 
-    function getAnchorSize() {
-        const hitArea = getHitArea();
-        const rect = hitArea ? hitArea.getBoundingClientRect() : null;
+    function isVisibleNode(node) {
+        if (!node || !node.getBoundingClientRect) {
+            return false;
+        }
+
+        const rect = node.getBoundingClientRect();
+        const style = window.getComputedStyle(node);
+
+        return rect.width > 0 && rect.height > 0 && style.display !== "none" && style.visibility !== "hidden";
+    }
+
+    function getRealContainers() {
+        return Array.from(document.querySelectorAll(REAL_CONTAINER_SELECTOR)).filter(isVisibleNode);
+    }
+
+    function getPrimaryContainer() {
+        const containers = getRealContainers();
+
+        if (containers.length) {
+            return containers[0];
+        }
+
+        return getHitArea();
+    }
+
+    function getMoveTargets() {
+        return uniqueNodes(getRealContainers().concat([getHitArea()]));
+    }
+
+    function getAnchorRect() {
+        const primary = getPrimaryContainer();
+
+        if (primary && primary.getBoundingClientRect) {
+            return primary.getBoundingClientRect();
+        }
 
         return {
-            width: Math.max(1, rect ? rect.width : 300),
-            height: Math.max(1, rect ? rect.height : 390)
+            left: 10,
+            top: Math.max(0, window.innerHeight - 486),
+            width: 300,
+            height: 390
         };
     }
 
     function clampPosition(position) {
-        const size = getAnchorSize();
-        const maxLeft = Math.max(0, window.innerWidth - size.width);
-        const maxTop = Math.max(0, window.innerHeight - size.height);
+        const rect = getAnchorRect();
+        const width = Math.max(1, rect.width || 300);
+        const height = Math.max(1, rect.height || 390);
+        const maxLeft = Math.max(0, window.innerWidth - width);
+        const maxTop = Math.max(0, window.innerHeight - height);
 
         return {
             left: Math.min(Math.max(0, position.left), maxLeft),
@@ -83,6 +116,9 @@
         node.style.setProperty("top", position.top + "px", "important");
         node.style.setProperty("right", "auto", "important");
         node.style.setProperty("bottom", "auto", "important");
+        node.style.setProperty("z-index", String(LAYER_Z_INDEX), "important");
+        node.style.setProperty("pointer-events", "auto", "important");
+        node.style.setProperty("touch-action", "none", "important");
     }
 
     function clearFixedPosition(node) {
@@ -91,6 +127,19 @@
         node.style.removeProperty("right");
         node.style.removeProperty("bottom");
         node.style.removeProperty("position");
+        node.style.removeProperty("z-index");
+        node.style.removeProperty("touch-action");
+    }
+
+    function forceInteractiveLayer() {
+        document.querySelectorAll(INTERACTIVE_SELECTOR).forEach(function (node) {
+            node.style.setProperty("pointer-events", "auto", "important");
+
+            if (node.matches(REAL_CONTAINER_SELECTOR + ", .live2d-hit-area")) {
+                node.style.setProperty("z-index", String(LAYER_Z_INDEX), "important");
+                node.style.setProperty("touch-action", "none", "important");
+            }
+        });
     }
 
     function savePosition(position) {
@@ -141,6 +190,7 @@
         currentPosition = null;
         clearSavedPosition();
         getMoveTargets().forEach(clearFixedPosition);
+        forceInteractiveLayer();
     }
 
     function getCurrentPosition() {
@@ -148,8 +198,7 @@
             return currentPosition;
         }
 
-        const hitArea = getHitArea();
-        const rect = hitArea ? hitArea.getBoundingClientRect() : { left: 10, top: window.innerHeight - 486 };
+        const rect = getAnchorRect();
 
         return clampPosition({
             left: rect.left,
@@ -160,7 +209,7 @@
     function isLive2DTarget(target) {
         const hitArea = getHitArea();
         const closestLive2D = target && typeof target.closest === "function"
-            ? target.closest("#live2d-widget, #oml2d-main, .oml2d-main, [id^='oml2d'], [class*='oml2d']")
+            ? target.closest(INTERACTIVE_SELECTOR)
             : null;
 
         return Boolean(
@@ -172,14 +221,24 @@
         );
     }
 
-    function cleanupDragging() {
-        const hitArea = getHitArea();
+    function setDraggingClass(isDragging) {
+        document.body.classList.toggle("is-live2d-dragging", isDragging);
+        getMoveTargets().forEach(function (node) {
+            node.classList.toggle("is-live2d-dragging", isDragging);
+        });
+    }
 
-        document.body.classList.remove("is-live2d-dragging");
-        if (hitArea) {
-            hitArea.classList.remove("is-dragging");
-        }
+    function cleanupDragging() {
+        setDraggingClass(false);
         dragState = null;
+    }
+
+    function openMenuFromClick(event) {
+        suppressClickUntil = Date.now() + 450;
+
+        if (window.JunxueLive2DInteractions && typeof window.JunxueLive2DInteractions.openMenu === "function") {
+            window.JunxueLive2DInteractions.openMenu(event);
+        }
     }
 
     function handlePointerDown(event) {
@@ -187,18 +246,29 @@
             return;
         }
 
-        const hitArea = getHitArea();
+        const rect = getAnchorRect();
+        const target = event.currentTarget;
+        console.log("pointerdown triggered", {
+            target: target.id || target.className || target.tagName,
+            x: event.clientX,
+            y: event.clientY
+        });
+
+        forceInteractiveLayer();
         dragState = {
             pointerId: event.pointerId,
             startX: event.clientX,
             startY: event.clientY,
-            startPosition: getCurrentPosition(),
+            startPosition: clampPosition({
+                left: rect.left,
+                top: rect.top
+            }),
             moved: false
         };
 
-        if (hitArea && hitArea.setPointerCapture) {
+        if (target && target.setPointerCapture) {
             try {
-                hitArea.setPointerCapture(event.pointerId);
+                target.setPointerCapture(event.pointerId);
             } catch (error) {
                 // 部分浏览器不允许捕获已结束的 pointer，忽略即可。
             }
@@ -219,13 +289,16 @@
         }
 
         dragState.moved = true;
-        document.body.classList.add("is-live2d-dragging");
-        event.currentTarget.classList.add("is-dragging");
+        setDraggingClass(true);
         event.preventDefault();
-        applyPosition({
+
+        const nextPosition = clampPosition({
             left: dragState.startPosition.left + deltaX,
             top: dragState.startPosition.top + deltaY
-        }, false);
+        });
+
+        console.log("dragging", nextPosition);
+        applyPosition(nextPosition, false);
     }
 
     function handlePointerEnd(event) {
@@ -234,16 +307,22 @@
         }
 
         if (dragState.moved) {
+            const savedPosition = getCurrentPosition();
+
             event.preventDefault();
             event.stopPropagation();
             suppressClickUntil = Date.now() + 450;
-            savePosition(getCurrentPosition());
+            savePosition(savedPosition);
+            console.log("drag saved", savedPosition);
+            cleanupDragging();
+            return;
         }
 
         cleanupDragging();
+        openMenuFromClick(event);
     }
 
-    function suppressDraggedClick(event) {
+    function suppressLive2DClick(event) {
         if (Date.now() > suppressClickUntil || !isLive2DTarget(event.target)) {
             return;
         }
@@ -291,25 +370,44 @@
         options.appendChild(button);
     }
 
-    function bindDragWhenReady() {
+    function bindDragTarget(node) {
+        if (!node || node.dataset.live2dDragReady === "true") {
+            return;
+        }
+
+        node.dataset.live2dDragReady = "true";
+        node.style.setProperty("pointer-events", "auto", "important");
+        node.style.setProperty("touch-action", "none", "important");
+        node.style.setProperty("z-index", String(LAYER_Z_INDEX), "important");
+        node.addEventListener("pointerdown", handlePointerDown);
+        node.addEventListener("pointermove", handlePointerMove);
+        node.addEventListener("pointerup", handlePointerEnd);
+        node.addEventListener("pointercancel", cleanupDragging);
+    }
+
+    function bindDragTargets() {
+        forceInteractiveLayer();
+        const targets = getRealContainers();
         const hitArea = getHitArea();
 
-        if (!hitArea) {
-            window.setTimeout(bindDragWhenReady, 120);
-            return;
+        if (!targets.length && hitArea) {
+            targets.push(hitArea);
         }
 
-        if (hitArea.dataset.live2dDragReady === "true") {
-            return;
+        targets.forEach(bindDragTarget);
+
+        if (hitArea) {
+            bindDragTarget(hitArea);
         }
 
-        hitArea.dataset.live2dDragReady = "true";
-        hitArea.addEventListener("pointerdown", handlePointerDown);
-        hitArea.addEventListener("pointermove", handlePointerMove);
-        hitArea.addEventListener("pointerup", handlePointerEnd);
-        hitArea.addEventListener("pointercancel", cleanupDragging);
+        if (currentPosition) {
+            applyPosition(currentPosition, false);
+        }
+    }
 
+    function restoreSavedPosition() {
         const savedPosition = readSavedPosition();
+
         if (savedPosition) {
             applyPosition(savedPosition, false);
         }
@@ -317,8 +415,9 @@
 
     function init() {
         injectDragStyles();
-        bindDragWhenReady();
-        document.addEventListener("click", suppressDraggedClick, true);
+        bindDragTargets();
+        restoreSavedPosition();
+        document.addEventListener("click", suppressLive2DClick, true);
         document.addEventListener("touchstart", suppressLegacyTouchStart, true);
         window.addEventListener("resize", function () {
             if (currentPosition) {
@@ -327,19 +426,23 @@
         });
 
         observer = new MutationObserver(function () {
-            bindDragWhenReady();
+            bindDragTargets();
             ensureResetButton();
-            if (currentPosition) {
-                applyPosition(currentPosition, false);
-            }
         });
         observer.observe(document.body, {
             childList: true,
             subtree: true,
             attributes: true,
-            attributeFilter: ["class"]
+            attributeFilter: ["class", "style"]
         });
     }
+
+    window.JunxueLive2DDrag = {
+        resetPosition: resetPosition,
+        shouldIgnoreMenuEvent: function (event) {
+            return Date.now() <= suppressClickUntil && isLive2DTarget(event.target);
+        }
+    };
 
     onReady(init);
 })();

@@ -8,6 +8,11 @@
     const widget = document.getElementById("live2d-widget");
     const message = widget ? widget.querySelector(".live2d-message") : null;
     const defaultGanyuModel = "live2d/models/ganyu/Ganyu1024.model3.json";
+    const loadTimeoutMs = 9000;
+    const fetchTimeoutMs = 5000;
+    const scriptTimeoutMs = 7000;
+    const slowLoadMessage = "君雪加载有点慢，刷新试试看～";
+    const readySelector = "#oml2d-main, .oml2d-main, #oml2d, .oml2d, .oml2d-stage, .oml2d-canvas";
     const stableMessages = [
         "欢迎来到星空主页。",
         "点我一下，来和君雪互动吧。",
@@ -15,7 +20,11 @@
         "甘雨模型正在从站内资源加载。"
     ];
 
-    function setMessage(text) {
+    let loadTimer = null;
+    let readyObserver = null;
+    let bootstrapHidden = false;
+
+    function setMessage(text, persist) {
         if (!message || !widget) {
             return;
         }
@@ -24,19 +33,152 @@
         widget.classList.add("is-talking");
 
         window.clearTimeout(setMessage.timer);
-        setMessage.timer = window.setTimeout(function () {
-            widget.classList.remove("is-talking");
-        }, 3000);
+        if (!persist) {
+            setMessage.timer = window.setTimeout(function () {
+                widget.classList.remove("is-talking");
+            }, 3000);
+        }
+    }
+
+    function hideBootstrapWidget() {
+        if (!widget || bootstrapHidden) {
+            return;
+        }
+
+        bootstrapHidden = true;
+        window.clearTimeout(setMessage.timer);
+        widget.classList.add("is-loaded");
+        window.setTimeout(function () {
+            if (widget.parentNode) {
+                widget.remove();
+            }
+        }, 350);
+    }
+
+    function findReadyContainer() {
+        return document.querySelector(readySelector);
+    }
+
+    function markLive2DReady() {
+        window.clearTimeout(loadTimer);
+        if (readyObserver) {
+            readyObserver.disconnect();
+            readyObserver = null;
+        }
+        hideBootstrapWidget();
+    }
+
+    function showFallbackMessage(reason, details) {
+        window.clearTimeout(loadTimer);
+        if (readyObserver) {
+            readyObserver.disconnect();
+            readyObserver = null;
+        }
+
+        console.error("Live2D fallback shown", {
+            stage: reason,
+            details: details || null
+        });
+        setMessage(slowLoadMessage, true);
+
+        window.setTimeout(function () {
+            if (!findReadyContainer()) {
+                hideBootstrapWidget();
+            }
+        }, 3600);
+    }
+
+    function watchLive2DReady() {
+        if (findReadyContainer()) {
+            markLive2DReady();
+            return;
+        }
+
+        readyObserver = new MutationObserver(function () {
+            if (findReadyContainer()) {
+                markLive2DReady();
+            }
+        });
+        readyObserver.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+    }
+
+    function startLoadTimeout() {
+        window.clearTimeout(loadTimer);
+        loadTimer = window.setTimeout(function () {
+            if (findReadyContainer()) {
+                markLive2DReady();
+                return;
+            }
+
+            console.error("Live2D load timeout", {
+                timeout: loadTimeoutMs,
+                selector: readySelector
+            });
+            showFallbackMessage("timeout", {
+                timeout: loadTimeoutMs
+            });
+        }, loadTimeoutMs);
     }
 
     function loadScript(src) {
         return new Promise(function (resolve, reject) {
             const script = document.createElement("script");
+            let done = false;
+            const timer = window.setTimeout(function () {
+                if (done) {
+                    return;
+                }
+                done = true;
+                script.remove();
+                reject(new Error("script-timeout: " + src));
+            }, scriptTimeoutMs);
+
             script.src = src;
             script.async = true;
-            script.onload = resolve;
-            script.onerror = reject;
+            script.onload = function () {
+                if (done) {
+                    return;
+                }
+                done = true;
+                window.clearTimeout(timer);
+                resolve();
+            };
+            script.onerror = function () {
+                if (done) {
+                    return;
+                }
+                done = true;
+                window.clearTimeout(timer);
+                reject(new Error("script-load-failed: " + src));
+            };
             document.head.appendChild(script);
+        });
+    }
+
+    function fetchWithTimeout(url, stage) {
+        const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+        const timer = controller ? window.setTimeout(function () {
+            controller.abort();
+        }, fetchTimeoutMs) : null;
+
+        return fetch(url, {
+            method: "GET",
+            cache: "no-store",
+            signal: controller ? controller.signal : undefined
+        }).finally(function () {
+            if (timer) {
+                window.clearTimeout(timer);
+            }
+        }).catch(function (error) {
+            console.error("Live2D fetch failed", {
+                stage: stage,
+                url: url,
+                error: error
+            });
+            throw error;
         });
     }
 
@@ -99,15 +241,13 @@
         });
     }
 
-    async function fetchRequiredFile(url) {
+    async function fetchRequiredFile(url, stage) {
         try {
-            const response = await fetch(url, {
-                method: "GET",
-                cache: "no-store"
-            });
+            const response = await fetchWithTimeout(url, stage);
 
             if (!response.ok) {
                 console.error("Live2D Ganyu resource missing", {
+                    stage: stage,
                     url: url,
                     status: response.status,
                     statusText: response.statusText
@@ -118,6 +258,7 @@
             return true;
         } catch (error) {
             console.error("Live2D Ganyu resource fetch failed", {
+                stage: stage,
                 url: url,
                 error: error
             });
@@ -129,13 +270,11 @@
         const absoluteModelUrl = toAbsoluteUrl(modelUrl);
 
         try {
-            const response = await fetch(absoluteModelUrl, {
-                method: "GET",
-                cache: "no-store"
-            });
+            const response = await fetchWithTimeout(absoluteModelUrl, "model entry");
 
             if (!response.ok) {
                 console.error("Live2D Ganyu model entry missing", {
+                    stage: "model entry",
                     url: absoluteModelUrl,
                     status: response.status,
                     statusText: response.statusText
@@ -147,7 +286,9 @@
             const requiredFiles = collectModelFiles(modelJson, absoluteModelUrl);
 
             for (const fileUrl of requiredFiles) {
-                const ok = await fetchRequiredFile(fileUrl);
+                const lowerUrl = fileUrl.toLowerCase();
+                const stage = lowerUrl.endsWith(".moc3") ? "moc3" : lowerUrl.includes("texture") ? "texture" : "model resource";
+                const ok = await fetchRequiredFile(fileUrl, stage);
 
                 if (!ok) {
                     return false;
@@ -157,6 +298,7 @@
             return true;
         } catch (error) {
             console.error("Live2D Ganyu model check failed", {
+                stage: "model entry",
                 url: absoluteModelUrl,
                 error: error
             });
@@ -171,7 +313,11 @@
 
         try {
             await loadScript("https://cdn.jsdelivr.net/npm/oh-my-live2d@0.19.3/dist/index.min.js");
-        } catch (error) {
+        } catch (primaryError) {
+            console.error("Live2D runtime primary CDN failed", {
+                stage: "runtime",
+                error: primaryError
+            });
             await loadScript("https://unpkg.com/oh-my-live2d@0.19.3/dist/index.min.js");
         }
     }
@@ -186,11 +332,11 @@
                 width: config.width || 336,
                 height: config.height || 456
             },
-            mobilePosition: config.mobilePosition || [0, 25],
-            mobileScale: config.mobileScale || 0.168,
+            mobilePosition: config.mobilePosition || [0, 20],
+            mobileScale: config.mobileScale || 0.075,
             mobileStageStyle: config.mobileStageStyle || {
-                width: config.mobileWidth || 228,
-                height: config.mobileHeight || 312
+                width: config.mobileWidth || 240,
+                height: config.mobileHeight || 400
             }
         };
     }
@@ -204,57 +350,75 @@
             widget.classList.add("is-left");
         }
 
-        setMessage("Live2D 加载中...");
+        setMessage("Live2D 加载中...", true);
+        startLoadTimeout();
 
         try {
             await ensureRuntime();
         } catch (error) {
-            console.error("Live2D runtime load failed", error);
-            setMessage("Live2D 运行时加载失败，请检查 CDN 是否可访问。");
+            console.error("Live2D runtime load failed", {
+                stage: "runtime",
+                error: error
+            });
+            showFallbackMessage("runtime", error);
             return;
         }
 
         if (!window.OML2D || typeof window.OML2D.loadOml2d !== "function") {
-            console.error("Live2D runtime is unavailable", window.OML2D);
-            setMessage("Live2D 运行时不可用，请稍后刷新页面。");
+            console.error("Live2D runtime is unavailable", {
+                stage: "runtime",
+                runtime: window.OML2D
+            });
+            showFallbackMessage("runtime unavailable", window.OML2D);
             return;
         }
 
         const modelReady = await checkModelEntry(modelPath);
 
         if (!modelReady) {
-            setMessage("甘雨模型资源不可访问，请检查 GitHub Pages 文件路径。");
+            showFallbackMessage("model resource", {
+                modelPath: modelPath
+            });
             return;
         }
 
-        if (widget) {
-            widget.classList.add("is-loaded");
-            window.setTimeout(function () {
-                widget.remove();
-            }, 350);
-        }
+        watchLive2DReady();
 
-        window.OML2D.loadOml2d({
-            dockedPosition: dockedPosition,
-            primaryColor: "#38d9ff",
-            sayHello: true,
-            mobileDisplay: true,
-            menus: {
-                disable: true
-            },
-            statusBar: {
-                disable: false,
-                loadingMessage: "Live2D 加载中...",
-                loadSuccessMessage: "甘雨已上线",
-                loadFailMessage: "甘雨模型加载失败，请检查 Console 资源错误"
-            },
-            models: [buildModelConfig(modelPath)],
-            tips: {
-                idleTips: {
-                    message: idleMessages
+        try {
+            window.OML2D.loadOml2d({
+                dockedPosition: dockedPosition,
+                primaryColor: "#38d9ff",
+                sayHello: true,
+                mobileDisplay: true,
+                menus: {
+                    disable: true
+                },
+                statusBar: {
+                    disable: false,
+                    loadingMessage: "Live2D 加载中...",
+                    loadSuccessMessage: "甘雨已上线",
+                    loadFailMessage: slowLoadMessage
+                },
+                models: [buildModelConfig(modelPath)],
+                tips: {
+                    idleTips: {
+                        message: idleMessages
+                    }
                 }
-            }
-        });
+            });
+
+            window.setTimeout(function () {
+                if (findReadyContainer()) {
+                    markLive2DReady();
+                }
+            }, 1200);
+        } catch (error) {
+            console.error("Live2D Cubism init failed", {
+                stage: "Cubism Init Failed",
+                error: error
+            });
+            showFallbackMessage("Cubism Init Failed", error);
+        }
     }
 
     boot();

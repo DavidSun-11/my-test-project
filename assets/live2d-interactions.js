@@ -1,4 +1,4 @@
-/* Live2D 互动模块：菜单、无奖竞答题库、英雄池转盘都集中在这里，方便后续继续加题。 */
+/* Live2D 互动模块：菜单、无奖竞答题库、英雄池转盘、咨询功能都集中在这里，方便后续继续加题。 */
 (function () {
     const quizBank = [
         {
@@ -65,6 +65,37 @@
         clash: "对抗路"
     };
 
+    const weatherCodeLabels = {
+        0: "晴朗",
+        1: "大部晴朗",
+        2: "局部多云",
+        3: "阴天",
+        45: "有雾",
+        48: "雾凇",
+        51: "小毛毛雨",
+        53: "毛毛雨",
+        55: "较强毛毛雨",
+        56: "冻毛毛雨",
+        57: "强冻毛毛雨",
+        61: "小雨",
+        63: "中雨",
+        65: "大雨",
+        66: "冻雨",
+        67: "强冻雨",
+        71: "小雪",
+        73: "中雪",
+        75: "大雪",
+        77: "雪粒",
+        80: "阵雨",
+        81: "较强阵雨",
+        82: "强阵雨",
+        85: "阵雪",
+        86: "强阵雪",
+        95: "雷暴",
+        96: "雷暴伴冰雹",
+        99: "强雷暴伴冰雹"
+    };
+
     const letters = ["A", "B", "C", "D"];
     let quizState = null;
     let selectedLane = "jungle";
@@ -93,6 +124,44 @@
             : quizBank;
 
         return candidates[Math.floor(Math.random() * candidates.length)];
+    }
+
+    function escapeHtml(value) {
+        return String(value).replace(/[&<>"]/g, function (char) {
+            return {
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                "\"": "&quot;"
+            }[char];
+        });
+    }
+
+    function formatTemperature(value) {
+        return Number.isFinite(value) ? Math.round(value) + "°C" : "--";
+    }
+
+    function getDayLabel(index) {
+        return ["今天", "明天", "后天"][index] || "第 " + (index + 1) + " 天";
+    }
+
+    function getWeatherLabel(code) {
+        return weatherCodeLabels[code] || "天气变化中";
+    }
+
+    function getPrecipitationText(daily, index) {
+        const probabilities = daily.precipitation_probability_max || [];
+        const sums = daily.precipitation_sum || [];
+
+        if (probabilities[index] !== null && probabilities[index] !== undefined) {
+            return "降水概率 " + probabilities[index] + "%";
+        }
+
+        if (sums[index] !== null && sums[index] !== undefined) {
+            return "降水量 " + sums[index] + "mm";
+        }
+
+        return "降水数据暂无";
     }
 
     function createDialog() {
@@ -169,7 +238,7 @@
 
         function clearDialog() {
             clearSpinTimers();
-            dialog.classList.remove("is-wheel");
+            dialog.classList.remove("is-wheel", "is-weather");
             meta.textContent = "";
             question.textContent = "";
             options.innerHTML = "";
@@ -219,6 +288,7 @@
             options.classList.add("live2d-quiz__menu");
             addOption("无奖竞答", startQuiz);
             addOption("英雄池转盘", showHeroWheel);
+            addOption("咨询", showConsultPanel);
             showDialog();
         }
 
@@ -309,6 +379,173 @@
             });
             result.textContent = quizState.correct >= quizState.wrong ? "不错嘛，君雪记下这次成绩了" : "下次再来，君雪等你反超";
             result.className = quizState.correct >= quizState.wrong ? "live2d-quiz__result is-good" : "live2d-quiz__result is-neutral";
+        }
+
+        function showConsultPanel() {
+            clearDialog();
+            meta.textContent = "咨询";
+            question.textContent = "君雪可以帮你看看这些事情。";
+            options.classList.add("live2d-consult-grid");
+            addConsultCard("查看天气", "查询近三天天气", false, showWeatherInput);
+            addConsultCard("暂未开放", "新的功能正在路上", true);
+            addConsultCard("暂未开放", "君雪还在准备", true);
+            addConsultCard("暂未开放", "先留一个小悬念", true);
+            result.textContent = "先试试天气吧。";
+            result.className = "live2d-quiz__result is-neutral";
+            showDialog();
+        }
+
+        function addConsultCard(title, description, disabled, onClick) {
+            const button = document.createElement("button");
+            button.className = "live2d-consult-card";
+            button.type = "button";
+            button.disabled = disabled;
+            button.innerHTML = '<span class="live2d-consult-card__title">' + escapeHtml(title) + '</span><span class="live2d-consult-card__desc">' + escapeHtml(description) + '</span>';
+
+            if (!disabled && typeof onClick === "function") {
+                button.addEventListener("click", function (event) {
+                    event.stopPropagation();
+                    onClick();
+                });
+            }
+
+            options.appendChild(button);
+            return button;
+        }
+
+        function showWeatherInput() {
+            clearDialog();
+            dialog.classList.add("is-weather");
+            options.classList.add("live2d-weather-panel");
+            meta.textContent = "咨询 · 查看天气";
+            question.textContent = "请输入你想查询天气的城市";
+            options.innerHTML = [
+                '<form class="live2d-weather-form">',
+                    '<input class="live2d-weather-input" type="text" name="city" placeholder="例如：北京 / 上海 / 杭州" autocomplete="off">',
+                    '<button class="live2d-weather-submit" type="submit">查询</button>',
+                '</form>',
+                '<div class="live2d-weather-actions">',
+                    '<button class="live2d-wheel__small" type="button" data-weather-action="back">返回咨询</button>',
+                    '<button class="live2d-wheel__small" type="button" data-weather-action="menu">回到菜单</button>',
+                '</div>'
+            ].join("");
+
+            const form = options.querySelector(".live2d-weather-form");
+            const cityInput = options.querySelector(".live2d-weather-input");
+            const backButton = options.querySelector('[data-weather-action="back"]');
+            const menuButton = options.querySelector('[data-weather-action="menu"]');
+
+            form.addEventListener("submit", function (event) {
+                event.preventDefault();
+                const cityName = cityInput.value.trim();
+
+                if (!cityName) {
+                    result.textContent = "先告诉君雪城市名哦～";
+                    result.className = "live2d-quiz__result is-warning";
+                    return;
+                }
+
+                fetchWeather(cityName);
+            });
+            backButton.addEventListener("click", function (event) {
+                event.stopPropagation();
+                showConsultPanel();
+            });
+            menuButton.addEventListener("click", function (event) {
+                event.stopPropagation();
+                showMenu();
+            });
+
+            result.textContent = "不用 API Key，君雪会去 Open-Meteo 找天气。";
+            result.className = "live2d-quiz__result is-neutral";
+            showDialog();
+            window.setTimeout(function () {
+                cityInput.focus();
+            }, 80);
+        }
+
+        async function fetchWeather(cityName) {
+            const encodedCity = encodeURIComponent(cityName);
+            const geocodeUrl = "https://geocoding-api.open-meteo.com/v1/search?name=" + encodedCity + "&count=1&language=zh&format=json";
+
+            result.textContent = "君雪正在翻天气书...";
+            result.className = "live2d-quiz__result is-neutral";
+
+            try {
+                const geoResponse = await fetch(geocodeUrl);
+
+                if (!geoResponse.ok) {
+                    throw new Error("weather-request-failed");
+                }
+
+                const geoData = await geoResponse.json();
+
+                if (!geoData.results || !geoData.results.length) {
+                    result.textContent = "君雪没有找到这个地方哦～";
+                    result.className = "live2d-quiz__result is-warning";
+                    return;
+                }
+
+                const place = geoData.results[0];
+                const forecastUrl = "https://api.open-meteo.com/v1/forecast?latitude=" + encodeURIComponent(place.latitude) + "&longitude=" + encodeURIComponent(place.longitude) + "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum&timezone=auto&forecast_days=3";
+                const forecastResponse = await fetch(forecastUrl);
+
+                if (!forecastResponse.ok) {
+                    throw new Error("weather-request-failed");
+                }
+
+                const forecastData = await forecastResponse.json();
+                renderWeatherCard(place, forecastData.daily || {});
+            } catch (error) {
+                result.textContent = "天气被云层挡住啦，稍后再试吧～";
+                result.className = "live2d-quiz__result is-warning";
+            }
+        }
+
+        function renderWeatherCard(place, daily) {
+            const cityTitle = [place.name, place.admin1, place.country].filter(Boolean).join(" · ");
+            const dates = daily.time || [];
+            const maxTemps = daily.temperature_2m_max || [];
+            const minTemps = daily.temperature_2m_min || [];
+            const codes = daily.weather_code || [];
+            const rows = [0, 1, 2].map(function (index) {
+                return [
+                    '<article class="live2d-weather-day">',
+                        '<div class="live2d-weather-day__label">' + getDayLabel(index) + '</div>',
+                        '<div class="live2d-weather-day__date">' + escapeHtml(dates[index] || "") + '</div>',
+                        '<div class="live2d-weather-day__status">' + escapeHtml(getWeatherLabel(codes[index])) + '</div>',
+                        '<div class="live2d-weather-day__temp">' + formatTemperature(maxTemps[index]) + ' / ' + formatTemperature(minTemps[index]) + '</div>',
+                        '<div class="live2d-weather-day__rain">' + escapeHtml(getPrecipitationText(daily, index)) + '</div>',
+                    '</article>'
+                ].join("");
+            }).join("");
+
+            clearDialog();
+            dialog.classList.add("is-weather");
+            options.classList.add("live2d-weather-panel");
+            meta.textContent = "咨询 · 查看天气";
+            question.textContent = cityTitle;
+            options.innerHTML = [
+                '<section class="live2d-weather-card" aria-label="三天天气预报">',
+                    rows,
+                '</section>',
+                '<div class="live2d-weather-actions">',
+                    '<button class="live2d-wheel__small" type="button" data-weather-action="again">换个城市</button>',
+                    '<button class="live2d-wheel__small" type="button" data-weather-action="back">返回咨询</button>',
+                '</div>'
+            ].join("");
+
+            options.querySelector('[data-weather-action="again"]').addEventListener("click", function (event) {
+                event.stopPropagation();
+                showWeatherInput();
+            });
+            options.querySelector('[data-weather-action="back"]').addEventListener("click", function (event) {
+                event.stopPropagation();
+                showConsultPanel();
+            });
+            result.textContent = "天气小卡片准备好了。";
+            result.className = "live2d-quiz__result is-good";
+            showDialog();
         }
 
         function showHeroWheel() {

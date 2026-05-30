@@ -10,12 +10,13 @@
         body {
             font-family: Arial, sans-serif;
             margin: 0;
+            min-height: 100vh;
             background:
                 radial-gradient(ellipse at 44% 30%, rgba(155, 183, 224, 0.30) 0%, rgba(70, 111, 165, 0.14) 18%, transparent 46%),
                 radial-gradient(ellipse at 28% 58%, rgba(111, 152, 205, 0.18) 0%, rgba(48, 85, 137, 0.12) 28%, transparent 58%),
                 radial-gradient(circle at 80% 12%, rgba(108, 178, 255, 0.14) 0, transparent 34%),
                 linear-gradient(to bottom, #01040b 0%, #04111f 42%, #0a2239 100%);
-            color: #333;
+            color: #f7fbff;
             overflow-x: hidden;
         }
 
@@ -185,71 +186,110 @@
             }
         }
 
-        header {
+        .home-hero {
+            position: relative;
+            min-height: 100vh;
             display: flex;
-            flex-direction: column;
             align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 80px 20px;
+            padding: 0 clamp(28px, 8vw, 150px);
             color: white;
+            box-sizing: border-box;
         }
 
-        header h1 {
-            font-size: 56px;
-            margin: 20px 0;
-        }
-
-        header p {
-            font-size: 22px;
-            color: rgba(255,255,255,0.85);
-        }
-
-        nav {
-            background: #333;
-            padding: 10px;
-            text-align: center;
-        }
-
-        nav a {
-            color: white;
-            margin: 0 15px;
-            text-decoration: none;
-        }
-
-        nav a:hover {
-            text-decoration: underline;
-        }
-
-        section {
-            padding: 40px;
-            max-width: 800px;
-            margin: auto;
-        }
-
-        .avatar {
-            width: 140px;
-            height: 140px;
+        .home-hero::before {
+            content: "";
+            position: absolute;
+            left: clamp(20px, 7vw, 128px);
+            top: 22%;
+            width: min(46vw, 640px);
+            height: min(46vw, 520px);
             border-radius: 50%;
-            object-fit: cover;
-            border: 4px solid white;
-            margin-bottom: 20px;
+            background: radial-gradient(circle, rgba(92, 214, 255, 0.16), rgba(50, 130, 210, 0.07) 42%, transparent 72%);
+            filter: blur(8px);
+            opacity: 0.9;
+            pointer-events: none;
+        }
+
+        .home-hero__content {
+            position: relative;
+            z-index: 1;
+            max-width: 980px;
+        }
+
+        .home-title {
+            margin: 0;
+            max-width: 960px;
+            font-size: clamp(42px, 6vw, 92px);
+            line-height: 1.18;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            color: rgba(255, 255, 255, 0.96);
+            text-shadow: 0 0 18px rgba(120, 218, 255, 0.32), 0 0 44px rgba(44, 141, 222, 0.18);
+        }
+
+        .home-title::after {
+            content: "";
             display: block;
+            width: min(320px, 54vw);
+            height: 1px;
+            margin-top: 28px;
+            background: linear-gradient(90deg, rgba(255,255,255,0.92), rgba(96, 210, 255, 0.74), transparent);
+            box-shadow: 0 0 14px rgba(96, 210, 255, 0.6);
         }
 
-        .card {
-            background: white;
-            padding: 20px;
-            margin-top: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        .home-nav {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 28px;
+            z-index: 5;
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: clamp(14px, 5vw, 72px);
+            align-items: center;
+            padding: 0 clamp(28px, 8vw, 150px);
+            box-sizing: border-box;
+            pointer-events: none;
         }
 
-        footer {
-            text-align: center;
-            padding: 20px;
-            background: #ddd;
-            margin-top: 40px;
+        .home-nav a {
+            position: relative;
+            justify-self: center;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: clamp(15px, 1.55vw, 23px);
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-decoration: none;
+            text-shadow: 0 0 14px rgba(105, 218, 255, 0.22);
+            pointer-events: auto;
+            transition: color 0.2s ease, text-shadow 0.2s ease, transform 0.2s ease;
+        }
+
+        .home-nav a::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -7px;
+            height: 2px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, rgba(255,255,255,0.95), rgba(82, 204, 255, 0.92));
+            box-shadow: 0 0 12px rgba(82, 204, 255, 0.78);
+            transform: scaleX(0.72);
+            transform-origin: left center;
+            opacity: 0.72;
+            transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+
+        .home-nav a:hover {
+            color: white;
+            text-shadow: 0 0 18px rgba(116, 225, 255, 0.78), 0 0 34px rgba(76, 156, 255, 0.34);
+            transform: translateY(-2px);
+        }
+
+        .home-nav a:hover::after {
+            opacity: 1;
+            transform: scaleX(1);
         }
 
         .cursor-light {
@@ -294,6 +334,30 @@
                 opacity: 0;
             }
         }
+
+        @media (max-width: 760px) {
+            .home-hero {
+                align-items: flex-start;
+                min-height: 100vh;
+                padding: 18vh 22px 150px;
+            }
+
+            .home-title {
+                font-size: clamp(34px, 11vw, 54px);
+                letter-spacing: 0.08em;
+            }
+
+            .home-nav {
+                bottom: 18px;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                row-gap: 22px;
+                padding: 0 22px;
+            }
+
+            .home-nav a {
+                font-size: 15px;
+            }
+        }
     </style>
 </head>
 
@@ -303,45 +367,18 @@
 <div class="stars stars2"></div>
 <div class="stars stars3"></div>
 <div class="meteor-layer" aria-hidden="true"></div>
-<header>
-    <img src="avatar.png" class="avatar" alt="头像">
-
-    <h1>除却君身三重雪，天下谁人配白衣
-        <span style="color: gold;">⭐</span></h1>
-    <p>欢迎来到我的个人网站</p>
+<header class="home-hero">
+    <div class="home-hero__content">
+        <h1 class="home-title">除却君身三重雪，天下谁人配白衣</h1>
+    </div>
 </header>
 
-<nav>
-    <a href="#">首页</a>
-    <a href="about.html">关于我</a>
-    <a href="#">联系我</a>
+<nav class="home-nav" aria-label="首页快捷入口">
+    <a href="#">我的联系方式</a>
+    <a href="#">收费咨询</a>
+    <a href="#">意见箱</a>
     <a href="games.html">游戏展示</a>
 </nav>
-
-<section>
-    <div class="card">
-        <h2>关于我</h2>
-        <p>聪明善良勇敢大方完美无瑕</p>
-    </div>
-
-    <div class="card">
-        <h2>我的技能</h2>
-        <ul>
-            <li>吃饭</li>
-            <li>睡觉</li>
-            <li>打游戏</li>
-        </ul>
-    </div>
-
-    <div class="card">
-        <h2>联系方式</h2>
-        <p>111111@qq.com</p>
-    </div>
-</section>
-
-<footer>
-    <p>© 2026 我的个人网站</p>
-</footer>
 
 <!-- 本地音乐播放器：音频文件应位于 assets/audio/music.mp3。 -->
 <div class="music-player" aria-label="本地音乐播放器：感谢你曾来过">

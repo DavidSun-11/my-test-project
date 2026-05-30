@@ -20,6 +20,32 @@
             overflow-x: hidden;
         }
 
+        .home-bg-video,
+        .home-bg-overlay {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .home-bg-video {
+            z-index: -5;
+            object-fit: cover;
+        }
+
+        .home-bg-overlay {
+            z-index: -4;
+            background:
+                radial-gradient(ellipse at 42% 34%, rgba(19, 65, 116, 0.32), transparent 48%),
+                linear-gradient(90deg, rgba(1, 5, 13, 0.72), rgba(2, 13, 28, 0.48) 46%, rgba(1, 5, 13, 0.76)),
+                linear-gradient(to bottom, rgba(1, 7, 18, 0.42), rgba(2, 12, 28, 0.66));
+        }
+
+        .stars, .stars2, .stars3, .meteor-layer {
+            display: none;
+        }
+
         .stars, .stars2, .stars3  {
             position: fixed;
             top: 0;
@@ -362,6 +388,10 @@
 </head>
 
 <body>
+<video class="home-bg-video" autoplay muted loop playsinline aria-hidden="true">
+    <source src="assets/audio/star.mp4" type="video/mp4">
+</video>
+<div class="home-bg-overlay" aria-hidden="true"></div>
 <div class="cursor-light"></div>
 <div class="stars"></div>
 <div class="stars stars2"></div>

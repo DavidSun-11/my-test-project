@@ -234,9 +234,8 @@
     }
 
     function openMenuFromClick(event) {
-        suppressClickUntil = Date.now() + 450;
-
         if (window.JunxueLive2DInteractions && typeof window.JunxueLive2DInteractions.openMenu === "function") {
+            suppressClickUntil = Date.now() + 450;
             window.JunxueLive2DInteractions.openMenu(event);
         }
     }

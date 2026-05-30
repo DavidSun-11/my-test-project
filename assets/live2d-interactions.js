@@ -456,7 +456,7 @@
                 showMenu();
             });
 
-            result.textContent = "不用 API Key，君雪会去 Open-Meteo 找天气。";
+            result.textContent = "哼，可不是特意帮你查天气哦～只是顺手看看那边有没有下雨而已。";
             result.className = "live2d-quiz__result is-neutral";
             showDialog();
             window.setTimeout(function () {

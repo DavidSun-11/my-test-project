@@ -1,65 +1,51 @@
-/* Live2D 互动模块：菜单、闲聊题库、答题小游戏、英雄池转盘都集中在这里，方便后续继续加题。 */
+/* Live2D 互动模块：菜单、无奖竞答题库、英雄池转盘都集中在这里，方便后续继续加题。 */
 (function () {
-    const chatBank = [
+    const quizBank = [
         {
             question: "你觉得君雪是怎么样的人？",
-            options: [
-                { label: "A：天资卓越", reply: "你的眼光真不错", mood: "good" },
-                { label: "B：完美无瑕", reply: "你的眼光真不错", mood: "good" },
-                { label: "C：才富五车", reply: "你的眼光真不错", mood: "good" },
-                { label: "D：一般", reply: "你骗人", mood: "warning" }
-            ]
+            options: ["天资卓越", "完美无瑕", "才富五车", "一般"],
+            correct: [0, 1, 2]
         },
         {
             question: "如果君雪打游戏坑了怎么办？",
-            options: [
-                { label: "A：继续带飞", reply: "果然还是你懂我", mood: "good" },
-                { label: "B：安慰她", reply: "果然还是你懂我", mood: "good" },
-                { label: "C：偷偷举报", reply: "坏！记仇了！", mood: "warning" },
-                { label: "D：压力队友", reply: "坏！记仇了！", mood: "warning" }
-            ]
+            options: ["继续带飞", "安慰她", "偷偷举报", "压力队友"],
+            correct: [0, 1]
         },
         {
             question: "你会一直留在这个网站吗？",
-            options: [
-                { label: "A：会", reply: "那就约好了哦", mood: "good" },
-                { label: "B：当然会", reply: "那就约好了哦", mood: "good" },
-                { label: "C：每天都来", reply: "那就约好了哦", mood: "good" },
-                { label: "D：不会", reply: "呜呜，不许走", mood: "warning" }
-            ]
+            options: ["会", "当然会", "每天都来", "不会"],
+            correct: [0, 1, 2]
         },
         {
             question: "君雪和游戏哪个更重要？",
-            options: [
-                { label: "A：君雪", reply: "回答满分", mood: "good" },
-                { label: "B：都重要", reply: "勉强接受", mood: "neutral" },
-                { label: "C：先看情况", reply: "勉强接受", mood: "neutral" },
-                { label: "D：游戏！", reply: "你今晚别想上分了", mood: "warning" }
-            ]
-        }
-    ];
-
-    const challengeBank = [
-        { question: "7 + 8 = ?", options: ["13", "14", "15", "16"], answer: 2 },
-        { question: "9 x 6 = ?", options: ["42", "48", "54", "56"], answer: 2 },
-        { question: "56 ÷ 7 = ?", options: ["6", "7", "8", "9"], answer: 2 },
-        { question: "18 + 27 = ?", options: ["35", "45", "46", "55"], answer: 1 },
-        { question: "81 - 36 = ?", options: ["35", "45", "55", "57"], answer: 1 },
-        { question: "12 x 4 = ?", options: ["36", "42", "48", "52"], answer: 2 },
-        { question: "100 - 37 = ?", options: ["53", "63", "67", "73"], answer: 1 },
-        { question: "45 ÷ 5 = ?", options: ["7", "8", "9", "10"], answer: 2 },
-        { question: "23 + 19 = ?", options: ["40", "41", "42", "43"], answer: 2 },
-        { question: "6 x 7 = ?", options: ["36", "40", "42", "49"], answer: 2 },
-        { question: "什么东西越洗越脏？", options: ["脸", "水", "手帕", "肥皂"], answer: 1 },
-        { question: "什么门永远关不上？", options: ["木门", "球门", "铁门", "校门"], answer: 1 },
-        { question: "什么东西越吃越少？", options: ["米饭", "年龄", "空气", "影子"], answer: 0 },
-        { question: "什么东西有脚却不会走？", options: ["桌子", "小猫", "鞋子", "钟表"], answer: 0 },
-        { question: "什么东西天气越热爬得越高？", options: ["太阳", "温度计", "气球", "云"], answer: 1 },
-        { question: "什么车不会动？", options: ["火车", "风车", "汽车", "电车"], answer: 1 },
-        { question: "什么布剪不断？", options: ["瀑布", "棉布", "桌布", "花布"], answer: 0 },
-        { question: "什么东西越用越有光？", options: ["灯泡", "镜子", "脑子", "蜡烛"], answer: 2 },
-        { question: "什么东西明明是你的，别人却用得最多？", options: ["名字", "书包", "手机", "铅笔"], answer: 0 },
-        { question: "什么桥下面没有水？", options: ["木桥", "天桥", "石桥", "铁桥"], answer: 1 }
+            options: ["君雪", "都重要", "先看情况", "游戏！"],
+            correct: [0, 1, 2]
+        },
+        {
+            question: "君雪在星空下最适合做什么？",
+            options: ["继续变强", "发呆看星星", "偷偷休息", "拆掉网站"],
+            correct: [0, 1, 2]
+        },
+        { question: "7 + 8 = ?", options: ["13", "14", "15", "16"], correct: [2] },
+        { question: "9 x 6 = ?", options: ["42", "48", "54", "56"], correct: [2] },
+        { question: "56 ÷ 7 = ?", options: ["6", "7", "8", "9"], correct: [2] },
+        { question: "18 + 27 = ?", options: ["35", "45", "46", "55"], correct: [1] },
+        { question: "81 - 36 = ?", options: ["35", "45", "55", "57"], correct: [1] },
+        { question: "12 x 4 = ?", options: ["36", "42", "48", "52"], correct: [2] },
+        { question: "100 - 37 = ?", options: ["53", "63", "67", "73"], correct: [1] },
+        { question: "45 ÷ 5 = ?", options: ["7", "8", "9", "10"], correct: [2] },
+        { question: "23 + 19 = ?", options: ["40", "41", "42", "43"], correct: [2] },
+        { question: "6 x 7 = ?", options: ["36", "40", "42", "49"], correct: [2] },
+        { question: "什么东西越洗越脏？", options: ["脸", "水", "手帕", "肥皂"], correct: [1] },
+        { question: "什么门永远关不上？", options: ["木门", "球门", "铁门", "校门"], correct: [1] },
+        { question: "什么东西越吃越少？", options: ["米饭", "年龄", "空气", "影子"], correct: [0] },
+        { question: "什么东西有脚却不会走？", options: ["桌子", "小猫", "鞋子", "钟表"], correct: [0] },
+        { question: "什么东西天气越热爬得越高？", options: ["太阳", "温度计", "气球", "云"], correct: [1] },
+        { question: "什么车不会动？", options: ["火车", "风车", "汽车", "电车"], correct: [1] },
+        { question: "什么布剪不断？", options: ["瀑布", "棉布", "桌布", "花布"], correct: [0] },
+        { question: "什么东西越用越有光？", options: ["灯泡", "镜子", "脑子", "蜡烛"], correct: [2] },
+        { question: "什么东西明明是你的，别人却用得最多？", options: ["名字", "书包", "手机", "铅笔"], correct: [0] },
+        { question: "什么桥下面没有水？", options: ["木桥", "天桥", "石桥", "铁桥"], correct: [1] }
     ];
 
     // 王者荣耀英雄池可继续补充英雄；这里先按常见主要分路分类，方便后续增删。
@@ -80,8 +66,7 @@
     };
 
     const letters = ["A", "B", "C", "D"];
-    let currentChat = null;
-    let challengeState = null;
+    let quizState = null;
     let selectedLane = "jungle";
     let wheelRotation = 0;
     let heroSpinTimer = null;
@@ -100,21 +85,14 @@
         return copy;
     }
 
-    function pickChat() {
-        if (chatBank.length <= 1) {
-            currentChat = chatBank[0];
-            return currentChat;
-        }
+    function pickQuizQuestion() {
+        const candidates = quizState && quizState.lastQuestion
+            ? quizBank.filter(function (item) {
+                return item !== quizState.lastQuestion;
+            })
+            : quizBank;
 
-        let nextChat = chatBank[Math.floor(Math.random() * chatBank.length)];
-
-        if (nextChat === currentChat) {
-            const currentIndex = chatBank.indexOf(currentChat);
-            nextChat = chatBank[(currentIndex + 1) % chatBank.length];
-        }
-
-        currentChat = nextChat;
-        return currentChat;
+        return candidates[Math.floor(Math.random() * candidates.length)];
     }
 
     function createDialog() {
@@ -239,107 +217,98 @@
             clearDialog();
             question.textContent = "想和君雪做什么？";
             options.classList.add("live2d-quiz__menu");
-            addOption("闲聊", showChat);
-            addOption("我们比比看", startChallenge);
+            addOption("无奖竞答", startQuiz);
             addOption("英雄池转盘", showHeroWheel);
             showDialog();
         }
 
-        function showChat() {
-            const chat = pickChat();
-
-            clearDialog();
-            meta.textContent = "闲聊时间";
-            question.textContent = chat.question;
-
-            chat.options.forEach(function (option) {
-                const button = addOption(option.label, function () {
-                    result.textContent = option.reply;
-                    result.className = "live2d-quiz__result is-" + option.mood;
-                    window.clearTimeout(showDialog.closeTimer);
-                    showDialog.closeTimer = window.setTimeout(closeDialog, 3500);
-                });
-                button.dataset.mood = option.mood;
-            });
-
-            showDialog();
-        }
-
-        function startChallenge() {
-            challengeState = {
-                questions: shuffle(challengeBank).slice(0, 10),
-                index: 0,
+        function startQuiz() {
+            quizState = {
                 correct: 0,
-                locked: false
+                wrong: 0,
+                correctStreak: 0,
+                wrongStreak: 0,
+                lastQuestion: null,
+                currentQuestion: null,
+                answered: false
             };
-            renderChallengeQuestion();
+            renderQuizQuestion();
             showDialog();
         }
 
-        function renderChallengeQuestion() {
-            const current = challengeState.questions[challengeState.index];
+        function renderQuizQuestion() {
+            const current = pickQuizQuestion();
 
+            quizState.currentQuestion = current;
+            quizState.answered = false;
             clearDialog();
-            meta.textContent = "我们比比看 · 第 " + (challengeState.index + 1) + " / 10 题";
+            meta.textContent = "无奖竞答 · 第 " + (quizState.correct + quizState.wrong + 1) + " 题";
             question.textContent = current.question;
 
             current.options.forEach(function (option, index) {
                 addOption(letters[index] + "：" + option, function (button) {
-                    answerChallenge(index, button);
+                    answerQuiz(index, button);
                 });
             });
         }
 
-        function answerChallenge(selectedIndex, selectedButton) {
-            const current = challengeState.questions[challengeState.index];
+        function answerQuiz(selectedIndex, selectedButton) {
+            const current = quizState.currentQuestion;
             const optionButtons = options.querySelectorAll(".live2d-quiz__option");
-            const isCorrect = selectedIndex === current.answer;
+            const isCorrect = current.correct.indexOf(selectedIndex) !== -1;
 
-            if (challengeState.locked) {
+            if (quizState.answered) {
                 return;
             }
 
-            challengeState.locked = true;
+            quizState.answered = true;
+            quizState.lastQuestion = current;
             optionButtons.forEach(function (button) {
                 button.disabled = true;
             });
 
+            current.correct.forEach(function (answerIndex) {
+                if (optionButtons[answerIndex]) {
+                    optionButtons[answerIndex].classList.add("is-correct");
+                }
+            });
+
             if (isCorrect) {
-                challengeState.correct += 1;
+                quizState.correct += 1;
+                quizState.correctStreak += 1;
+                quizState.wrongStreak = 0;
                 selectedButton.classList.add("is-correct");
-                result.textContent = "真棒，离天才又进一步";
+                result.textContent = quizState.correctStreak >= 3 ? "看来你很懂君雪呢～" : "真棒，离天才又进一步";
                 result.className = "live2d-quiz__result is-good";
             } else {
+                quizState.wrong += 1;
+                quizState.wrongStreak += 1;
+                quizState.correctStreak = 0;
                 selectedButton.classList.add("is-wrong");
-                optionButtons[current.answer].classList.add("is-correct");
-                result.textContent = "真笨，这么简单都不会，去问问君雪吧";
+                result.textContent = quizState.wrongStreak >= 3 ? "你还没有君雪一半聪明哦～" : "真笨，这么简单都不会，去问问君雪吧";
                 result.className = "live2d-quiz__result is-warning";
             }
 
-            window.setTimeout(function () {
-                challengeState.index += 1;
-                challengeState.locked = false;
-
-                if (challengeState.index >= challengeState.questions.length) {
-                    showChallengeEnd();
-                    return;
-                }
-
-                renderChallengeQuestion();
-            }, 1200);
+            addPostAnswerActions();
         }
 
-        function showChallengeEnd() {
+        function addPostAnswerActions() {
+            addOption("继续挑战", renderQuizQuestion);
+            addOption("换个问题", renderQuizQuestion);
+            addOption("不玩了", showQuizScore);
+        }
+
+        function showQuizScore() {
             clearDialog();
-            meta.textContent = "挑战结算";
-            question.textContent = "挑战结束！你答对了 " + challengeState.correct + " / 10 题。";
+            meta.textContent = "无奖竞答结算";
+            question.innerHTML = "本次成绩：<br>答对 " + quizState.correct + " 题<br>答错 " + quizState.wrong + " 题";
             options.classList.add("live2d-quiz__menu");
-            addOption("再来一局", startChallenge);
+            addOption("继续挑战", startQuiz);
             addOption("回到菜单", function () {
                 showMenu();
             });
-            result.textContent = challengeState.correct >= 8 ? "不错嘛，君雪认可你了" : "还得练练，君雪在旁边看着呢";
-            result.className = challengeState.correct >= 8 ? "live2d-quiz__result is-good" : "live2d-quiz__result is-neutral";
+            result.textContent = quizState.correct >= quizState.wrong ? "不错嘛，君雪记下这次成绩了" : "下次再来，君雪等你反超";
+            result.className = quizState.correct >= quizState.wrong ? "live2d-quiz__result is-good" : "live2d-quiz__result is-neutral";
         }
 
         function showHeroWheel() {

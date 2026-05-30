@@ -9,7 +9,6 @@
     let currentPosition = null;
     let dragState = null;
     let suppressClickUntil = 0;
-    let observer = null;
 
     function injectDragStyles() {
         if (document.getElementById("live2d-drag-style")) {
@@ -424,15 +423,13 @@
             }
         });
 
-        observer = new MutationObserver(function () {
+        const observer = new MutationObserver(function () {
             bindDragTargets();
             ensureResetButton();
         });
         observer.observe(document.body, {
             childList: true,
-            subtree: true,
-            attributes: true,
-            attributeFilter: ["class", "style"]
+            subtree: true
         });
     }
 

@@ -1,4 +1,14 @@
 /* Live2D 看板娘悬浮层：固定停靠在页面角落，不参与页面布局，避免影响星空、鼠标光效、水波纹和游戏展示页。 */
+.home-title {
+    font-size: clamp(32px, 4.5vw, 68px) !important;
+}
+
+@media (max-width: 760px) {
+    .home-title {
+        font-size: clamp(28px, 8.5vw, 42px) !important;
+    }
+}
+
 .live2d-widget {
     position: fixed;
     right: 18px;
@@ -31,16 +41,20 @@
 
 .live2d-message {
     position: absolute;
-    right: 10px;
-    top: 20px;
-    max-width: 190px;
-    padding: 10px 12px;
+    right: -214px;
+    top: 70px;
+    width: 200px;
+    max-width: 200px;
+    box-sizing: border-box;
+    padding: 8px 10px;
     border: 1px solid rgba(108, 229, 255, 0.42);
-    border-radius: 14px 14px 4px 14px;
+    border-radius: 14px 14px 14px 4px;
     background: rgba(7, 17, 31, 0.72);
     color: rgba(255, 255, 255, 0.92);
-    font-size: 13px;
-    line-height: 1.45;
+    font-size: 12px;
+    line-height: 1.4;
+    white-space: normal;
+    overflow-wrap: anywhere;
     box-shadow: 0 0 18px rgba(0, 180, 255, 0.18);
     backdrop-filter: blur(8px);
     pointer-events: none;
@@ -48,7 +62,8 @@
 
 .live2d-widget.is-left .live2d-message {
     right: auto;
-    left: 10px;
+    left: calc(100% + 10px);
+    top: 76px;
     border-radius: 14px 14px 14px 4px;
 }
 
@@ -563,16 +578,18 @@
     }
 
     .live2d-message {
-        max-width: 132px;
-        top: 10px;
-        right: 4px;
-        font-size: 12px;
-        padding: 8px 10px;
+        right: -178px;
+        top: 52px;
+        width: 168px;
+        max-width: 168px;
+        font-size: 11px;
+        padding: 7px 9px;
     }
 
     .live2d-widget.is-left .live2d-message {
         right: auto;
-        left: 4px;
+        left: calc(100% + 8px);
+        top: 56px;
     }
 
     #oml2d-main,

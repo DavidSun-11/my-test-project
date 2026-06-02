@@ -52,7 +52,7 @@
             .${BUTTON_CLASS} {
                 position: fixed;
                 left: 172px;
-                bottom: 112px;
+                bottom: 168px;
                 z-index: ${BUTTON_Z_INDEX};
                 min-width: 72px;
                 min-height: 30px;
@@ -88,7 +88,7 @@
             @media (max-width: 720px) {
                 .${BUTTON_CLASS} {
                     left: 126px;
-                    bottom: 98px;
+                    bottom: 154px;
                     min-width: 66px;
                     min-height: 28px;
                     padding: 0 8px;
@@ -270,8 +270,8 @@
         button = document.createElement("button");
         button.type = "button";
         button.className = BUTTON_CLASS;
-        button.textContent = "拖动君雪";
-        button.setAttribute("aria-label", "拖动君雪位置");
+        button.textContent = "拖动甘雨";
+        button.setAttribute("aria-label", "拖动甘雨位置");
         document.body.appendChild(button);
         bindDragButton(button);
         positionDragButton();

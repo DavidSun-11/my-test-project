@@ -13,6 +13,7 @@
 
     let dragState = null;
     let currentPosition = null;
+    let hoverHideTimer = null;
 
     function onReady(callback) {
         if (document.readyState === "loading") {
@@ -72,6 +73,17 @@
                 pointer-events: auto;
                 touch-action: none;
                 user-select: none;
+                opacity: 0.34;
+                transform: translateY(0);
+                transition: opacity 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+            }
+
+            body.is-live2d-drag-hovering .${BUTTON_CLASS},
+            .${BUTTON_CLASS}:hover,
+            .${BUTTON_CLASS}:focus-visible,
+            .${BUTTON_CLASS}.is-dragging {
+                opacity: 1;
+                transform: translateY(-2px);
             }
 
             .${BUTTON_CLASS}:hover {
@@ -246,13 +258,15 @@
             return;
         }
 
+        const buttonWidth = button.offsetWidth || 72;
+        const buttonHeight = button.offsetHeight || 30;
         const nextLeft = Math.min(
-            Math.max(8, position.left + Math.max(92, rect.width * 0.48)),
+            Math.max(8, position.left + rect.width / 2 - buttonWidth / 2),
             Math.max(8, window.innerWidth - button.offsetWidth - 8)
         );
         const nextTop = Math.min(
-            Math.max(8, position.top + Math.max(260, rect.height - 76)),
-            Math.max(8, window.innerHeight - button.offsetHeight - 8)
+            Math.max(8, position.top + rect.height - buttonHeight - 36),
+            Math.max(8, window.innerHeight - buttonHeight - 88)
         );
 
         button.style.left = nextLeft + "px";
@@ -286,6 +300,19 @@
         if (button) {
             button.classList.toggle("is-dragging", isDragging);
         }
+    }
+
+    function setHovering(isHovering) {
+        window.clearTimeout(hoverHideTimer);
+
+        if (isHovering) {
+            document.body.classList.add("is-live2d-drag-hovering");
+            return;
+        }
+
+        hoverHideTimer = window.setTimeout(function () {
+            document.body.classList.remove("is-live2d-drag-hovering");
+        }, 120);
     }
 
     function handlePointerDown(event) {
@@ -368,9 +395,29 @@
         button.addEventListener("pointermove", handlePointerMove);
         button.addEventListener("pointerup", handlePointerEnd);
         button.addEventListener("pointercancel", handlePointerEnd);
+        button.addEventListener("pointerenter", function () {
+            setHovering(true);
+        });
+        button.addEventListener("pointerleave", function () {
+            setHovering(false);
+        });
         button.addEventListener("click", function (event) {
             event.preventDefault();
             event.stopPropagation();
+        });
+    }
+
+    function bindHoverTarget(node) {
+        if (!node || node.dataset.live2dDragHoverReady === "true") {
+            return;
+        }
+
+        node.dataset.live2dDragHoverReady = "true";
+        node.addEventListener("pointerenter", function () {
+            setHovering(true);
+        });
+        node.addEventListener("pointerleave", function () {
+            setHovering(false);
         });
     }
 
@@ -395,6 +442,9 @@
 
         if (getStage()) {
             ensureDragButton();
+            bindHoverTarget(getStage());
+            bindHoverTarget(getCanvas());
+            bindHoverTarget(getHitArea());
             if (dragState) {
                 return;
             }

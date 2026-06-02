@@ -102,6 +102,50 @@
     let wheelRotation = 0;
     let heroSpinTimer = null;
     let heroSpinTimeout = null;
+    let firstClickVoicePlaying = false;
+    const firstClickVoiceStorageKey = "live2d_first_click_voice_played";
+    const firstClickVoiceText = "早上好...嗯？是哪里没有梳理好吗，请不要盯着我的...盯着我的头饰看。";
+    const firstClickVoicePath = "assets/audio/ganyu_first_click.mp3";
+
+    function playVoice(file) {
+        const audio = new Audio(file);
+
+        audio.volume = 0.8;
+        return new Promise(function (resolve) {
+            let done = false;
+            const timer = window.setTimeout(finish, 15000);
+
+            function finish() {
+                if (done) {
+                    return;
+                }
+
+                done = true;
+                window.clearTimeout(timer);
+                resolve();
+            }
+
+            audio.addEventListener("ended", finish, { once: true });
+            audio.addEventListener("error", finish, { once: true });
+            audio.play().catch(finish);
+        });
+    }
+
+    function hasPlayedFirstClickVoice() {
+        try {
+            return localStorage.getItem(firstClickVoiceStorageKey) === "true";
+        } catch (error) {
+            return false;
+        }
+    }
+
+    function markFirstClickVoicePlayed() {
+        try {
+            localStorage.setItem(firstClickVoiceStorageKey, "true");
+        } catch (error) {
+            // localStorage 不可用时，仅在当前页面避免重复播放。
+        }
+    }
 
     function shuffle(items) {
         const copy = items.slice();
@@ -279,8 +323,29 @@
         }
 
         function showMenu(event) {
+            if (window.JunxueLive2DDrag && typeof window.JunxueLive2DDrag.shouldIgnoreMenuEvent === "function" && window.JunxueLive2DDrag.shouldIgnoreMenuEvent(event)) {
+                return;
+            }
+
             if (event && typeof event.preventDefault === "function") {
                 event.preventDefault();
+            }
+
+            if (firstClickVoicePlaying) {
+                return;
+            }
+
+            if (event && !hasPlayedFirstClickVoice()) {
+                firstClickVoicePlaying = true;
+                markFirstClickVoicePlayed();
+                clearDialog();
+                question.textContent = firstClickVoiceText;
+                showDialog();
+                playVoice(firstClickVoicePath).then(function () {
+                    firstClickVoicePlaying = false;
+                    showMenu();
+                });
+                return;
             }
 
             clearDialog();

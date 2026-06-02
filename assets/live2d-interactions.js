@@ -103,9 +103,10 @@
     let heroSpinTimer = null;
     let heroSpinTimeout = null;
     let openingVoicePlaying = false;
-    const openingVoiceStorageKey = "live2d_opening_voice_played";
+    let openingVoiceRetryPending = false;
+    let openingVoiceRetryBound = false;
     const openingVoiceText = "万家灯火就在眼前，人们的生活究竟是什么样的呢…欸？你想邀我去夜市？啊…不，不好意思，我就不去了吧。";
-    const openingVoicePath = "assets/audio/ganyu_opening.mp3.mp3";
+    const openingVoicePath = "assets/audio/ganyu_opening.mp3";
     let firstClickVoicePlaying = false;
     const firstClickVoiceStorageKey = "live2d_first_click_voice_played";
     const firstClickVoiceText = "早上好...嗯？是哪里没有梳理好吗，请不要盯着我的...盯着我的头饰看。";
@@ -135,14 +136,14 @@
         });
     }
 
-    function playOpeningVoice(openingBubble) {
+    function playOpeningVoice() {
         const audio = new Audio(openingVoicePath);
 
         audio.volume = 0.8;
         return new Promise(function (resolve) {
             let done = false;
             let started = false;
-            let timer = null;
+            const timer = window.setTimeout(finish, 8000);
 
             function finish() {
                 if (done) {
@@ -154,10 +155,8 @@
                 resolve(started);
             }
 
-            function showBubbleAfterStart() {
+            function markStarted() {
                 started = true;
-                showOpeningBubble(openingBubble);
-                timer = window.setTimeout(finish, 6000);
             }
 
             audio.addEventListener("ended", finish, { once: true });
@@ -166,11 +165,11 @@
             const playRequest = audio.play();
 
             if (playRequest && typeof playRequest.then === "function") {
-                playRequest.then(showBubbleAfterStart).catch(finish);
+                playRequest.then(markStarted).catch(finish);
                 return;
             }
 
-            showBubbleAfterStart();
+            markStarted();
         });
     }
 
@@ -305,10 +304,10 @@
         const style = document.createElement("style");
         style.id = "live2d-opening-bubble-style";
         style.textContent = [
-            ".live2d-opening-bubble{position:fixed;left:252px;bottom:286px;z-index:61;width:min(328px,calc(100vw - 284px));padding:12px 14px;border:1px solid rgba(255,236,245,.88);border-radius:16px;background:rgba(255,178,211,.76);box-shadow:0 0 22px rgba(255,142,196,.38),inset 0 0 14px rgba(255,255,255,.16);backdrop-filter:blur(10px);color:rgba(92,28,58,.96);font-size:14px;line-height:1.55;letter-spacing:0;pointer-events:none;opacity:0;transform:translateY(8px);transition:opacity .35s ease,transform .35s ease;}",
+            ".live2d-opening-bubble{position:fixed;left:252px;top:160px;z-index:61;width:min(328px,calc(100vw - 32px));padding:12px 14px;border:1px solid rgba(255,236,245,.88);border-radius:16px;background:rgba(255,178,211,.76);box-shadow:0 0 22px rgba(255,142,196,.38),inset 0 0 14px rgba(255,255,255,.16);backdrop-filter:blur(10px);color:rgba(92,28,58,.96);font-size:14px;line-height:1.55;letter-spacing:0;pointer-events:none;opacity:0;transform:translateY(8px);transition:opacity .35s ease,transform .35s ease;}",
             ".live2d-opening-bubble.is-open{opacity:1;transform:translateY(0);}",
             ".live2d-opening-bubble.is-fading{opacity:0;transform:translateY(-6px);}",
-            "@media (max-width:720px){.live2d-opening-bubble{left:14px;right:14px;bottom:392px;width:auto;max-width:none;font-size:13px;}}"
+            "@media (max-width:720px){.live2d-opening-bubble{width:min(300px,calc(100vw - 28px));font-size:13px;}}"
         ].join("");
         document.head.appendChild(style);
     }
@@ -325,11 +324,21 @@
 
     function showOpeningBubble(bubble) {
         bubble.textContent = openingVoiceText;
+        positionLive2DPopup(bubble, {
+            width: 328,
+            height: 96,
+            offsetY: 56
+        });
         bubble.classList.remove("is-fading");
         bubble.classList.add("is-open");
+        window.clearTimeout(showOpeningBubble.timer);
+        showOpeningBubble.timer = window.setTimeout(function () {
+            hideOpeningBubble(bubble);
+        }, 7000);
     }
 
     function hideOpeningBubble(bubble) {
+        window.clearTimeout(showOpeningBubble.timer);
         bubble.classList.add("is-fading");
         bubble.classList.remove("is-open");
         window.clearTimeout(hideOpeningBubble.timer);
@@ -377,6 +386,80 @@
         return roots;
     }
 
+    function getLive2DRect() {
+        const selectors = ["#oml2d-stage", "#oml2d-canvas", ".live2d-hit-area"];
+
+        for (let index = 0; index < selectors.length; index += 1) {
+            const node = document.querySelector(selectors[index]);
+
+            if (node && node.getBoundingClientRect) {
+                const rect = node.getBoundingClientRect();
+
+                if (rect.width > 0 && rect.height > 0) {
+                    return rect;
+                }
+            }
+        }
+
+        return {
+            left: 10,
+            top: Math.max(0, window.innerHeight - 500),
+            right: 310,
+            bottom: window.innerHeight - 96,
+            width: 300,
+            height: 390
+        };
+    }
+
+    function clamp(value, min, max) {
+        return Math.min(Math.max(value, min), max);
+    }
+
+    function positionLive2DPopup(node, options) {
+        if (!node) {
+            return;
+        }
+
+        const settings = options || {};
+        const rect = getLive2DRect();
+        const gap = settings.gap || 14;
+        const fallbackWidth = settings.width || 330;
+        const fallbackHeight = settings.height || 160;
+        const popupWidth = node.offsetWidth || fallbackWidth;
+        const popupHeight = node.offsetHeight || fallbackHeight;
+        const rightLeft = rect.right + gap;
+        const hasRightSpace = rightLeft + popupWidth + 12 <= window.innerWidth;
+        const nextLeft = hasRightSpace
+            ? rightLeft
+            : rect.left - popupWidth - gap;
+        const nextTop = rect.top + (settings.offsetY || Math.max(36, rect.height * 0.16));
+        const maxLeft = Math.max(8, window.innerWidth - popupWidth - 8);
+        const maxTop = Math.max(8, window.innerHeight - popupHeight - 8);
+
+        node.style.left = clamp(nextLeft, 8, maxLeft) + "px";
+        node.style.top = clamp(nextTop, 8, maxTop) + "px";
+        node.style.right = "auto";
+        node.style.bottom = "auto";
+    }
+
+    function positionDefaultTips() {
+        const tips = document.querySelector("#oml2d-tips");
+
+        if (!tips) {
+            return;
+        }
+
+        tips.style.setProperty("position", "fixed", "important");
+        tips.style.setProperty("z-index", "62", "important");
+        tips.style.setProperty("pointer-events", "none", "important");
+        positionLive2DPopup(tips, {
+            width: 190,
+            height: 72,
+            offsetY: 92,
+            gap: 12
+        });
+    }
+
     function initInteractions() {
         const dialog = createDialog();
         const openingBubble = createOpeningBubble();
@@ -413,62 +496,87 @@
         }
 
         function showDialog() {
+            positionLive2DPopup(dialog, {
+                width: 362,
+                height: 220,
+                offsetY: 68
+            });
             dialog.classList.add("is-open");
             replayOpenAnimation();
             window.clearTimeout(showDialog.closeTimer);
         }
 
-        function hasPlayedOpeningVoice() {
-            return hasPlayedStoredVoice(openingVoiceStorageKey);
-        }
-
-        function markOpeningVoicePlayed() {
-            markStoredVoicePlayed(openingVoiceStorageKey);
-        }
-
         function removeOpeningVoiceFallback() {
             document.removeEventListener("click", handleOpeningVoiceGesture, true);
             document.removeEventListener("touchstart", handleOpeningVoiceGesture, true);
+            openingVoiceRetryBound = false;
+            openingVoiceRetryPending = false;
         }
 
-        function tryPlayOpeningVoice() {
-            if (openingVoicePlaying || hasPlayedOpeningVoice()) {
+        function bindOpeningVoiceFallback() {
+            if (openingVoiceRetryBound) {
+                return;
+            }
+
+            openingVoiceRetryBound = true;
+            document.addEventListener("click", handleOpeningVoiceGesture, true);
+            document.addEventListener("touchstart", handleOpeningVoiceGesture, {
+                capture: true,
+                passive: true
+            });
+        }
+
+        function tryPlayOpeningVoice(allowRetry) {
+            if (openingVoicePlaying) {
                 return Promise.resolve(false);
             }
 
             openingVoicePlaying = true;
-            return playOpeningVoice(openingBubble).then(function (played) {
-                if (played) {
-                    markOpeningVoicePlayed();
+            return playOpeningVoice().then(function (played) {
+                openingVoicePlaying = false;
+
+                if (!played && allowRetry) {
+                    openingVoiceRetryPending = true;
+                    bindOpeningVoiceFallback();
+                } else if (played) {
                     removeOpeningVoiceFallback();
                 }
 
-                hideOpeningBubble(openingBubble);
-                openingVoicePlaying = false;
                 return played;
             });
         }
 
-        function isLive2DGesture(event) {
-            const target = event && event.target;
-
-            if (!target || target === document || target === window) {
-                return false;
-            }
-
-            if (target === hitArea) {
-                return true;
-            }
-
-            return typeof target.closest === "function" && Boolean(target.closest(".live2d-hit-area,#live2d-widget,#oml2d-stage,#oml2d-canvas,[id^='oml2d'],[class*='oml2d']"));
-        }
-
-        function handleOpeningVoiceGesture(event) {
-            if (isLive2DGesture(event)) {
+        function retryOpeningVoiceFromGesture() {
+            if (!openingVoiceRetryPending) {
                 return;
             }
 
-            tryPlayOpeningVoice();
+            removeOpeningVoiceFallback();
+            tryPlayOpeningVoice(false);
+        }
+
+        function handleOpeningVoiceGesture() {
+            retryOpeningVoiceFromGesture();
+        }
+
+        function syncLive2DPopupPositions() {
+            positionDefaultTips();
+
+            if (dialog.classList.contains("is-open")) {
+                positionLive2DPopup(dialog, {
+                    width: 362,
+                    height: 220,
+                    offsetY: 68
+                });
+            }
+
+            if (openingBubble.textContent) {
+                positionLive2DPopup(openingBubble, {
+                    width: 328,
+                    height: 96,
+                    offsetY: 56
+                });
+            }
         }
 
         function closeDialog() {
@@ -499,20 +607,15 @@
                 event.preventDefault();
             }
 
-            if (openingVoicePlaying || firstClickVoicePlaying) {
+            if (firstClickVoicePlaying) {
                 return;
             }
 
-            if (event && !hasPlayedOpeningVoice()) {
-                tryPlayOpeningVoice().then(function (played) {
-                    if (played) {
-                        showMenu();
-                    }
-                });
-                return;
+            if (event) {
+                retryOpeningVoiceFromGesture();
             }
 
-            if (event && !hasPlayedFirstClickVoice()) {
+            if (event && !openingVoicePlaying && !hasPlayedFirstClickVoice()) {
                 firstClickVoicePlaying = true;
                 markFirstClickVoicePlayed();
                 clearDialog();
@@ -954,12 +1057,13 @@
         window.setTimeout(bindLive2DRoots, 500);
         window.setTimeout(bindLive2DRoots, 1500);
         window.setTimeout(bindLive2DRoots, 3000);
-        document.addEventListener("click", handleOpeningVoiceGesture, true);
-        document.addEventListener("touchstart", handleOpeningVoiceGesture, {
-            capture: true,
-            passive: true
-        });
-        window.setTimeout(tryPlayOpeningVoice, 600);
+        window.addEventListener("live2d-stage-position-changed", syncLive2DPopupPositions);
+        window.addEventListener("resize", syncLive2DPopupPositions);
+        window.setTimeout(syncLive2DPopupPositions, 500);
+        window.setTimeout(syncLive2DPopupPositions, 1500);
+        window.setTimeout(syncLive2DPopupPositions, 3000);
+        showOpeningBubble(openingBubble);
+        tryPlayOpeningVoice(true);
 
         closeButton.addEventListener("click", function (event) {
             event.stopPropagation();

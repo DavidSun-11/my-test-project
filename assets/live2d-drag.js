@@ -3,7 +3,6 @@
     const STORAGE_KEY = "junxue-live2d-stage-position";
     const STAGE_SELECTOR = "#oml2d-stage";
     const CANVAS_SELECTOR = "#oml2d-canvas";
-    const TIPS_SELECTOR = "#oml2d-tips";
     const HIT_AREA_SELECTOR = ".live2d-hit-area";
     const BUTTON_CLASS = "live2d-drag-button";
     const BUTTON_SELECTOR = "." + BUTTON_CLASS;
@@ -32,13 +31,6 @@
         const style = document.createElement("style");
         style.id = "live2d-external-drag-style";
         style.textContent = `
-            #oml2d-tips {
-                display: none !important;
-                opacity: 0 !important;
-                visibility: hidden !important;
-                pointer-events: none !important;
-            }
-
             #oml2d-stage {
                 pointer-events: auto !important;
                 z-index: ${STAGE_Z_INDEX} !important;
@@ -110,19 +102,6 @@
             }
         `;
         document.head.appendChild(style);
-    }
-
-    function hideDefaultTips() {
-        const tips = document.querySelector(TIPS_SELECTOR);
-
-        if (!tips) {
-            return;
-        }
-
-        tips.style.setProperty("display", "none", "important");
-        tips.style.setProperty("opacity", "0", "important");
-        tips.style.setProperty("visibility", "hidden", "important");
-        tips.style.setProperty("pointer-events", "none", "important");
     }
 
     function getStage() {
@@ -224,10 +203,29 @@
 
         syncHitArea(nextPosition);
         positionDragButton(nextPosition);
+        notifyStagePosition(nextPosition);
 
         if (shouldSave) {
             savePosition(nextPosition);
         }
+    }
+
+    function notifyStagePosition(position) {
+        const rect = getStageRect();
+
+        window.dispatchEvent(new CustomEvent("live2d-stage-position-changed", {
+            detail: {
+                position: position,
+                rect: {
+                    left: rect.left,
+                    top: rect.top,
+                    right: rect.right,
+                    bottom: rect.bottom,
+                    width: rect.width,
+                    height: rect.height
+                }
+            }
+        }));
     }
 
     function syncHitArea(position) {
@@ -438,8 +436,6 @@
     }
 
     function syncRuntimeDom() {
-        hideDefaultTips();
-
         if (getStage()) {
             ensureDragButton();
             bindHoverTarget(getStage());

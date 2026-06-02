@@ -123,6 +123,37 @@
         { title: "感谢你曾来过", src: "assets/audio/music.mp3" },
         { title: "不要说话", src: "assets/audio/dont-speak.mp3" }
     ];
+    const fortuneLevels = ["大吉", "吉", "中吉", "平", "小凶"];
+    const luckyColors = ["月白", "星蓝", "霜紫", "云粉", "雪青", "晨金", "海盐蓝", "薄荷绿", "樱花粉"];
+    const fortuneAdviceList = [
+        "把重要的事情放在上午完成，心会更安定。",
+        "慢一点也没关系，今天适合稳稳地前进。",
+        "适合整理计划，也适合给自己留一点休息时间。",
+        "遇到犹豫时，先做最小的一步。",
+        "今天适合和可靠的人说说心里话。",
+        "别急着否定自己，答案会在行动里慢慢清楚。",
+        "给桌面、心情和任务都留一点空白。",
+        "如果感到疲惫，就先把呼吸放慢。",
+        "适合尝试一件一直想做的小事。",
+        "保持温柔，但也别忘了坚定自己的边界。"
+    ];
+    const ganyuQuotes = [
+        "星空会指引方向，但选择的人始终是你。",
+        "月光落下来的时候，也会替努力的人照亮脚边的路。",
+        "若今天的风有些冷，就把心事先交给云吧。",
+        "甘雨相信，慢慢走的人也会抵达很远的地方。",
+        "星河不会催促你，它只是在安静地陪你向前。",
+        "愿你今晚睡得安稳，明天醒来仍有期待。",
+        "温柔不是软弱，是在风雪里仍愿意守住光。",
+        "有些答案不必立刻找到，先照顾好自己也很好。",
+        "若前路暂时看不清，就先看向离你最近的一颗星。",
+        "今天已经做得很好了，请把这句话也算进收获里。",
+        "每一盏灯火背后，都有值得被珍惜的平凡愿望。",
+        "云散之前，月亮也一直在那里。",
+        "愿你的努力像霜花一样，安静却闪闪发亮。",
+        "把不安放轻一点，把喜欢的事握紧一点。",
+        "就算只是小小一步，也是在向自己的明天靠近。"
+    ];
     let musicAudio = null;
 
     function playVoice(file) {
@@ -831,9 +862,9 @@
             options.classList.add("live2d-consult-grid");
             addConsultCard("查看天气", "查询近三天天气", false, showWeatherInput);
             addConsultCard("听歌", "播放本地歌曲", false, showMusicPlayer);
-            addConsultCard("暂未开放", "君雪还在准备", true);
-            addConsultCard("暂未开放", "先留一个小悬念", true);
-            result.textContent = "先试试天气吧。";
+            addConsultCard("占卜", "看看今日运势", false, showFortunePanel);
+            addConsultCard("敬请期待", "先留一个小悬念", true);
+            result.textContent = "想先看看哪一项呢？";
             result.className = "live2d-quiz__result is-neutral";
             showDialog();
         }
@@ -854,6 +885,80 @@
 
             options.appendChild(button);
             return button;
+        }
+
+        function randomItem(items) {
+            return items[Math.floor(Math.random() * items.length)];
+        }
+
+        function getAllHeroes() {
+            return Object.keys(heroPools).reduce(function (heroes, lane) {
+                return heroes.concat(heroPools[lane]);
+            }, []);
+        }
+
+        function showFortunePanel() {
+            clearDialog();
+            meta.textContent = "咨询 · 占卜";
+            question.textContent = "🌙 君雪占卜屋";
+
+            const fortune = {
+                level: randomItem(fortuneLevels),
+                number: String(Math.floor(Math.random() * 99) + 1),
+                color: randomItem(luckyColors),
+                hero: randomItem(getAllHeroes()),
+                song: randomItem(musicList).title,
+                advice: randomItem(fortuneAdviceList),
+                quote: randomItem(ganyuQuotes)
+            };
+
+            options.innerHTML = [
+                '<section class="live2d-weather-card" aria-label="君雪占卜结果">',
+                    '<article class="live2d-weather-day">',
+                        '<div class="live2d-weather-day__label">今日运势</div>',
+                        '<div class="live2d-weather-day__status">' + escapeHtml(fortune.level) + '</div>',
+                    '</article>',
+                    '<article class="live2d-weather-day">',
+                        '<div class="live2d-weather-day__label">幸运数字</div>',
+                        '<div class="live2d-weather-day__status">' + escapeHtml(fortune.number) + '</div>',
+                    '</article>',
+                    '<article class="live2d-weather-day">',
+                        '<div class="live2d-weather-day__label">幸运颜色</div>',
+                        '<div class="live2d-weather-day__status">' + escapeHtml(fortune.color) + '</div>',
+                    '</article>',
+                    '<article class="live2d-weather-day">',
+                        '<div class="live2d-weather-day__label">幸运英雄</div>',
+                        '<div class="live2d-weather-day__status">' + escapeHtml(fortune.hero) + '</div>',
+                    '</article>',
+                    '<article class="live2d-weather-day">',
+                        '<div class="live2d-weather-day__label">幸运歌曲</div>',
+                        '<div class="live2d-weather-day__status">' + escapeHtml(fortune.song) + '</div>',
+                    '</article>',
+                '</section>',
+                '<div class="live2d-quiz__result is-neutral">' + escapeHtml(fortune.advice) + '</div>',
+                '<div class="live2d-weather-actions">',
+                    '<button class="live2d-wheel__small" type="button" data-fortune-action="again">再占一次</button>',
+                    '<button class="live2d-wheel__small" type="button" data-fortune-action="back">返回咨询</button>',
+                    '<button class="live2d-wheel__small" type="button" data-fortune-action="menu">回到菜单</button>',
+                '</div>'
+            ].join("");
+
+            options.querySelector('[data-fortune-action="again"]').addEventListener("click", function (event) {
+                event.stopPropagation();
+                showFortunePanel();
+            });
+            options.querySelector('[data-fortune-action="back"]').addEventListener("click", function (event) {
+                event.stopPropagation();
+                showConsultPanel();
+            });
+            options.querySelector('[data-fortune-action="menu"]').addEventListener("click", function (event) {
+                event.stopPropagation();
+                showMenu();
+            });
+
+            result.textContent = fortune.quote;
+            result.className = "live2d-quiz__result is-good";
+            showDialog();
         }
 
         function getCurrentMusic() {

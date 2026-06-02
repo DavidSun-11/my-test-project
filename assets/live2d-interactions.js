@@ -113,6 +113,8 @@
     const firstClickVoiceStorageKey = "live2d_first_click_voice_played";
     const firstClickVoiceText = "早上好...嗯？是哪里没有梳理好吗，请不要盯着我的...盯着我的头饰看。";
     const firstClickVoicePath = "assets/audio/ganyu_first_click.mp3";
+    const quizExitVoiceText = "今天的题目就到这里啦～\n如果下次还想考考自己，记得再来找甘雨哦。";
+    const quizExitVoicePath = "assets/audio/ganyu_quiz_exit.mp3";
     const musicList = [
         { title: "感谢你曾来过", src: "assets/audio/music.mp3" },
         { title: "不要说话", src: "assets/audio/dont-speak.mp3" }
@@ -314,6 +316,9 @@
             ".live2d-opening-bubble{position:fixed;left:252px;top:160px;z-index:61;width:min(328px,calc(100vw - 32px));padding:12px 14px;border:1px solid rgba(255,236,245,.88);border-radius:16px;background:rgba(255,178,211,.76);box-shadow:0 0 22px rgba(255,142,196,.38),inset 0 0 14px rgba(255,255,255,.16);backdrop-filter:blur(10px);color:rgba(92,28,58,.96);font-size:14px;line-height:1.55;letter-spacing:0;pointer-events:none;opacity:0;transform:translateY(8px);transition:opacity .35s ease,transform .35s ease;}",
             ".live2d-opening-bubble.is-open{opacity:1;transform:translateY(0);}",
             ".live2d-opening-bubble.is-fading{opacity:0;transform:translateY(-6px);}",
+            ".live2d-quiz-exit-bubble{position:fixed;left:252px;top:160px;z-index:62;width:min(318px,calc(100vw - 32px));padding:12px 14px;border:1px solid rgba(213,244,255,.76);border-radius:16px;background:linear-gradient(145deg,rgba(255,178,218,.7),rgba(126,219,255,.58));box-shadow:0 0 22px rgba(126,219,255,.28),0 0 18px rgba(255,142,196,.24),inset 0 0 14px rgba(255,255,255,.14);backdrop-filter:blur(10px);color:rgba(50,32,72,.96);font-size:14px;line-height:1.55;letter-spacing:0;white-space:pre-line;pointer-events:none;opacity:0;transform:translateY(8px);transition:opacity .35s ease,transform .35s ease;}",
+            ".live2d-quiz-exit-bubble.is-open{opacity:1;transform:translateY(0);}",
+            ".live2d-quiz-exit-bubble.is-fading{opacity:0;transform:translateY(-6px);}",
             "@media (max-width:720px){.live2d-opening-bubble{width:min(300px,calc(100vw - 28px));font-size:13px;}}"
         ].join("");
         document.head.appendChild(style);
@@ -324,6 +329,16 @@
 
         const bubble = document.createElement("div");
         bubble.className = "live2d-opening-bubble";
+        bubble.setAttribute("aria-live", "polite");
+        document.body.appendChild(bubble);
+        return bubble;
+    }
+
+    function createQuizExitBubble() {
+        ensureOpeningBubbleStyles();
+
+        const bubble = document.createElement("div");
+        bubble.className = "live2d-quiz-exit-bubble";
         bubble.setAttribute("aria-live", "polite");
         document.body.appendChild(bubble);
         return bubble;
@@ -350,6 +365,32 @@
         bubble.classList.remove("is-open");
         window.clearTimeout(hideOpeningBubble.timer);
         hideOpeningBubble.timer = window.setTimeout(function () {
+            bubble.classList.remove("is-fading");
+            bubble.textContent = "";
+        }, 360);
+    }
+
+    function showQuizExitBubble(bubble) {
+        bubble.textContent = quizExitVoiceText;
+        positionLive2DPopup(bubble, {
+            width: 318,
+            height: 92,
+            offsetY: 62
+        });
+        bubble.classList.remove("is-fading");
+        bubble.classList.add("is-open");
+        window.clearTimeout(showQuizExitBubble.timer);
+        showQuizExitBubble.timer = window.setTimeout(function () {
+            hideQuizExitBubble(bubble);
+        }, 5000);
+    }
+
+    function hideQuizExitBubble(bubble) {
+        window.clearTimeout(showQuizExitBubble.timer);
+        bubble.classList.add("is-fading");
+        bubble.classList.remove("is-open");
+        window.clearTimeout(hideQuizExitBubble.timer);
+        hideQuizExitBubble.timer = window.setTimeout(function () {
             bubble.classList.remove("is-fading");
             bubble.textContent = "";
         }, 360);
@@ -470,6 +511,7 @@
     function initInteractions() {
         const dialog = createDialog();
         const openingBubble = createOpeningBubble();
+        const quizExitBubble = createQuizExitBubble();
         const hitArea = createHitArea();
         const closeButton = dialog.querySelector(".live2d-quiz__close");
         const meta = dialog.querySelector(".live2d-quiz__meta");
@@ -588,6 +630,14 @@
                     width: 328,
                     height: 96,
                     offsetY: 56
+                });
+            }
+
+            if (quizExitBubble.textContent) {
+                positionLive2DPopup(quizExitBubble, {
+                    width: 318,
+                    height: 92,
+                    offsetY: 62
                 });
             }
         }
@@ -729,6 +779,8 @@
 
         function showQuizScore() {
             clearDialog();
+            showQuizExitBubble(quizExitBubble);
+            playVoice(quizExitVoicePath);
             meta.textContent = "无奖竞答结算";
             question.innerHTML = "本次成绩：<br>答对 " + quizState.correct + " 题<br>答错 " + quizState.wrong + " 题";
             options.classList.add("live2d-quiz__menu");

@@ -527,14 +527,25 @@
             heroSpinTimeout = null;
         }
 
-        function stopMusicPlayback() {
+        function refreshMusicPlayerContent() {
+            if (dialog.classList.contains("is-music")) {
+                renderMusicPlayerContent();
+            }
+        }
+
+        function closeCurrentMusic() {
             musicAudio.pause();
+            try {
+                musicAudio.currentTime = 0;
+            } catch (error) {
+                // Ignore browsers that block seeking before audio metadata is loaded.
+            }
             musicPlaying = false;
+            refreshMusicPlayerContent();
         }
 
         function clearDialog() {
             clearSpinTimers();
-            stopMusicPlayback();
             dialog.classList.remove("is-wheel", "is-weather", "is-music");
             meta.textContent = "";
             question.textContent = "";
@@ -644,7 +655,6 @@
 
         function closeDialog() {
             clearSpinTimers();
-            stopMusicPlayback();
             dialog.classList.remove("is-open", "is-opening");
             window.clearTimeout(showDialog.closeTimer);
         }
@@ -858,6 +868,7 @@
                     '<div class="live2d-music-actions">',
                         '<button class="live2d-wheel__small" type="button" data-music-action="back">返回咨询</button>',
                         '<button class="live2d-wheel__small" type="button" data-music-action="menu">回到菜单</button>',
+                        '<button class="live2d-wheel__small" type="button" data-music-action="close">关闭歌曲</button>',
                     '</div>',
                 '</div>'
             ].join("");
@@ -875,17 +886,17 @@
             syncMusicAudioSource();
             musicAudio.play().then(function () {
                 musicPlaying = true;
-                renderMusicPlayerContent();
+                refreshMusicPlayerContent();
             }).catch(function () {
                 musicPlaying = false;
-                renderMusicPlayerContent();
+                refreshMusicPlayerContent();
             });
         }
 
         function pauseCurrentMusic() {
             musicAudio.pause();
             musicPlaying = false;
-            renderMusicPlayerContent();
+            refreshMusicPlayerContent();
         }
 
         function selectMusic(index, shouldPlay) {
@@ -898,7 +909,7 @@
             musicAudio.removeAttribute("src");
             musicAudio.load();
             musicPlaying = false;
-            renderMusicPlayerContent();
+            refreshMusicPlayerContent();
 
             if (shouldPlay) {
                 playCurrentMusic();
@@ -938,6 +949,11 @@
                         return;
                     }
 
+                    if (action === "close") {
+                        closeCurrentMusic();
+                        return;
+                    }
+
                     if (action === "back") {
                         showConsultPanel();
                         return;
@@ -961,8 +977,7 @@
             result.textContent = "需要你点播放，甘雨才会开始放歌。";
             result.className = "live2d-quiz__result is-neutral";
             musicAudio.onended = function () {
-                musicPlaying = false;
-                renderMusicPlayerContent();
+                selectMusic(currentMusicIndex + 1, true);
             };
             showDialog();
         }

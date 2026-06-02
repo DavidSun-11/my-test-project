@@ -114,7 +114,8 @@
     const firstClickVoiceText = "早上好...嗯？是哪里没有梳理好吗，请不要盯着我的...盯着我的头饰看。";
     const firstClickVoicePath = "assets/audio/ganyu_first_click.mp3";
     const musicList = [
-        { title: "感谢你曾来过", src: "assets/audio/music.mp3" }
+        { title: "感谢你曾来过", src: "assets/audio/music.mp3" },
+        { title: "Don't Speak", src: "assets/audio/dont-speak.mp3" }
     ];
     const musicAudio = new Audio();
 

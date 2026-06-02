@@ -319,21 +319,42 @@
     width: 360px;
 }
 
+.live2d-music-title,
+.live2d-music-subtitle {
+    display: block;
+}
+
+.live2d-music-title {
+    color: #eafcff;
+}
+
+.live2d-music-subtitle {
+    margin-top: 4px;
+    color: rgba(202, 236, 255, 0.72);
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.35;
+    text-shadow: 0 0 10px rgba(255, 180, 220, 0.22), 0 0 12px rgba(108, 229, 255, 0.18);
+}
+
 .live2d-music-panel {
     display: block;
 }
 
 .live2d-music-player {
     display: grid;
-    gap: 10px;
+    gap: 12px;
 }
 
 .live2d-music-current {
-    padding: 10px 12px;
-    border: 1px solid rgba(108, 229, 255, 0.28);
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.07);
-    color: rgba(214, 246, 255, 0.8);
+    padding: 12px 14px;
+    border: 1px solid rgba(108, 229, 255, 0.42);
+    border-radius: 14px;
+    background:
+        radial-gradient(circle at 14% 18%, rgba(159, 245, 255, 0.18), transparent 38%),
+        rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 16px rgba(0, 190, 255, 0.16), inset 0 0 14px rgba(255, 255, 255, 0.05);
+    color: rgba(214, 246, 255, 0.82);
     font-size: 13px;
     line-height: 1.4;
 }
@@ -341,31 +362,44 @@
 .live2d-music-current span {
     color: #eafcff;
     font-weight: bold;
+    text-shadow: 0 0 12px rgba(108, 229, 255, 0.4);
 }
 
 .live2d-music-list {
     display: grid;
     gap: 8px;
     max-height: 128px;
+    padding: 2px;
     overflow: auto;
 }
 
 .live2d-music-track {
-    min-height: 36px;
+    min-height: 38px;
     padding: 0 12px;
-    border: 1px solid rgba(108, 229, 255, 0.32);
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(108, 229, 255, 0.34);
+    border-radius: 12px;
+    background:
+        linear-gradient(135deg, rgba(14, 45, 78, 0.62), rgba(9, 24, 48, 0.58));
     color: rgba(255, 255, 255, 0.92);
     font-size: 13px;
     text-align: left;
     cursor: pointer;
+    transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+}
+
+.live2d-music-track:hover {
+    transform: translateY(-1px);
+    border-color: rgba(159, 245, 255, 0.76);
+    box-shadow: 0 0 14px rgba(0, 190, 255, 0.22);
 }
 
 .live2d-music-track.is-current {
     border-color: rgba(255, 221, 114, 0.68);
-    background: rgba(255, 221, 114, 0.12);
+    background:
+        radial-gradient(circle at 14% 18%, rgba(255, 221, 114, 0.18), transparent 42%),
+        rgba(255, 221, 114, 0.1);
     color: #fff3c2;
+    box-shadow: 0 0 16px rgba(255, 221, 114, 0.18);
 }
 
 .live2d-music-controls,
@@ -377,13 +411,6 @@
 
 .live2d-music-actions {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.live2d-music-tip {
-    margin: 0;
-    color: rgba(214, 246, 255, 0.66);
-    font-size: 12px;
-    line-height: 1.45;
 }
 
 .live2d-weather-panel {

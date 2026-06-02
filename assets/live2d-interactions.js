@@ -795,7 +795,7 @@
 
             options.innerHTML = [
                 '<div class="live2d-music-player">',
-                    '<div class="live2d-music-current">当前歌曲：<span>' + escapeHtml(currentMusic ? currentMusic.title : "暂无歌曲") + '</span></div>',
+                    '<div class="live2d-music-current">当前播放：<span>' + escapeHtml(currentMusic ? currentMusic.title : "暂无歌曲") + '</span></div>',
                     '<div class="live2d-music-list" aria-label="歌曲列表">' + listHtml + '</div>',
                     '<div class="live2d-music-controls">',
                         '<button class="live2d-wheel__small" type="button" data-music-action="prev">上一首</button>',
@@ -806,7 +806,6 @@
                         '<button class="live2d-wheel__small" type="button" data-music-action="back">返回咨询</button>',
                         '<button class="live2d-wheel__small" type="button" data-music-action="menu">回到菜单</button>',
                     '</div>',
-                    '<p class="live2d-music-tip">歌曲文件放到 assets/audio/ 后，在 musicList 里添加即可</p>',
                 '</div>'
             ].join("");
 
@@ -903,7 +902,7 @@
             dialog.classList.add("is-music");
             options.classList.add("live2d-music-panel");
             meta.textContent = "咨询 · 听歌";
-            question.textContent = "听歌";
+            question.innerHTML = '<span class="live2d-music-title">♪ 听歌</span><span class="live2d-music-subtitle">甘雨想和你分享一些音乐呢～</span>';
             syncMusicAudioSource();
             renderMusicPlayerContent();
             result.textContent = "需要你点播放，君雪才会开始放歌。";

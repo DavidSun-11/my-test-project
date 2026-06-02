@@ -102,6 +102,10 @@
     let wheelRotation = 0;
     let heroSpinTimer = null;
     let heroSpinTimeout = null;
+    let openingVoicePlaying = false;
+    const openingVoiceStorageKey = "live2d_opening_voice_played";
+    const openingVoiceText = "万家灯火就在眼前，人们的生活究竟是什么样的呢…欸？你想邀我去夜市？啊…不，不好意思，我就不去了吧。";
+    const openingVoicePath = "assets/audio/ganyu_opening.mp3.mp3";
     let firstClickVoicePlaying = false;
     const firstClickVoiceStorageKey = "live2d_first_click_voice_played";
     const firstClickVoiceText = "早上好...嗯？是哪里没有梳理好吗，请不要盯着我的...盯着我的头饰看。";
@@ -131,20 +135,67 @@
         });
     }
 
-    function hasPlayedFirstClickVoice() {
+    function playOpeningVoice(openingBubble) {
+        const audio = new Audio(openingVoicePath);
+
+        audio.volume = 0.8;
+        return new Promise(function (resolve) {
+            let done = false;
+            let started = false;
+            let timer = null;
+
+            function finish() {
+                if (done) {
+                    return;
+                }
+
+                done = true;
+                window.clearTimeout(timer);
+                resolve(started);
+            }
+
+            function showBubbleAfterStart() {
+                started = true;
+                showOpeningBubble(openingBubble);
+                timer = window.setTimeout(finish, 6000);
+            }
+
+            audio.addEventListener("ended", finish, { once: true });
+            audio.addEventListener("error", finish, { once: true });
+
+            const playRequest = audio.play();
+
+            if (playRequest && typeof playRequest.then === "function") {
+                playRequest.then(showBubbleAfterStart).catch(finish);
+                return;
+            }
+
+            showBubbleAfterStart();
+        });
+    }
+
+    function hasPlayedStoredVoice(key) {
         try {
-            return localStorage.getItem(firstClickVoiceStorageKey) === "true";
+            return localStorage.getItem(key) === "true";
         } catch (error) {
             return false;
         }
     }
 
-    function markFirstClickVoicePlayed() {
+    function markStoredVoicePlayed(key) {
         try {
-            localStorage.setItem(firstClickVoiceStorageKey, "true");
+            localStorage.setItem(key, "true");
         } catch (error) {
-            // localStorage 不可用时，仅在当前页面避免重复播放。
+            // localStorage 不可用时，只在当前页面避免重复播放。
         }
+    }
+
+    function hasPlayedFirstClickVoice() {
+        return hasPlayedStoredVoice(firstClickVoiceStorageKey);
+    }
+
+    function markFirstClickVoicePlayed() {
+        markStoredVoicePlayed(firstClickVoiceStorageKey);
     }
 
     function shuffle(items) {
@@ -246,6 +297,48 @@
         return dialog;
     }
 
+    function ensureOpeningBubbleStyles() {
+        if (document.getElementById("live2d-opening-bubble-style")) {
+            return;
+        }
+
+        const style = document.createElement("style");
+        style.id = "live2d-opening-bubble-style";
+        style.textContent = [
+            ".live2d-opening-bubble{position:fixed;left:252px;bottom:286px;z-index:61;width:min(328px,calc(100vw - 284px));padding:12px 14px;border:1px solid rgba(255,236,245,.88);border-radius:16px;background:rgba(255,178,211,.76);box-shadow:0 0 22px rgba(255,142,196,.38),inset 0 0 14px rgba(255,255,255,.16);backdrop-filter:blur(10px);color:rgba(92,28,58,.96);font-size:14px;line-height:1.55;letter-spacing:0;pointer-events:none;opacity:0;transform:translateY(8px);transition:opacity .35s ease,transform .35s ease;}",
+            ".live2d-opening-bubble.is-open{opacity:1;transform:translateY(0);}",
+            ".live2d-opening-bubble.is-fading{opacity:0;transform:translateY(-6px);}",
+            "@media (max-width:720px){.live2d-opening-bubble{left:14px;right:14px;bottom:392px;width:auto;max-width:none;font-size:13px;}}"
+        ].join("");
+        document.head.appendChild(style);
+    }
+
+    function createOpeningBubble() {
+        ensureOpeningBubbleStyles();
+
+        const bubble = document.createElement("div");
+        bubble.className = "live2d-opening-bubble";
+        bubble.setAttribute("aria-live", "polite");
+        document.body.appendChild(bubble);
+        return bubble;
+    }
+
+    function showOpeningBubble(bubble) {
+        bubble.textContent = openingVoiceText;
+        bubble.classList.remove("is-fading");
+        bubble.classList.add("is-open");
+    }
+
+    function hideOpeningBubble(bubble) {
+        bubble.classList.add("is-fading");
+        bubble.classList.remove("is-open");
+        window.clearTimeout(hideOpeningBubble.timer);
+        hideOpeningBubble.timer = window.setTimeout(function () {
+            bubble.classList.remove("is-fading");
+            bubble.textContent = "";
+        }, 360);
+    }
+
     function createHitArea() {
         const hitArea = document.createElement("button");
         hitArea.className = "live2d-hit-area";
@@ -286,6 +379,7 @@
 
     function initInteractions() {
         const dialog = createDialog();
+        const openingBubble = createOpeningBubble();
         const hitArea = createHitArea();
         const closeButton = dialog.querySelector(".live2d-quiz__close");
         const meta = dialog.querySelector(".live2d-quiz__meta");
@@ -324,6 +418,59 @@
             window.clearTimeout(showDialog.closeTimer);
         }
 
+        function hasPlayedOpeningVoice() {
+            return hasPlayedStoredVoice(openingVoiceStorageKey);
+        }
+
+        function markOpeningVoicePlayed() {
+            markStoredVoicePlayed(openingVoiceStorageKey);
+        }
+
+        function removeOpeningVoiceFallback() {
+            document.removeEventListener("click", handleOpeningVoiceGesture, true);
+            document.removeEventListener("touchstart", handleOpeningVoiceGesture, true);
+        }
+
+        function tryPlayOpeningVoice() {
+            if (openingVoicePlaying || hasPlayedOpeningVoice()) {
+                return Promise.resolve(false);
+            }
+
+            openingVoicePlaying = true;
+            return playOpeningVoice(openingBubble).then(function (played) {
+                if (played) {
+                    markOpeningVoicePlayed();
+                    removeOpeningVoiceFallback();
+                }
+
+                hideOpeningBubble(openingBubble);
+                openingVoicePlaying = false;
+                return played;
+            });
+        }
+
+        function isLive2DGesture(event) {
+            const target = event && event.target;
+
+            if (!target || target === document || target === window) {
+                return false;
+            }
+
+            if (target === hitArea) {
+                return true;
+            }
+
+            return typeof target.closest === "function" && Boolean(target.closest(".live2d-hit-area,#live2d-widget,#oml2d-stage,#oml2d-canvas,[id^='oml2d'],[class*='oml2d']"));
+        }
+
+        function handleOpeningVoiceGesture(event) {
+            if (isLive2DGesture(event)) {
+                return;
+            }
+
+            tryPlayOpeningVoice();
+        }
+
         function closeDialog() {
             clearSpinTimers();
             dialog.classList.remove("is-open", "is-opening");
@@ -352,7 +499,16 @@
                 event.preventDefault();
             }
 
-            if (firstClickVoicePlaying) {
+            if (openingVoicePlaying || firstClickVoicePlaying) {
+                return;
+            }
+
+            if (event && !hasPlayedOpeningVoice()) {
+                tryPlayOpeningVoice().then(function (played) {
+                    if (played) {
+                        showMenu();
+                    }
+                });
                 return;
             }
 
@@ -798,6 +954,12 @@
         window.setTimeout(bindLive2DRoots, 500);
         window.setTimeout(bindLive2DRoots, 1500);
         window.setTimeout(bindLive2DRoots, 3000);
+        document.addEventListener("click", handleOpeningVoiceGesture, true);
+        document.addEventListener("touchstart", handleOpeningVoiceGesture, {
+            capture: true,
+            passive: true
+        });
+        window.setTimeout(tryPlayOpeningVoice, 600);
 
         closeButton.addEventListener("click", function (event) {
             event.stopPropagation();

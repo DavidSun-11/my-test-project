@@ -315,6 +315,77 @@
     width: 374px;
 }
 
+.live2d-quiz.is-music {
+    width: 360px;
+}
+
+.live2d-music-panel {
+    display: block;
+}
+
+.live2d-music-player {
+    display: grid;
+    gap: 10px;
+}
+
+.live2d-music-current {
+    padding: 10px 12px;
+    border: 1px solid rgba(108, 229, 255, 0.28);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.07);
+    color: rgba(214, 246, 255, 0.8);
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.live2d-music-current span {
+    color: #eafcff;
+    font-weight: bold;
+}
+
+.live2d-music-list {
+    display: grid;
+    gap: 8px;
+    max-height: 128px;
+    overflow: auto;
+}
+
+.live2d-music-track {
+    min-height: 36px;
+    padding: 0 12px;
+    border: 1px solid rgba(108, 229, 255, 0.32);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 13px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.live2d-music-track.is-current {
+    border-color: rgba(255, 221, 114, 0.68);
+    background: rgba(255, 221, 114, 0.12);
+    color: #fff3c2;
+}
+
+.live2d-music-controls,
+.live2d-music-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.live2d-music-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.live2d-music-tip {
+    margin: 0;
+    color: rgba(214, 246, 255, 0.66);
+    font-size: 12px;
+    line-height: 1.45;
+}
+
 .live2d-weather-panel {
     display: block;
 }

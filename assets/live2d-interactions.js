@@ -105,12 +105,18 @@
     let openingVoicePlaying = false;
     let openingVoiceRetryPending = false;
     let openingVoiceRetryBound = false;
+    let currentMusicIndex = 0;
+    let musicPlaying = false;
     const openingVoiceText = "万家灯火就在眼前，人们的生活究竟是什么样的呢…欸？你想邀我去夜市？啊…不，不好意思，我就不去了吧。";
     const openingVoicePath = "assets/audio/ganyu_opening.mp3";
     let firstClickVoicePlaying = false;
     const firstClickVoiceStorageKey = "live2d_first_click_voice_played";
     const firstClickVoiceText = "早上好...嗯？是哪里没有梳理好吗，请不要盯着我的...盯着我的头饰看。";
     const firstClickVoicePath = "assets/audio/ganyu_first_click.mp3";
+    const musicList = [
+        { title: "感谢你曾来过", src: "assets/audio/music.mp3" }
+    ];
+    const musicAudio = new Audio();
 
     function playVoice(file) {
         const audio = new Audio(file);
@@ -478,9 +484,15 @@
             heroSpinTimeout = null;
         }
 
+        function stopMusicPlayback() {
+            musicAudio.pause();
+            musicPlaying = false;
+        }
+
         function clearDialog() {
             clearSpinTimers();
-            dialog.classList.remove("is-wheel", "is-weather");
+            stopMusicPlayback();
+            dialog.classList.remove("is-wheel", "is-weather", "is-music");
             meta.textContent = "";
             question.textContent = "";
             options.innerHTML = "";
@@ -581,6 +593,7 @@
 
         function closeDialog() {
             clearSpinTimers();
+            stopMusicPlayback();
             dialog.classList.remove("is-open", "is-opening");
             window.clearTimeout(showDialog.closeTimer);
         }
@@ -732,7 +745,7 @@
             question.textContent = "君雪可以帮你看看这些事情。";
             options.classList.add("live2d-consult-grid");
             addConsultCard("查看天气", "查询近三天天气", false, showWeatherInput);
-            addConsultCard("暂未开放", "新的功能正在路上", true);
+            addConsultCard("听歌", "播放本地歌曲", false, showMusicPlayer);
             addConsultCard("暂未开放", "君雪还在准备", true);
             addConsultCard("暂未开放", "先留一个小悬念", true);
             result.textContent = "先试试天气吧。";
@@ -756,6 +769,150 @@
 
             options.appendChild(button);
             return button;
+        }
+
+        function getCurrentMusic() {
+            return musicList[currentMusicIndex] || musicList[0];
+        }
+
+        function syncMusicAudioSource() {
+            const currentMusic = getCurrentMusic();
+
+            if (!currentMusic || musicAudio.getAttribute("src") === currentMusic.src) {
+                return;
+            }
+
+            musicAudio.src = currentMusic.src;
+        }
+
+        function renderMusicPlayerContent() {
+            const currentMusic = getCurrentMusic();
+            const listHtml = musicList.map(function (music, index) {
+                const isCurrent = index === currentMusicIndex ? " is-current" : "";
+
+                return '<button class="live2d-music-track' + isCurrent + '" type="button" data-music-index="' + index + '">' + escapeHtml(music.title) + '</button>';
+            }).join("");
+
+            options.innerHTML = [
+                '<div class="live2d-music-player">',
+                    '<div class="live2d-music-current">当前歌曲：<span>' + escapeHtml(currentMusic ? currentMusic.title : "暂无歌曲") + '</span></div>',
+                    '<div class="live2d-music-list" aria-label="歌曲列表">' + listHtml + '</div>',
+                    '<div class="live2d-music-controls">',
+                        '<button class="live2d-wheel__small" type="button" data-music-action="prev">上一首</button>',
+                        '<button class="live2d-wheel__small" type="button" data-music-action="toggle">' + (musicPlaying ? "暂停" : "播放") + '</button>',
+                        '<button class="live2d-wheel__small" type="button" data-music-action="next">下一首</button>',
+                    '</div>',
+                    '<div class="live2d-music-actions">',
+                        '<button class="live2d-wheel__small" type="button" data-music-action="back">返回咨询</button>',
+                        '<button class="live2d-wheel__small" type="button" data-music-action="menu">回到菜单</button>',
+                    '</div>',
+                    '<p class="live2d-music-tip">歌曲文件放到 assets/audio/ 后，在 musicList 里添加即可</p>',
+                '</div>'
+            ].join("");
+
+            bindMusicPlayerActions();
+        }
+
+        function playCurrentMusic() {
+            const currentMusic = getCurrentMusic();
+
+            if (!currentMusic) {
+                return;
+            }
+
+            syncMusicAudioSource();
+            musicAudio.play().then(function () {
+                musicPlaying = true;
+                renderMusicPlayerContent();
+            }).catch(function () {
+                musicPlaying = false;
+                renderMusicPlayerContent();
+            });
+        }
+
+        function pauseCurrentMusic() {
+            musicAudio.pause();
+            musicPlaying = false;
+            renderMusicPlayerContent();
+        }
+
+        function selectMusic(index, shouldPlay) {
+            if (!musicList.length) {
+                return;
+            }
+
+            currentMusicIndex = (index + musicList.length) % musicList.length;
+            musicAudio.pause();
+            musicAudio.removeAttribute("src");
+            musicAudio.load();
+            musicPlaying = false;
+            renderMusicPlayerContent();
+
+            if (shouldPlay) {
+                playCurrentMusic();
+            }
+        }
+
+        function bindMusicPlayerActions() {
+            options.querySelectorAll("[data-music-index]").forEach(function (button) {
+                button.addEventListener("click", function (event) {
+                    event.stopPropagation();
+                    selectMusic(Number(button.dataset.musicIndex), musicPlaying);
+                });
+            });
+
+            options.querySelectorAll("[data-music-action]").forEach(function (button) {
+                button.addEventListener("click", function (event) {
+                    event.stopPropagation();
+                    const action = button.dataset.musicAction;
+
+                    if (action === "toggle") {
+                        if (musicPlaying) {
+                            pauseCurrentMusic();
+                            return;
+                        }
+
+                        playCurrentMusic();
+                        return;
+                    }
+
+                    if (action === "prev") {
+                        selectMusic(currentMusicIndex - 1, musicPlaying);
+                        return;
+                    }
+
+                    if (action === "next") {
+                        selectMusic(currentMusicIndex + 1, musicPlaying);
+                        return;
+                    }
+
+                    if (action === "back") {
+                        showConsultPanel();
+                        return;
+                    }
+
+                    if (action === "menu") {
+                        showMenu();
+                    }
+                });
+            });
+        }
+
+        function showMusicPlayer() {
+            clearDialog();
+            dialog.classList.add("is-music");
+            options.classList.add("live2d-music-panel");
+            meta.textContent = "咨询 · 听歌";
+            question.textContent = "听歌";
+            syncMusicAudioSource();
+            renderMusicPlayerContent();
+            result.textContent = "需要你点播放，君雪才会开始放歌。";
+            result.className = "live2d-quiz__result is-neutral";
+            musicAudio.onended = function () {
+                musicPlaying = false;
+                renderMusicPlayerContent();
+            };
+            showDialog();
         }
 
         function showWeatherInput() {

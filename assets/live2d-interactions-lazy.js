@@ -599,7 +599,7 @@
 
         function clearDialog() {
             clearSpinTimers();
-            dialog.classList.remove("is-wheel", "is-weather", "is-music");
+            dialog.classList.remove("is-wheel", "is-weather", "is-music", "is-fortune");
             meta.textContent = "";
             question.textContent = "";
             options.innerHTML = "";
@@ -899,6 +899,8 @@
 
         function showFortunePanel() {
             clearDialog();
+            dialog.classList.add("is-fortune");
+            options.classList.add("live2d-fortune-panel");
             meta.textContent = "咨询 · 占卜";
             question.textContent = "🌙 君雪占卜屋";
 
@@ -913,29 +915,35 @@
             };
 
             options.innerHTML = [
-                '<section class="live2d-weather-card" aria-label="君雪占卜结果">',
-                    '<article class="live2d-weather-day">',
-                        '<div class="live2d-weather-day__label">今日运势</div>',
-                        '<div class="live2d-weather-day__status">' + escapeHtml(fortune.level) + '</div>',
+                '<div class="live2d-fortune-body">',
+                '<section class="live2d-fortune-list" aria-label="君雪占卜结果">',
+                    '<article class="live2d-fortune-item">',
+                        '<span class="live2d-fortune-label">今日运势：</span>',
+                        '<span class="live2d-fortune-value">' + escapeHtml(fortune.level) + '</span>',
                     '</article>',
-                    '<article class="live2d-weather-day">',
-                        '<div class="live2d-weather-day__label">幸运数字</div>',
-                        '<div class="live2d-weather-day__status">' + escapeHtml(fortune.number) + '</div>',
+                    '<article class="live2d-fortune-item">',
+                        '<span class="live2d-fortune-label">幸运数字：</span>',
+                        '<span class="live2d-fortune-value">' + escapeHtml(fortune.number) + '</span>',
                     '</article>',
-                    '<article class="live2d-weather-day">',
-                        '<div class="live2d-weather-day__label">幸运颜色</div>',
-                        '<div class="live2d-weather-day__status">' + escapeHtml(fortune.color) + '</div>',
+                    '<article class="live2d-fortune-item">',
+                        '<span class="live2d-fortune-label">幸运颜色：</span>',
+                        '<span class="live2d-fortune-value">' + escapeHtml(fortune.color) + '</span>',
                     '</article>',
-                    '<article class="live2d-weather-day">',
-                        '<div class="live2d-weather-day__label">幸运英雄</div>',
-                        '<div class="live2d-weather-day__status">' + escapeHtml(fortune.hero) + '</div>',
+                    '<article class="live2d-fortune-item">',
+                        '<span class="live2d-fortune-label">幸运英雄：</span>',
+                        '<span class="live2d-fortune-value">' + escapeHtml(fortune.hero) + '</span>',
                     '</article>',
-                    '<article class="live2d-weather-day">',
-                        '<div class="live2d-weather-day__label">幸运歌曲</div>',
-                        '<div class="live2d-weather-day__status">' + escapeHtml(fortune.song) + '</div>',
+                    '<article class="live2d-fortune-item">',
+                        '<span class="live2d-fortune-label">幸运歌曲：</span>',
+                        '<span class="live2d-fortune-value">' + escapeHtml(fortune.song) + '</span>',
                     '</article>',
                 '</section>',
-                '<div class="live2d-quiz__result is-neutral">' + escapeHtml(fortune.advice) + '</div>',
+                '<section class="live2d-fortune-message" aria-label="甘雨今日建议">',
+                    '<div class="live2d-fortune-message__title">今日建议</div>',
+                    '<div class="live2d-fortune-message__text">' + escapeHtml(fortune.advice) + '</div>',
+                    '<div class="live2d-fortune-message__quote">' + escapeHtml(fortune.quote) + '</div>',
+                '</section>',
+                '</div>',
                 '<div class="live2d-weather-actions">',
                     '<button class="live2d-wheel__small" type="button" data-fortune-action="again">再占一次</button>',
                     '<button class="live2d-wheel__small" type="button" data-fortune-action="back">返回咨询</button>',
@@ -956,8 +964,8 @@
                 showMenu();
             });
 
-            result.textContent = fortune.quote;
-            result.className = "live2d-quiz__result is-good";
+            result.textContent = "";
+            result.className = "live2d-quiz__result is-fortune-hidden";
             showDialog();
         }
 

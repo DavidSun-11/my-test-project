@@ -319,6 +319,14 @@
     width: 360px;
 }
 
+.live2d-quiz.is-fortune {
+    width: 392px;
+}
+
+.live2d-quiz__result.is-fortune-hidden {
+    display: none;
+}
+
 .live2d-music-title,
 .live2d-music-subtitle {
     display: block;
@@ -505,6 +513,92 @@
     margin-top: 2px;
     color: #ffe8a3;
     font-size: 13px;
+}
+
+.live2d-fortune-panel {
+    display: grid;
+    gap: 10px;
+}
+
+.live2d-fortune-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(142px, 0.9fr);
+    gap: 10px;
+    align-items: stretch;
+}
+
+.live2d-fortune-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+}
+
+.live2d-fortune-item {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 4px;
+    min-height: 32px;
+    padding: 7px 8px;
+    border: 1px solid rgba(108, 229, 255, 0.28);
+    border-radius: 12px;
+    background:
+        radial-gradient(circle at 8% 16%, rgba(108, 229, 255, 0.12), transparent 38%),
+        rgba(255, 255, 255, 0.06);
+    box-shadow: inset 0 0 12px rgba(108, 229, 255, 0.05);
+    line-height: 1.25;
+}
+
+.live2d-fortune-label {
+    flex: 0 0 auto;
+    color: #eafcff;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.live2d-fortune-value {
+    min-width: 0;
+    color: #9ff5ff;
+    font-size: 12px;
+    text-shadow: 0 0 10px rgba(108, 229, 255, 0.32);
+    overflow-wrap: anywhere;
+}
+
+.live2d-fortune-message {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 112px;
+    padding: 11px 12px;
+    border: 1px solid rgba(255, 232, 163, 0.28);
+    border-radius: 14px;
+    background:
+        radial-gradient(circle at 88% 12%, rgba(255, 232, 163, 0.12), transparent 42%),
+        rgba(255, 255, 255, 0.065);
+    box-shadow:
+        inset 0 0 14px rgba(255, 232, 163, 0.06),
+        0 0 16px rgba(108, 229, 255, 0.08);
+}
+
+.live2d-fortune-message__title {
+    margin-bottom: 5px;
+    color: #ffe8a3;
+    font-size: 12px;
+    font-weight: bold;
+    text-shadow: 0 0 10px rgba(255, 221, 114, 0.28);
+}
+
+.live2d-fortune-message__text,
+.live2d-fortune-message__quote {
+    color: rgba(234, 252, 255, 0.86);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.live2d-fortune-message__quote {
+    margin-top: 8px;
+    color: rgba(159, 245, 255, 0.92);
+    text-shadow: 0 0 10px rgba(108, 229, 255, 0.24);
 }
 
 /* 英雄池转盘样式：只服务 Live2D 弹窗里的第三个互动功能，保持星空毛玻璃和蓝白发光风格。 */
@@ -717,6 +811,18 @@
 
     .live2d-quiz.is-weather {
         width: min(304px, calc(100vw - 44px));
+    }
+
+    .live2d-quiz.is-fortune {
+        width: min(320px, calc(100vw - 44px));
+    }
+
+    .live2d-fortune-body {
+        grid-template-columns: 1fr;
+    }
+
+    .live2d-fortune-list {
+        grid-template-columns: 1fr;
     }
 
     .live2d-weather-form,

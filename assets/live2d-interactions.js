@@ -115,7 +115,7 @@
     const firstClickVoicePath = "assets/audio/ganyu_first_click.mp3";
     const musicList = [
         { title: "感谢你曾来过", src: "assets/audio/music.mp3" },
-        { title: "Don't Speak", src: "assets/audio/dont-speak.mp3" }
+        { title: "不要说话", src: "assets/audio/dont-speak.mp3" }
     ];
     const musicAudio = new Audio();
 
@@ -906,7 +906,7 @@
             question.innerHTML = '<span class="live2d-music-title">♪ 听歌</span><span class="live2d-music-subtitle">甘雨想和你分享一些音乐呢～</span>';
             syncMusicAudioSource();
             renderMusicPlayerContent();
-            result.textContent = "需要你点播放，君雪才会开始放歌。";
+            result.textContent = "需要你点播放，甘雨才会开始放歌。";
             result.className = "live2d-quiz__result is-neutral";
             musicAudio.onended = function () {
                 musicPlaying = false;

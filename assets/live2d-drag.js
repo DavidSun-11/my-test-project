@@ -52,7 +52,7 @@
             .${BUTTON_CLASS} {
                 position: fixed;
                 left: 172px;
-                bottom: 168px;
+                bottom: 248px;
                 z-index: ${BUTTON_Z_INDEX};
                 min-width: 72px;
                 min-height: 30px;
@@ -88,7 +88,7 @@
             @media (max-width: 720px) {
                 .${BUTTON_CLASS} {
                     left: 126px;
-                    bottom: 154px;
+                    bottom: 234px;
                     min-width: 66px;
                     min-height: 28px;
                     padding: 0 8px;

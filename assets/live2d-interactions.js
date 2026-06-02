@@ -208,6 +208,27 @@
         return "降水数据暂无";
     }
 
+    function normalizeCityName(cityName) {
+        return cityName.trim().replace(/\s+/g, "").replace(/[市区县]+$/, "");
+    }
+
+    const cityFallbackMap = {
+        "莱州": {
+            name: "莱州",
+            admin1: "山东",
+            country: "中国",
+            latitude: 37.18,
+            longitude: 119.94
+        },
+        "扬州": {
+            name: "扬州",
+            admin1: "江苏",
+            country: "中国",
+            latitude: 32.39,
+            longitude: 119.42
+        }
+    };
+
     function createDialog() {
         const dialog = document.createElement("div");
         dialog.className = "live2d-quiz";
@@ -530,6 +551,8 @@
         }
 
         async function fetchWeather(cityName) {
+            const normalizedCity = normalizeCityName(cityName);
+            const fallbackPlace = cityFallbackMap[normalizedCity];
             const encodedCity = encodeURIComponent(cityName);
             const geocodeUrl = "https://geocoding-api.open-meteo.com/v1/search?name=" + encodedCity + "&count=1&language=zh&format=json";
 
@@ -537,6 +560,19 @@
             result.className = "live2d-quiz__result is-neutral";
 
             try {
+                if (fallbackPlace) {
+                    const fallbackForecastUrl = "https://api.open-meteo.com/v1/forecast?latitude=" + encodeURIComponent(fallbackPlace.latitude) + "&longitude=" + encodeURIComponent(fallbackPlace.longitude) + "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum&timezone=auto&forecast_days=3";
+                    const fallbackForecastResponse = await fetch(fallbackForecastUrl);
+
+                    if (!fallbackForecastResponse.ok) {
+                        throw new Error("weather-request-failed");
+                    }
+
+                    const fallbackForecastData = await fallbackForecastResponse.json();
+                    renderWeatherCard(fallbackPlace, fallbackForecastData.daily || {});
+                    return;
+                }
+
                 const geoResponse = await fetch(geocodeUrl);
 
                 if (!geoResponse.ok) {

@@ -320,7 +320,7 @@
 }
 
 .live2d-quiz.is-fortune {
-    width: 392px;
+    width: min(560px, calc(100vw - 44px));
 }
 
 .live2d-quiz__result.is-fortune-hidden {
@@ -522,24 +522,24 @@
 
 .live2d-fortune-body {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(142px, 0.9fr);
+    grid-template-columns: 1fr;
     gap: 10px;
     align-items: stretch;
 }
 
 .live2d-fortune-list {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 7px;
+    grid-template-columns: 1fr;
+    gap: 8px;
 }
 
 .live2d-fortune-item {
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    gap: 4px;
-    min-height: 32px;
-    padding: 7px 8px;
+    gap: 8px;
+    min-height: 34px;
+    padding: 8px 10px;
     border: 1px solid rgba(108, 229, 255, 0.28);
     border-radius: 12px;
     background:
@@ -568,7 +568,7 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    min-height: 112px;
+    min-height: 58px;
     padding: 11px 12px;
     border: 1px solid rgba(255, 232, 163, 0.28);
     border-radius: 14px;
@@ -588,7 +588,6 @@
     text-shadow: 0 0 10px rgba(255, 221, 114, 0.28);
 }
 
-.live2d-fortune-message__text,
 .live2d-fortune-message__quote {
     color: rgba(234, 252, 255, 0.86);
     font-size: 12px;
@@ -596,7 +595,6 @@
 }
 
 .live2d-fortune-message__quote {
-    margin-top: 8px;
     color: rgba(159, 245, 255, 0.92);
     text-shadow: 0 0 10px rgba(108, 229, 255, 0.24);
 }

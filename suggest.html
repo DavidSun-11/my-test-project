@@ -208,6 +208,33 @@
             text-shadow: 0 0 12px rgba(108, 229, 255, 0.32);
         }
 
+        .suggest-thank-you-bubble {
+            position: fixed;
+            z-index: 65;
+            max-width: min(300px, calc(100vw - 32px));
+            padding: 14px 16px;
+            border: 1px solid rgba(190, 240, 255, 0.72);
+            border-radius: 18px;
+            background: linear-gradient(135deg, rgba(255, 184, 218, 0.68), rgba(128, 218, 255, 0.42));
+            color: #f8fdff;
+            font-size: 14px;
+            line-height: 1.65;
+            text-align: left;
+            white-space: pre-line;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.32);
+            box-shadow: 0 0 18px rgba(112, 216, 255, 0.32), 0 0 12px rgba(255, 188, 222, 0.28);
+            backdrop-filter: blur(10px);
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(8px);
+            transition: opacity 0.28s ease, transform 0.28s ease;
+        }
+
+        .suggest-thank-you-bubble.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
         html.performance-low .cursor-light,
         html.performance-low .ripple,
         html.performance-low .meteor-layer,
@@ -224,6 +251,11 @@
 
         html.performance-low .suggest-submit {
             box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.05);
+        }
+
+        html.performance-low .suggest-thank-you-bubble {
+            backdrop-filter: none;
+            box-shadow: 0 0 10px rgba(112, 216, 255, 0.2);
         }
 
         .back-home {
@@ -461,9 +493,93 @@ document.addEventListener("click", function (event) {
 </script>
 <script>
 const FORMSPREE_ENDPOINT = "https://formspree.io/f/mnjyqlyg";
+const SUGGESTION_THANK_YOU_VOICE = "assets/audio/ganyu_suggest_submit.mp3";
+const SUGGESTION_THANK_YOU_TEXT = "谢谢你的建议。\n无论是夸奖还是批评，\n我都会认真看的。";
 const form = document.getElementById("suggest-form");
 const statusBox = document.getElementById("suggest-status");
 const submitButton = form.querySelector(".suggest-submit");
+let suggestionThankYouBubble = null;
+let suggestionThankYouTimer = null;
+
+function getLive2DAnchorRect() {
+    const anchor = document.getElementById("oml2d-stage") ||
+        document.getElementById("oml2d-canvas") ||
+        document.querySelector(".live2d-hit-area");
+
+    if (anchor && typeof anchor.getBoundingClientRect === "function") {
+        return anchor.getBoundingClientRect();
+    }
+
+    return {
+        left: 24,
+        right: 264,
+        top: window.innerHeight - 440,
+        bottom: window.innerHeight - 24,
+        width: 240,
+        height: 416
+    };
+}
+
+function positionSuggestionThankYouBubble() {
+    if (!suggestionThankYouBubble) {
+        return;
+    }
+
+    const gap = 14;
+    const margin = 16;
+    const anchorRect = getLive2DAnchorRect();
+    const bubbleRect = suggestionThankYouBubble.getBoundingClientRect();
+    const bubbleWidth = bubbleRect.width || 300;
+    const bubbleHeight = bubbleRect.height || 120;
+    let left = anchorRect.right + gap;
+    let top = anchorRect.top + Math.max(24, anchorRect.height * 0.18);
+
+    if (left + bubbleWidth + margin > window.innerWidth) {
+        left = anchorRect.left - bubbleWidth - gap;
+    }
+
+    left = Math.max(margin, Math.min(left, window.innerWidth - bubbleWidth - margin));
+    top = Math.max(margin, Math.min(top, window.innerHeight - bubbleHeight - margin));
+
+    suggestionThankYouBubble.style.left = left + "px";
+    suggestionThankYouBubble.style.top = top + "px";
+}
+
+function showSuggestionThankYouBubble() {
+    window.clearTimeout(suggestionThankYouTimer);
+
+    if (!suggestionThankYouBubble) {
+        suggestionThankYouBubble = document.createElement("div");
+        suggestionThankYouBubble.className = "suggest-thank-you-bubble";
+        document.body.appendChild(suggestionThankYouBubble);
+    }
+
+    suggestionThankYouBubble.textContent = SUGGESTION_THANK_YOU_TEXT;
+    positionSuggestionThankYouBubble();
+    window.requestAnimationFrame(function () {
+        suggestionThankYouBubble.classList.add("is-visible");
+    });
+
+    suggestionThankYouTimer = window.setTimeout(function () {
+        suggestionThankYouBubble.classList.remove("is-visible");
+    }, 6000);
+}
+
+function playSuggestionThankYouVoice() {
+    const audio = new Audio(SUGGESTION_THANK_YOU_VOICE);
+
+    audio.volume = 0.8;
+
+    const playRequest = audio.play();
+    if (playRequest && typeof playRequest.then === "function") {
+        playRequest.then(function () {
+            showSuggestionThankYouBubble();
+        }).catch(function () {});
+        return;
+    }
+
+    showSuggestionThankYouBubble();
+}
 
 form.addEventListener("submit", function (event) {
     event.preventDefault();
@@ -487,12 +603,16 @@ form.addEventListener("submit", function (event) {
 
         form.reset();
         statusBox.textContent = "君雪收到啦，谢谢你的建议～";
+        playSuggestionThankYouVoice();
     }).catch(function () {
         statusBox.textContent = "信件好像迷路了，请稍后再试～";
     }).finally(function () {
         submitButton.disabled = false;
     });
 });
+
+window.addEventListener("resize", positionSuggestionThankYouBubble);
+window.addEventListener("live2d-stage-position-changed", positionSuggestionThankYouBubble);
 </script>
 <script src="live2d/live2d-widget.js?v=20260604-1"></script>
 <script src="assets/live2d-interactions.js?v=20260604-2"></script>

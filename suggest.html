@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>君雪意见箱</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="live2d/live2d-widget.css?v=20260603-1">
+    <script src="assets/performance-mode.js?v=20260604-1"></script>
+    <link rel="stylesheet" href="live2d/live2d-widget.css?v=20260604-1">
     <style>
         * {
             box-sizing: border-box;
@@ -207,6 +208,24 @@
             text-shadow: 0 0 12px rgba(108, 229, 255, 0.32);
         }
 
+        html.performance-low .cursor-light,
+        html.performance-low .ripple,
+        html.performance-low .meteor-layer,
+        html.performance-low .stars,
+        html.performance-low .stars2,
+        html.performance-low .stars3 {
+            display: none !important;
+        }
+
+        html.performance-low .suggest-card {
+            box-shadow: 0 0 12px rgba(0, 190, 255, 0.12), inset 0 0 10px rgba(255, 255, 255, 0.04);
+            backdrop-filter: none;
+        }
+
+        html.performance-low .suggest-submit {
+            box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.05);
+        }
+
         .back-home {
             display: inline-block;
             margin-top: 16px;
@@ -344,14 +363,22 @@
 </div>
 
 <script>
+const pagePerformance = window.JunxuePerformanceMode;
+const isLowPerformance = !!(pagePerformance && pagePerformance.isLow && pagePerformance.isLow());
 const light = document.querySelector(".cursor-light");
 
-document.addEventListener("mousemove", function (event) {
-    light.style.left = event.clientX + "px";
-    light.style.top = event.clientY + "px";
-});
+if (!isLowPerformance && light) {
+    document.addEventListener("mousemove", function (event) {
+        light.style.left = event.clientX + "px";
+        light.style.top = event.clientY + "px";
+    });
+}
 
 document.addEventListener("click", function (event) {
+    if (isLowPerformance) {
+        return;
+    }
+
     const ripple = document.createElement("div");
 
     ripple.className = "ripple";
@@ -370,7 +397,7 @@ document.addEventListener("click", function (event) {
     const maxMeteors = 3;
     let timer = null;
 
-    if (!layer || reduceMotion.matches) {
+    if (isLowPerformance || !layer || reduceMotion.matches) {
         return;
     }
 
@@ -428,6 +455,9 @@ document.addEventListener("click", function (event) {
             height: 400
         }
     };
+    if (window.JunxuePerformanceMode && typeof window.JunxuePerformanceMode.applyLive2DConfig === "function") {
+        window.JunxuePerformanceMode.applyLive2DConfig(window.Live2DWidgetConfig);
+    }
 </script>
 <script>
 const FORMSPREE_ENDPOINT = "https://formspree.io/f/mnjyqlyg";
@@ -466,6 +496,6 @@ form.addEventListener("submit", function (event) {
 </script>
 <script src="live2d/live2d-widget.js?v=20260530-7"></script>
 <script src="assets/live2d-interactions.js?v=20260604-1"></script>
-<script src="assets/live2d-drag.js?v=20260602-2"></script>
+<script src="assets/live2d-drag.js?v=20260604-1"></script>
 </body>
 </html>

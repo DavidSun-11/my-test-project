@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <title>君雪的个人网站</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="live2d/live2d-widget.css?v=20260603-1">
+    <script src="assets/performance-mode.js?v=20260604-1"></script>
+    <link rel="stylesheet" href="live2d/live2d-widget.css?v=20260604-1">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -212,6 +213,21 @@
             }
         }
 
+        html.performance-low .home-bg-video,
+        html.performance-low .cursor-light,
+        html.performance-low .ripple,
+        html.performance-low .meteor-layer,
+        html.performance-low .stars,
+        html.performance-low .stars2,
+        html.performance-low .stars3 {
+            display: none !important;
+        }
+
+        html.performance-low .home-hero::before {
+            filter: none;
+            opacity: 0.38;
+        }
+
         .home-hero {
             position: relative;
             min-height: 100vh;
@@ -416,14 +432,32 @@
 </div>
 
 <script>
+const pagePerformance = window.JunxuePerformanceMode;
+const isLowPerformance = !!(pagePerformance && pagePerformance.isLow && pagePerformance.isLow());
 const light = document.querySelector(".cursor-light");
 
-document.addEventListener("mousemove", (e) => {
-    light.style.left = e.clientX + "px";
-    light.style.top = e.clientY + "px";
-});
+if (isLowPerformance) {
+    const backgroundVideo = document.querySelector(".home-bg-video");
+
+    if (backgroundVideo) {
+        backgroundVideo.pause();
+        backgroundVideo.removeAttribute("autoplay");
+        backgroundVideo.removeAttribute("loop");
+    }
+}
+
+if (!isLowPerformance && light) {
+    document.addEventListener("mousemove", (e) => {
+        light.style.left = e.clientX + "px";
+        light.style.top = e.clientY + "px";
+    });
+}
 
 document.addEventListener("click", (e) => {
+    if (isLowPerformance) {
+        return;
+    }
+
     const ripple = document.createElement("div");
 
     ripple.className = "ripple";
@@ -443,7 +477,7 @@ document.addEventListener("click", (e) => {
     const maxMeteors = 3;
     let timer = null;
 
-    if (!layer || reduceMotion.matches) {
+    if (isLowPerformance || !layer || reduceMotion.matches) {
         return;
     }
 
@@ -503,9 +537,12 @@ document.addEventListener("click", (e) => {
             height: 400
         }
     };
+    if (window.JunxuePerformanceMode && typeof window.JunxuePerformanceMode.applyLive2DConfig === "function") {
+        window.JunxuePerformanceMode.applyLive2DConfig(window.Live2DWidgetConfig);
+    }
 </script>
 <script src="live2d/live2d-widget.js?v=20260530-7"></script>
 <script src="assets/live2d-interactions.js?v=20260604-1"></script>
-<script src="assets/live2d-drag.js?v=20260602-2"></script>
+<script src="assets/live2d-drag.js?v=20260604-1"></script>
 </body>
 </html>

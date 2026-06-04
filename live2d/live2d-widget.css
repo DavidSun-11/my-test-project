@@ -848,3 +848,37 @@
         font-size: 14px;
     }
 }
+
+html.performance-low .live2d-widget {
+    filter: none;
+}
+
+html.performance-low .live2d-widget::before {
+    opacity: 0.42;
+}
+
+html.performance-low .live2d-message,
+html.performance-low .live2d-quiz,
+html.performance-low .live2d-quiz__option,
+html.performance-low .live2d-weather-card,
+html.performance-low .live2d-wheel,
+html.performance-low .live2d-wheel__small,
+html.performance-low .live2d-music-list,
+html.performance-low .live2d-fortune-card,
+html.performance-low .live2d-fortune-quote,
+html.performance-low .live2d-opening-bubble,
+html.performance-low .live2d-quiz-exit-bubble {
+    box-shadow: 0 0 10px rgba(0, 190, 255, 0.12);
+    backdrop-filter: none;
+}
+
+html.performance-low .live2d-quiz.is-opening {
+    animation: none;
+}
+
+html.performance-low #oml2d-stage,
+html.performance-low #oml2d-canvas,
+html.performance-low [id^="oml2d"],
+html.performance-low [class*="oml2d"] {
+    filter: none !important;
+}

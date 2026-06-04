@@ -83,6 +83,15 @@
                 box-shadow: 0 0 18px rgba(111, 220, 255, 0.38), 0 0 12px rgba(255, 232, 163, 0.24);
             }
 
+            html.performance-low .${BUTTON_CLASS} {
+                box-shadow: 0 0 8px rgba(0, 190, 255, 0.14);
+                backdrop-filter: none;
+            }
+
+            html.performance-low .${BUTTON_CLASS}:hover {
+                box-shadow: 0 0 10px rgba(111, 220, 255, 0.18);
+            }
+
             .${BUTTON_CLASS}.is-dragging,
             body.is-live2d-external-dragging {
                 cursor: grabbing !important;

@@ -1,5 +1,5 @@
 /*
- * Live2D 看板娘初始化脚本。
+ * Live2D 看板娘陪伴脚本。
  * 使用 OhMyLive2D 的纯前端 CDN 运行时，适合直接部署到 GitHub Pages。
  * 只加载仓库内甘雨模型；如果入口、moc3 或 textures 缺失，会在控制台明确输出错误，不再回退到旧模型。
  */
@@ -11,13 +11,26 @@
     const loadTimeoutMs = 9000;
     const fetchTimeoutMs = 5000;
     const scriptTimeoutMs = 7000;
-    const slowLoadMessage = "君雪加载有点慢，刷新试试看～";
+    const slowLoadMessage = "唔...今天稍微慢了一点，请再等我一下。";
     const readySelector = "#oml2d-main, .oml2d-main, #oml2d, .oml2d, .oml2d-stage, .oml2d-canvas";
+    const waitingMessages = [
+        "请稍等一下哦，我马上就来。",
+        "嗯…让我整理一下思绪。",
+        "今天的工作，也要认真完成呢。",
+        "久等啦，我已经在路上了。",
+        "请再等我片刻，好吗？",
+        "月海亭的事务刚处理完呢。",
+        "能见到你，我很开心。",
+        "谢谢你愿意等我。",
+        "接下来的时间，请多关照。",
+        "希望今天也能帮到你。"
+    ];
     const stableMessages = [
         "欢迎来到星空主页。",
         "点我一下，来和君雪互动吧。",
         "我会待在左下角，不影响游戏展示。",
-        "甘雨模型正在从站内资源加载。"
+        "接下来的时间，请多关照。",
+        "希望今天也能帮到你。"
     ];
 
     let loadTimer = null;
@@ -38,6 +51,10 @@
                 widget.classList.remove("is-talking");
             }, 3000);
         }
+    }
+
+    function getRandomMessage(messages) {
+        return messages[Math.floor(Math.random() * messages.length)];
     }
 
     function hideBootstrapWidget() {
@@ -345,12 +362,13 @@
         const dockedPosition = config.dockedPosition || "left";
         const idleMessages = config.messages || stableMessages;
         const modelPath = config.modelPath || defaultGanyuModel;
+        const waitingMessage = getRandomMessage(waitingMessages);
 
         if (widget && dockedPosition === "left") {
             widget.classList.add("is-left");
         }
 
-        setMessage("Live2D 加载中...", true);
+        setMessage(waitingMessage, true);
         startLoadTimeout();
 
         try {
@@ -395,8 +413,8 @@
                 },
                 statusBar: {
                     disable: false,
-                    loadingMessage: "Live2D 加载中...",
-                    loadSuccessMessage: "甘雨已上线",
+                    loadingMessage: waitingMessage,
+                    loadSuccessMessage: "我来啦，请多关照。",
                     loadFailMessage: slowLoadMessage
                 },
                 models: [buildModelConfig(modelPath)],

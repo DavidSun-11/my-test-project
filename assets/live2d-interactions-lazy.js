@@ -761,6 +761,9 @@
             addOption("无奖竞答", startQuiz);
             addOption("英雄池转盘", showHeroWheel);
             addOption("咨询", showConsultPanel);
+            addOption("意见箱", function () {
+                window.location.href = "suggest.html";
+            });
             showDialog();
         }
 

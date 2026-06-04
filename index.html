@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>君雪的个人网站</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
-    <script src="assets/performance-mode.js?v=20260604-1"></script>
+    <script src="assets/performance-mode.js?v=20260604-2"></script>
     <link rel="stylesheet" href="live2d/live2d-widget.css?v=20260604-1">
     <style>
         body {
@@ -447,7 +447,7 @@ if (isLowPerformance) {
 }
 
 if (!isLowPerformance && light) {
-    document.addEventListener("mousemove", (e) => {
+    document.addEventListener("pointermove", (e) => {
         light.style.left = e.clientX + "px";
         light.style.top = e.clientY + "px";
     });

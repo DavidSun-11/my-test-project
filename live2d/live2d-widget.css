@@ -867,7 +867,8 @@ html.performance-low .live2d-music-list,
 html.performance-low .live2d-fortune-card,
 html.performance-low .live2d-fortune-quote,
 html.performance-low .live2d-opening-bubble,
-html.performance-low .live2d-quiz-exit-bubble {
+html.performance-low .live2d-quiz-exit-bubble,
+html.performance-low .live2d-idle-bubble {
     box-shadow: 0 0 10px rgba(0, 190, 255, 0.12);
     backdrop-filter: none;
 }

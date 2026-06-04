@@ -4,6 +4,10 @@
         return;
     }
 
+    if (typeof window.enableGanyuIdleTalk !== "boolean") {
+        window.enableGanyuIdleTalk = true;
+    }
+
     const quizBank = [
         {
             question: "你觉得君雪是怎么样的人？",
@@ -153,6 +157,32 @@
         "愿你的努力像霜花一样，安静却闪闪发亮。",
         "把不安放轻一点，把喜欢的事握紧一点。",
         "就算只是小小一步，也是在向自己的明天靠近。"
+    ];
+    const ganyuIdleLines = [
+        "今天也辛苦了，记得休息一下哦。",
+        "如果累了，就先停下来看看星空吧。",
+        "我会在这里陪着你的。",
+        "月光很安静，像是适合思考的夜晚。",
+        "不用着急，慢慢来也可以。",
+        "你回来啦，我刚好也在等你。",
+        "今天想听歌，还是想占卜呢？",
+        "如果有什么烦恼，也可以告诉我。",
+        "星光很远，但总会抵达眼前。",
+        "希望今天的你，也能被温柔以待。",
+        "别总是熬夜哦，身体也很重要。",
+        "天气冷的话，要记得添衣。",
+        "今天的心情怎么样？",
+        "能再见到你，我很开心。",
+        "即使只是安静待着，也很好。",
+        "愿你今天遇到一点小小的幸运。",
+        "如果不知道该做什么，就先喝口水吧。",
+        "我会认真听你说的。",
+        "今晚的星空，看起来很适合许愿。",
+        "请不要太勉强自己。",
+        "云很轻，心事也可以慢慢放轻。",
+        "就算只是安静地待一会儿，也没关系。",
+        "愿星光替你留住一点温柔。",
+        "今天也请把自己放在心上。"
     ];
     let musicAudio = null;
 
@@ -354,7 +384,10 @@
             ".live2d-quiz-exit-bubble{position:fixed;left:252px;top:160px;z-index:62;width:min(318px,calc(100vw - 32px));padding:12px 14px;border:1px solid rgba(213,244,255,.76);border-radius:16px;background:linear-gradient(145deg,rgba(255,178,218,.7),rgba(126,219,255,.58));box-shadow:0 0 22px rgba(126,219,255,.28),0 0 18px rgba(255,142,196,.24),inset 0 0 14px rgba(255,255,255,.14);backdrop-filter:blur(10px);color:rgba(50,32,72,.96);font-size:14px;line-height:1.55;letter-spacing:0;white-space:pre-line;pointer-events:none;opacity:0;transform:translateY(8px);transition:opacity .35s ease,transform .35s ease;}",
             ".live2d-quiz-exit-bubble.is-open{opacity:1;transform:translateY(0);}",
             ".live2d-quiz-exit-bubble.is-fading{opacity:0;transform:translateY(-6px);}",
-            "@media (max-width:720px){.live2d-opening-bubble{width:min(300px,calc(100vw - 28px));font-size:13px;}}"
+            ".live2d-idle-bubble{position:fixed;left:252px;top:160px;z-index:62;width:min(318px,calc(100vw - 32px));padding:12px 14px;border:1px solid rgba(213,244,255,.78);border-radius:16px;background:linear-gradient(145deg,rgba(255,182,220,.72),rgba(132,221,255,.58));box-shadow:0 0 20px rgba(126,219,255,.26),0 0 16px rgba(255,142,196,.22),inset 0 0 14px rgba(255,255,255,.14);backdrop-filter:blur(10px);color:rgba(48,32,72,.96);font-size:14px;line-height:1.55;letter-spacing:0;pointer-events:none;opacity:0;transform:translateY(8px);transition:opacity .35s ease,transform .35s ease;}",
+            ".live2d-idle-bubble.is-open{opacity:1;transform:translateY(0);}",
+            ".live2d-idle-bubble.is-fading{opacity:0;transform:translateY(-6px);}",
+            "@media (max-width:720px){.live2d-opening-bubble,.live2d-idle-bubble{width:min(300px,calc(100vw - 28px));font-size:13px;}}"
         ].join("");
         document.head.appendChild(style);
     }
@@ -364,6 +397,16 @@
 
         const bubble = document.createElement("div");
         bubble.className = "live2d-opening-bubble";
+        bubble.setAttribute("aria-live", "polite");
+        document.body.appendChild(bubble);
+        return bubble;
+    }
+
+    function createIdleBubble() {
+        ensureOpeningBubbleStyles();
+
+        const bubble = document.createElement("div");
+        bubble.className = "live2d-idle-bubble";
         bubble.setAttribute("aria-live", "polite");
         document.body.appendChild(bubble);
         return bubble;
@@ -547,6 +590,7 @@
         const dialog = createDialog();
         const openingBubble = document.querySelector(".live2d-opening-bubble") || createOpeningBubble();
         const quizExitBubble = createQuizExitBubble();
+        const idleBubble = createIdleBubble();
         const hitArea = document.querySelector(".live2d-hit-area") || createHitArea();
         const closeButton = dialog.querySelector(".live2d-quiz__close");
         const meta = dialog.querySelector(".live2d-quiz__meta");
@@ -554,6 +598,8 @@
         const options = dialog.querySelector(".live2d-quiz__options");
         const result = dialog.querySelector(".live2d-quiz__result");
         const boundNodes = new WeakSet();
+        const isSuggestionPage = /(^|\/)suggest\.html(?:$|[?#])/i.test(window.location.pathname + window.location.search + window.location.hash);
+        let idleTalkTimer = null;
 
         function clearSpinTimers() {
             window.clearInterval(heroSpinTimer);
@@ -608,6 +654,14 @@
             options.className = "live2d-quiz__options";
         }
 
+        function randomBetween(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        function pickRandomItem(items) {
+            return items[Math.floor(Math.random() * items.length)];
+        }
+
         function replayOpenAnimation() {
             dialog.classList.remove("is-opening");
             void dialog.offsetWidth;
@@ -615,6 +669,7 @@
         }
 
         function showDialog() {
+            hideIdleTalk();
             positionLive2DPopup(dialog, {
                 width: 362,
                 height: 220,
@@ -704,12 +759,71 @@
                     offsetY: 62
                 });
             }
+
+            if (idleBubble.textContent) {
+                positionLive2DPopup(idleBubble, {
+                    width: 318,
+                    height: 92,
+                    offsetY: 62
+                });
+            }
         }
 
         function closeDialog() {
             clearSpinTimers();
             dialog.classList.remove("is-open", "is-opening");
             window.clearTimeout(showDialog.closeTimer);
+        }
+
+        function hideIdleTalk() {
+            window.clearTimeout(showIdleTalk.timer);
+            idleBubble.classList.add("is-fading");
+            idleBubble.classList.remove("is-open");
+            window.clearTimeout(hideIdleTalk.timer);
+            hideIdleTalk.timer = window.setTimeout(function () {
+                idleBubble.classList.remove("is-fading");
+                idleBubble.textContent = "";
+            }, 360);
+        }
+
+        function canShowIdleTalk() {
+            return window.enableGanyuIdleTalk !== false &&
+                !isSuggestionPage &&
+                !document.hidden &&
+                !dialog.classList.contains("is-open") &&
+                !openingBubble.textContent &&
+                !quizExitBubble.textContent &&
+                !idleBubble.textContent;
+        }
+
+        function showIdleTalk() {
+            if (!canShowIdleTalk()) {
+                return;
+            }
+
+            idleBubble.textContent = pickRandomItem(ganyuIdleLines);
+            positionLive2DPopup(idleBubble, {
+                width: 318,
+                height: 92,
+                offsetY: 62
+            });
+            idleBubble.classList.remove("is-fading");
+            idleBubble.classList.add("is-open");
+            window.clearTimeout(showIdleTalk.timer);
+            showIdleTalk.timer = window.setTimeout(hideIdleTalk, randomBetween(4000, 6000));
+        }
+
+        function scheduleIdleTalk(first) {
+            window.clearTimeout(idleTalkTimer);
+
+            if (window.enableGanyuIdleTalk === false || isSuggestionPage) {
+                return;
+            }
+
+            idleTalkTimer = window.setTimeout(function () {
+                showIdleTalk();
+                scheduleIdleTalk(false);
+            }, first ? randomBetween(8000, 12000) : randomBetween(45000, 90000));
         }
 
         function addOption(label, onClick) {
@@ -845,6 +959,7 @@
 
         function showQuizScore() {
             clearDialog();
+            hideIdleTalk();
             showQuizExitBubble(quizExitBubble);
             playVoice(quizExitVoicePath);
             meta.textContent = "无奖竞答结算";
@@ -1416,6 +1531,7 @@
         window.setTimeout(syncLive2DPopupPositions, 500);
         window.setTimeout(syncLive2DPopupPositions, 1500);
         window.setTimeout(syncLive2DPopupPositions, 3000);
+        scheduleIdleTalk(true);
 
         closeButton.addEventListener("click", function (event) {
             event.stopPropagation();

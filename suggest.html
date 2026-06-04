@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>君雪的意见箱</title>
+    <title>君雪意见箱</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="live2d/live2d-widget.css?v=20260603-1">
     <style>
@@ -145,6 +145,7 @@
         }
 
         .suggest-field input,
+        .suggest-field select,
         .suggest-field textarea {
             width: 100%;
             border: 1px solid rgba(108, 229, 255, 0.34);
@@ -164,6 +165,7 @@
         }
 
         .suggest-field input:focus,
+        .suggest-field select:focus,
         .suggest-field textarea:focus {
             border-color: rgba(255, 232, 163, 0.72);
             box-shadow: 0 0 16px rgba(255, 232, 163, 0.16), inset 0 0 12px rgba(108, 229, 255, 0.08);
@@ -300,7 +302,7 @@
 
 <main class="suggest-page">
     <section class="suggest-card" aria-labelledby="suggest-title">
-        <h1 id="suggest-title">请问有什么建议可以告诉君雪？</h1>
+        <h1 id="suggest-title">请问有什么建议想告诉君雪呢？</h1>
         <form class="suggest-form" id="suggest-form">
             <div class="suggest-field">
                 <label for="suggest-name">昵称（可选）</label>
@@ -309,6 +311,16 @@
             <div class="suggest-field">
                 <label for="suggest-contact">联系方式（可选）</label>
                 <input id="suggest-contact" name="contact" type="text" autocomplete="email">
+            </div>
+            <div class="suggest-field">
+                <label for="suggest-type">建议类型</label>
+                <select id="suggest-type" name="type">
+                    <option value="Bug反馈">Bug反馈</option>
+                    <option value="功能建议">功能建议</option>
+                    <option value="音乐推荐">音乐推荐</option>
+                    <option value="占卜建议">占卜建议</option>
+                    <option value="其它">其它</option>
+                </select>
             </div>
             <div class="suggest-field">
                 <label for="suggest-message">建议内容（必填）</label>
@@ -412,19 +424,13 @@ document.addEventListener("click", function (event) {
     };
 </script>
 <script>
-// TODO: 创建 Formspree 表单后，把 endpoint 填到这里，并在 Formspree 中把收件邮箱设置为 17212018019@qq.com。
-const FORMSPREE_ENDPOINT = "";
+const FORMSPREE_ENDPOINT = "https://formspree.io/f/mnjyqlyg";
 const form = document.getElementById("suggest-form");
 const statusBox = document.getElementById("suggest-status");
 const submitButton = form.querySelector(".suggest-submit");
 
 form.addEventListener("submit", function (event) {
     event.preventDefault();
-
-    if (!FORMSPREE_ENDPOINT) {
-        statusBox.textContent = "意见箱还在连接中，君雪马上就能收到啦～";
-        return;
-    }
 
     submitButton.disabled = true;
     statusBox.textContent = "君雪正在收信...";
@@ -446,7 +452,7 @@ form.addEventListener("submit", function (event) {
         form.reset();
         statusBox.textContent = "君雪收到啦，谢谢你的建议～";
     }).catch(function () {
-        statusBox.textContent = "信件好像迷路了，稍后再试试吧～";
+        statusBox.textContent = "信件好像迷路了，请稍后再试～";
     }).finally(function () {
         submitButton.disabled = false;
     });

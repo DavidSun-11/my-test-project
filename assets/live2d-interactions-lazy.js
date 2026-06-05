@@ -123,11 +123,21 @@
     const firstClickVoicePath = "assets/audio/ganyu_first_click.mp3";
     const quizExitVoiceText = "今天的题目就到这里啦～\n如果下次还想考考自己，记得再来找甘雨哦。";
     const quizExitVoicePath = "assets/audio/ganyu_quiz_exit.mp3";
+    const fortuneVoicePath = "assets/audio/ganyu_fortune.mp3";
+    const fortuneBubbleText = "星象已经给出答案了，剩下的路，要由你自己决定。";
+    const fortuneStorageKeyPrefix = "junxue_fortune_";
     const musicList = [
         { title: "感谢你曾来过", src: "assets/audio/music.mp3" },
         { title: "不要说话", src: "assets/audio/dont-speak.mp3" }
     ];
-    const fortuneLevels = ["大吉", "吉", "中吉", "平", "小凶"];
+    const fortuneLevels = ["大吉", "中吉", "小吉", "平", "小凶"];
+    const fortuneLevelClasses = {
+        "大吉": "live2d-fortune-value--great",
+        "中吉": "live2d-fortune-value--good",
+        "小吉": "live2d-fortune-value--small-good",
+        "平": "live2d-fortune-value--plain",
+        "小凶": "live2d-fortune-value--caution"
+    };
     const luckyColors = ["月白", "星蓝", "霜紫", "云粉", "雪青", "晨金", "海盐蓝", "薄荷绿", "樱花粉"];
     const fortuneAdviceList = [
         "把重要的事情放在上午完成，心会更安定。",
@@ -422,6 +432,16 @@
         return bubble;
     }
 
+    function createFortuneBubble() {
+        ensureOpeningBubbleStyles();
+
+        const bubble = document.createElement("div");
+        bubble.className = "live2d-quiz-exit-bubble";
+        bubble.setAttribute("aria-live", "polite");
+        document.body.appendChild(bubble);
+        return bubble;
+    }
+
     function showOpeningBubble(bubble) {
         bubble.textContent = openingVoiceText;
         positionLive2DPopup(bubble, {
@@ -469,6 +489,32 @@
         bubble.classList.remove("is-open");
         window.clearTimeout(hideQuizExitBubble.timer);
         hideQuizExitBubble.timer = window.setTimeout(function () {
+            bubble.classList.remove("is-fading");
+            bubble.textContent = "";
+        }, 360);
+    }
+
+    function showFortuneBubble(bubble) {
+        bubble.textContent = fortuneBubbleText;
+        positionLive2DPopup(bubble, {
+            width: 318,
+            height: 92,
+            offsetY: 62
+        });
+        bubble.classList.remove("is-fading");
+        bubble.classList.add("is-open");
+        window.clearTimeout(showFortuneBubble.timer);
+        showFortuneBubble.timer = window.setTimeout(function () {
+            hideFortuneBubble(bubble);
+        }, 6000);
+    }
+
+    function hideFortuneBubble(bubble) {
+        window.clearTimeout(showFortuneBubble.timer);
+        bubble.classList.add("is-fading");
+        bubble.classList.remove("is-open");
+        window.clearTimeout(hideFortuneBubble.timer);
+        hideFortuneBubble.timer = window.setTimeout(function () {
             bubble.classList.remove("is-fading");
             bubble.textContent = "";
         }, 360);
@@ -601,6 +647,7 @@
         const openingBubble = document.querySelector(".live2d-opening-bubble") || createOpeningBubble();
         const quizExitBubble = createQuizExitBubble();
         const idleBubble = createIdleBubble();
+        const fortuneBubble = createFortuneBubble();
         const hitArea = document.querySelector(".live2d-hit-area") || createHitArea();
         const closeButton = dialog.querySelector(".live2d-quiz__close");
         const meta = dialog.querySelector(".live2d-quiz__meta");
@@ -610,6 +657,7 @@
         const boundNodes = new WeakSet();
         const isSuggestionPage = /(^|\/)suggest\.html(?:$|[?#])/i.test(window.location.pathname + window.location.search + window.location.hash);
         let idleTalkTimer = null;
+        let fortuneProcessTimer = null;
 
         function clearSpinTimers() {
             window.clearInterval(heroSpinTimer);
@@ -655,6 +703,8 @@
 
         function clearDialog() {
             clearSpinTimers();
+            window.clearTimeout(fortuneProcessTimer);
+            fortuneProcessTimer = null;
             dialog.classList.remove("is-wheel", "is-weather", "is-music", "is-fortune");
             meta.textContent = "";
             question.textContent = "";
@@ -681,7 +731,7 @@
         function showDialog() {
             hideIdleTalk();
             positionLive2DPopup(dialog, {
-                width: 362,
+                width: dialog.classList.contains("is-fortune") ? 580 : 362,
                 height: 220,
                 offsetY: 68
             });
@@ -748,7 +798,7 @@
 
             if (dialog.classList.contains("is-open")) {
                 positionLive2DPopup(dialog, {
-                    width: 362,
+                    width: dialog.classList.contains("is-fortune") ? 580 : 362,
                     height: 220,
                     offsetY: 68
                 });
@@ -772,6 +822,14 @@
 
             if (idleBubble.textContent) {
                 positionLive2DPopup(idleBubble, {
+                    width: 318,
+                    height: 92,
+                    offsetY: 62
+                });
+            }
+
+            if (fortuneBubble.textContent) {
+                positionLive2DPopup(fortuneBubble, {
                     width: 318,
                     height: 92,
                     offsetY: 62
@@ -1025,15 +1083,39 @@
             }, []);
         }
 
-        function showFortunePanel() {
-            clearDialog();
-            dialog.classList.add("is-fortune");
-            options.classList.add("live2d-fortune-panel");
-            meta.textContent = "咨询 · 占卜";
-            question.textContent = "🌙 君雪占卜屋";
+        function getTodayKey() {
+            const now = new Date();
+            const month = String(now.getMonth() + 1).padStart(2, "0");
+            const day = String(now.getDate()).padStart(2, "0");
 
-            const fortune = {
-                level: randomItem(fortuneLevels),
+            return fortuneStorageKeyPrefix + now.getFullYear() + "-" + month + "-" + day;
+        }
+
+        function readTodayFortune() {
+            try {
+                const rawFortune = localStorage.getItem(getTodayKey());
+
+                return rawFortune ? JSON.parse(rawFortune) : null;
+            } catch (error) {
+                return null;
+            }
+        }
+
+        function saveTodayFortune(fortune) {
+            try {
+                localStorage.setItem(getTodayKey(), JSON.stringify(fortune));
+                return true;
+            } catch (error) {
+                return false;
+            }
+        }
+
+        function buildFortune() {
+            const level = randomItem(fortuneLevels);
+
+            return {
+                level: level,
+                levelClass: fortuneLevelClasses[level] || "",
                 number: String(Math.floor(Math.random() * 99) + 1),
                 color: randomItem(luckyColors),
                 hero: randomItem(getAllHeroes()),
@@ -1041,13 +1123,24 @@
                 advice: randomItem(fortuneAdviceList),
                 quote: randomItem(ganyuQuotes)
             };
+        }
 
+        function setFortuneShell() {
+            clearDialog();
+            dialog.classList.add("is-fortune");
+            options.classList.add("live2d-fortune-panel");
+            meta.textContent = "咨询 · 占卜";
+            question.textContent = "🌙 甘雨占卜屋";
+        }
+
+        function renderFortuneResult(fortune, message) {
+            const levelClass = fortune.levelClass || fortuneLevelClasses[fortune.level] || "";
             options.innerHTML = [
                 '<div class="live2d-fortune-body">',
                 '<section class="live2d-fortune-list" aria-label="君雪占卜结果">',
                     '<article class="live2d-fortune-item">',
                         '<span class="live2d-fortune-label">今日运势：</span>',
-                        '<span class="live2d-fortune-value">' + escapeHtml(fortune.level) + '</span>',
+                        '<span class="live2d-fortune-value ' + levelClass + '">' + escapeHtml(fortune.level) + '</span>',
                     '</article>',
                     '<article class="live2d-fortune-item">',
                         '<span class="live2d-fortune-label">幸运数字：</span>',
@@ -1069,34 +1162,149 @@
                         '<span class="live2d-fortune-label">今日建议：</span>',
                         '<span class="live2d-fortune-value">' + escapeHtml(fortune.advice) + '</span>',
                     '</article>',
+                    '<article class="live2d-fortune-item live2d-fortune-item--quote">',
+                        '<span class="live2d-fortune-label">甘雨赠言：</span>',
+                        '<span class="live2d-fortune-value">' + escapeHtml(fortune.quote) + '</span>',
+                    '</article>',
                 '</section>',
                 '<section class="live2d-fortune-message" aria-label="甘雨今日建议">',
-                    '<div class="live2d-fortune-message__quote">' + escapeHtml(fortune.quote) + '</div>',
+                    '<div class="live2d-fortune-message__quote">' + escapeHtml(message || "星光已经落在纸上，请慢慢读完今天的答案。") + '</div>',
                 '</section>',
                 '</div>',
                 '<div class="live2d-weather-actions">',
                     '<button class="live2d-wheel__small" type="button" data-fortune-action="again">再占一次</button>',
+                    '<button class="live2d-wheel__small" type="button" data-fortune-action="save">保存今日占卜</button>',
                     '<button class="live2d-wheel__small" type="button" data-fortune-action="back">返回咨询</button>',
-                    '<button class="live2d-wheel__small" type="button" data-fortune-action="menu">回到菜单</button>',
                 '</div>'
             ].join("");
 
             options.querySelector('[data-fortune-action="again"]').addEventListener("click", function (event) {
                 event.stopPropagation();
-                showFortunePanel();
+                startFortuneProcess(false);
+            });
+            options.querySelector('[data-fortune-action="save"]').addEventListener("click", function (event) {
+                event.stopPropagation();
+                const saved = saveTodayFortune(fortune);
+
+                result.textContent = saved ? "今日占卜已经收好啦。" : "今天的占卜暂时没能保存，请稍后再试。";
+                result.className = saved ? "live2d-quiz__result is-good" : "live2d-quiz__result is-warning";
             });
             options.querySelector('[data-fortune-action="back"]').addEventListener("click", function (event) {
                 event.stopPropagation();
                 showConsultPanel();
             });
-            options.querySelector('[data-fortune-action="menu"]').addEventListener("click", function (event) {
+
+            result.textContent = "";
+            result.className = "live2d-quiz__result is-fortune-hidden";
+            showDialog();
+        }
+
+        function showFortuneResult(fortune, options) {
+            const settings = options || {};
+
+            setFortuneShell();
+            renderFortuneResult(fortune, settings.message);
+
+            if (!settings.skipEffects) {
+                playVoice(fortuneVoicePath);
+                showFortuneBubble(fortuneBubble);
+            }
+        }
+
+        function startFortuneProcess(overwriteToday) {
+            setFortuneShell();
+            options.innerHTML = [
+                '<div class="live2d-fortune-process" aria-live="polite">',
+                    '<span class="live2d-fortune-process__moon">☾</span>',
+                    '<span>甘雨正在观察星象……</span>',
+                '</div>'
+            ].join("");
+            result.textContent = "";
+            result.className = "live2d-quiz__result is-fortune-hidden";
+            showDialog();
+
+            window.clearTimeout(fortuneProcessTimer);
+            fortuneProcessTimer = window.setTimeout(function () {
+                const fortune = buildFortune();
+
+                if (overwriteToday) {
+                    saveTodayFortune(fortune);
+                }
+
+                showFortuneResult(fortune);
+            }, 1500);
+        }
+
+        function showFortuneSavedPrompt(savedFortune) {
+            setFortuneShell();
+            options.innerHTML = [
+                '<div class="live2d-fortune-message live2d-fortune-message--center">',
+                    '<div class="live2d-fortune-message__quote">今天已经占卜过啦，要看看之前的结果吗？</div>',
+                '</div>',
+                '<div class="live2d-weather-actions">',
+                    '<button class="live2d-wheel__small" type="button" data-fortune-action="view">查看今日结果</button>',
+                    '<button class="live2d-wheel__small" type="button" data-fortune-action="restart">重新占卜</button>',
+                    '<button class="live2d-wheel__small" type="button" data-fortune-action="back">返回咨询</button>',
+                '</div>'
+            ].join("");
+
+            options.querySelector('[data-fortune-action="view"]').addEventListener("click", function (event) {
                 event.stopPropagation();
-                showMenu();
+                showFortuneResult(savedFortune, {
+                    skipEffects: true,
+                    message: "这是甘雨为你保存的今日占卜。"
+                });
+            });
+            options.querySelector('[data-fortune-action="restart"]').addEventListener("click", function (event) {
+                event.stopPropagation();
+                startFortuneProcess(true);
+            });
+            options.querySelector('[data-fortune-action="back"]').addEventListener("click", function (event) {
+                event.stopPropagation();
+                showConsultPanel();
             });
 
             result.textContent = "";
             result.className = "live2d-quiz__result is-fortune-hidden";
             showDialog();
+        }
+
+        function showFortuneIntro() {
+            setFortuneShell();
+            options.innerHTML = [
+                '<div class="live2d-fortune-message live2d-fortune-message--center">',
+                    '<div class="live2d-fortune-message__title">请把心里的问题轻轻放下。</div>',
+                    '<div class="live2d-fortune-message__quote">甘雨会认真观察星象，为你写下今日的指引。</div>',
+                '</div>',
+                '<div class="live2d-weather-actions">',
+                    '<button class="live2d-wheel__small" type="button" data-fortune-action="start">开始占卜</button>',
+                    '<button class="live2d-wheel__small" type="button" data-fortune-action="back">返回咨询</button>',
+                '</div>'
+            ].join("");
+
+            options.querySelector('[data-fortune-action="start"]').addEventListener("click", function (event) {
+                event.stopPropagation();
+                startFortuneProcess(false);
+            });
+            options.querySelector('[data-fortune-action="back"]').addEventListener("click", function (event) {
+                event.stopPropagation();
+                showConsultPanel();
+            });
+
+            result.textContent = "";
+            result.className = "live2d-quiz__result is-fortune-hidden";
+            showDialog();
+        }
+
+        function showFortunePanel() {
+            const savedFortune = readTodayFortune();
+
+            if (savedFortune) {
+                showFortuneSavedPrompt(savedFortune);
+                return;
+            }
+
+            showFortuneIntro();
         }
 
         function getCurrentMusic() {

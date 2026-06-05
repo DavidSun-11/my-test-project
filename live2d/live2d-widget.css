@@ -320,7 +320,7 @@
 }
 
 .live2d-quiz.is-fortune {
-    width: min(560px, calc(100vw - 44px));
+    width: min(580px, calc(100vw - 44px));
 }
 
 .live2d-quiz__result.is-fortune-hidden {
@@ -564,6 +564,35 @@
     overflow-wrap: anywhere;
 }
 
+.live2d-fortune-value--great {
+    color: #ffe8a3;
+    text-shadow: 0 0 12px rgba(255, 221, 114, 0.42);
+}
+
+.live2d-fortune-value--good {
+    color: #9ff5ff;
+    text-shadow: 0 0 12px rgba(108, 229, 255, 0.42);
+}
+
+.live2d-fortune-value--small-good {
+    color: #ffbfdc;
+    text-shadow: 0 0 12px rgba(255, 142, 196, 0.36);
+}
+
+.live2d-fortune-value--plain {
+    color: #f8fdff;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+.live2d-fortune-value--caution {
+    color: #d9c2ff;
+    text-shadow: 0 0 12px rgba(185, 146, 255, 0.34);
+}
+
+.live2d-fortune-item--quote {
+    align-items: flex-start;
+}
+
 .live2d-fortune-message {
     display: flex;
     flex-direction: column;
@@ -597,6 +626,35 @@
 .live2d-fortune-message__quote {
     color: rgba(159, 245, 255, 0.92);
     text-shadow: 0 0 10px rgba(108, 229, 255, 0.24);
+}
+
+.live2d-fortune-message--center {
+    text-align: center;
+}
+
+.live2d-fortune-process {
+    display: grid;
+    gap: 8px;
+    justify-items: center;
+    padding: 24px 16px;
+    border: 1px solid rgba(108, 229, 255, 0.32);
+    border-radius: 16px;
+    background:
+        radial-gradient(circle at 50% 18%, rgba(255, 232, 163, 0.13), transparent 42%),
+        rgba(255, 255, 255, 0.065);
+    color: #eafcff;
+    font-size: 14px;
+    line-height: 1.6;
+    text-align: center;
+    box-shadow: inset 0 0 14px rgba(108, 229, 255, 0.06), 0 0 18px rgba(108, 229, 255, 0.08);
+    text-shadow: 0 0 12px rgba(108, 229, 255, 0.32);
+}
+
+.live2d-fortune-process__moon {
+    color: #ffe8a3;
+    font-size: 24px;
+    line-height: 1;
+    text-shadow: 0 0 14px rgba(255, 221, 114, 0.42);
 }
 
 /* 英雄池转盘样式：只服务 Live2D 弹窗里的第三个互动功能，保持星空毛玻璃和蓝白发光风格。 */

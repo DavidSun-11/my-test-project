@@ -1,6 +1,6 @@
 /* Live2D 轻量启动脚本：首屏只保留开场提示、点击入口和懒加载控制。 */
 (function () {
-    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260604-2";
+    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260605-1";
     const openingVoiceText = "万家灯火就在眼前，人们的生活究竟是什么样的呢…欸？你想邀我去夜市？啊…不，不好意思，我就不去了吧。";
     const openingVoicePath = "assets/audio/ganyu_opening.mp3";
 
@@ -128,20 +128,27 @@
         const rect = getLive2DRect();
         const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
         const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-        const canShowRight = rect.right + settings.gap + settings.width <= viewportWidth - settings.margin;
-        const rawLeft = canShowRight ? rect.right + settings.gap : rect.left - settings.gap - settings.width;
-        const rawTop = rect.top + settings.offsetY;
-        const nextLeft = Math.min(
-            Math.max(settings.margin, rawLeft),
-            Math.max(settings.margin, viewportWidth - settings.width - settings.margin)
-        );
-        const nextTop = Math.min(
-            Math.max(settings.margin, rawTop),
-            Math.max(settings.margin, viewportHeight - settings.height - settings.margin)
-        );
+        const popupWidth = Math.min(node.offsetWidth || settings.width, Math.max(160, viewportWidth - settings.margin * 2));
+        const popupHeight = node.offsetHeight || settings.height;
+        const maxLeft = Math.max(settings.margin, viewportWidth - popupWidth - settings.margin);
+        const maxTop = Math.max(settings.margin, viewportHeight - popupHeight - settings.margin);
+        const hasRightSpace = rect.right + settings.gap + popupWidth <= viewportWidth - settings.margin;
+        let nextLeft = rect.right + settings.gap;
+        let nextTop = Math.min(Math.max(settings.margin, rect.top + settings.offsetY), maxTop);
 
-        node.style.left = nextLeft + "px";
-        node.style.top = nextTop + "px";
+        node.style.maxWidth = "calc(100vw - " + (settings.margin * 2) + "px)";
+
+        if (!hasRightSpace) {
+            nextLeft = rect.right - popupWidth;
+            nextTop = rect.top - popupHeight - settings.gap;
+
+            if (nextTop < settings.margin && rect.bottom + settings.gap + popupHeight <= viewportHeight - settings.margin) {
+                nextTop = rect.bottom + settings.gap;
+            }
+        }
+
+        node.style.left = Math.min(Math.max(settings.margin, nextLeft), maxLeft) + "px";
+        node.style.top = Math.min(Math.max(settings.margin, nextTop), maxTop) + "px";
         node.style.right = "auto";
         node.style.bottom = "auto";
     }

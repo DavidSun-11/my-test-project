@@ -549,21 +549,31 @@
         const settings = options || {};
         const rect = getLive2DRect();
         const gap = settings.gap || 14;
+        const margin = settings.margin || 8;
         const fallbackWidth = settings.width || 330;
         const fallbackHeight = settings.height || 160;
-        const popupWidth = node.offsetWidth || fallbackWidth;
+        const popupWidth = Math.min(node.offsetWidth || fallbackWidth, Math.max(160, window.innerWidth - margin * 2));
         const popupHeight = node.offsetHeight || fallbackHeight;
         const rightLeft = rect.right + gap;
-        const hasRightSpace = rightLeft + popupWidth + 12 <= window.innerWidth;
-        const nextLeft = hasRightSpace
-            ? rightLeft
-            : rect.left - popupWidth - gap;
-        const nextTop = rect.top + (settings.offsetY || Math.max(36, rect.height * 0.16));
-        const maxLeft = Math.max(8, window.innerWidth - popupWidth - 8);
-        const maxTop = Math.max(8, window.innerHeight - popupHeight - 8);
+        const hasRightSpace = rightLeft + popupWidth + margin <= window.innerWidth;
+        const maxLeft = Math.max(margin, window.innerWidth - popupWidth - margin);
+        const maxTop = Math.max(margin, window.innerHeight - popupHeight - margin);
+        let nextLeft = rightLeft;
+        let nextTop = rect.top + (settings.offsetY || Math.max(36, rect.height * 0.16));
 
-        node.style.left = clamp(nextLeft, 8, maxLeft) + "px";
-        node.style.top = clamp(nextTop, 8, maxTop) + "px";
+        node.style.maxWidth = "calc(100vw - " + (margin * 2) + "px)";
+
+        if (!hasRightSpace) {
+            nextLeft = rect.right - popupWidth;
+            nextTop = rect.top - popupHeight - gap;
+
+            if (nextTop < margin && rect.bottom + gap + popupHeight <= window.innerHeight - margin) {
+                nextTop = rect.bottom + gap;
+            }
+        }
+
+        node.style.left = clamp(nextLeft, margin, maxLeft) + "px";
+        node.style.top = clamp(nextTop, margin, maxTop) + "px";
         node.style.right = "auto";
         node.style.bottom = "auto";
     }

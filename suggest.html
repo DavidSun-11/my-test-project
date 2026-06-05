@@ -615,17 +615,26 @@ function positionSuggestionThankYouBubble() {
     const margin = 16;
     const anchorRect = getLive2DAnchorRect();
     const bubbleRect = suggestionThankYouBubble.getBoundingClientRect();
-    const bubbleWidth = bubbleRect.width || 300;
+    const bubbleWidth = Math.min(bubbleRect.width || 300, Math.max(160, window.innerWidth - margin * 2));
     const bubbleHeight = bubbleRect.height || 120;
+    const maxLeft = Math.max(margin, window.innerWidth - bubbleWidth - margin);
+    const maxTop = Math.max(margin, window.innerHeight - bubbleHeight - margin);
     let left = anchorRect.right + gap;
     let top = anchorRect.top + Math.max(24, anchorRect.height * 0.18);
 
+    suggestionThankYouBubble.style.maxWidth = "calc(100vw - " + (margin * 2) + "px)";
+
     if (left + bubbleWidth + margin > window.innerWidth) {
-        left = anchorRect.left - bubbleWidth - gap;
+        left = anchorRect.right - bubbleWidth;
+        top = anchorRect.top - bubbleHeight - gap;
+
+        if (top < margin && anchorRect.bottom + gap + bubbleHeight <= window.innerHeight - margin) {
+            top = anchorRect.bottom + gap;
+        }
     }
 
-    left = Math.max(margin, Math.min(left, window.innerWidth - bubbleWidth - margin));
-    top = Math.max(margin, Math.min(top, window.innerHeight - bubbleHeight - margin));
+    left = Math.max(margin, Math.min(left, maxLeft));
+    top = Math.max(margin, Math.min(top, maxTop));
 
     suggestionThankYouBubble.style.left = left + "px";
     suggestionThankYouBubble.style.top = top + "px";
@@ -703,7 +712,7 @@ window.addEventListener("resize", positionSuggestionThankYouBubble);
 window.addEventListener("live2d-stage-position-changed", positionSuggestionThankYouBubble);
 </script>
 <script src="live2d/live2d-widget.js?v=20260604-1"></script>
-<script src="assets/live2d-interactions.js?v=20260604-2"></script>
+<script src="assets/live2d-interactions.js?v=20260605-1"></script>
 <script src="assets/live2d-drag.js?v=20260604-1"></script>
 </body>
 </html>

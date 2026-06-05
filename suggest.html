@@ -493,13 +493,99 @@ document.addEventListener("click", function (event) {
 </script>
 <script>
 const FORMSPREE_ENDPOINT = "https://formspree.io/f/mnjyqlyg";
-const SUGGESTION_THANK_YOU_VOICE = "assets/audio/ganyu_suggest_submit.mp3";
+const SUGGESTION_THANK_YOU_VOICE = "assets/audio/ganyu1.mp3";
+const SUGGESTION_THANK_YOU_FALLBACK_VOICE = "assets/audio/ganyu_suggest_submit.mp3";
 const SUGGESTION_THANK_YOU_TEXT = "谢谢你的建议。\n无论是夸奖还是批评，\n我都会认真看的。";
 const form = document.getElementById("suggest-form");
 const statusBox = document.getElementById("suggest-status");
 const submitButton = form.querySelector(".suggest-submit");
 let suggestionThankYouBubble = null;
 let suggestionThankYouTimer = null;
+
+function findCoreModelIn(value, depth, seen) {
+    if (!value || depth > 5) {
+        return null;
+    }
+
+    if (seen.has(value)) {
+        return null;
+    }
+
+    if (typeof value !== "object" && typeof value !== "function") {
+        return null;
+    }
+
+    seen.add(value);
+
+    try {
+        if (value.internalModel &&
+            value.internalModel.coreModel &&
+            typeof value.internalModel.coreModel.setParameterValueById === "function") {
+            return value.internalModel.coreModel;
+        }
+
+        if (value.coreModel && typeof value.coreModel.setParameterValueById === "function") {
+            return value.coreModel;
+        }
+
+        if (typeof value.setParameterValueById === "function") {
+            return value;
+        }
+
+        const keys = Object.keys(value).slice(0, 80);
+        for (let index = 0; index < keys.length; index += 1) {
+            const child = findCoreModelIn(value[keys[index]], depth + 1, seen);
+
+            if (child) {
+                return child;
+            }
+        }
+    } catch (error) {
+        return null;
+    }
+
+    return null;
+}
+
+function findGanyuCoreModel() {
+    const roots = [
+        window.OML2D,
+        window.oml2d,
+        window.Live2DWidget,
+        window.PIXI
+    ];
+    const seen = new WeakSet();
+
+    for (let index = 0; index < roots.length; index += 1) {
+        const coreModel = findCoreModelIn(roots[index], 0, seen);
+
+        if (coreModel) {
+            return coreModel;
+        }
+    }
+
+    return null;
+}
+
+function setGanyuEyeOpen(coreModel, value) {
+    try {
+        coreModel.setParameterValueById("ParamEyeLOpen", value);
+        coreModel.setParameterValueById("ParamEyeROpen", value);
+    } catch (error) {}
+}
+
+function triggerGanyuBlink() {
+    const coreModel = findGanyuCoreModel();
+
+    if (!coreModel) {
+        return;
+    }
+
+    setGanyuEyeOpen(coreModel, 0);
+    window.setTimeout(function () {
+        setGanyuEyeOpen(coreModel, 1);
+    }, 120);
+}
 
 function getLive2DAnchorRect() {
     const anchor = document.getElementById("oml2d-stage") ||
@@ -565,20 +651,20 @@ function showSuggestionThankYouBubble() {
     }, 6000);
 }
 
-function playSuggestionThankYouVoice() {
-    const audio = new Audio(SUGGESTION_THANK_YOU_VOICE);
+function playSuggestionThankYouVoice(file) {
+    const audio = new Audio(file || SUGGESTION_THANK_YOU_VOICE);
 
     audio.volume = 0.8;
 
     const playRequest = audio.play();
     if (playRequest && typeof playRequest.then === "function") {
-        playRequest.then(function () {
-            showSuggestionThankYouBubble();
+        playRequest.catch(function () {
+            if (!file && SUGGESTION_THANK_YOU_FALLBACK_VOICE) {
+                playSuggestionThankYouVoice(SUGGESTION_THANK_YOU_FALLBACK_VOICE);
+            }
         }).catch(function () {});
         return;
     }
-
-    showSuggestionThankYouBubble();
 }
 
 form.addEventListener("submit", function (event) {
@@ -603,6 +689,8 @@ form.addEventListener("submit", function (event) {
 
         form.reset();
         statusBox.textContent = "君雪收到啦，谢谢你的建议～";
+        triggerGanyuBlink();
+        showSuggestionThankYouBubble();
         playSuggestionThankYouVoice();
     }).catch(function () {
         statusBox.textContent = "信件好像迷路了，请稍后再试～";

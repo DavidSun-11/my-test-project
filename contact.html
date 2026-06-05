@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>付费解锁联系方式</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <script src="assets/performance-mode.js?v=20260604-2"></script>
+    <link rel="stylesheet" href="live2d/live2d-widget.css?v=20260604-2">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            color: #f7fbff;
+            background:
+                radial-gradient(circle at 22% 18%, rgba(108, 178, 255, 0.18), transparent 34%),
+                radial-gradient(circle at 78% 72%, rgba(108, 229, 255, 0.12), transparent 36%),
+                linear-gradient(145deg, #01040b 0%, #04111f 48%, #071b31 100%);
+            overflow-x: hidden;
+        }
+
+        .contact-bg-overlay,
+        .stars,
+        .stars2,
+        .stars3,
+        .meteor-layer {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+        }
+
+        .contact-bg-overlay {
+            z-index: -4;
+            background:
+                radial-gradient(ellipse at 50% 34%, rgba(19, 65, 116, 0.26), transparent 50%),
+                linear-gradient(to bottom, rgba(1, 7, 18, 0.22), rgba(2, 12, 28, 0.46));
+        }
+
+        .stars,
+        .stars2,
+        .stars3 {
+            width: 100%;
+            height: 200%;
+            background-repeat: repeat;
+            z-index: -3;
+            will-change: transform, opacity;
+        }
+
+        .stars {
+            background-image:
+                radial-gradient(circle at 7px 12px, rgba(255,255,255,0.54) 0 0.75px, transparent 1.1px),
+                radial-gradient(circle at 76px 132px, rgba(170,212,255,0.36) 0 0.75px, transparent 1.1px),
+                radial-gradient(circle at 174px 26px, rgba(255,255,255,0.42) 0 0.8px, transparent 1.15px);
+            background-size: 310px 210px;
+            animation: driftStars 125s linear infinite, starBreath 8s ease-in-out infinite alternate;
+            opacity: 0.9;
+        }
+
+        .stars2 {
+            background-image:
+                radial-gradient(circle at 18px 28px, rgba(255,255,255,0.78) 0 1px, transparent 1.7px),
+                radial-gradient(circle at 162px 144px, rgba(178,218,255,0.54) 0 0.9px, transparent 1.55px);
+            background-size: 260px 180px;
+            animation: driftStarsReverse 150s linear infinite, starBreath 9s ease-in-out infinite alternate;
+            opacity: 0.72;
+        }
+
+        .stars3 {
+            background-image:
+                radial-gradient(circle at 36px 54px, rgba(255,255,255,0.34) 0 0.6px, transparent 1px),
+                radial-gradient(circle at 210px 118px, rgba(146,198,255,0.28) 0 0.65px, transparent 1px);
+            background-size: 360px 240px;
+            animation: driftStars 190s linear infinite, starBreath 11s ease-in-out infinite alternate;
+            opacity: 0.6;
+        }
+
+        .meteor-layer {
+            z-index: -2;
+            overflow: hidden;
+        }
+
+        .meteor {
+            position: absolute;
+            width: var(--meteor-length, 300px);
+            height: 2px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, transparent, rgba(199,233,255,0.18), rgba(255,255,255,0.95));
+            filter: drop-shadow(0 0 8px rgba(158,220,255,0.9));
+            transform: rotate(-28deg);
+            animation: meteorFall var(--meteor-duration, 2400ms) cubic-bezier(0.08, 0.7, 0.2, 1) forwards;
+        }
+
+        .contact-page {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 22px 120px;
+        }
+
+        .contact-card {
+            width: min(760px, calc(100vw - 44px));
+            padding: 28px;
+            border: 1px solid rgba(108, 229, 255, 0.42);
+            border-radius: 18px;
+            background:
+                radial-gradient(circle at 18% 10%, rgba(108, 229, 255, 0.13), transparent 36%),
+                rgba(5, 18, 36, 0.82);
+            box-shadow:
+                0 0 28px rgba(0, 190, 255, 0.18),
+                inset 0 0 22px rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(12px);
+            text-align: center;
+        }
+
+        .contact-card h1 {
+            margin: 0 0 12px;
+            color: #eafcff;
+            font-size: clamp(24px, 4vw, 32px);
+            line-height: 1.35;
+            letter-spacing: 0;
+            text-shadow: 0 0 16px rgba(108, 229, 255, 0.42);
+        }
+
+        .contact-lead,
+        .contact-note {
+            margin: 0 auto;
+            color: rgba(234, 252, 255, 0.82);
+            line-height: 1.7;
+        }
+
+        .contact-note {
+            margin-top: 12px;
+            color: rgba(255, 232, 163, 0.9);
+            font-size: 14px;
+            text-shadow: 0 0 10px rgba(255, 232, 163, 0.18);
+        }
+
+        .pay-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+            margin: 24px 0;
+        }
+
+        .pay-box {
+            display: grid;
+            gap: 12px;
+            padding: 16px;
+            border: 1px solid rgba(108, 229, 255, 0.3);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.07);
+            box-shadow: inset 0 0 16px rgba(108, 229, 255, 0.05);
+        }
+
+        .pay-box h2 {
+            margin: 0;
+            color: #eafcff;
+            font-size: 17px;
+            letter-spacing: 0;
+            text-shadow: 0 0 12px rgba(108, 229, 255, 0.32);
+        }
+
+        .qr-frame {
+            position: relative;
+            display: grid;
+            place-items: center;
+            min-height: 220px;
+            border: 1px dashed rgba(158, 234, 255, 0.38);
+            border-radius: 14px;
+            background: rgba(1, 8, 20, 0.38);
+            overflow: hidden;
+        }
+
+        .qr-frame img {
+            display: block;
+            width: min(210px, 100%);
+            max-height: 210px;
+            border-radius: 10px;
+            object-fit: contain;
+            box-shadow: 0 0 18px rgba(108, 229, 255, 0.18);
+        }
+
+        .qr-placeholder {
+            padding: 18px;
+            color: rgba(214, 246, 255, 0.74);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .unlock-button {
+            min-height: 42px;
+            padding: 0 22px;
+            border: 1px solid rgba(120, 229, 255, 0.68);
+            border-radius: 999px;
+            background: linear-gradient(135deg, rgba(73, 214, 255, 0.24), rgba(255, 255, 255, 0.1));
+            color: #eafcff;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 18px rgba(0, 190, 255, 0.22), inset 0 0 12px rgba(255, 255, 255, 0.07);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .unlock-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 0 22px rgba(0, 190, 255, 0.32), 0 0 12px rgba(255, 232, 163, 0.18);
+        }
+
+        .contact-info {
+            display: none;
+            width: min(420px, 100%);
+            margin: 22px auto 0;
+            padding: 18px;
+            border: 1px solid rgba(255, 232, 163, 0.46);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 20px rgba(255, 232, 163, 0.13), inset 0 0 14px rgba(255, 255, 255, 0.06);
+            text-align: left;
+        }
+
+        .contact-info.is-unlocked {
+            display: grid;
+            gap: 10px;
+        }
+
+        .contact-info p {
+            margin: 0;
+            color: #f8fdff;
+            font-size: 16px;
+            line-height: 1.6;
+            text-shadow: 0 0 10px rgba(108, 229, 255, 0.2);
+        }
+
+        .back-home {
+            display: inline-block;
+            margin-top: 16px;
+            color: rgba(214, 246, 255, 0.78);
+            font-size: 13px;
+            text-decoration: none;
+        }
+
+        .cursor-light {
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 9999;
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(120, 229, 255, 0.16), transparent 64%);
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            mix-blend-mode: screen;
+        }
+
+        .ripple {
+            position: fixed;
+            z-index: 9998;
+            width: 14px;
+            height: 14px;
+            border: 1px solid rgba(120, 229, 255, 0.5);
+            border-radius: 50%;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            animation: rippleOut 0.8s ease-out forwards;
+        }
+
+        html.performance-low .cursor-light,
+        html.performance-low .ripple,
+        html.performance-low .meteor-layer,
+        html.performance-low .stars,
+        html.performance-low .stars2,
+        html.performance-low .stars3 {
+            display: none !important;
+        }
+
+        html.performance-low .contact-card {
+            box-shadow: 0 0 12px rgba(0, 190, 255, 0.12), inset 0 0 10px rgba(255, 255, 255, 0.04);
+            backdrop-filter: none;
+        }
+
+        @keyframes driftStars {
+            from {
+                transform: translate3d(0, 0, 0);
+            }
+            to {
+                transform: translate3d(-160px, -220px, 0);
+            }
+        }
+
+        @keyframes driftStarsReverse {
+            from {
+                transform: translate3d(-100px, -120px, 0);
+            }
+            to {
+                transform: translate3d(80px, 160px, 0);
+            }
+        }
+
+        @keyframes starBreath {
+            from {
+                opacity: 0.54;
+            }
+            to {
+                opacity: 0.95;
+            }
+        }
+
+        @keyframes rippleOut {
+            to {
+                width: 120px;
+                height: 120px;
+                opacity: 0;
+            }
+        }
+
+        @keyframes meteorFall {
+            from {
+                opacity: 0;
+                transform: rotate(-28deg) translate3d(0, 0, 0) scaleX(0.58);
+            }
+            12%,
+            72% {
+                opacity: var(--meteor-opacity, 1);
+            }
+            to {
+                opacity: 0;
+                transform: rotate(-28deg) translate3d(var(--meteor-travel-x, -920px), var(--meteor-travel-y, 510px), 0) scaleX(1);
+            }
+        }
+
+        @media (max-width: 720px) {
+            .contact-page {
+                align-items: flex-start;
+                padding-top: 70px;
+            }
+
+            .contact-card {
+                padding: 22px;
+            }
+
+            .pay-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="contact-bg-overlay" aria-hidden="true"></div>
+<div class="cursor-light"></div>
+<div class="stars"></div>
+<div class="stars stars2"></div>
+<div class="stars stars3"></div>
+<div class="meteor-layer" aria-hidden="true"></div>
+
+<main class="contact-page">
+    <section class="contact-card" aria-labelledby="contact-title">
+        <h1 id="contact-title">付费解锁联系方式</h1>
+        <p class="contact-lead">支付 1 元即可查看联系方式。</p>
+        <p class="contact-note">请确认已完成 1 元支付后再查看联系方式，谢谢支持。</p>
+
+        <div class="pay-grid" aria-label="支付二维码">
+            <section class="pay-box" aria-labelledby="wechat-pay-title">
+                <h2 id="wechat-pay-title">微信支付</h2>
+                <div class="qr-frame">
+                    <div class="qr-placeholder" id="wechat-placeholder">请上传支付二维码图片。</div>
+                    <img src="assets/images/wechat-pay.png" alt="微信支付二维码" data-placeholder="wechat-placeholder">
+                </div>
+            </section>
+            <section class="pay-box" aria-labelledby="alipay-pay-title">
+                <h2 id="alipay-pay-title">支付宝支付</h2>
+                <div class="qr-frame">
+                    <div class="qr-placeholder" id="alipay-placeholder">请上传支付二维码图片。</div>
+                    <img src="assets/images/alipay-pay.png" alt="支付宝支付二维码" data-placeholder="alipay-placeholder">
+                </div>
+            </section>
+        </div>
+
+        <button class="unlock-button" id="unlock-contact" type="button">我已付款，查看联系方式</button>
+
+        <div class="contact-info" id="contact-info" aria-live="polite">
+            <p>微信：a222414901</p>
+            <p>抖音号：1218997700</p>
+            <p>QQ号：1712018019</p>
+        </div>
+
+        <a class="back-home" href="index.html">返回首页</a>
+    </section>
+</main>
+
+<div class="live2d-widget" id="live2d-widget" aria-label="Live2D 看板娘">
+    <div class="live2d-message">请稍等一下哦，我马上就来。</div>
+</div>
+
+<script>
+const pagePerformance = window.JunxuePerformanceMode;
+const isLowPerformance = !!(pagePerformance && pagePerformance.isLow && pagePerformance.isLow());
+const light = document.querySelector(".cursor-light");
+
+if (!isLowPerformance && light) {
+    document.addEventListener("pointermove", function (event) {
+        light.style.left = event.clientX + "px";
+        light.style.top = event.clientY + "px";
+    });
+}
+
+document.addEventListener("click", function (event) {
+    if (isLowPerformance) {
+        return;
+    }
+
+    const ripple = document.createElement("div");
+
+    ripple.className = "ripple";
+    ripple.style.left = event.clientX + "px";
+    ripple.style.top = event.clientY + "px";
+    document.body.appendChild(ripple);
+
+    window.setTimeout(function () {
+        ripple.remove();
+    }, 800);
+});
+
+(function initMeteors() {
+    const layer = document.querySelector(".meteor-layer");
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const maxMeteors = 3;
+    let timer = null;
+
+    if (isLowPerformance || !layer || reduceMotion.matches) {
+        return;
+    }
+
+    function randomBetween(min, max) {
+        return Math.random() * (max - min) + min;
+    }
+
+    function spawnMeteor() {
+        if (layer.children.length >= maxMeteors) {
+            scheduleNextMeteor();
+            return;
+        }
+
+        const meteor = document.createElement("span");
+        const duration = randomBetween(1800, 3200);
+
+        meteor.className = "meteor";
+        meteor.style.left = randomBetween(window.innerWidth * 0.56, window.innerWidth + 220) + "px";
+        meteor.style.top = randomBetween(-120, window.innerHeight * 0.28) + "px";
+        meteor.style.setProperty("--meteor-length", randomBetween(220, 380) + "px");
+        meteor.style.setProperty("--meteor-duration", duration + "ms");
+        meteor.style.setProperty("--meteor-opacity", randomBetween(0.84, 1));
+        meteor.style.setProperty("--meteor-travel-x", randomBetween(-760, -1080) + "px");
+        meteor.style.setProperty("--meteor-travel-y", randomBetween(390, 660) + "px");
+        layer.appendChild(meteor);
+
+        window.setTimeout(function () {
+            meteor.remove();
+        }, duration + 160);
+
+        scheduleNextMeteor();
+    }
+
+    function scheduleNextMeteor() {
+        window.clearTimeout(timer);
+        timer = window.setTimeout(spawnMeteor, randomBetween(3000, 8000));
+    }
+
+    scheduleNextMeteor();
+})();
+</script>
+<script>
+    window.Live2DWidgetConfig = {
+        modelName: "ganyu",
+        modelPath: "live2d/models/ganyu/Ganyu1024.model3.json",
+        dockedPosition: "left",
+        scale: 0.11,
+        stageStyle: {
+            width: 380,
+            height: 700
+        },
+        mobileScale: 0.075,
+        mobileStageStyle: {
+            width: 240,
+            height: 400
+        }
+    };
+    if (window.JunxuePerformanceMode && typeof window.JunxuePerformanceMode.applyLive2DConfig === "function") {
+        window.JunxuePerformanceMode.applyLive2DConfig(window.Live2DWidgetConfig);
+    }
+</script>
+<script>
+const CONTACT_UNLOCK_KEY = "junxue_contact_unlocked";
+const unlockButton = document.getElementById("unlock-contact");
+const contactInfo = document.getElementById("contact-info");
+
+function showContactInfo() {
+    contactInfo.classList.add("is-unlocked");
+}
+
+function saveUnlockedState() {
+    try {
+        localStorage.setItem(CONTACT_UNLOCK_KEY, "true");
+    } catch (error) {}
+}
+
+function readUnlockedState() {
+    try {
+        return localStorage.getItem(CONTACT_UNLOCK_KEY) === "true";
+    } catch (error) {
+        return false;
+    }
+}
+
+document.querySelectorAll(".qr-frame img").forEach(function (image) {
+    const placeholder = document.getElementById(image.dataset.placeholder);
+
+    image.addEventListener("load", function () {
+        if (placeholder) {
+            placeholder.style.display = "none";
+        }
+    });
+
+    image.addEventListener("error", function () {
+        image.style.display = "none";
+        if (placeholder) {
+            placeholder.style.display = "block";
+        }
+    });
+});
+
+if (readUnlockedState()) {
+    showContactInfo();
+}
+
+unlockButton.addEventListener("click", function () {
+    saveUnlockedState();
+    showContactInfo();
+});
+</script>
+<script src="live2d/live2d-widget.js?v=20260604-1"></script>
+<script src="assets/live2d-interactions.js?v=20260605-1"></script>
+<script src="assets/live2d-drag.js?v=20260604-1"></script>
+</body>
+</html>

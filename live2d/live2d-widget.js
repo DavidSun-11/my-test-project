@@ -8,10 +8,10 @@
     const widget = document.getElementById("live2d-widget");
     const message = widget ? widget.querySelector(".live2d-message") : null;
     const defaultGanyuModel = "live2d/models/ganyu/Ganyu1024.model3.json";
-    const loadTimeoutMs = 9000;
+    const loadTimeoutMs = 10000;
     const fetchTimeoutMs = 5000;
     const scriptTimeoutMs = 7000;
-    const slowLoadMessage = "唔...今天稍微慢了一点，请再等我一下。";
+    const slowLoadMessage = "甘雨加载有点慢，稍后再试试吧～";
     const readySelector = "#oml2d-main, .oml2d-main, #oml2d, .oml2d, .oml2d-stage, .oml2d-canvas";
     const waitingMessages = [
         "请稍等一下哦，我马上就来。",

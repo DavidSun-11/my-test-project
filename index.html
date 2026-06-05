@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>君雪的个人网站</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
-    <script src="assets/performance-mode.js?v=20260604-2"></script>
+    <script src="assets/performance-mode.js?v=20260605-2"></script>
     <link rel="stylesheet" href="live2d/live2d-widget.css?v=20260605-2">
     <style>
         body {
@@ -404,7 +404,7 @@
 </head>
 
 <body>
-<video class="home-bg-video" autoplay muted loop playsinline aria-hidden="true">
+<video class="home-bg-video" muted loop playsinline preload="none" aria-hidden="true">
     <source src="assets/audio/star.mp4" type="video/mp4">
 </video>
 <div class="home-bg-overlay" aria-hidden="true"></div>
@@ -426,23 +426,19 @@
     <a href="games.html">游戏展示</a>
 </nav>
 
-<!-- Live2D 看板娘：左下角固定悬浮。 -->
-<div class="live2d-widget" id="live2d-widget" aria-label="Live2D 看板娘">
-    <div class="live2d-message">请稍等一下哦，我马上就来。</div>
-</div>
-
 <script>
 const pagePerformance = window.JunxuePerformanceMode;
 const isLowPerformance = !!(pagePerformance && pagePerformance.isLow && pagePerformance.isLow());
 const light = document.querySelector(".cursor-light");
+const backgroundVideo = document.querySelector(".home-bg-video");
 
-if (isLowPerformance) {
-    const backgroundVideo = document.querySelector(".home-bg-video");
-
-    if (backgroundVideo) {
+if (backgroundVideo) {
+    if (isLowPerformance) {
         backgroundVideo.pause();
         backgroundVideo.removeAttribute("autoplay");
         backgroundVideo.removeAttribute("loop");
+    } else {
+        backgroundVideo.play().catch(() => {});
     }
 }
 
@@ -541,8 +537,6 @@ document.addEventListener("click", (e) => {
         window.JunxuePerformanceMode.applyLive2DConfig(window.Live2DWidgetConfig);
     }
 </script>
-<script src="live2d/live2d-widget.js?v=20260604-1"></script>
-<script src="assets/live2d-interactions.js?v=20260605-2"></script>
-<script src="assets/live2d-drag.js?v=20260604-1"></script>
+<script src="assets/live2d-loader.js?v=20260605-2" data-live2d-autoload="home"></script>
 </body>
 </html>

@@ -1,0 +1,207 @@
+/* Lightweight Live2D loader: delays Ganyu until the page is usable. */
+(function () {
+    const WIDGET_SCRIPT = "live2d/live2d-widget.js?v=20260605-2";
+    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260605-2";
+    const DRAG_SCRIPT = "assets/live2d-drag.js?v=20260604-1";
+    const LOAD_TIMEOUT_MS = 10000;
+    const AUTOLOAD_DELAY_MS = 1200;
+    const currentScript = document.currentScript;
+    const autoloadMode = currentScript ? currentScript.getAttribute("data-live2d-autoload") : "manual";
+    const performanceMode = window.JunxuePerformanceMode;
+    const isLowPerformance = !!(performanceMode && typeof performanceMode.isLow === "function" && performanceMode.isLow());
+    const isHomeAutoload = autoloadMode === "home";
+    const loaderState = window.JunxueLive2DLoader || {
+        loading: false,
+        loaded: false,
+        failed: false
+    };
+
+    window.JunxueLive2DLoader = loaderState;
+
+    function injectStyles() {
+        if (document.getElementById("junxue-live2d-loader-style")) {
+            return;
+        }
+
+        const style = document.createElement("style");
+        style.id = "junxue-live2d-loader-style";
+        style.textContent = [
+            ".live2d-load-control{position:fixed;left:18px;bottom:86px;z-index:10010;display:grid;gap:7px;justify-items:start;font-family:Arial,sans-serif;}",
+            ".live2d-load-control__button{min-height:34px;padding:0 14px;border:1px solid rgba(120,229,255,.58);border-radius:999px;background:rgba(6,22,44,.78);color:rgba(234,252,255,.94);font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 0 14px rgba(0,190,255,.18),inset 0 0 10px rgba(255,255,255,.06);backdrop-filter:blur(8px);transition:opacity .2s ease,transform .2s ease,box-shadow .2s ease;}",
+            ".live2d-load-control__button:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 0 18px rgba(0,190,255,.28),inset 0 0 10px rgba(255,255,255,.08);}",
+            ".live2d-load-control__button:disabled{cursor:wait;opacity:.72;}",
+            ".live2d-load-control__status{max-width:min(240px,calc(100vw - 36px));padding:8px 10px;border:1px solid rgba(213,244,255,.5);border-radius:12px;background:rgba(6,22,44,.7);color:rgba(234,252,255,.86);font-size:12px;line-height:1.45;box-shadow:0 0 12px rgba(0,190,255,.14);backdrop-filter:blur(8px);}",
+            ".live2d-load-control.is-hidden{display:none;}",
+            "html.performance-low .live2d-load-control__button,html.performance-low .live2d-load-control__status{backdrop-filter:none;box-shadow:inset 0 0 8px rgba(255,255,255,.05);}",
+            "@media(max-width:720px){.live2d-load-control{left:12px;bottom:76px}.live2d-load-control__button{min-height:32px;padding:0 12px;font-size:12px;}}"
+        ].join("");
+        document.head.appendChild(style);
+    }
+
+    function getControl() {
+        let control = document.querySelector(".live2d-load-control");
+
+        if (control) {
+            return control;
+        }
+
+        injectStyles();
+        control = document.createElement("div");
+        control.className = "live2d-load-control";
+        control.innerHTML = [
+            '<button class="live2d-load-control__button" type="button">显示甘雨</button>',
+            '<div class="live2d-load-control__status" aria-live="polite" hidden></div>'
+        ].join("");
+        document.body.appendChild(control);
+        control.querySelector("button").addEventListener("click", function () {
+            loadLive2D();
+        });
+        return control;
+    }
+
+    function setControlState(state, message) {
+        const control = getControl();
+        const button = control.querySelector("button");
+        const status = control.querySelector(".live2d-load-control__status");
+
+        if (state === "hidden") {
+            control.classList.add("is-hidden");
+            return;
+        }
+
+        control.classList.remove("is-hidden");
+        status.hidden = !message;
+        status.textContent = message || "";
+
+        if (state === "loading") {
+            button.disabled = true;
+            button.textContent = "甘雨正在过来…";
+        } else {
+            button.disabled = false;
+            button.textContent = state === "failed" ? "再试一次" : "显示甘雨";
+        }
+    }
+
+    function ensureWidget() {
+        let widget = document.getElementById("live2d-widget");
+
+        if (widget) {
+            return widget;
+        }
+
+        widget = document.createElement("div");
+        widget.className = "live2d-widget";
+        widget.id = "live2d-widget";
+        widget.setAttribute("aria-label", "Live2D 看板娘");
+        widget.innerHTML = '<div class="live2d-message">请稍等一下哦，我马上就来。</div>';
+        document.body.appendChild(widget);
+        return widget;
+    }
+
+    function scriptExists(src) {
+        return Array.prototype.some.call(document.scripts, function (script) {
+            return script.getAttribute("src") === src;
+        });
+    }
+
+    function loadScript(src) {
+        return new Promise(function (resolve, reject) {
+            if (scriptExists(src)) {
+                resolve();
+                return;
+            }
+
+            const script = document.createElement("script");
+            script.src = src;
+            script.async = false;
+            script.onload = resolve;
+            script.onerror = function () {
+                script.remove();
+                reject(new Error("script-load-failed: " + src));
+            };
+            document.body.appendChild(script);
+        });
+    }
+
+    function findLive2DStage() {
+        return document.querySelector("#oml2d-stage, #oml2d-canvas, .oml2d-stage, .oml2d-canvas");
+    }
+
+    function startLoadTimeout() {
+        window.clearTimeout(loaderState.timeout);
+        loaderState.timeout = window.setTimeout(function () {
+            if (findLive2DStage()) {
+                setControlState("hidden");
+                return;
+            }
+
+            loaderState.failed = true;
+            loaderState.loading = false;
+            setControlState("failed", "甘雨加载有点慢，稍后再试试吧～");
+        }, LOAD_TIMEOUT_MS);
+    }
+
+    function finishIfReady() {
+        if (findLive2DStage()) {
+            window.clearTimeout(loaderState.timeout);
+            loaderState.loaded = true;
+            loaderState.loading = false;
+            setControlState("hidden");
+        }
+    }
+
+    function loadLive2D() {
+        if (loaderState.loaded) {
+            setControlState("hidden");
+            return Promise.resolve();
+        }
+
+        if (loaderState.loading) {
+            return loaderState.promise || Promise.resolve();
+        }
+
+        loaderState.loading = true;
+        loaderState.failed = false;
+        ensureWidget();
+        setControlState("loading");
+        startLoadTimeout();
+
+        loaderState.promise = loadScript(WIDGET_SCRIPT)
+            .then(function () {
+                return loadScript(INTERACTIONS_SCRIPT);
+            })
+            .then(function () {
+                return loadScript(DRAG_SCRIPT);
+            })
+            .then(function () {
+                window.setTimeout(finishIfReady, 1200);
+                window.setTimeout(finishIfReady, 3000);
+            })
+            .catch(function () {
+                loaderState.failed = true;
+                loaderState.loading = false;
+                setControlState("failed", "甘雨加载有点慢，稍后再试试吧～");
+            });
+
+        return loaderState.promise;
+    }
+
+    function init() {
+        getControl();
+
+        if (isHomeAutoload && !isLowPerformance) {
+            setControlState("hidden");
+            window.setTimeout(loadLive2D, AUTOLOAD_DELAY_MS);
+        } else {
+            setControlState("ready");
+        }
+    }
+
+    loaderState.load = loadLive2D;
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", init, { once: true });
+    } else {
+        init();
+    }
+})();

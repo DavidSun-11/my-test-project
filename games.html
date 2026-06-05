@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <title>我的游戏天赋展示</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<script src="assets/performance-mode.js?v=20260604-2"></script>
+<script src="assets/performance-mode.js?v=20260605-2"></script>
 <link rel="stylesheet" href="live2d/live2d-widget.css?v=20260605-2">
 
 <style>
@@ -112,10 +112,6 @@ a {
     <a href="index.html">返回首页</a>
 </div>
 
-<!-- Live2D 看板娘：左下角固定悬浮，不影响游戏展示内容布局。 -->
-<div class="live2d-widget" id="live2d-widget" aria-label="Live2D 看板娘">
-    <div class="live2d-message">请稍等一下哦，我马上就来。</div>
-</div>
 <script>
     window.Live2DWidgetConfig = {
         modelName: "ganyu",
@@ -136,8 +132,6 @@ a {
         window.JunxuePerformanceMode.applyLive2DConfig(window.Live2DWidgetConfig);
     }
 </script>
-<script src="live2d/live2d-widget.js?v=20260604-1"></script>
-<script src="assets/live2d-interactions.js?v=20260605-2"></script>
-<script src="assets/live2d-drag.js?v=20260604-1"></script>
+<script src="assets/live2d-loader.js?v=20260605-2" data-live2d-autoload="manual"></script>
 </body>
 </html>

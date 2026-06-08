@@ -907,6 +907,159 @@
     }
 }
 
+@media (max-width: 768px) {
+    .live2d-widget {
+        left: auto;
+        right: 8px;
+        bottom: 78px;
+        width: 150px;
+        height: 218px;
+        filter: drop-shadow(0 0 10px rgba(0, 210, 255, 0.18));
+    }
+
+    .live2d-widget.is-left {
+        left: 8px;
+        right: auto;
+        bottom: 112px;
+    }
+
+    .live2d-widget::before {
+        height: 22px;
+        opacity: 0.55;
+    }
+
+    .live2d-message {
+        width: min(80vw, 220px);
+        max-width: min(80vw, 220px);
+        right: auto;
+        left: auto;
+        top: -4px;
+        font-size: 12px;
+        line-height: 1.42;
+        padding: 7px 9px;
+        backdrop-filter: blur(5px);
+    }
+
+    .live2d-widget.is-left .live2d-message {
+        left: calc(100% + 8px);
+        top: 12px;
+    }
+
+    #oml2d-main,
+    .oml2d-main {
+        bottom: 102px !important;
+    }
+
+    .live2d-hit-area {
+        left: 4px;
+        bottom: 96px;
+        width: 176px;
+        height: 240px;
+    }
+
+    .live2d-quiz,
+    .live2d-quiz.is-weather,
+    .live2d-quiz.is-music,
+    .live2d-quiz.is-fortune,
+    .live2d-quiz.is-wheel {
+        left: 4vw;
+        right: auto;
+        bottom: auto;
+        width: min(92vw, 620px);
+        max-width: min(92vw, 620px);
+        max-height: 85vh;
+        padding: 12px;
+        overflow-x: hidden;
+        overflow-y: auto;
+        font-size: 13px;
+        box-sizing: border-box;
+        backdrop-filter: blur(6px);
+    }
+
+    .live2d-quiz__meta {
+        margin-right: 32px;
+        font-size: 11px;
+    }
+
+    .live2d-quiz__question {
+        margin-right: 32px;
+        font-size: 14px;
+        line-height: 1.45;
+    }
+
+    .live2d-quiz__options,
+    .live2d-consult-grid,
+    .live2d-weather-form,
+    .live2d-weather-actions,
+    .live2d-music-controls,
+    .live2d-music-actions,
+    .live2d-wheel__actions {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .live2d-quiz__option,
+    .live2d-consult-card,
+    .live2d-weather-submit,
+    .live2d-wheel__draw,
+    .live2d-wheel__small,
+    .live2d-music-track {
+        min-height: 38px;
+        font-size: 13px;
+    }
+
+    .live2d-consult-card {
+        min-height: 66px;
+        padding: 10px;
+    }
+
+    .live2d-weather-input {
+        width: 100%;
+        min-height: 40px;
+        box-sizing: border-box;
+    }
+
+    .live2d-weather-card,
+    .live2d-music-list,
+    .live2d-fortune-panel,
+    .live2d-fortune-body,
+    .live2d-fortune-list {
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+
+    .live2d-music-list {
+        max-height: min(32vh, 180px);
+    }
+
+    .live2d-wheel__lanes {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .live2d-wheel {
+        width: min(52vw, 156px);
+        height: min(52vw, 156px);
+    }
+
+    .live2d-wheel__hero {
+        width: min(30vw, 86px);
+        min-height: 46px;
+        font-size: 13px;
+    }
+
+    .live2d-fortune-item {
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 5px 8px;
+    }
+
+    .live2d-fortune-label,
+    .live2d-fortune-value,
+    .live2d-fortune-message__quote {
+        font-size: 12px;
+    }
+}
+
 html.performance-low .live2d-widget {
     filter: none;
 }

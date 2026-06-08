@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>付费解锁联系方式</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
-    <script src="assets/performance-mode.js?v=20260605-2"></script>
-    <link rel="stylesheet" href="live2d/live2d-widget.css?v=20260605-2">
+    <script src="assets/performance-mode.js?v=20260608-1"></script>
+    <link rel="stylesheet" href="live2d/live2d-widget.css?v=20260608-1">
     <style>
         * {
             box-sizing: border-box;
@@ -351,6 +351,81 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        @media (max-width: 768px) {
+            html,
+            body {
+                width: 100%;
+                max-width: 100%;
+                overflow-x: hidden;
+            }
+
+            .cursor-light,
+            .ripple,
+            .meteor-layer,
+            .stars,
+            .stars2,
+            .stars3 {
+                display: none;
+            }
+
+            html.performance-high .cursor-light,
+            html.performance-high .ripple,
+            html.performance-high .meteor-layer,
+            html.performance-high .stars,
+            html.performance-high .stars2,
+            html.performance-high .stars3 {
+                display: block;
+            }
+
+            .contact-page {
+                align-items: flex-start;
+                min-height: 100svh;
+                padding: 72px 14px 112px;
+            }
+
+            .contact-card {
+                width: min(100%, 760px);
+                padding: 18px;
+                border-radius: 16px;
+                backdrop-filter: blur(6px);
+            }
+
+            .contact-card h1 {
+                font-size: clamp(22px, 6vw, 29px);
+            }
+
+            .contact-lead,
+            .contact-note {
+                font-size: 14px;
+            }
+
+            .pay-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+                margin: 18px 0;
+            }
+
+            .pay-box {
+                padding: 12px;
+            }
+
+            .qr-frame {
+                min-height: 190px;
+            }
+
+            .qr-frame img {
+                width: min(190px, 100%);
+                max-height: 190px;
+            }
+
+            .unlock-button {
+                width: 100%;
+                min-height: 44px;
+                padding: 0 16px;
+                font-size: 15px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -519,6 +594,6 @@ unlockButton.addEventListener("click", function () {
     window.location.href = "contact-unlocked.html";
 });
 </script>
-<script src="assets/live2d-loader.js?v=20260605-2" data-live2d-autoload="manual"></script>
+<script src="assets/live2d-loader.js?v=20260608-1" data-live2d-autoload="manual"></script>
 </body>
 </html>

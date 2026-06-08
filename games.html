@@ -2,10 +2,11 @@
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>我的游戏天赋展示</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<script src="assets/performance-mode.js?v=20260605-2"></script>
-<link rel="stylesheet" href="live2d/live2d-widget.css?v=20260605-2">
+<script src="assets/performance-mode.js?v=20260608-1"></script>
+<link rel="stylesheet" href="live2d/live2d-widget.css?v=20260608-1">
 
 <style>
 body {
@@ -13,6 +14,7 @@ body {
     font-family: Arial, sans-serif;
     background: linear-gradient(to bottom, #020b1f, #081f3a);
     color: white;
+    overflow-x: hidden;
 }
 
 header {
@@ -61,6 +63,36 @@ a {
     color: cyan;
     text-decoration: none;
     font-weight: bold;
+}
+
+@media (max-width: 768px) {
+    header {
+        padding: 58px 16px 30px;
+    }
+
+    header h1 {
+        font-size: clamp(30px, 9vw, 42px);
+        line-height: 1.25;
+    }
+
+    .game-section {
+        width: min(100% - 28px, 1000px);
+        margin: 22px auto;
+        padding: 20px;
+        box-sizing: border-box;
+        border-radius: 18px;
+        backdrop-filter: blur(6px);
+    }
+
+    .game-section img {
+        max-height: 260px;
+        border-radius: 16px;
+    }
+
+    .tag {
+        padding: 7px 11px;
+        font-size: 13px;
+    }
 }
 </style>
 </head>
@@ -132,6 +164,6 @@ a {
         window.JunxuePerformanceMode.applyLive2DConfig(window.Live2DWidgetConfig);
     }
 </script>
-<script src="assets/live2d-loader.js?v=20260605-2" data-live2d-autoload="manual"></script>
+<script src="assets/live2d-loader.js?v=20260608-1" data-live2d-autoload="manual"></script>
 </body>
 </html>

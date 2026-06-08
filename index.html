@@ -4,9 +4,15 @@
     <meta charset="UTF-8">
     <title>君雪的个人网站</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
-    <script src="assets/performance-mode.js?v=20260605-2"></script>
-    <link rel="stylesheet" href="live2d/live2d-widget.css?v=20260605-2">
+    <script src="assets/performance-mode.js?v=20260608-1"></script>
+    <link rel="stylesheet" href="live2d/live2d-widget.css?v=20260608-1">
     <style>
+        html,
+        body {
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -400,6 +406,103 @@
                 font-size: 15px;
             }
         }
+
+        @media (max-width: 768px) {
+            .home-bg-video {
+                display: none;
+            }
+
+            html.performance-high .home-bg-video {
+                display: block;
+            }
+
+            .cursor-light,
+            .ripple,
+            .meteor-layer,
+            .stars,
+            .stars2,
+            .stars3 {
+                display: none;
+            }
+
+            html.performance-high .cursor-light,
+            html.performance-high .ripple,
+            html.performance-high .meteor-layer,
+            html.performance-high .stars,
+            html.performance-high .stars2,
+            html.performance-high .stars3 {
+                display: block;
+            }
+
+            .home-hero {
+                min-height: 100svh;
+                padding: 86px 18px 184px;
+                align-items: flex-start;
+            }
+
+            .home-hero::before {
+                left: 10%;
+                top: 16%;
+                width: 72vw;
+                height: 42vh;
+                filter: blur(5px);
+                opacity: 0.48;
+            }
+
+            .home-hero__content {
+                max-width: min(92vw, 560px);
+            }
+
+            .home-title {
+                max-width: 100%;
+                font-size: clamp(26px, 8.4vw, 40px);
+                line-height: 1.32;
+                letter-spacing: 0.05em;
+                text-shadow: 0 0 12px rgba(120, 218, 255, 0.28);
+            }
+
+            .home-title::after {
+                width: min(220px, 48vw);
+                margin-top: 18px;
+            }
+
+            .home-nav {
+                left: 50%;
+                right: auto;
+                bottom: max(14px, env(safe-area-inset-bottom));
+                width: min(92vw, 420px);
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 10px;
+                padding: 0;
+                transform: translateX(-50%);
+            }
+
+            .home-nav a {
+                width: 100%;
+                min-height: 38px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0 8px;
+                border: 1px solid rgba(108, 229, 255, 0.28);
+                border-radius: 12px;
+                background: rgba(6, 22, 44, 0.5);
+                font-size: 13px;
+                line-height: 1.25;
+                text-align: center;
+                box-sizing: border-box;
+                backdrop-filter: blur(5px);
+            }
+
+            .home-nav a::after {
+                display: none;
+            }
+
+            html.performance-low .home-nav a {
+                backdrop-filter: none;
+                box-shadow: none;
+            }
+        }
     </style>
 </head>
 
@@ -429,11 +532,13 @@
 <script>
 const pagePerformance = window.JunxuePerformanceMode;
 const isLowPerformance = !!(pagePerformance && pagePerformance.isLow && pagePerformance.isLow());
+const isFullEffectMode = !!(pagePerformance && pagePerformance.isHigh && pagePerformance.isHigh());
+const isMobileViewport = window.matchMedia && window.matchMedia("(max-width: 768px)").matches;
 const light = document.querySelector(".cursor-light");
 const backgroundVideo = document.querySelector(".home-bg-video");
 
 if (backgroundVideo) {
-    if (isLowPerformance) {
+    if (isLowPerformance || (isMobileViewport && !isFullEffectMode)) {
         backgroundVideo.pause();
         backgroundVideo.removeAttribute("autoplay");
         backgroundVideo.removeAttribute("loop");
@@ -537,6 +642,6 @@ document.addEventListener("click", (e) => {
         window.JunxuePerformanceMode.applyLive2DConfig(window.Live2DWidgetConfig);
     }
 </script>
-<script src="assets/live2d-loader.js?v=20260605-2" data-live2d-autoload="home"></script>
+<script src="assets/live2d-loader.js?v=20260608-1" data-live2d-autoload="home"></script>
 </body>
 </html>

@@ -24,7 +24,7 @@
         const cores = navigator.hardwareConcurrency || 0;
         const memory = navigator.deviceMemory || 0;
         const isMobile =
-            queryMatches("(max-width: 760px)") ||
+            queryMatches("(max-width: 768px)") ||
             queryMatches("(pointer: coarse)") ||
             /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "");
         const lowCoreCount = cores > 0 && cores <= 4;
@@ -160,7 +160,7 @@
                 backdrop-filter: none;
             }
 
-            @media (max-width: 720px) {
+            @media (max-width: 768px) {
                 .performance-switcher {
                     top: 10px;
                     right: 10px;

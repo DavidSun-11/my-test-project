@@ -2,10 +2,11 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>关于我</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
-    <script src="assets/performance-mode.js?v=20260605-2"></script>
-    <link rel="stylesheet" href="live2d/live2d-widget.css?v=20260605-2">
+    <script src="assets/performance-mode.js?v=20260608-1"></script>
+    <link rel="stylesheet" href="live2d/live2d-widget.css?v=20260608-1">
 
     <style>
         body{
@@ -14,6 +15,7 @@
             font-family: Arial;
             text-align: center;
             padding-top: 100px;
+            overflow-x: hidden;
         }
 
         .card{
@@ -51,6 +53,37 @@
     border-radius: 10px;
     text-decoration: none;
     font-weight: bold;
+}
+
+@media (max-width: 768px) {
+    body {
+        padding: 72px 14px 110px;
+    }
+
+    .card {
+        width: min(100%, 560px);
+        padding: 22px;
+        box-sizing: border-box;
+        backdrop-filter: blur(6px);
+    }
+
+    .game-card {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .game-card img {
+        width: 100%;
+        max-width: 260px;
+        height: auto;
+    }
+
+    .game-button {
+        min-height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
 }
     </style>
 </head>
@@ -90,6 +123,6 @@
         window.JunxuePerformanceMode.applyLive2DConfig(window.Live2DWidgetConfig);
     }
 </script>
-<script src="assets/live2d-loader.js?v=20260605-2" data-live2d-autoload="manual"></script>
+<script src="assets/live2d-loader.js?v=20260608-1" data-live2d-autoload="manual"></script>
 </body>
 </html>

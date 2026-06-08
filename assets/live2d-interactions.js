@@ -1,6 +1,6 @@
 /* Live2D 轻量启动脚本：首屏只保留开场提示、点击入口和懒加载控制。 */
 (function () {
-    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260605-2";
+    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260608-1";
     const openingVoiceText = "万家灯火就在眼前，人们的生活究竟是什么样的呢…欸？你想邀我去夜市？啊…不，不好意思，我就不去了吧。";
     const openingVoicePath = "assets/audio/ganyu_opening.mp3";
 
@@ -73,7 +73,7 @@
             ".live2d-quiz-exit-bubble{position:fixed;left:252px;top:160px;z-index:62;width:min(318px,calc(100vw - 32px));padding:12px 14px;border:1px solid rgba(213,244,255,.76);border-radius:16px;background:linear-gradient(145deg,rgba(255,178,218,.7),rgba(126,219,255,.58));box-shadow:0 0 22px rgba(126,219,255,.28),0 0 18px rgba(255,142,196,.24),inset 0 0 14px rgba(255,255,255,.14);backdrop-filter:blur(10px);color:rgba(50,32,72,.96);font-size:14px;line-height:1.55;letter-spacing:0;white-space:pre-line;pointer-events:none;opacity:0;transform:translateY(8px);transition:opacity .35s ease,transform .35s ease;}",
             ".live2d-quiz-exit-bubble.is-open{opacity:1;transform:translateY(0);}",
             ".live2d-quiz-exit-bubble.is-fading{opacity:0;transform:translateY(-6px);}",
-            "@media (max-width:720px){.live2d-opening-bubble{width:min(300px,calc(100vw - 28px));font-size:13px;}}"
+            "@media (max-width:768px){.live2d-opening-bubble,.live2d-quiz-exit-bubble{width:min(80vw,300px);max-width:80vw;font-size:13px;}}"
         ].join("");
         document.head.appendChild(style);
     }
@@ -136,7 +136,7 @@
         let nextLeft = rect.right + settings.gap;
         let nextTop = Math.min(Math.max(settings.margin, rect.top + settings.offsetY), maxTop);
 
-        node.style.maxWidth = "calc(100vw - " + (settings.margin * 2) + "px)";
+        node.style.maxWidth = viewportWidth <= 768 ? "80vw" : "calc(100vw - " + (settings.margin * 2) + "px)";
 
         if (!hasRightSpace) {
             nextLeft = rect.right - popupWidth;

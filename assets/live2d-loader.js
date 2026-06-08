@@ -1,8 +1,8 @@
 /* Lightweight Live2D loader: delays Ganyu until the page is usable. */
 (function () {
-    const WIDGET_SCRIPT = "live2d/live2d-widget.js?v=20260605-2";
-    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260605-2";
-    const DRAG_SCRIPT = "assets/live2d-drag.js?v=20260604-1";
+    const WIDGET_SCRIPT = "live2d/live2d-widget.js?v=20260608-1";
+    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260608-1";
+    const DRAG_SCRIPT = "assets/live2d-drag.js?v=20260608-1";
     const LOAD_TIMEOUT_MS = 10000;
     const AUTOLOAD_DELAY_MS = 1200;
     const currentScript = document.currentScript;
@@ -13,7 +13,8 @@
     const loaderState = window.JunxueLive2DLoader || {
         loading: false,
         loaded: false,
-        failed: false
+        failed: false,
+        visible: true
     };
 
     window.JunxueLive2DLoader = loaderState;
@@ -32,8 +33,9 @@
             ".live2d-load-control__button:disabled{cursor:wait;opacity:.72;}",
             ".live2d-load-control__status{max-width:min(240px,calc(100vw - 36px));padding:8px 10px;border:1px solid rgba(213,244,255,.5);border-radius:12px;background:rgba(6,22,44,.7);color:rgba(234,252,255,.86);font-size:12px;line-height:1.45;box-shadow:0 0 12px rgba(0,190,255,.14);backdrop-filter:blur(8px);}",
             ".live2d-load-control.is-hidden{display:none;}",
+            "body.live2d-hidden #live2d-widget,body.live2d-hidden #oml2d-stage,body.live2d-hidden #oml2d-canvas,body.live2d-hidden #oml2d-tips,body.live2d-hidden .live2d-hit-area{display:none!important;}",
             "html.performance-low .live2d-load-control__button,html.performance-low .live2d-load-control__status{backdrop-filter:none;box-shadow:inset 0 0 8px rgba(255,255,255,.05);}",
-            "@media(max-width:720px){.live2d-load-control{left:12px;bottom:76px}.live2d-load-control__button{min-height:32px;padding:0 12px;font-size:12px;}}"
+            "@media(max-width:768px){.live2d-load-control{left:12px;bottom:88px}.live2d-load-control__button{min-height:34px;padding:0 13px;font-size:12px}.live2d-load-control__status{max-width:min(78vw,240px);font-size:12px;}}"
         ].join("");
         document.head.appendChild(style);
     }
@@ -54,6 +56,11 @@
         ].join("");
         document.body.appendChild(control);
         control.querySelector("button").addEventListener("click", function () {
+            if (loaderState.loaded) {
+                setLive2DVisible(!loaderState.visible);
+                return;
+            }
+
             loadLive2D();
         });
         return control;
@@ -79,6 +86,19 @@
         } else {
             button.disabled = false;
             button.textContent = state === "failed" ? "再试一次" : "显示甘雨";
+        }
+
+        if (state === "loaded") {
+            button.disabled = false;
+            button.textContent = loaderState.visible ? "隐藏甘雨" : "显示甘雨";
+        }
+    }
+
+    function setLive2DVisible(visible) {
+        loaderState.visible = visible;
+        document.body.classList.toggle("live2d-hidden", !visible);
+        if (loaderState.loaded) {
+            setControlState("loaded");
         }
     }
 
@@ -131,7 +151,9 @@
         window.clearTimeout(loaderState.timeout);
         loaderState.timeout = window.setTimeout(function () {
             if (findLive2DStage()) {
-                setControlState("hidden");
+                loaderState.loaded = true;
+                loaderState.loading = false;
+                setControlState("loaded");
                 return;
             }
 
@@ -146,13 +168,13 @@
             window.clearTimeout(loaderState.timeout);
             loaderState.loaded = true;
             loaderState.loading = false;
-            setControlState("hidden");
+            setLive2DVisible(true);
         }
     }
 
     function loadLive2D() {
         if (loaderState.loaded) {
-            setControlState("hidden");
+            setLive2DVisible(true);
             return Promise.resolve();
         }
 
@@ -163,6 +185,7 @@
         loaderState.loading = true;
         loaderState.failed = false;
         ensureWidget();
+        setLive2DVisible(true);
         setControlState("loading");
         startLoadTimeout();
 

@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>君雪意见箱</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
-    <script src="assets/performance-mode.js?v=20260605-2"></script>
-    <link rel="stylesheet" href="live2d/live2d-widget.css?v=20260605-2">
+    <script src="assets/performance-mode.js?v=20260608-1"></script>
+    <link rel="stylesheet" href="live2d/live2d-widget.css?v=20260608-1">
     <style>
         * {
             box-sizing: border-box;
@@ -346,6 +346,75 @@
                 padding: 22px;
             }
         }
+
+        @media (max-width: 768px) {
+            html,
+            body {
+                width: 100%;
+                max-width: 100%;
+                overflow-x: hidden;
+            }
+
+            .cursor-light,
+            .ripple,
+            .meteor-layer,
+            .stars,
+            .stars2,
+            .stars3 {
+                display: none;
+            }
+
+            html.performance-high .cursor-light,
+            html.performance-high .ripple,
+            html.performance-high .meteor-layer,
+            html.performance-high .stars,
+            html.performance-high .stars2,
+            html.performance-high .stars3 {
+                display: block;
+            }
+
+            .suggest-page {
+                align-items: flex-start;
+                min-height: 100svh;
+                padding: 72px 14px 112px;
+            }
+
+            .suggest-card {
+                width: min(100%, 560px);
+                padding: 18px;
+                border-radius: 16px;
+                backdrop-filter: blur(6px);
+            }
+
+            .suggest-card h1 {
+                font-size: clamp(21px, 6vw, 28px);
+            }
+
+            .suggest-field input,
+            .suggest-field select,
+            .suggest-field textarea {
+                width: 100%;
+                min-height: 42px;
+                font-size: 15px;
+                box-sizing: border-box;
+            }
+
+            .suggest-field textarea {
+                min-height: 132px;
+            }
+
+            .suggest-submit {
+                width: 100%;
+                min-height: 44px;
+                font-size: 15px;
+            }
+
+            .suggest-thank-you-bubble {
+                max-width: 80vw;
+                font-size: 13px;
+                backdrop-filter: blur(6px);
+            }
+        }
     </style>
 </head>
 <body>
@@ -618,7 +687,7 @@ function positionSuggestionThankYouBubble() {
     let left = anchorRect.right + gap;
     let top = anchorRect.top + Math.max(24, anchorRect.height * 0.18);
 
-    suggestionThankYouBubble.style.maxWidth = "calc(100vw - " + (margin * 2) + "px)";
+    suggestionThankYouBubble.style.maxWidth = window.innerWidth <= 768 ? "80vw" : "calc(100vw - " + (margin * 2) + "px)";
 
     if (left + bubbleWidth + margin > window.innerWidth) {
         left = anchorRect.right - bubbleWidth;
@@ -707,6 +776,6 @@ form.addEventListener("submit", function (event) {
 window.addEventListener("resize", positionSuggestionThankYouBubble);
 window.addEventListener("live2d-stage-position-changed", positionSuggestionThankYouBubble);
 </script>
-<script src="assets/live2d-loader.js?v=20260605-2" data-live2d-autoload="manual"></script>
+<script src="assets/live2d-loader.js?v=20260608-1" data-live2d-autoload="manual"></script>
 </body>
 </html>

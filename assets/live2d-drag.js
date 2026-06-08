@@ -386,6 +386,12 @@
 
         if (dragState.moved) {
             savePosition(currentPosition || dragState.startPosition);
+            window.dispatchEvent(new CustomEvent("live2d-stage-drag-finished", {
+                detail: {
+                    position: currentPosition || dragState.startPosition,
+                    rect: getStageRect()
+                }
+            }));
         }
 
         dragState = null;

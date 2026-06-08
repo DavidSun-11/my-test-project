@@ -1,8 +1,70 @@
 /* Live2D 轻量启动脚本：首屏只保留开场提示、点击入口和懒加载控制。 */
 (function () {
-    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260608-1";
+    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260608-2";
     const openingVoiceText = "万家灯火就在眼前，人们的生活究竟是什么样的呢…欸？你想邀我去夜市？啊…不，不好意思，我就不去了吧。";
     const openingVoicePath = "assets/audio/ganyu_opening.mp3";
+    const firstClickVoiceStorageKey = "live2d_first_click_voice_played";
+    const touchDialogueLines = {
+        head: [
+            { text: "嗯？是在叫我吗？", voice: "assets/audio/ganyu_touch_head_1.mp3" },
+            { text: "请、请不要突然碰我的头发……", voice: "assets/audio/ganyu_touch_head_2.mp3" },
+            { text: "有什么事吗？", voice: "assets/audio/ganyu_touch_head_3.mp3" }
+        ],
+        body: [
+            { text: "今天也请多关照。", voice: "assets/audio/ganyu_touch_body_1.mp3" },
+            { text: "有什么需要我帮忙的吗？", voice: "assets/audio/ganyu_touch_body_2.mp3" },
+            { text: "我会认真听你说的。", voice: "assets/audio/ganyu_touch_body_3.mp3" }
+        ],
+        foot: [
+            { text: "如果想换个位置，可以拖动我哦。", voice: "assets/audio/ganyu_touch_foot_1.mp3" },
+            { text: "我会乖乖待在这里的。", voice: "assets/audio/ganyu_touch_foot_2.mp3" }
+        ]
+    };
+    const dragDialogueLines = [
+        { text: "这里的位置不错呢。", voice: "assets/audio/ganyu_drag_done_1.mp3" },
+        { text: "嗯，我会记住这里的。", voice: "assets/audio/ganyu_drag_done_2.mp3" },
+        { text: "谢谢你帮我换了个位置。", voice: "assets/audio/ganyu_drag_done_3.mp3" }
+    ];
+    const ganyuIdleLines = [
+        "今天也辛苦了，记得休息一下哦。",
+        "如果累了，就休息一下吧。",
+        "我会在这里陪着你的。",
+        "希望今天也能遇见一点幸运。",
+        "别忘记喝水哦。",
+        "如果累了，就先停下来看看星空吧。",
+        "月光很安静，像是适合思考的夜晚。",
+        "不用着急，慢慢来也可以。",
+        "你回来啦，我刚好也在等你。",
+        "今天想听歌，还是想占卜呢？",
+        "如果有什么烦恼，也可以告诉我。",
+        "星光很远，但总会抵达眼前。",
+        "希望今天的你，也能被温柔以待。",
+        "别总是熬夜哦，身体也很重要。",
+        "天气冷的话，要记得添衣。",
+        "今天的心情怎么样？",
+        "能再见到你，我很开心。",
+        "即使只是安静待着，也很好。",
+        "愿你今天遇到一点小小的幸运。",
+        "如果不知道该做什么，就先喝口水吧。",
+        "我会认真听你说的。",
+        "今晚的星空，看起来很适合许愿。",
+        "请不要太勉强自己。",
+        "云很轻，心事也可以慢慢放轻。",
+        "愿星光替你留住一点温柔。",
+        "今天也请把自己放在心上。",
+        "不开心的时候，也可以先深呼吸一下。",
+        "慢慢整理思绪，答案会清楚起来的。",
+        "月海亭的工作很多，但我会抽空陪你。",
+        "无论今天怎样，都请温柔地对待自己。",
+        "夜风很轻，适合把烦恼暂时放下。",
+        "愿你抬头时，刚好能看见一点光。"
+    ];
+    const timeDialogueLines = {
+        morning: ["早上好。", "新的一天开始了呢。", "早晨的风很清爽，愿你今天顺利。"],
+        afternoon: ["工作还顺利吗？", "下午也请不要太勉强自己。", "要不要稍微休息一下呢？"],
+        evening: ["今天也辛苦了。", "已经很晚了呢。", "夜色安静下来，也该照顾自己了。"],
+        lateNight: ["还没休息吗？", "要注意身体哦。", "夜已经深了，请不要太勉强。"]
+    };
 
     let openingVoicePlaying = false;
     let openingVoiceRetryPending = false;
@@ -10,6 +72,8 @@
     let lazyLoadPromise = null;
     let bootstrapReady = false;
     let openingBubble = null;
+    let companionBubble = null;
+    let idleTalkTimer = null;
     let hitArea = null;
     const boundNodes = new WeakSet();
 
@@ -73,7 +137,10 @@
             ".live2d-quiz-exit-bubble{position:fixed;left:252px;top:160px;z-index:62;width:min(318px,calc(100vw - 32px));padding:12px 14px;border:1px solid rgba(213,244,255,.76);border-radius:16px;background:linear-gradient(145deg,rgba(255,178,218,.7),rgba(126,219,255,.58));box-shadow:0 0 22px rgba(126,219,255,.28),0 0 18px rgba(255,142,196,.24),inset 0 0 14px rgba(255,255,255,.14);backdrop-filter:blur(10px);color:rgba(50,32,72,.96);font-size:14px;line-height:1.55;letter-spacing:0;white-space:pre-line;pointer-events:none;opacity:0;transform:translateY(8px);transition:opacity .35s ease,transform .35s ease;}",
             ".live2d-quiz-exit-bubble.is-open{opacity:1;transform:translateY(0);}",
             ".live2d-quiz-exit-bubble.is-fading{opacity:0;transform:translateY(-6px);}",
-            "@media (max-width:768px){.live2d-opening-bubble,.live2d-quiz-exit-bubble{width:min(80vw,300px);max-width:80vw;font-size:13px;}}"
+            ".live2d-companion-bubble{position:fixed;left:252px;top:160px;z-index:63;width:min(318px,calc(100vw - 32px));padding:12px 14px;border:1px solid rgba(213,244,255,.78);border-radius:16px;background:linear-gradient(145deg,rgba(255,182,220,.72),rgba(132,221,255,.58));box-shadow:0 0 20px rgba(126,219,255,.26),0 0 16px rgba(255,142,196,.22),inset 0 0 14px rgba(255,255,255,.14);backdrop-filter:blur(10px);color:rgba(48,32,72,.96);font-size:14px;line-height:1.55;letter-spacing:0;pointer-events:none;white-space:pre-line;opacity:0;transform:translateY(8px);transition:opacity .35s ease,transform .35s ease;}",
+            ".live2d-companion-bubble.is-open{opacity:1;transform:translateY(0);}",
+            ".live2d-companion-bubble.is-fading{opacity:0;transform:translateY(-6px);}",
+            "@media (max-width:768px){.live2d-opening-bubble,.live2d-quiz-exit-bubble,.live2d-companion-bubble{width:min(80vw,300px);max-width:80vw;font-size:13px;}}"
         ].join("");
         document.head.appendChild(style);
     }
@@ -83,6 +150,17 @@
 
         const bubble = document.createElement("div");
         bubble.className = "live2d-opening-bubble";
+        bubble.setAttribute("aria-live", "polite");
+        document.body.appendChild(bubble);
+        return bubble;
+    }
+
+    function createCompanionBubble() {
+        ensureOpeningBubbleStyles();
+
+        const bubble = document.createElement("div");
+
+        bubble.className = "live2d-companion-bubble";
         bubble.setAttribute("aria-live", "polite");
         document.body.appendChild(bubble);
         return bubble;
@@ -133,17 +211,23 @@
         const maxLeft = Math.max(settings.margin, viewportWidth - popupWidth - settings.margin);
         const maxTop = Math.max(settings.margin, viewportHeight - popupHeight - settings.margin);
         const hasRightSpace = rect.right + settings.gap + popupWidth <= viewportWidth - settings.margin;
+        const hasLeftSpace = rect.left - settings.gap - popupWidth >= settings.margin;
         let nextLeft = rect.right + settings.gap;
         let nextTop = Math.min(Math.max(settings.margin, rect.top + settings.offsetY), maxTop);
 
         node.style.maxWidth = viewportWidth <= 768 ? "80vw" : "calc(100vw - " + (settings.margin * 2) + "px)";
 
         if (!hasRightSpace) {
-            nextLeft = rect.right - popupWidth;
-            nextTop = rect.top - popupHeight - settings.gap;
+            if (hasLeftSpace) {
+                nextLeft = rect.left - settings.gap - popupWidth;
+                nextTop = Math.min(Math.max(settings.margin, rect.top + settings.offsetY), maxTop);
+            } else {
+                nextLeft = Math.min(Math.max(settings.margin, rect.right - popupWidth), maxLeft);
+                nextTop = rect.top - popupHeight - settings.gap;
 
-            if (nextTop < settings.margin && rect.bottom + settings.gap + popupHeight <= viewportHeight - settings.margin) {
-                nextTop = rect.bottom + settings.gap;
+                if (nextTop < settings.margin && rect.bottom + settings.gap + popupHeight <= viewportHeight - settings.margin) {
+                    nextTop = rect.bottom + settings.gap;
+                }
             }
         }
 
@@ -193,6 +277,154 @@
                 offsetY: 56
             });
         }
+
+        syncCompanionBubblePosition();
+    }
+
+    function syncCompanionBubblePosition() {
+        if (companionBubble && companionBubble.textContent) {
+            positionLive2DPopup(companionBubble, {
+                width: 318,
+                height: 92,
+                offsetY: 62
+            });
+        }
+    }
+
+    function pickRandomItem(items) {
+        return items[Math.floor(Math.random() * items.length)];
+    }
+
+    function playOptionalVoice(file) {
+        if (!file) {
+            return;
+        }
+
+        try {
+            const audio = new Audio(file);
+
+            audio.volume = 0.8;
+            audio.play().catch(function () {});
+        } catch (error) {}
+    }
+
+    function showCompanionBubble(text, voice, duration) {
+        if (!text) {
+            return;
+        }
+
+        if (!companionBubble) {
+            companionBubble = createCompanionBubble();
+        }
+
+        companionBubble.textContent = text;
+        positionLive2DPopup(companionBubble, {
+            width: 318,
+            height: 92,
+            offsetY: 62
+        });
+        companionBubble.classList.remove("is-fading");
+        companionBubble.classList.add("is-open");
+        playOptionalVoice(voice);
+        window.clearTimeout(showCompanionBubble.timer);
+        showCompanionBubble.timer = window.setTimeout(function () {
+            companionBubble.classList.add("is-fading");
+            companionBubble.classList.remove("is-open");
+            window.clearTimeout(showCompanionBubble.fadeTimer);
+            showCompanionBubble.fadeTimer = window.setTimeout(function () {
+                companionBubble.classList.remove("is-fading");
+                companionBubble.textContent = "";
+            }, 360);
+        }, duration || 5200);
+    }
+
+    function getTimePeriod() {
+        const hour = new Date().getHours();
+
+        if (hour >= 6 && hour < 12) {
+            return "morning";
+        }
+
+        if (hour >= 12 && hour < 18) {
+            return "afternoon";
+        }
+
+        if (hour >= 18) {
+            return "evening";
+        }
+
+        return "lateNight";
+    }
+
+    function getIdleLine() {
+        const periodLines = timeDialogueLines[getTimePeriod()] || [];
+
+        if (periodLines.length && Math.random() < 0.45) {
+            return pickRandomItem(periodLines);
+        }
+
+        return pickRandomItem(ganyuIdleLines);
+    }
+
+    function canShowCompanionIdle() {
+        return window.enableGanyuIdleTalk !== false &&
+            !document.hidden &&
+            !document.querySelector(".live2d-quiz.is-open") &&
+            !(openingBubble && openingBubble.textContent) &&
+            !(companionBubble && companionBubble.textContent) &&
+            !/(^|\/)suggest\.html(?:$|[?#])/i.test(window.location.pathname + window.location.search + window.location.hash);
+    }
+
+    function scheduleCompanionIdle(first) {
+        window.clearTimeout(idleTalkTimer);
+
+        if (window.enableGanyuIdleTalk === false) {
+            return;
+        }
+
+        idleTalkTimer = window.setTimeout(function () {
+            if (canShowCompanionIdle()) {
+                showCompanionBubble(getIdleLine(), "", 4000 + Math.random() * 2000);
+            }
+
+            scheduleCompanionIdle(false);
+        }, first ? 10000 : 45000 + Math.random() * 45000);
+    }
+
+    function getTouchRegion(event) {
+        const rect = getLive2DRect();
+        const touch = event && event.touches && event.touches[0] ? event.touches[0] : null;
+        const clientY = event && typeof event.clientY === "number" ? event.clientY : (touch && typeof touch.clientY === "number" ? touch.clientY : rect.top + rect.height * 0.5);
+        const ratio = rect.height > 0 ? (clientY - rect.top) / rect.height : 0.5;
+
+        if (ratio <= 0.34) {
+            return "head";
+        }
+
+        if (ratio >= 0.78) {
+            return "foot";
+        }
+
+        return "body";
+    }
+
+    function hasPlayedFirstClickVoice() {
+        try {
+            return localStorage.getItem(firstClickVoiceStorageKey) === "true";
+        } catch (error) {
+            return true;
+        }
+    }
+
+    function showTouchDialogue(event) {
+        if (!event || !hasPlayedFirstClickVoice()) {
+            return;
+        }
+
+        const lines = touchDialogueLines[getTouchRegion(event)] || touchDialogueLines.body;
+        const line = pickRandomItem(lines);
+
+        showCompanionBubble(line.text, line.voice, 4800);
     }
 
     function removeOpeningVoiceFallback() {
@@ -346,6 +578,7 @@
         }
 
         retryOpeningVoiceFromGesture();
+        showTouchDialogue(event);
         loadLazyInteractions().then(function (menu) {
             menu.open(event);
         }).catch(function () {});
@@ -396,6 +629,17 @@
         window.setTimeout(syncOpeningBubblePosition, 3000);
         showOpeningBubble();
         tryPlayOpeningVoice(true);
+        scheduleCompanionIdle(true);
+        window.JunxueGanyuTalk = {
+            handlesIdle: true,
+            say: showCompanionBubble,
+            sync: syncCompanionBubblePosition
+        };
+        window.addEventListener("live2d-stage-drag-finished", function () {
+            const line = pickRandomItem(dragDialogueLines);
+
+            showCompanionBubble(line.text, line.voice, 4800);
+        });
     }
 
     onReady(initBootstrap);

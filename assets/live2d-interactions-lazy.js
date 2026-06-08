@@ -192,7 +192,16 @@
         "云很轻，心事也可以慢慢放轻。",
         "就算只是安静地待一会儿，也没关系。",
         "愿星光替你留住一点温柔。",
-        "今天也请把自己放在心上。"
+        "今天也请把自己放在心上。",
+        "不开心的时候，也可以先深呼吸一下。",
+        "慢慢整理思绪，答案会清楚起来的。",
+        "月海亭的工作很多，但我会抽空陪你。",
+        "无论今天怎样，都请温柔地对待自己。",
+        "夜风很轻，适合把烦恼暂时放下。",
+        "愿你抬头时，刚好能看见一点光。",
+        "如果今天有些疲惫，也请允许自己慢下来。",
+        "把心事说出来一点，也许会轻松些。",
+        "我会在这里，安静地陪你一会儿。"
     ];
     let musicAudio = null;
 
@@ -602,6 +611,7 @@
         const popupHeight = node.offsetHeight || fallbackHeight;
         const rightLeft = rect.right + gap;
         const hasRightSpace = rightLeft + popupWidth + margin <= window.innerWidth;
+        const hasLeftSpace = rect.left - gap - popupWidth >= margin;
         const maxLeft = Math.max(margin, window.innerWidth - popupWidth - margin);
         const maxTop = Math.max(margin, window.innerHeight - popupHeight - margin);
         let nextLeft = rightLeft;
@@ -610,11 +620,16 @@
         node.style.maxWidth = window.innerWidth <= 768 ? "80vw" : "calc(100vw - " + (margin * 2) + "px)";
 
         if (!hasRightSpace) {
-            nextLeft = rect.right - popupWidth;
-            nextTop = rect.top - popupHeight - gap;
+            if (hasLeftSpace) {
+                nextLeft = rect.left - gap - popupWidth;
+                nextTop = rect.top + (settings.offsetY || Math.max(36, rect.height * 0.16));
+            } else {
+                nextLeft = rect.right - popupWidth;
+                nextTop = rect.top - popupHeight - gap;
 
-            if (nextTop < margin && rect.bottom + gap + popupHeight <= window.innerHeight - margin) {
-                nextTop = rect.bottom + gap;
+                if (nextTop < margin && rect.bottom + gap + popupHeight <= window.innerHeight - margin) {
+                    nextTop = rect.bottom + gap;
+                }
             }
         }
 
@@ -855,6 +870,10 @@
         }
 
         function canShowIdleTalk() {
+            if (window.JunxueGanyuTalk && window.JunxueGanyuTalk.handlesIdle) {
+                return false;
+            }
+
             return window.enableGanyuIdleTalk !== false &&
                 !isSuggestionPage &&
                 !document.hidden &&
@@ -884,7 +903,7 @@
         function scheduleIdleTalk(first) {
             window.clearTimeout(idleTalkTimer);
 
-            if (window.enableGanyuIdleTalk === false || isSuggestionPage) {
+            if ((window.JunxueGanyuTalk && window.JunxueGanyuTalk.handlesIdle) || window.enableGanyuIdleTalk === false || isSuggestionPage) {
                 return;
             }
 
@@ -1561,6 +1580,44 @@
             }
         }
 
+        function getWeatherDialogue(code) {
+            if ([71, 73, 75, 77, 85, 86].indexOf(code) >= 0) {
+                return {
+                    text: "天气有些冷呢，记得多添一件衣服。",
+                    voice: "assets/audio/ganyu_weather_snow.mp3"
+                };
+            }
+
+            if ([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82, 95, 96, 99].indexOf(code) >= 0) {
+                return {
+                    text: "记得带伞哦，路上也要小心。",
+                    voice: "assets/audio/ganyu_weather_rain.mp3"
+                };
+            }
+
+            if ([0, 1, 2].indexOf(code) >= 0) {
+                return {
+                    text: "今天适合出门走走呢。",
+                    voice: "assets/audio/ganyu_weather_sunny.mp3"
+                };
+            }
+
+            return {
+                text: "天气变化不定，出门前再确认一下会更安心。",
+                voice: "assets/audio/ganyu_weather_cloudy.mp3"
+            };
+        }
+
+        function showWeatherDialogue(code) {
+            if (!window.JunxueGanyuTalk || typeof window.JunxueGanyuTalk.say !== "function") {
+                return;
+            }
+
+            const dialogue = getWeatherDialogue(code);
+
+            window.JunxueGanyuTalk.say(dialogue.text, dialogue.voice, 5200);
+        }
+
         function renderWeatherCard(place, daily) {
             const cityTitle = [place.name, place.admin1, place.country].filter(Boolean).join(" · ");
             const dates = daily.time || [];
@@ -1605,6 +1662,7 @@
             result.textContent = "天气小卡片准备好了。";
             result.className = "live2d-quiz__result is-good";
             showDialog();
+            showWeatherDialogue(codes[0]);
         }
 
         function showHeroWheel() {

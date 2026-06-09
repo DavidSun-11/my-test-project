@@ -1,6 +1,6 @@
 /* Live2D 轻量启动脚本：首屏只保留开场提示、点击入口和懒加载控制。 */
 (function () {
-    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260608-2";
+    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260609-1";
     const openingVoiceText = "万家灯火就在眼前，人们的生活究竟是什么样的呢…欸？你想邀我去夜市？啊…不，不好意思，我就不去了吧。";
     const openingVoicePath = "assets/audio/ganyu_opening.mp3";
     const firstClickVoiceStorageKey = "live2d_first_click_voice_played";

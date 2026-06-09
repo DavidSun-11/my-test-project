@@ -474,9 +474,43 @@
     margin-top: 10px;
 }
 
+.live2d-weather-page {
+    position: relative;
+    display: grid;
+    gap: 8px;
+}
+
+.live2d-weather-flip {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 2;
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(108, 229, 255, 0.42);
+    border-radius: 50%;
+    background: rgba(7, 17, 31, 0.72);
+    color: rgba(234, 252, 255, 0.94);
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: 0 0 12px rgba(0, 190, 255, 0.14), inset 0 0 10px rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(6px);
+    transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.live2d-weather-flip:hover {
+    transform: translateY(-1px);
+    border-color: rgba(255, 232, 163, 0.72);
+    box-shadow: 0 0 14px rgba(255, 232, 163, 0.18), 0 0 12px rgba(0, 190, 255, 0.16);
+}
+
 .live2d-weather-card {
     display: grid;
     gap: 8px;
+    padding-top: 2px;
 }
 
 .live2d-weather-day {
@@ -513,6 +547,68 @@
     margin-top: 2px;
     color: #ffe8a3;
     font-size: 13px;
+}
+
+.live2d-calendar-card {
+    display: grid;
+    gap: 9px;
+    padding: 13px 44px 13px 13px;
+    border: 1px solid rgba(108, 229, 255, 0.34);
+    border-radius: 14px;
+    background:
+        radial-gradient(circle at 12% 18%, rgba(108, 229, 255, 0.14), transparent 38%),
+        rgba(255, 255, 255, 0.07);
+    box-shadow: inset 0 0 14px rgba(108, 229, 255, 0.06);
+}
+
+.live2d-calendar-card h3 {
+    margin: 0 0 2px;
+    color: #eafcff;
+    font-size: 15px;
+    line-height: 1.35;
+    text-shadow: 0 0 12px rgba(108, 229, 255, 0.38);
+}
+
+.live2d-calendar-row {
+    display: flex;
+    align-items: baseline;
+    gap: 7px;
+    min-width: 0;
+    color: rgba(214, 246, 255, 0.74);
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+.live2d-calendar-row strong {
+    min-width: 0;
+    color: #eafcff;
+    font-weight: bold;
+    overflow-wrap: anywhere;
+    text-shadow: 0 0 10px rgba(108, 229, 255, 0.26);
+}
+
+.live2d-calendar-tip {
+    margin-top: 2px;
+    padding: 10px 11px;
+    border: 1px solid rgba(255, 232, 163, 0.24);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.055);
+}
+
+.live2d-calendar-tip span {
+    display: block;
+    margin-bottom: 4px;
+    color: #ffe8a3;
+    font-size: 12px;
+    font-weight: bold;
+    text-shadow: 0 0 10px rgba(255, 221, 114, 0.28);
+}
+
+.live2d-calendar-tip p {
+    margin: 0;
+    color: rgba(234, 252, 255, 0.86);
+    font-size: 13px;
+    line-height: 1.55;
 }
 
 .live2d-fortune-panel {
@@ -1020,12 +1116,37 @@
     }
 
     .live2d-weather-card,
+    .live2d-weather-page,
+    .live2d-calendar-card,
     .live2d-music-list,
     .live2d-fortune-panel,
     .live2d-fortune-body,
     .live2d-fortune-list {
         max-width: 100%;
         overflow-x: hidden;
+    }
+
+    .live2d-weather-flip {
+        width: 26px;
+        height: 26px;
+        top: 7px;
+        right: 7px;
+        font-size: 13px;
+        backdrop-filter: blur(4px);
+    }
+
+    .live2d-calendar-card {
+        padding: 12px 40px 12px 12px;
+    }
+
+    .live2d-calendar-row {
+        flex-wrap: wrap;
+        gap: 4px 7px;
+        font-size: 12px;
+    }
+
+    .live2d-calendar-tip p {
+        font-size: 12px;
     }
 
     .live2d-music-list {
@@ -1072,6 +1193,8 @@ html.performance-low .live2d-message,
 html.performance-low .live2d-quiz,
 html.performance-low .live2d-quiz__option,
 html.performance-low .live2d-weather-card,
+html.performance-low .live2d-weather-flip,
+html.performance-low .live2d-calendar-card,
 html.performance-low .live2d-wheel,
 html.performance-low .live2d-wheel__small,
 html.performance-low .live2d-music-list,

@@ -151,6 +151,16 @@
         "适合尝试一件一直想做的小事。",
         "保持温柔，但也别忘了坚定自己的边界。"
     ];
+    const ganyuCalendarTips = [
+        "今天也要认真完成自己的事务哦。",
+        "把事情一件一件整理好，心也会慢慢安定下来。",
+        "如果累了，就给自己留一点休息时间吧。",
+        "愿今天的你，也能遇到一点温柔的幸运。",
+        "先完成最重要的小事，剩下的路会清楚很多。",
+        "不要太勉强自己，稳定前进也很好。",
+        "记得喝水，也记得照顾好心情。",
+        "今日的星光很安静，适合认真生活。"
+    ];
     const ganyuQuotes = [
         "星空会指引方向，但选择的人始终是你。",
         "月光落下来的时候，也会替努力的人照亮脚边的路。",
@@ -1636,29 +1646,103 @@
                 ].join("");
             }).join("");
 
+            function bindWeatherActions() {
+                const againButton = options.querySelector('[data-weather-action="again"]');
+                const backButton = options.querySelector('[data-weather-action="back"]');
+                const calendarButton = options.querySelector('[data-weather-action="calendar"]');
+                const weatherButton = options.querySelector('[data-weather-action="weather"]');
+
+                if (againButton) {
+                    againButton.addEventListener("click", function (event) {
+                        event.stopPropagation();
+                        showWeatherInput();
+                    });
+                }
+
+                if (backButton) {
+                    backButton.addEventListener("click", function (event) {
+                        event.stopPropagation();
+                        showConsultPanel();
+                    });
+                }
+
+                if (calendarButton) {
+                    calendarButton.addEventListener("click", function (event) {
+                        event.stopPropagation();
+                        renderCalendarPage();
+                    });
+                }
+
+                if (weatherButton) {
+                    weatherButton.addEventListener("click", function (event) {
+                        event.stopPropagation();
+                        renderForecastPage();
+                    });
+                }
+            }
+
+            function getCalendarInfo() {
+                const now = new Date();
+                const day = now.getDay();
+                const weekdays = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
+                const isRestDay = day === 0 || day === 6;
+
+                return {
+                    dateText: now.getFullYear() + "年" + (now.getMonth() + 1) + "月" + now.getDate() + "日",
+                    weekdayText: weekdays[day],
+                    statusText: isRestDay ? "休息日" : "工作日",
+                    monthText: now.getFullYear() + "年" + (now.getMonth() + 1) + "月",
+                    tipText: pickRandomItem(ganyuCalendarTips)
+                };
+            }
+
+            function renderForecastPage() {
+                meta.textContent = "咨询 · 查看天气";
+                question.textContent = cityTitle;
+                options.innerHTML = [
+                    '<section class="live2d-weather-page" aria-label="三天天气预报">',
+                        '<button class="live2d-weather-flip" type="button" data-weather-action="calendar" aria-label="查看甘雨日历">📅</button>',
+                        '<div class="live2d-weather-card">',
+                            rows,
+                        '</div>',
+                    '</section>',
+                    '<div class="live2d-weather-actions">',
+                        '<button class="live2d-wheel__small" type="button" data-weather-action="again">换个城市</button>',
+                        '<button class="live2d-wheel__small" type="button" data-weather-action="back">返回咨询</button>',
+                    '</div>'
+                ].join("");
+                bindWeatherActions();
+            }
+
+            function renderCalendarPage() {
+                const calendar = getCalendarInfo();
+
+                meta.textContent = "咨询 · 甘雨日历";
+                question.textContent = "甘雨日历";
+                options.innerHTML = [
+                    '<section class="live2d-weather-page" aria-label="甘雨日历">',
+                        '<button class="live2d-weather-flip" type="button" data-weather-action="weather" aria-label="返回天气预报">↩</button>',
+                        '<div class="live2d-calendar-card">',
+                            '<h3>甘雨日历</h3>',
+                            '<div class="live2d-calendar-row"><span>今天是：</span><strong>' + escapeHtml(calendar.dateText) + '</strong></div>',
+                            '<div class="live2d-calendar-row"><span>星期：</span><strong>' + escapeHtml(calendar.weekdayText) + '</strong></div>',
+                            '<div class="live2d-calendar-row"><span>状态：</span><strong>' + escapeHtml(calendar.statusText) + '</strong></div>',
+                            '<div class="live2d-calendar-row"><span>当前月份：</span><strong>' + escapeHtml(calendar.monthText) + '</strong></div>',
+                            '<div class="live2d-calendar-tip"><span>甘雨提示：</span><p>' + escapeHtml(calendar.tipText) + '</p></div>',
+                        '</div>',
+                    '</section>',
+                    '<div class="live2d-weather-actions">',
+                        '<button class="live2d-wheel__small" type="button" data-weather-action="again">换个城市</button>',
+                        '<button class="live2d-wheel__small" type="button" data-weather-action="back">返回咨询</button>',
+                    '</div>'
+                ].join("");
+                bindWeatherActions();
+            }
+
             clearDialog();
             dialog.classList.add("is-weather");
             options.classList.add("live2d-weather-panel");
-            meta.textContent = "咨询 · 查看天气";
-            question.textContent = cityTitle;
-            options.innerHTML = [
-                '<section class="live2d-weather-card" aria-label="三天天气预报">',
-                    rows,
-                '</section>',
-                '<div class="live2d-weather-actions">',
-                    '<button class="live2d-wheel__small" type="button" data-weather-action="again">换个城市</button>',
-                    '<button class="live2d-wheel__small" type="button" data-weather-action="back">返回咨询</button>',
-                '</div>'
-            ].join("");
-
-            options.querySelector('[data-weather-action="again"]').addEventListener("click", function (event) {
-                event.stopPropagation();
-                showWeatherInput();
-            });
-            options.querySelector('[data-weather-action="back"]').addEventListener("click", function (event) {
-                event.stopPropagation();
-                showConsultPanel();
-            });
+            renderForecastPage();
             result.textContent = "天气小卡片准备好了。";
             result.className = "live2d-quiz__result is-good";
             showDialog();

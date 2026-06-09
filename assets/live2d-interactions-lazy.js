@@ -730,7 +730,7 @@
             clearSpinTimers();
             window.clearTimeout(fortuneProcessTimer);
             fortuneProcessTimer = null;
-            dialog.classList.remove("is-wheel", "is-weather", "is-music", "is-fortune");
+            dialog.classList.remove("is-wheel", "is-weather", "is-music", "is-fortune", "is-memory");
             meta.textContent = "";
             question.textContent = "";
             options.innerHTML = "";
@@ -756,7 +756,7 @@
         function showDialog() {
             hideIdleTalk();
             positionLive2DPopup(dialog, {
-                width: dialog.classList.contains("is-fortune") ? 580 : 362,
+                width: (dialog.classList.contains("is-fortune") || dialog.classList.contains("is-memory")) ? 580 : 362,
                 height: 220,
                 offsetY: 68
             });
@@ -823,7 +823,7 @@
 
             if (dialog.classList.contains("is-open")) {
                 positionLive2DPopup(dialog, {
-                    width: dialog.classList.contains("is-fortune") ? 580 : 362,
+                    width: (dialog.classList.contains("is-fortune") || dialog.classList.contains("is-memory")) ? 580 : 362,
                     height: 220,
                     offsetY: 68
                 });
@@ -972,13 +972,27 @@
             addOption("无奖竞答", startQuiz);
             addOption("英雄池转盘", showHeroWheel);
             addOption("咨询", showConsultPanel);
+            addOption("认识一下", function () {
+                recordGanyuFeature("认识一下");
+                closeDialog();
+                const memory = getGanyuMemory();
+
+                if (memory && typeof memory.showNamePrompt === "function") {
+                    memory.showNamePrompt();
+                }
+            });
+            addOption("甘雨记得你", function () {
+                showMemoryPanel();
+            });
             addOption("意见箱", function () {
+                recordGanyuFeature("意见箱");
                 window.location.href = "suggest.html";
             });
             showDialog();
         }
 
         function startQuiz() {
+            recordGanyuFeature("无奖问答");
             quizState = {
                 correct: 0,
                 wrong: 0,
@@ -1070,6 +1084,85 @@
             result.className = quizState.correct >= quizState.wrong ? "live2d-quiz__result is-good" : "live2d-quiz__result is-neutral";
         }
 
+        function renderMemoryRow(label, value) {
+            return '<div class="live2d-memory-row"><span>' + escapeHtml(label) + '</span><strong>' + escapeHtml(value) + '</strong></div>';
+        }
+
+        function showMemoryPanel(message) {
+            if (!message) {
+                recordGanyuFeature("记忆面板");
+            }
+            const snapshot = getMemorySnapshot();
+            clearDialog();
+            dialog.classList.add("is-memory");
+            options.classList.add("live2d-memory-panel");
+            meta.textContent = "甘雨记得你";
+            question.textContent = "这些是甘雨悄悄记下的事情。";
+            options.innerHTML = [
+                '<section class="live2d-memory-card" aria-label="甘雨记忆面板">',
+                    renderMemoryRow("昵称", getMemoryText(snapshot.userName, "还没有告诉甘雨")),
+                    renderMemoryRow("累计访问次数", String(snapshot.visitCount || 0) + "次"),
+                    renderMemoryRow("连续访问", String(snapshot.streakDays || 1) + "天"),
+                    renderMemoryRow("认识甘雨", "已经认识你" + String(snapshot.daysKnown || 1) + "天啦。"),
+                    renderMemoryRow("第一次访问时间", formatMemoryTime(snapshot.firstVisitAt)),
+                    renderMemoryRow("上次访问时间", formatMemoryTime(snapshot.lastVisitAt)),
+                    renderMemoryRow("最近使用功能", getMemoryText(snapshot.lastFeature, "还没有记录")),
+                    renderMemoryRow("最常查询城市", getMemoryText(snapshot.favoriteCity, "还没有记录")),
+                    renderMemoryRow("最近听过歌曲", getMemoryText(snapshot.lastSongTitle, "还没有记录")),
+                    renderMemoryRow("最近占卜结果", getMemoryText(snapshot.lastFortune, "还没有记录")),
+                '</section>',
+                '<div class="live2d-memory-actions">',
+                    '<button class="live2d-wheel__small" type="button" data-memory-action="name">修改称呼</button>',
+                    '<button class="live2d-wheel__small" type="button" data-memory-action="clear-preferences">清除偏好</button>',
+                    '<button class="live2d-wheel__small" type="button" data-memory-action="reset">重置全部记忆</button>',
+                    '<button class="live2d-wheel__small" type="button" data-memory-action="menu">回到菜单</button>',
+                '</div>'
+            ].join("");
+
+            options.querySelectorAll("[data-memory-action]").forEach(function (button) {
+                button.addEventListener("click", function (event) {
+                    const memory = getGanyuMemory();
+                    const action = button.dataset.memoryAction;
+
+                    event.stopPropagation();
+
+                    if (action === "name") {
+                        closeDialog();
+                        if (memory && typeof memory.showNamePrompt === "function") {
+                            memory.showNamePrompt();
+                        }
+                        return;
+                    }
+
+                    if (action === "clear-preferences") {
+                        if (memory && typeof memory.clearPreferences === "function") {
+                            memory.clearPreferences();
+                        }
+                        showMemoryPanel("偏好已经清空啦，甘雨会重新慢慢了解你。");
+                        return;
+                    }
+
+                    if (action === "reset") {
+                        if (window.confirm("真的要让甘雨忘记这些吗？")) {
+                            if (memory && typeof memory.resetAllMemory === "function") {
+                                memory.resetAllMemory();
+                            }
+                            closeDialog();
+                        }
+                        return;
+                    }
+
+                    if (action === "menu") {
+                        showMenu();
+                    }
+                });
+            });
+
+            result.textContent = message || "如果想重新开始，也可以告诉甘雨。";
+            result.className = message ? "live2d-quiz__result is-good" : "live2d-quiz__result is-neutral";
+            showDialog();
+        }
+
         function showConsultPanel() {
             clearDialog();
             meta.textContent = "咨询";
@@ -1104,6 +1197,46 @@
 
         function randomItem(items) {
             return items[Math.floor(Math.random() * items.length)];
+        }
+
+        function getGanyuMemory() {
+            return window.JunxueGanyuMemory || null;
+        }
+
+        function getMemorySnapshot() {
+            const memory = getGanyuMemory();
+
+            if (memory && typeof memory.getSnapshot === "function") {
+                return memory.getSnapshot();
+            }
+
+            return {};
+        }
+
+        function recordGanyuFeature(name) {
+            const memory = getGanyuMemory();
+
+            if (memory && typeof memory.recordFeature === "function") {
+                memory.recordFeature(name);
+            }
+        }
+
+        function formatMemoryTime(value) {
+            if (!value) {
+                return "还没有记录";
+            }
+
+            const date = new Date(value);
+
+            if (Number.isNaN(date.getTime())) {
+                return value;
+            }
+
+            return date.getFullYear() + "年" + (date.getMonth() + 1) + "月" + date.getDate() + "日 " + String(date.getHours()).padStart(2, "0") + ":" + String(date.getMinutes()).padStart(2, "0");
+        }
+
+        function getMemoryText(value, fallback) {
+            return value ? String(value) : fallback;
         }
 
         function getAllHeroes() {
@@ -1235,6 +1368,11 @@
             renderFortuneResult(fortune, settings.message);
 
             if (!settings.skipEffects) {
+                const memory = getGanyuMemory();
+
+                if (memory && typeof memory.recordFortune === "function") {
+                    memory.recordFortune("今日运势：" + fortune.level + "，幸运英雄：" + fortune.hero);
+                }
                 playVoice(fortuneVoicePath);
                 showFortuneBubble(fortuneBubble);
             }
@@ -1326,18 +1464,46 @@
         }
 
         function showFortunePanel() {
+            recordGanyuFeature("占卜");
             const savedFortune = readTodayFortune();
+            const lastFortune = getMemorySnapshot().lastFortune;
 
             if (savedFortune) {
                 showFortuneSavedPrompt(savedFortune);
+                if (lastFortune) {
+                    result.textContent = "上次的占卜结果是：" + lastFortune + "。";
+                    result.className = "live2d-quiz__result is-neutral";
+                }
                 return;
             }
 
             showFortuneIntro();
+            if (lastFortune) {
+                result.textContent = "上次的占卜结果是：" + lastFortune + "。";
+                result.className = "live2d-quiz__result is-neutral";
+            }
         }
 
         function getCurrentMusic() {
             return musicList[currentMusicIndex] || musicList[0];
+        }
+
+        function applyLastSongPreference() {
+            const snapshot = getMemorySnapshot();
+
+            if (musicPlaying || !snapshot.lastSongSrc) {
+                return "";
+            }
+
+            const lastIndex = musicList.findIndex(function (music) {
+                return music.src === snapshot.lastSongSrc;
+            });
+
+            if (lastIndex >= 0) {
+                currentMusicIndex = lastIndex;
+            }
+
+            return snapshot.lastSongTitle || "";
         }
 
         function syncMusicAudioSource() {
@@ -1389,6 +1555,11 @@
             syncMusicAudioSource();
             ensureMusicAudio().play().then(function () {
                 musicPlaying = true;
+                const memory = getGanyuMemory();
+
+                if (memory && typeof memory.recordSong === "function") {
+                    memory.recordSong(currentMusic.title, currentMusic.src);
+                }
                 refreshMusicPlayerContent();
             }).catch(function () {
                 musicPlaying = false;
@@ -1474,6 +1645,9 @@
         }
 
         function showMusicPlayer() {
+            recordGanyuFeature("听歌");
+            const lastSongTitle = applyLastSongPreference();
+
             clearDialog();
             dialog.classList.add("is-music");
             options.classList.add("live2d-music-panel");
@@ -1481,12 +1655,15 @@
             question.innerHTML = '<span class="live2d-music-title">♪ 听歌</span><span class="live2d-music-subtitle">甘雨想和你分享一些音乐呢～</span>';
             syncMusicAudioSource();
             renderMusicPlayerContent();
-            result.textContent = "需要你点播放，甘雨才会开始放歌。";
+            result.textContent = lastSongTitle ? "上次听到的是《" + lastSongTitle + "》，还想继续吗？" : "需要你点播放，甘雨才会开始放歌。";
             result.className = "live2d-quiz__result is-neutral";
             showDialog();
         }
 
         function showWeatherInput() {
+            recordGanyuFeature("天气");
+            const favoriteCity = getMemorySnapshot().favoriteCity || "";
+
             clearDialog();
             dialog.classList.add("is-weather");
             options.classList.add("live2d-weather-panel");
@@ -1507,6 +1684,10 @@
             const cityInput = options.querySelector(".live2d-weather-input");
             const backButton = options.querySelector('[data-weather-action="back"]');
             const menuButton = options.querySelector('[data-weather-action="menu"]');
+
+            if (favoriteCity) {
+                cityInput.value = favoriteCity;
+            }
 
             form.addEventListener("submit", function (event) {
                 event.preventDefault();
@@ -1529,7 +1710,7 @@
                 showMenu();
             });
 
-            result.textContent = "哼，可不是特意帮你查天气哦～只是顺手看看那边有没有下雨而已。";
+            result.textContent = favoriteCity ? "今天还想看看" + favoriteCity + "的天气吗？" : "哼，可不是特意帮你查天气哦～只是顺手看看那边有没有下雨而已。";
             result.className = "live2d-quiz__result is-neutral";
             showDialog();
             window.setTimeout(function () {
@@ -1556,6 +1737,9 @@
                     }
 
                     const fallbackForecastData = await fallbackForecastResponse.json();
+                    if (window.JunxueGanyuMemory && typeof window.JunxueGanyuMemory.recordWeatherCity === "function") {
+                        window.JunxueGanyuMemory.recordWeatherCity(fallbackPlace.name || cityName);
+                    }
                     renderWeatherCard(fallbackPlace, fallbackForecastData.daily || {});
                     return;
                 }
@@ -1583,6 +1767,9 @@
                 }
 
                 const forecastData = await forecastResponse.json();
+                if (window.JunxueGanyuMemory && typeof window.JunxueGanyuMemory.recordWeatherCity === "function") {
+                    window.JunxueGanyuMemory.recordWeatherCity(place.name || cityName);
+                }
                 renderWeatherCard(place, forecastData.daily || {});
             } catch (error) {
                 result.textContent = "天气被云层挡住啦，稍后再试吧～";
@@ -1750,6 +1937,7 @@
         }
 
         function showHeroWheel() {
+            recordGanyuFeature("英雄池");
             clearDialog();
             dialog.classList.add("is-wheel");
             options.classList.add("live2d-quiz__wheel-panel");

@@ -323,8 +323,59 @@
     width: min(580px, calc(100vw - 44px));
 }
 
+.live2d-quiz.is-memory {
+    width: min(580px, calc(100vw - 44px));
+}
+
 .live2d-quiz__result.is-fortune-hidden {
     display: none;
+}
+
+.live2d-memory-panel {
+    display: block;
+}
+
+.live2d-memory-card {
+    display: grid;
+    gap: 8px;
+    max-height: 48vh;
+    overflow: auto;
+    padding: 2px;
+}
+
+.live2d-memory-row {
+    display: grid;
+    grid-template-columns: minmax(92px, 0.42fr) minmax(0, 1fr);
+    gap: 10px;
+    align-items: center;
+    padding: 10px 12px;
+    border: 1px solid rgba(108, 229, 255, 0.34);
+    border-radius: 12px;
+    background:
+        radial-gradient(circle at 14% 18%, rgba(159, 245, 255, 0.16), transparent 38%),
+        rgba(255, 255, 255, 0.07);
+    box-shadow: inset 0 0 12px rgba(255, 255, 255, 0.05);
+}
+
+.live2d-memory-row span {
+    color: rgba(214, 246, 255, 0.72);
+    font-size: 12px;
+}
+
+.live2d-memory-row strong {
+    min-width: 0;
+    color: #eafcff;
+    font-size: 13px;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+    text-shadow: 0 0 10px rgba(108, 229, 255, 0.28);
+}
+
+.live2d-memory-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 10px;
 }
 
 .live2d-music-title,
@@ -965,7 +1016,8 @@
         width: min(304px, calc(100vw - 44px));
     }
 
-    .live2d-quiz.is-fortune {
+    .live2d-quiz.is-fortune,
+    .live2d-quiz.is-memory {
         width: min(320px, calc(100vw - 44px));
     }
 
@@ -978,8 +1030,19 @@
     }
 
     .live2d-weather-form,
-    .live2d-weather-actions {
+    .live2d-weather-actions,
+    .live2d-memory-actions {
         grid-template-columns: 1fr;
+    }
+
+    .live2d-memory-card {
+        max-height: 52vh;
+    }
+
+    .live2d-memory-row {
+        grid-template-columns: 1fr;
+        gap: 4px;
+        padding: 9px 10px;
     }
 
     .live2d-quiz.is-wheel {

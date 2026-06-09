@@ -1,6 +1,6 @@
 /* Live2D 轻量启动脚本：首屏只保留开场提示、点击入口和懒加载控制。 */
 (function () {
-    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260609-2";
+    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260609-3";
     if (typeof window.enableGanyuMemory !== "boolean") {
         window.enableGanyuMemory = true;
     }
@@ -9,8 +9,24 @@
         visitCount: "ganyuVisitCount",
         firstVisitAt: "ganyuFirstVisitAt",
         lastVisitAt: "ganyuLastVisitAt",
-        lastSeenDate: "ganyuLastSeenDate"
+        lastSeenDate: "ganyuLastSeenDate",
+        streakDays: "ganyuStreakDays",
+        userName: "ganyuUserName",
+        favoriteCity: "ganyuFavoriteCity",
+        cityHistory: "ganyuCityHistory",
+        lastSongTitle: "ganyuLastSongTitle",
+        lastSongSrc: "ganyuLastSongSrc",
+        lastFortune: "ganyuLastFortune",
+        lastFeature: "ganyuLastFeature"
     };
+    const preferenceMemoryKeys = [
+        memoryStorageKeys.favoriteCity,
+        memoryStorageKeys.cityHistory,
+        memoryStorageKeys.lastSongTitle,
+        memoryStorageKeys.lastSongSrc,
+        memoryStorageKeys.lastFortune,
+        memoryStorageKeys.lastFeature
+    ];
     const memoryRetryDelay = 1600;
     const memoryMaxAttempts = 8;
     const openingVoiceText = "万家灯火就在眼前，人们的生活究竟是什么样的呢…欸？你想邀我去夜市？啊…不，不好意思，我就不去了吧。";
@@ -85,12 +101,15 @@
     let bootstrapReady = false;
     let openingBubble = null;
     let companionBubble = null;
+    let namePrompt = null;
     let idleTalkTimer = null;
     let hitArea = null;
     let memoryMessage = "";
     let memoryPending = false;
     let memoryShownThisPage = false;
     let memoryAttempts = 0;
+    let namePromptPending = false;
+    let namePromptAttempts = 0;
     const boundNodes = new WeakSet();
 
     function onReady(callback) {
@@ -156,7 +175,14 @@
             ".live2d-companion-bubble{position:fixed;left:252px;top:160px;z-index:63;width:min(318px,calc(100vw - 32px));padding:12px 14px;border:1px solid rgba(213,244,255,.78);border-radius:16px;background:linear-gradient(145deg,rgba(255,182,220,.72),rgba(132,221,255,.58));box-shadow:0 0 20px rgba(126,219,255,.26),0 0 16px rgba(255,142,196,.22),inset 0 0 14px rgba(255,255,255,.14);backdrop-filter:blur(10px);color:rgba(48,32,72,.96);font-size:14px;line-height:1.55;letter-spacing:0;pointer-events:none;white-space:pre-line;opacity:0;transform:translateY(8px);transition:opacity .35s ease,transform .35s ease;}",
             ".live2d-companion-bubble.is-open{opacity:1;transform:translateY(0);}",
             ".live2d-companion-bubble.is-fading{opacity:0;transform:translateY(-6px);}",
-            "@media (max-width:768px){.live2d-opening-bubble,.live2d-quiz-exit-bubble,.live2d-companion-bubble{width:min(80vw,300px);max-width:80vw;font-size:13px;}}"
+            ".live2d-name-prompt{position:fixed;left:252px;top:160px;z-index:64;width:min(328px,calc(100vw - 32px));padding:14px;border:1px solid rgba(213,244,255,.78);border-radius:16px;background:linear-gradient(145deg,rgba(255,182,220,.74),rgba(132,221,255,.6));box-shadow:0 0 20px rgba(126,219,255,.26),0 0 16px rgba(255,142,196,.22),inset 0 0 14px rgba(255,255,255,.14);backdrop-filter:blur(10px);color:rgba(48,32,72,.96);font-size:14px;line-height:1.55;letter-spacing:0;opacity:0;transform:translateY(8px);transition:opacity .35s ease,transform .35s ease;pointer-events:auto;}",
+            ".live2d-name-prompt.is-open{opacity:1;transform:translateY(0);}",
+            ".live2d-name-prompt__title{margin:0 0 10px;font-weight:700;text-shadow:0 0 8px rgba(255,255,255,.42);}",
+            ".live2d-name-prompt__form{display:grid;gap:10px;}",
+            ".live2d-name-prompt__input{width:100%;box-sizing:border-box;border:1px solid rgba(213,244,255,.68);border-radius:12px;background:rgba(6,22,44,.45);color:rgba(255,255,255,.96);padding:10px 12px;font:inherit;outline:none;}",
+            ".live2d-name-prompt__input::placeholder{color:rgba(234,252,255,.62);}",
+            ".live2d-name-prompt__button{border:1px solid rgba(120,229,255,.62);border-radius:999px;background:rgba(6,22,44,.7);color:rgba(234,252,255,.96);font-weight:700;min-height:34px;cursor:pointer;box-shadow:0 0 12px rgba(0,190,255,.18),inset 0 0 8px rgba(255,255,255,.08);}",
+            "@media (max-width:768px){.live2d-opening-bubble,.live2d-quiz-exit-bubble,.live2d-companion-bubble,.live2d-name-prompt{width:min(80vw,300px);max-width:80vw;font-size:13px;}}"
         ].join("");
         document.head.appendChild(style);
     }
@@ -180,6 +206,27 @@
         bubble.setAttribute("aria-live", "polite");
         document.body.appendChild(bubble);
         return bubble;
+    }
+
+    function createNamePrompt() {
+        ensureOpeningBubbleStyles();
+
+        const prompt = document.createElement("div");
+        prompt.className = "live2d-name-prompt";
+        prompt.setAttribute("aria-live", "polite");
+        prompt.innerHTML = [
+            '<p class="live2d-name-prompt__title">我该怎么称呼你呢？</p>',
+            '<form class="live2d-name-prompt__form">',
+                '<input class="live2d-name-prompt__input" type="text" name="ganyuUserName" placeholder="请输入你的昵称" maxlength="20" autocomplete="nickname">',
+                '<button class="live2d-name-prompt__button" type="submit">告诉甘雨</button>',
+            '</form>'
+        ].join("");
+        document.body.appendChild(prompt);
+        prompt.querySelector("form").addEventListener("submit", function (event) {
+            event.preventDefault();
+            saveGanyuUserName(prompt.querySelector("input").value);
+        });
+        return prompt;
     }
 
     function getLive2DRect() {
@@ -305,10 +352,122 @@
                 offsetY: 62
             });
         }
+
+        syncNamePromptPosition();
+    }
+
+    function syncNamePromptPosition() {
+        if (namePrompt && namePrompt.classList.contains("is-open")) {
+            positionLive2DPopup(namePrompt, {
+                width: 328,
+                height: 150,
+                offsetY: 62
+            });
+        }
     }
 
     function pickRandomItem(items) {
         return items[Math.floor(Math.random() * items.length)];
+    }
+
+    function readStorage(key) {
+        try {
+            return localStorage.getItem(key) || "";
+        } catch (error) {
+            return "";
+        }
+    }
+
+    function writeStorage(key, value) {
+        try {
+            localStorage.setItem(key, value);
+            return true;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    function removeStorage(key) {
+        try {
+            localStorage.removeItem(key);
+            return true;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    function readJsonStorage(key, fallback) {
+        try {
+            const raw = localStorage.getItem(key);
+
+            return raw ? JSON.parse(raw) : fallback;
+        } catch (error) {
+            return fallback;
+        }
+    }
+
+    function getNumericStorage(key, fallback) {
+        const number = parseInt(readStorage(key), 10);
+
+        return Number.isFinite(number) && number > 0 ? number : fallback;
+    }
+
+    function getGanyuUserName() {
+        return readStorage(memoryStorageKeys.userName).trim();
+    }
+
+    function getFavoriteCityFromHistory() {
+        const history = readJsonStorage(memoryStorageKeys.cityHistory, {});
+        let favoriteCity = "";
+        let favoriteCount = 0;
+
+        Object.keys(history || {}).forEach(function (city) {
+            const count = Number(history[city]) || 0;
+
+            if (count > favoriteCount) {
+                favoriteCity = city;
+                favoriteCount = count;
+            }
+        });
+
+        return favoriteCity || readStorage(memoryStorageKeys.favoriteCity);
+    }
+
+    function getDaysKnown(firstVisitAt) {
+        const first = firstVisitAt ? new Date(firstVisitAt) : null;
+
+        if (!first || Number.isNaN(first.getTime())) {
+            return 0;
+        }
+
+        const firstDay = new Date(first.getFullYear(), first.getMonth(), first.getDate()).getTime();
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+        const days = Math.floor((today - firstDay) / (24 * 60 * 60 * 1000)) + 1;
+
+        return Math.max(1, days);
+    }
+
+    function getDateDistanceInDays(previousDate, currentDate) {
+        if (!previousDate || !currentDate) {
+            return null;
+        }
+
+        const previousParts = previousDate.split("-").map(Number);
+        const currentParts = currentDate.split("-").map(Number);
+
+        if (previousParts.length !== 3 || currentParts.length !== 3) {
+            return null;
+        }
+
+        const previousTime = new Date(previousParts[0], previousParts[1] - 1, previousParts[2]).getTime();
+        const currentTime = new Date(currentParts[0], currentParts[1] - 1, currentParts[2]).getTime();
+
+        if (!Number.isFinite(previousTime) || !Number.isFinite(currentTime)) {
+            return null;
+        }
+
+        return Math.round((currentTime - previousTime) / (24 * 60 * 60 * 1000));
     }
 
     function playOptionalVoice(file) {
@@ -374,6 +533,11 @@
 
     function getIdleLine() {
         const periodLines = timeDialogueLines[getTimePeriod()] || [];
+        const lastFeature = readStorage(memoryStorageKeys.lastFeature);
+
+        if (lastFeature && Math.random() < 0.18) {
+            return "上次你用了" + lastFeature + "，今天还想继续吗？";
+        }
 
         if (periodLines.length && Math.random() < 0.45) {
             return pickRandomItem(periodLines);
@@ -390,7 +554,7 @@
     }
 
     function getStoredVisitCount() {
-        const rawCount = localStorage.getItem(memoryStorageKeys.visitCount);
+        const rawCount = readStorage(memoryStorageKeys.visitCount);
         const count = parseInt(rawCount || "0", 10);
 
         return Number.isFinite(count) && count > 0 ? count : 0;
@@ -404,26 +568,40 @@
         try {
             const now = new Date();
             const nowValue = now.toISOString();
-            const previousLastVisitAt = localStorage.getItem(memoryStorageKeys.lastVisitAt) || "";
+            const today = formatLocalDate(now);
+            const previousLastVisitAt = readStorage(memoryStorageKeys.lastVisitAt);
+            const previousSeenDate = readStorage(memoryStorageKeys.lastSeenDate);
             const previousCount = getStoredVisitCount();
             const visitCount = previousCount + 1;
-            let firstVisitAt = localStorage.getItem(memoryStorageKeys.firstVisitAt);
+            const previousStreak = getNumericStorage(memoryStorageKeys.streakDays, 0);
+            const dateDistance = getDateDistanceInDays(previousSeenDate, today);
+            let streakDays = 1;
+            let firstVisitAt = readStorage(memoryStorageKeys.firstVisitAt);
+
+            if (dateDistance === 0 && previousStreak > 0) {
+                streakDays = previousStreak;
+            } else if (dateDistance === 1 && previousStreak > 0) {
+                streakDays = previousStreak + 1;
+            }
 
             if (!firstVisitAt) {
                 firstVisitAt = nowValue;
-                localStorage.setItem(memoryStorageKeys.firstVisitAt, firstVisitAt);
+                writeStorage(memoryStorageKeys.firstVisitAt, firstVisitAt);
             }
 
-            localStorage.setItem(memoryStorageKeys.visitCount, String(visitCount));
-            localStorage.setItem(memoryStorageKeys.lastVisitAt, nowValue);
-            localStorage.setItem(memoryStorageKeys.lastSeenDate, formatLocalDate(now));
+            writeStorage(memoryStorageKeys.visitCount, String(visitCount));
+            writeStorage(memoryStorageKeys.streakDays, String(streakDays));
+            writeStorage(memoryStorageKeys.lastVisitAt, nowValue);
+            writeStorage(memoryStorageKeys.lastSeenDate, today);
 
             window.__junxueGanyuMemoryCounted = true;
             window.__junxueGanyuMemoryState = {
                 visitCount: visitCount,
                 firstVisitAt: firstVisitAt,
                 previousLastVisitAt: previousLastVisitAt,
-                currentVisitAt: nowValue
+                currentVisitAt: nowValue,
+                streakDays: streakDays,
+                daysKnown: getDaysKnown(firstVisitAt)
             };
 
             return window.__junxueGanyuMemoryState;
@@ -439,23 +617,36 @@
 
         let baseLine = "";
         const count = memoryState.visitCount;
+        const userName = getGanyuUserName();
 
         if (count === 1) {
             baseLine = "你好呀，我是甘雨。\n以后这里也会记得你来过哦。";
         } else if (count === 2) {
-            baseLine = "又见面了呢。\n能再见到你，我很开心。";
+            baseLine = userName ? "欢迎回来，" + userName + "。\n能再见到你，我很开心。" : "又见面了呢。\n能再见到你，我很开心。";
         } else if (count < 10) {
-            baseLine = pickRandomItem([
+            baseLine = userName ? pickRandomItem([
+                "今天也见到你了呢，" + userName + "。",
+                "欢迎回来，" + userName + "。",
+                "最近常常能见到你，" + userName + "。"
+            ]) : pickRandomItem([
                 "今天也来了呢。",
                 "最近常常能见到你。",
                 "这里已经开始有你的气息了。"
             ]);
         } else {
-            baseLine = pickRandomItem([
+            baseLine = userName ? pickRandomItem([
+                "已经见过你很多次了呢，" + userName + "。",
+                "能陪你这么久，我很开心，" + userName + "。",
+                "欢迎回来，" + userName + "，这里一直为你留着位置。"
+            ]) : pickRandomItem([
                 "已经见过你很多次了呢。",
                 "能陪你这么久，我很开心。",
                 "欢迎回来，这里一直为你留着位置。"
             ]);
+        }
+
+        if (memoryState.streakDays >= 2) {
+            baseLine += "\n已经连续来看我" + memoryState.streakDays + "天了呢。\n谢谢你一直来看我。";
         }
 
         if (memoryState.previousLastVisitAt) {
@@ -506,6 +697,7 @@
             !!document.querySelector(".live2d-opening-bubble.is-open,.live2d-opening-bubble.is-fading") ||
             !!document.querySelector(".live2d-quiz-exit-bubble.is-open,.live2d-quiz-exit-bubble.is-fading") ||
             !!document.querySelector(".live2d-companion-bubble.is-open,.live2d-companion-bubble.is-fading") ||
+            !!document.querySelector(".live2d-name-prompt.is-open") ||
             !!(openingBubble && openingBubble.textContent) ||
             !!(companionBubble && companionBubble.textContent);
     }
@@ -556,9 +748,186 @@
         window.setTimeout(tryShowGanyuMemory, delay || 6500 + Math.random() * 1500);
     }
 
+    function hideNamePrompt() {
+        if (!namePrompt) {
+            return;
+        }
+
+        namePrompt.classList.remove("is-open");
+    }
+
+    function saveGanyuUserName(value) {
+        const nextName = String(value || "").trim().slice(0, 20);
+
+        if (!nextName) {
+            if (namePrompt) {
+                const input = namePrompt.querySelector("input");
+
+                if (input) {
+                    input.focus();
+                }
+            }
+            return;
+        }
+
+        writeStorage(memoryStorageKeys.userName, nextName);
+        hideNamePrompt();
+        showCompanionBubble("我记住了，" + nextName + "。\n以后见面，我就这样称呼你。", "", 5600);
+    }
+
+    function canShowNamePrompt(force) {
+        return window.enableGanyuMemory !== false &&
+            (force || getStoredVisitCount() >= 2) &&
+            (force || !getGanyuUserName()) &&
+            !document.documentElement.classList.contains("performance-low") &&
+            hasVisibleLive2D() &&
+            !isGanyuInteractionBusy();
+    }
+
+    function showNamePrompt(force) {
+        if (window.enableGanyuMemory === false) {
+            namePromptPending = false;
+            return;
+        }
+
+        if (!force && (getStoredVisitCount() < 2 || getGanyuUserName())) {
+            namePromptPending = false;
+            return;
+        }
+
+        if (document.documentElement.classList.contains("performance-low") || document.body.classList.contains("live2d-hidden")) {
+            namePromptPending = false;
+            return;
+        }
+
+        if (!canShowNamePrompt(force)) {
+            namePromptAttempts += 1;
+
+            if (namePromptAttempts <= memoryMaxAttempts) {
+                namePromptPending = true;
+                window.setTimeout(function () {
+                    showNamePrompt(force);
+                }, memoryRetryDelay);
+                return;
+            }
+
+            namePromptPending = false;
+            return;
+        }
+
+        if (!namePrompt) {
+            namePrompt = createNamePrompt();
+        }
+
+        namePromptPending = false;
+        positionLive2DPopup(namePrompt, {
+            width: 328,
+            height: 150,
+            offsetY: 62
+        });
+        namePrompt.classList.add("is-open");
+        window.setTimeout(function () {
+            const input = namePrompt.querySelector("input");
+
+            if (input) {
+                input.value = getGanyuUserName();
+                input.focus();
+            }
+        }, 80);
+    }
+
+    function scheduleNamePrompt(delay) {
+        if (getGanyuUserName() || getStoredVisitCount() < 2 || window.enableGanyuMemory === false) {
+            return;
+        }
+
+        namePromptPending = true;
+        window.setTimeout(function () {
+            showNamePrompt(false);
+        }, delay || 9000 + Math.random() * 1800);
+    }
+
+    function recordFeature(name) {
+        if (name) {
+            writeStorage(memoryStorageKeys.lastFeature, String(name));
+        }
+    }
+
+    function recordWeatherCity(city) {
+        const cityName = String(city || "").trim();
+
+        if (!cityName) {
+            return;
+        }
+
+        const history = readJsonStorage(memoryStorageKeys.cityHistory, {});
+
+        history[cityName] = (Number(history[cityName]) || 0) + 1;
+        writeStorage(memoryStorageKeys.cityHistory, JSON.stringify(history));
+        writeStorage(memoryStorageKeys.favoriteCity, getFavoriteCityFromHistory());
+    }
+
+    function recordSong(title, src) {
+        if (title) {
+            writeStorage(memoryStorageKeys.lastSongTitle, String(title));
+        }
+
+        if (src) {
+            writeStorage(memoryStorageKeys.lastSongSrc, String(src));
+        }
+    }
+
+    function recordFortune(summary) {
+        if (summary) {
+            writeStorage(memoryStorageKeys.lastFortune, String(summary));
+        }
+    }
+
+    function clearPreferences() {
+        preferenceMemoryKeys.forEach(removeStorage);
+    }
+
+    function resetAllMemory() {
+        try {
+            Object.keys(localStorage).forEach(function (key) {
+                if (key.indexOf("ganyu") === 0) {
+                    localStorage.removeItem(key);
+                }
+            });
+        } catch (error) {}
+
+        memoryMessage = "";
+        memoryPending = false;
+        memoryShownThisPage = true;
+        hideNamePrompt();
+        showCompanionBubble("我明白了。不过，如果你愿意，我们还可以重新开始。", "", 5600);
+    }
+
+    function getGanyuMemorySnapshot() {
+        const visitCount = getStoredVisitCount();
+        const firstVisitAt = readStorage(memoryStorageKeys.firstVisitAt);
+        const lastVisitAt = readStorage(memoryStorageKeys.lastVisitAt);
+
+        return {
+            userName: getGanyuUserName(),
+            visitCount: visitCount,
+            streakDays: getNumericStorage(memoryStorageKeys.streakDays, 1),
+            daysKnown: getDaysKnown(firstVisitAt),
+            firstVisitAt: firstVisitAt,
+            lastVisitAt: lastVisitAt,
+            lastFeature: readStorage(memoryStorageKeys.lastFeature),
+            favoriteCity: getFavoriteCityFromHistory(),
+            cityHistory: readJsonStorage(memoryStorageKeys.cityHistory, {}),
+            lastSongTitle: readStorage(memoryStorageKeys.lastSongTitle),
+            lastSongSrc: readStorage(memoryStorageKeys.lastSongSrc),
+            lastFortune: readStorage(memoryStorageKeys.lastFortune)
+        };
+    }
+
     function canShowCompanionIdle() {
         return window.enableGanyuIdleTalk !== false &&
             !memoryPending &&
+            !namePromptPending &&
             !document.hidden &&
             !document.querySelector(".live2d-quiz.is-open") &&
             !(openingBubble && openingBubble.textContent) &&
@@ -822,11 +1191,25 @@
         tryPlayOpeningVoice(true);
         memoryMessage = buildGanyuMemoryMessage(countGanyuVisitOnce());
         scheduleGanyuMemory();
+        scheduleNamePrompt();
         scheduleCompanionIdle(true);
         window.JunxueGanyuTalk = {
             handlesIdle: true,
             say: showCompanionBubble,
             sync: syncCompanionBubblePosition
+        };
+        window.JunxueGanyuMemory = {
+            showNamePrompt: function () {
+                namePromptAttempts = 0;
+                showNamePrompt(true);
+            },
+            getSnapshot: getGanyuMemorySnapshot,
+            clearPreferences: clearPreferences,
+            resetAllMemory: resetAllMemory,
+            recordFeature: recordFeature,
+            recordWeatherCity: recordWeatherCity,
+            recordSong: recordSong,
+            recordFortune: recordFortune
         };
         window.addEventListener("live2d-stage-drag-finished", function () {
             const line = pickRandomItem(dragDialogueLines);
@@ -837,6 +1220,11 @@
             if (!memoryShownThisPage && memoryMessage) {
                 memoryAttempts = 0;
                 scheduleGanyuMemory(900);
+            }
+
+            if (!getGanyuUserName() && getStoredVisitCount() >= 2) {
+                namePromptAttempts = 0;
+                scheduleNamePrompt(2200);
             }
         });
     }

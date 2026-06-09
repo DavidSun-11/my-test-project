@@ -1,8 +1,8 @@
 /* Lightweight Live2D loader: delays Ganyu until the page is usable. */
 (function () {
-    const WIDGET_SCRIPT = "live2d/live2d-widget.js?v=20260609-1";
-    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260609-1";
-    const DRAG_SCRIPT = "assets/live2d-drag.js?v=20260609-1";
+    const WIDGET_SCRIPT = "live2d/live2d-widget.js?v=20260609-2";
+    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260609-2";
+    const DRAG_SCRIPT = "assets/live2d-drag.js?v=20260609-2";
     const LOAD_TIMEOUT_MS = 10000;
     const AUTOLOAD_DELAY_MS = 1200;
     const currentScript = document.currentScript;
@@ -94,11 +94,21 @@
         }
     }
 
+    function notifyLive2DVisible() {
+        try {
+            window.dispatchEvent(new CustomEvent("ganyu-live2d-visible"));
+        } catch (error) {}
+    }
+
     function setLive2DVisible(visible) {
         loaderState.visible = visible;
         document.body.classList.toggle("live2d-hidden", !visible);
         if (loaderState.loaded) {
             setControlState("loaded");
+
+            if (visible) {
+                window.setTimeout(notifyLive2DVisible, 0);
+            }
         }
     }
 
@@ -153,7 +163,7 @@
             if (findLive2DStage()) {
                 loaderState.loaded = true;
                 loaderState.loading = false;
-                setControlState("loaded");
+                setLive2DVisible(loaderState.visible !== false);
                 return;
             }
 

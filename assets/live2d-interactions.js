@@ -1,6 +1,18 @@
 /* Live2D 轻量启动脚本：首屏只保留开场提示、点击入口和懒加载控制。 */
 (function () {
-    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260609-1";
+    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260609-2";
+    if (typeof window.enableGanyuMemory !== "boolean") {
+        window.enableGanyuMemory = true;
+    }
+
+    const memoryStorageKeys = {
+        visitCount: "ganyuVisitCount",
+        firstVisitAt: "ganyuFirstVisitAt",
+        lastVisitAt: "ganyuLastVisitAt",
+        lastSeenDate: "ganyuLastSeenDate"
+    };
+    const memoryRetryDelay = 1600;
+    const memoryMaxAttempts = 8;
     const openingVoiceText = "万家灯火就在眼前，人们的生活究竟是什么样的呢…欸？你想邀我去夜市？啊…不，不好意思，我就不去了吧。";
     const openingVoicePath = "assets/audio/ganyu_opening.mp3";
     const firstClickVoiceStorageKey = "live2d_first_click_voice_played";
@@ -75,6 +87,10 @@
     let companionBubble = null;
     let idleTalkTimer = null;
     let hitArea = null;
+    let memoryMessage = "";
+    let memoryPending = false;
+    let memoryShownThisPage = false;
+    let memoryAttempts = 0;
     const boundNodes = new WeakSet();
 
     function onReady(callback) {
@@ -366,8 +382,183 @@
         return pickRandomItem(ganyuIdleLines);
     }
 
+    function formatLocalDate(date) {
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+
+        return date.getFullYear() + "-" + month + "-" + day;
+    }
+
+    function getStoredVisitCount() {
+        const rawCount = localStorage.getItem(memoryStorageKeys.visitCount);
+        const count = parseInt(rawCount || "0", 10);
+
+        return Number.isFinite(count) && count > 0 ? count : 0;
+    }
+
+    function countGanyuVisitOnce() {
+        if (window.__junxueGanyuMemoryCounted) {
+            return window.__junxueGanyuMemoryState || null;
+        }
+
+        try {
+            const now = new Date();
+            const nowValue = now.toISOString();
+            const previousLastVisitAt = localStorage.getItem(memoryStorageKeys.lastVisitAt) || "";
+            const previousCount = getStoredVisitCount();
+            const visitCount = previousCount + 1;
+            let firstVisitAt = localStorage.getItem(memoryStorageKeys.firstVisitAt);
+
+            if (!firstVisitAt) {
+                firstVisitAt = nowValue;
+                localStorage.setItem(memoryStorageKeys.firstVisitAt, firstVisitAt);
+            }
+
+            localStorage.setItem(memoryStorageKeys.visitCount, String(visitCount));
+            localStorage.setItem(memoryStorageKeys.lastVisitAt, nowValue);
+            localStorage.setItem(memoryStorageKeys.lastSeenDate, formatLocalDate(now));
+
+            window.__junxueGanyuMemoryCounted = true;
+            window.__junxueGanyuMemoryState = {
+                visitCount: visitCount,
+                firstVisitAt: firstVisitAt,
+                previousLastVisitAt: previousLastVisitAt,
+                currentVisitAt: nowValue
+            };
+
+            return window.__junxueGanyuMemoryState;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function buildGanyuMemoryMessage(memoryState) {
+        if (!memoryState || !memoryState.visitCount) {
+            return "";
+        }
+
+        let baseLine = "";
+        const count = memoryState.visitCount;
+
+        if (count === 1) {
+            baseLine = "你好呀，我是甘雨。\n以后这里也会记得你来过哦。";
+        } else if (count === 2) {
+            baseLine = "又见面了呢。\n能再见到你，我很开心。";
+        } else if (count < 10) {
+            baseLine = pickRandomItem([
+                "今天也来了呢。",
+                "最近常常能见到你。",
+                "这里已经开始有你的气息了。"
+            ]);
+        } else {
+            baseLine = pickRandomItem([
+                "已经见过你很多次了呢。",
+                "能陪你这么久，我很开心。",
+                "欢迎回来，这里一直为你留着位置。"
+            ]);
+        }
+
+        if (memoryState.previousLastVisitAt) {
+            const previous = new Date(memoryState.previousLastVisitAt).getTime();
+            const now = new Date(memoryState.currentVisitAt).getTime();
+
+            if (Number.isFinite(previous) && Number.isFinite(now) && now > previous) {
+                const elapsed = now - previous;
+                const oneDay = 24 * 60 * 60 * 1000;
+                const sevenDays = 7 * oneDay;
+
+                if (elapsed > sevenDays) {
+                    baseLine += "\n好久不见。\n这段时间，你还好吗？";
+                } else if (elapsed > oneDay) {
+                    baseLine += "\n距离上次见面，已经过了一天呢。";
+                }
+            }
+        }
+
+        return baseLine;
+    }
+
+    function hasVisibleLive2D() {
+        const selectors = ["#oml2d-stage", "#oml2d-canvas", ".live2d-hit-area"];
+
+        if (document.body.classList.contains("live2d-hidden")) {
+            return false;
+        }
+
+        for (let index = 0; index < selectors.length; index += 1) {
+            const node = document.querySelector(selectors[index]);
+
+            if (node && node.getBoundingClientRect) {
+                const rect = node.getBoundingClientRect();
+
+                if (rect.width > 0 && rect.height > 0) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    function isGanyuInteractionBusy() {
+        return document.hidden ||
+            !!document.querySelector(".live2d-quiz.is-open") ||
+            !!document.querySelector(".live2d-opening-bubble.is-open,.live2d-opening-bubble.is-fading") ||
+            !!document.querySelector(".live2d-quiz-exit-bubble.is-open,.live2d-quiz-exit-bubble.is-fading") ||
+            !!document.querySelector(".live2d-companion-bubble.is-open,.live2d-companion-bubble.is-fading") ||
+            !!(openingBubble && openingBubble.textContent) ||
+            !!(companionBubble && companionBubble.textContent);
+    }
+
+    function canShowGanyuMemory() {
+        return window.enableGanyuMemory !== false &&
+            !!memoryMessage &&
+            !memoryShownThisPage &&
+            !document.documentElement.classList.contains("performance-low") &&
+            hasVisibleLive2D() &&
+            !isGanyuInteractionBusy();
+    }
+
+    function tryShowGanyuMemory() {
+        if (window.enableGanyuMemory === false || memoryShownThisPage || !memoryMessage) {
+            memoryPending = false;
+            return;
+        }
+
+        if (document.documentElement.classList.contains("performance-low") || document.body.classList.contains("live2d-hidden")) {
+            memoryPending = false;
+            return;
+        }
+
+        if (!canShowGanyuMemory()) {
+            memoryAttempts += 1;
+
+            if (memoryAttempts <= memoryMaxAttempts) {
+                window.setTimeout(tryShowGanyuMemory, memoryRetryDelay);
+                return;
+            }
+
+            memoryPending = false;
+            return;
+        }
+
+        memoryPending = false;
+        memoryShownThisPage = true;
+        showCompanionBubble(memoryMessage, "", 6200);
+    }
+
+    function scheduleGanyuMemory(delay) {
+        if (!memoryMessage || memoryShownThisPage || window.enableGanyuMemory === false) {
+            return;
+        }
+
+        memoryPending = true;
+        window.setTimeout(tryShowGanyuMemory, delay || 6500 + Math.random() * 1500);
+    }
+
     function canShowCompanionIdle() {
         return window.enableGanyuIdleTalk !== false &&
+            !memoryPending &&
             !document.hidden &&
             !document.querySelector(".live2d-quiz.is-open") &&
             !(openingBubble && openingBubble.textContent) &&
@@ -629,6 +820,8 @@
         window.setTimeout(syncOpeningBubblePosition, 3000);
         showOpeningBubble();
         tryPlayOpeningVoice(true);
+        memoryMessage = buildGanyuMemoryMessage(countGanyuVisitOnce());
+        scheduleGanyuMemory();
         scheduleCompanionIdle(true);
         window.JunxueGanyuTalk = {
             handlesIdle: true,
@@ -639,6 +832,12 @@
             const line = pickRandomItem(dragDialogueLines);
 
             showCompanionBubble(line.text, line.voice, 4800);
+        });
+        window.addEventListener("ganyu-live2d-visible", function () {
+            if (!memoryShownThisPage && memoryMessage) {
+                memoryAttempts = 0;
+                scheduleGanyuMemory(900);
+            }
         });
     }
 

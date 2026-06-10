@@ -39,6 +39,11 @@
             z-index: -5;
             object-fit: cover;
             filter: brightness(1.2);
+            display: none;
+        }
+
+        html[data-performance-preference="high"] .home-bg-video {
+            display: block;
         }
 
         .home-bg-overlay {
@@ -412,7 +417,7 @@
                 display: none;
             }
 
-            html.performance-high .home-bg-video {
+            html[data-performance-preference="high"] .home-bg-video {
                 display: block;
             }
 
@@ -508,7 +513,7 @@
 
 <body>
 <video class="home-bg-video" muted loop playsinline preload="none" aria-hidden="true">
-    <source src="assets/audio/star.mp4" type="video/mp4">
+    <source data-src="assets/audio/star.mp4" type="video/mp4">
 </video>
 <div class="home-bg-overlay" aria-hidden="true"></div>
 <div class="cursor-light"></div>
@@ -532,18 +537,28 @@
 <script>
 const pagePerformance = window.JunxuePerformanceMode;
 const isLowPerformance = !!(pagePerformance && pagePerformance.isLow && pagePerformance.isLow());
-const isFullEffectMode = !!(pagePerformance && pagePerformance.isHigh && pagePerformance.isHigh());
-const isMobileViewport = window.matchMedia && window.matchMedia("(max-width: 768px)").matches;
+const isFullEffectMode = !!(pagePerformance && pagePerformance.requestedMode === "high");
 const light = document.querySelector(".cursor-light");
 const backgroundVideo = document.querySelector(".home-bg-video");
 
 if (backgroundVideo) {
-    if (isLowPerformance || (isMobileViewport && !isFullEffectMode)) {
+    const videoSource = backgroundVideo.querySelector("source");
+
+    if (isFullEffectMode) {
+        if (videoSource && !videoSource.getAttribute("src")) {
+            videoSource.setAttribute("src", videoSource.dataset.src || "");
+            backgroundVideo.load();
+        }
+        backgroundVideo.play().catch(() => {});
+    } else {
         backgroundVideo.pause();
         backgroundVideo.removeAttribute("autoplay");
         backgroundVideo.removeAttribute("loop");
-    } else {
-        backgroundVideo.play().catch(() => {});
+        backgroundVideo.removeAttribute("src");
+        if (videoSource) {
+            videoSource.removeAttribute("src");
+        }
+        backgroundVideo.load();
     }
 }
 

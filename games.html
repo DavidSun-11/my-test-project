@@ -5,8 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>我的游戏天赋展示</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<script src="assets/performance-mode.js?v=20260608-1"></script>
-<link rel="stylesheet" href="live2d/live2d-widget.css?v=20260609-3">
 
 <style>
 body {
@@ -143,27 +141,5 @@ a {
 <div style="text-align:center; padding:40px;">
     <a href="index.html">返回首页</a>
 </div>
-
-<script>
-    window.Live2DWidgetConfig = {
-        modelName: "ganyu",
-        modelPath: "live2d/models/ganyu/Ganyu1024.model3.json",
-        dockedPosition: "left",
-        scale: 0.216,
-        stageStyle: {
-            width: 336,
-            height: 456
-        },
-        mobileScale: 0.075,
-        mobileStageStyle: {
-            width: 240,
-            height: 400
-        }
-    };
-    if (window.JunxuePerformanceMode && typeof window.JunxuePerformanceMode.applyLive2DConfig === "function") {
-        window.JunxuePerformanceMode.applyLive2DConfig(window.Live2DWidgetConfig);
-    }
-</script>
-<script src="assets/live2d-loader.js?v=20260609-3" data-live2d-autoload="manual"></script>
 </body>
 </html>

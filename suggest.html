@@ -680,21 +680,47 @@ function positionSuggestionThankYouBubble() {
     const margin = 16;
     const anchorRect = getLive2DAnchorRect();
     const bubbleRect = suggestionThankYouBubble.getBoundingClientRect();
-    const bubbleWidth = Math.min(bubbleRect.width || 300, Math.max(160, window.innerWidth - margin * 2));
+    const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+    const mobileMaxWidth = Math.max(160, Math.floor(viewportWidth * 0.72));
+    const desktopMaxWidth = Math.max(160, viewportWidth - margin * 2);
+    const bubbleWidth = Math.min(bubbleRect.width || 300, viewportWidth <= 768 ? mobileMaxWidth : desktopMaxWidth);
     const bubbleHeight = bubbleRect.height || 120;
-    const maxLeft = Math.max(margin, window.innerWidth - bubbleWidth - margin);
-    const maxTop = Math.max(margin, window.innerHeight - bubbleHeight - margin);
-    let left = anchorRect.right + gap;
-    let top = anchorRect.top + Math.max(24, anchorRect.height * 0.18);
+    const maxLeft = Math.max(margin, viewportWidth - bubbleWidth - margin);
+    const maxTop = Math.max(margin, viewportHeight - bubbleHeight - margin);
+    const headBottom = anchorRect.top + anchorRect.height * 0.35;
+    const preferredTop = Math.min(Math.max(margin, anchorRect.top + Math.max(48, anchorRect.height * 0.38)), maxTop);
+    const footTop = Math.min(Math.max(margin, anchorRect.bottom - bubbleHeight - gap), maxTop);
+    const candidates = [
+        { left: anchorRect.right + gap, top: preferredTop },
+        { left: anchorRect.left - gap - bubbleWidth, top: preferredTop },
+        { left: Math.min(Math.max(margin, anchorRect.right - bubbleWidth), maxLeft), top: footTop }
+    ];
+    let left = candidates[2].left;
+    let top = candidates[2].top;
 
-    suggestionThankYouBubble.style.maxWidth = window.innerWidth <= 768 ? "80vw" : "calc(100vw - " + (margin * 2) + "px)";
+    suggestionThankYouBubble.style.maxWidth = viewportWidth <= 768 ? "72vw" : "calc(100vw - " + (margin * 2) + "px)";
 
-    if (left + bubbleWidth + margin > window.innerWidth) {
-        left = anchorRect.right - bubbleWidth;
-        top = anchorRect.top - bubbleHeight - gap;
+    function overlapsHead(nextLeft, nextTop) {
+        const right = nextLeft + bubbleWidth;
+        const bottom = nextTop + bubbleHeight;
+        const overlapsX = right > anchorRect.left && nextLeft < anchorRect.right;
+        const overlapsY = bottom > anchorRect.top && nextTop < headBottom;
 
-        if (top < margin && anchorRect.bottom + gap + bubbleHeight <= window.innerHeight - margin) {
-            top = anchorRect.bottom + gap;
+        return overlapsX && overlapsY;
+    }
+
+    for (let index = 0; index < candidates.length; index += 1) {
+        const candidate = candidates[index];
+        const fitsViewport = candidate.left >= margin &&
+            candidate.left + bubbleWidth <= viewportWidth - margin &&
+            candidate.top >= margin &&
+            candidate.top + bubbleHeight <= viewportHeight - margin;
+
+        if (fitsViewport && !overlapsHead(candidate.left, candidate.top)) {
+            left = candidate.left;
+            top = candidate.top;
+            break;
         }
     }
 
@@ -776,6 +802,6 @@ form.addEventListener("submit", function (event) {
 window.addEventListener("resize", positionSuggestionThankYouBubble);
 window.addEventListener("live2d-stage-position-changed", positionSuggestionThankYouBubble);
 </script>
-<script src="assets/live2d-loader.js?v=20260609-3" data-live2d-autoload="manual"></script>
+<script src="assets/live2d-loader.js?v=20260610-1" data-live2d-autoload="manual"></script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 /* Live2D 轻量启动脚本：首屏只保留开场提示、点击入口和懒加载控制。 */
 (function () {
-    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260609-3";
+    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260610-1";
     if (typeof window.enableGanyuMemory !== "boolean") {
         window.enableGanyuMemory = true;
     }
@@ -269,28 +269,45 @@
         const rect = getLive2DRect();
         const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
         const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-        const popupWidth = Math.min(node.offsetWidth || settings.width, Math.max(160, viewportWidth - settings.margin * 2));
+        const mobileMaxWidth = Math.max(160, Math.floor(viewportWidth * 0.72));
+        const desktopMaxWidth = Math.max(160, viewportWidth - settings.margin * 2);
+        const popupWidth = Math.min(node.offsetWidth || settings.width, viewportWidth <= 768 ? mobileMaxWidth : desktopMaxWidth);
         const popupHeight = node.offsetHeight || settings.height;
         const maxLeft = Math.max(settings.margin, viewportWidth - popupWidth - settings.margin);
         const maxTop = Math.max(settings.margin, viewportHeight - popupHeight - settings.margin);
-        const hasRightSpace = rect.right + settings.gap + popupWidth <= viewportWidth - settings.margin;
-        const hasLeftSpace = rect.left - settings.gap - popupWidth >= settings.margin;
-        let nextLeft = rect.right + settings.gap;
-        let nextTop = Math.min(Math.max(settings.margin, rect.top + settings.offsetY), maxTop);
+        const headBottom = rect.top + rect.height * 0.35;
+        const preferredTop = Math.min(Math.max(settings.margin, rect.top + Math.max(settings.offsetY, rect.height * 0.38)), maxTop);
+        const footTop = Math.min(Math.max(settings.margin, rect.bottom - popupHeight - settings.gap), maxTop);
+        const candidates = [
+            { left: rect.right + settings.gap, top: preferredTop },
+            { left: rect.left - settings.gap - popupWidth, top: preferredTop },
+            { left: Math.min(Math.max(settings.margin, rect.right - popupWidth), maxLeft), top: footTop }
+        ];
+        let nextLeft = candidates[2].left;
+        let nextTop = candidates[2].top;
 
-        node.style.maxWidth = viewportWidth <= 768 ? "80vw" : "calc(100vw - " + (settings.margin * 2) + "px)";
+        node.style.maxWidth = viewportWidth <= 768 ? "72vw" : "calc(100vw - " + (settings.margin * 2) + "px)";
 
-        if (!hasRightSpace) {
-            if (hasLeftSpace) {
-                nextLeft = rect.left - settings.gap - popupWidth;
-                nextTop = Math.min(Math.max(settings.margin, rect.top + settings.offsetY), maxTop);
-            } else {
-                nextLeft = Math.min(Math.max(settings.margin, rect.right - popupWidth), maxLeft);
-                nextTop = rect.top - popupHeight - settings.gap;
+        function overlapsHead(left, top) {
+            const right = left + popupWidth;
+            const bottom = top + popupHeight;
+            const overlapsX = right > rect.left && left < rect.right;
+            const overlapsY = bottom > rect.top && top < headBottom;
 
-                if (nextTop < settings.margin && rect.bottom + settings.gap + popupHeight <= viewportHeight - settings.margin) {
-                    nextTop = rect.bottom + settings.gap;
-                }
+            return overlapsX && overlapsY;
+        }
+
+        for (let index = 0; index < candidates.length; index += 1) {
+            const candidate = candidates[index];
+            const fitsViewport = candidate.left >= settings.margin &&
+                candidate.left + popupWidth <= viewportWidth - settings.margin &&
+                candidate.top >= settings.margin &&
+                candidate.top + popupHeight <= viewportHeight - settings.margin;
+
+            if (fitsViewport && !overlapsHead(candidate.left, candidate.top)) {
+                nextLeft = candidate.left;
+                nextTop = candidate.top;
+                break;
             }
         }
 

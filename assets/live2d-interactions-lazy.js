@@ -617,29 +617,47 @@
         const margin = settings.margin || 8;
         const fallbackWidth = settings.width || 330;
         const fallbackHeight = settings.height || 160;
-        const popupWidth = Math.min(node.offsetWidth || fallbackWidth, Math.max(160, window.innerWidth - margin * 2));
+        const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+        const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+        const mobileMaxWidth = Math.max(160, Math.floor(viewportWidth * 0.72));
+        const desktopMaxWidth = Math.max(160, viewportWidth - margin * 2);
+        const popupWidth = Math.min(node.offsetWidth || fallbackWidth, viewportWidth <= 768 ? mobileMaxWidth : desktopMaxWidth);
         const popupHeight = node.offsetHeight || fallbackHeight;
-        const rightLeft = rect.right + gap;
-        const hasRightSpace = rightLeft + popupWidth + margin <= window.innerWidth;
-        const hasLeftSpace = rect.left - gap - popupWidth >= margin;
-        const maxLeft = Math.max(margin, window.innerWidth - popupWidth - margin);
-        const maxTop = Math.max(margin, window.innerHeight - popupHeight - margin);
-        let nextLeft = rightLeft;
-        let nextTop = rect.top + (settings.offsetY || Math.max(36, rect.height * 0.16));
+        const maxLeft = Math.max(margin, viewportWidth - popupWidth - margin);
+        const maxTop = Math.max(margin, viewportHeight - popupHeight - margin);
+        const headBottom = rect.top + rect.height * 0.35;
+        const preferredTop = clamp(rect.top + Math.max(settings.offsetY || 0, rect.height * 0.38), margin, maxTop);
+        const footTop = clamp(rect.bottom - popupHeight - gap, margin, maxTop);
+        const candidates = [
+            { left: rect.right + gap, top: preferredTop },
+            { left: rect.left - gap - popupWidth, top: preferredTop },
+            { left: clamp(rect.right - popupWidth, margin, maxLeft), top: footTop }
+        ];
+        let nextLeft = candidates[2].left;
+        let nextTop = candidates[2].top;
 
-        node.style.maxWidth = window.innerWidth <= 768 ? "80vw" : "calc(100vw - " + (margin * 2) + "px)";
+        node.style.maxWidth = viewportWidth <= 768 ? "72vw" : "calc(100vw - " + (margin * 2) + "px)";
 
-        if (!hasRightSpace) {
-            if (hasLeftSpace) {
-                nextLeft = rect.left - gap - popupWidth;
-                nextTop = rect.top + (settings.offsetY || Math.max(36, rect.height * 0.16));
-            } else {
-                nextLeft = rect.right - popupWidth;
-                nextTop = rect.top - popupHeight - gap;
+        function overlapsHead(left, top) {
+            const right = left + popupWidth;
+            const bottom = top + popupHeight;
+            const overlapsX = right > rect.left && left < rect.right;
+            const overlapsY = bottom > rect.top && top < headBottom;
 
-                if (nextTop < margin && rect.bottom + gap + popupHeight <= window.innerHeight - margin) {
-                    nextTop = rect.bottom + gap;
-                }
+            return overlapsX && overlapsY;
+        }
+
+        for (let index = 0; index < candidates.length; index += 1) {
+            const candidate = candidates[index];
+            const fitsViewport = candidate.left >= margin &&
+                candidate.left + popupWidth <= viewportWidth - margin &&
+                candidate.top >= margin &&
+                candidate.top + popupHeight <= viewportHeight - margin;
+
+            if (fitsViewport && !overlapsHead(candidate.left, candidate.top)) {
+                nextLeft = candidate.left;
+                nextTop = candidate.top;
+                break;
             }
         }
 

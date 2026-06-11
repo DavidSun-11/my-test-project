@@ -20,6 +20,7 @@
     const signupButton = document.getElementById("price-signup-button");
     const logoutButton = document.getElementById("price-logout-button");
     const submitButton = document.getElementById("price-review-submit");
+    const authFields = authForm ? authForm.querySelectorAll(".price-field") : [];
 
     let client = null;
     let currentUser = null;
@@ -85,6 +86,7 @@
             return;
         }
 
+        reviewForm.hidden = !enabled;
         reviewForm.querySelectorAll("input, select, textarea, button").forEach(function (field) {
             field.disabled = !enabled;
         });
@@ -98,9 +100,28 @@
         setStatus(authStatus, CONFIG_MISSING_TEXT, "warning");
         setStatus(reviewStatus, CONFIG_MISSING_TEXT, "warning");
         setReviewFormEnabled(false);
+        setAuthControls(false);
 
         if (reviewList) {
             reviewList.innerHTML = '<div class="price-empty">' + CONFIG_MISSING_TEXT + '</div>';
+        }
+    }
+
+    function setAuthControls(isLoggedIn) {
+        authFields.forEach(function (field) {
+            field.hidden = isLoggedIn;
+        });
+
+        if (loginButton) {
+            loginButton.hidden = isLoggedIn;
+        }
+
+        if (signupButton) {
+            signupButton.hidden = isLoggedIn;
+        }
+
+        if (logoutButton) {
+            logoutButton.hidden = !isLoggedIn;
         }
     }
 
@@ -173,9 +194,7 @@
         if (!currentUser) {
             setStatus(authStatus, "登录后可以发布老板评价。", "neutral");
             setReviewFormEnabled(false);
-            if (logoutButton) {
-                logoutButton.hidden = true;
-            }
+            setAuthControls(false);
             return;
         }
 
@@ -185,9 +204,7 @@
 
         setStatus(authStatus, "欢迎回来，" + label, "good");
         setReviewFormEnabled(true);
-        if (logoutButton) {
-            logoutButton.hidden = false;
-        }
+        setAuthControls(true);
         if (nicknameInput && !nicknameInput.value && currentUser.email) {
             nicknameInput.value = currentUser.email.split("@")[0].slice(0, 20);
         }
@@ -220,7 +237,7 @@
             return;
         }
 
-        currentUser = response.data.user;
+        currentUser = response.data && response.data.session ? response.data.session.user : response.data.user;
         renderAuthState();
     }
 
@@ -242,9 +259,9 @@
             return;
         }
 
-        currentUser = response.data.user || null;
-        setStatus(authStatus, "注册成功。如果没有立即登录，请先到邮箱完成验证哦。", "good");
+        currentUser = response.data && response.data.session ? response.data.session.user : null;
         renderAuthState();
+        setStatus(authStatus, "注册成功。如果没有立即登录，请先到邮箱完成验证哦。", "good");
     }
 
     async function handleLogout() {

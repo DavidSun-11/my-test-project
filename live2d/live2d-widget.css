@@ -186,9 +186,9 @@ html.performance-low .oml2d-stage.is-ganyu-drag-bounce {
     position: fixed;
     left: 260px;
     bottom: 190px;
-    width: 330px;
+    width: min(460px, calc(100vw - 32px));
     max-width: calc(100vw - 32px);
-    z-index: 60;
+    z-index: 70;
     padding: 16px;
     border: 1px solid rgba(108, 229, 255, 0.54);
     border-radius: 16px;

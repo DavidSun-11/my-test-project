@@ -1,6 +1,6 @@
 /* Live2D 轻量启动脚本：首屏只保留开场提示、点击入口和懒加载控制。 */
 (function () {
-    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260611-4";
+    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260611-5";
     if (typeof window.enableGanyuMemory !== "boolean") {
         window.enableGanyuMemory = true;
     }
@@ -112,6 +112,53 @@
     let namePromptAttempts = 0;
     let lastDragStartDialogueAt = 0;
     const boundNodes = new WeakSet();
+    const ganyuUIState = installGanyuUIState();
+
+    function installGanyuUIState() {
+        const state = window.JunxueGanyuUIState || {};
+
+        state.menuDepth = state.menuDepth || 0;
+        state.panelDepth = state.panelDepth || 0;
+        state.menuOpen = !!state.menuOpen;
+        state.panelOpen = !!state.panelOpen;
+        state.hideOrdinaryBubble = function () {
+            if (window.JunxueGanyuTalk && typeof window.JunxueGanyuTalk.hide === "function") {
+                window.JunxueGanyuTalk.hide();
+            }
+        };
+        state.openMenu = function () {
+            state.menuDepth = Math.max(1, state.menuDepth || 0);
+            state.menuOpen = true;
+            state.hideOrdinaryBubble();
+        };
+        state.closeMenu = function () {
+            state.menuDepth = 0;
+            state.menuOpen = false;
+        };
+        state.openPanel = function () {
+            state.panelDepth = Math.max(1, state.panelDepth || 0);
+            state.panelOpen = true;
+            state.hideOrdinaryBubble();
+        };
+        state.closePanel = function () {
+            state.panelDepth = 0;
+            state.panelOpen = false;
+        };
+        state.closeAll = function () {
+            state.closeMenu();
+            state.closePanel();
+        };
+        state.isBusy = function () {
+            return !!(state.menuOpen || state.panelOpen);
+        };
+
+        window.JunxueGanyuUIState = state;
+        return state;
+    }
+
+    function isGanyuUIBusy() {
+        return !!(ganyuUIState && typeof ganyuUIState.isBusy === "function" && ganyuUIState.isBusy());
+    }
 
     function onReady(callback) {
         if (document.readyState === "loading") {
@@ -319,6 +366,10 @@
     }
 
     function showOpeningBubble() {
+        if (isGanyuUIBusy()) {
+            return;
+        }
+
         if (!openingBubble) {
             return;
         }
@@ -573,6 +624,10 @@
             return;
         }
 
+        if (isGanyuUIBusy()) {
+            return;
+        }
+
         if (!companionBubble) {
             companionBubble = createCompanionBubble();
         }
@@ -596,6 +651,17 @@
                 companionBubble.textContent = "";
             }, 360);
         }, duration || 5200);
+    }
+
+    function hideCompanionBubble() {
+        if (!companionBubble) {
+            return;
+        }
+
+        window.clearTimeout(showCompanionBubble.timer);
+        window.clearTimeout(showCompanionBubble.fadeTimer);
+        companionBubble.classList.remove("is-open", "is-fading");
+        companionBubble.textContent = "";
     }
 
     function getTimePeriod() {
@@ -778,6 +844,7 @@
 
     function isGanyuInteractionBusy() {
         return document.hidden ||
+            isGanyuUIBusy() ||
             !!document.querySelector(".live2d-quiz.is-open") ||
             !!document.querySelector(".live2d-opening-bubble.is-open,.live2d-opening-bubble.is-fading") ||
             !!document.querySelector(".live2d-quiz-exit-bubble.is-open,.live2d-quiz-exit-bubble.is-fading") ||
@@ -1062,7 +1129,7 @@
     }
 
     function showTouchDialogue(event) {
-        if (!event || !hasPlayedFirstClickVoice()) {
+        if (!event || !hasPlayedFirstClickVoice() || isGanyuUIBusy()) {
             return;
         }
 
@@ -1223,7 +1290,6 @@
         }
 
         retryOpeningVoiceFromGesture();
-        showTouchDialogue(event);
         loadLazyInteractions().then(function (menu) {
             menu.open(event);
         }).catch(function () {});
@@ -1281,6 +1347,7 @@
         window.JunxueGanyuTalk = {
             handlesIdle: true,
             say: showCompanionBubble,
+            hide: hideCompanionBubble,
             sync: syncCompanionBubblePosition
         };
         window.JunxueGanyuMemory = {

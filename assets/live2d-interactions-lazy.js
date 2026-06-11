@@ -701,6 +701,7 @@
         const isSuggestionPage = /(^|\/)suggest\.html(?:$|[?#])/i.test(window.location.pathname + window.location.search + window.location.hash);
         let idleTalkTimer = null;
         let fortuneProcessTimer = null;
+        let dialogMode = "menu";
 
         function clearSpinTimers() {
             window.clearInterval(heroSpinTimer);
@@ -744,6 +745,50 @@
             refreshMusicPlayerContent();
         }
 
+        function getGanyuUIState() {
+            return window.JunxueGanyuUIState || null;
+        }
+
+        function setDialogMode(mode) {
+            dialogMode = mode === "panel" ? "panel" : "menu";
+        }
+
+        function notifyDialogOpen() {
+            const state = getGanyuUIState();
+
+            if (!state) {
+                return;
+            }
+
+            if (dialogMode === "panel") {
+                if (typeof state.openMenu === "function") {
+                    state.openMenu();
+                }
+
+                if (typeof state.openPanel === "function") {
+                    state.openPanel();
+                }
+
+                return;
+            }
+
+            if (typeof state.openMenu === "function") {
+                state.openMenu();
+            }
+
+            if (typeof state.closePanel === "function") {
+                state.closePanel();
+            }
+        }
+
+        function notifyDialogClosed() {
+            const state = getGanyuUIState();
+
+            if (state && typeof state.closeAll === "function") {
+                state.closeAll();
+            }
+        }
+
         function clearDialog() {
             clearSpinTimers();
             window.clearTimeout(fortuneProcessTimer);
@@ -773,10 +818,12 @@
 
         function showDialog() {
             hideIdleTalk();
+            notifyDialogOpen();
             positionLive2DPopup(dialog, {
-                width: (dialog.classList.contains("is-fortune") || dialog.classList.contains("is-memory")) ? 580 : 362,
+                width: (dialog.classList.contains("is-fortune") || dialog.classList.contains("is-memory")) ? 580 : 460,
                 height: 220,
-                offsetY: 68
+                offsetY: 68,
+                gap: 24
             });
             dialog.classList.add("is-open");
             replayOpenAnimation();
@@ -841,9 +888,10 @@
 
             if (dialog.classList.contains("is-open")) {
                 positionLive2DPopup(dialog, {
-                    width: (dialog.classList.contains("is-fortune") || dialog.classList.contains("is-memory")) ? 580 : 362,
+                    width: (dialog.classList.contains("is-fortune") || dialog.classList.contains("is-memory")) ? 580 : 460,
                     height: 220,
-                    offsetY: 68
+                    offsetY: 68,
+                    gap: 24
                 });
             }
 
@@ -884,6 +932,7 @@
             clearSpinTimers();
             dialog.classList.remove("is-open", "is-opening");
             window.clearTimeout(showDialog.closeTimer);
+            notifyDialogClosed();
         }
 
         function hideIdleTalk() {
@@ -898,11 +947,14 @@
         }
 
         function canShowIdleTalk() {
+            const state = getGanyuUIState();
+
             if (window.JunxueGanyuTalk && window.JunxueGanyuTalk.handlesIdle) {
                 return false;
             }
 
             return window.enableGanyuIdleTalk !== false &&
+                !(state && typeof state.isBusy === "function" && state.isBusy()) &&
                 !isSuggestionPage &&
                 !document.hidden &&
                 !dialog.classList.contains("is-open") &&
@@ -975,6 +1027,7 @@
                 firstClickVoicePlaying = true;
                 markFirstClickVoicePlayed();
                 clearDialog();
+                setDialogMode("menu");
                 question.textContent = firstClickVoiceText;
                 showDialog();
                 playVoice(firstClickVoicePath).then(function () {
@@ -985,6 +1038,7 @@
             }
 
             clearDialog();
+            setDialogMode("menu");
             question.textContent = "想和君雪做什么？";
             options.classList.add("live2d-quiz__menu");
             addOption("娱乐一下", showEntertainmentPanel);
@@ -999,6 +1053,7 @@
 
         function showEntertainmentPanel() {
             clearDialog();
+            setDialogMode("menu");
             meta.textContent = "娱乐一下";
             question.textContent = "今天想和甘雨玩点什么呢？";
             options.classList.add("live2d-consult-grid");
@@ -1024,6 +1079,7 @@
 
         function showKnowJunxuePanel() {
             clearDialog();
+            setDialogMode("menu");
             meta.textContent = "认识君雪";
             question.textContent = "这些事情，甘雨都替君雪记着呢。";
             options.classList.add("live2d-consult-grid");
@@ -1048,6 +1104,7 @@
         }
 
         function startQuiz() {
+            setDialogMode("panel");
             recordGanyuFeature("无奖问答");
             quizState = {
                 correct: 0,
@@ -1145,6 +1202,7 @@
         }
 
         function showMemoryPanel(message) {
+            setDialogMode("panel");
             if (!message) {
                 recordGanyuFeature("记忆面板");
             }
@@ -1221,6 +1279,7 @@
 
         function showConsultPanel() {
             clearDialog();
+            setDialogMode("menu");
             meta.textContent = "咨询";
             question.textContent = "君雪可以帮你看看这些事情。";
             options.classList.add("live2d-consult-grid");
@@ -1526,6 +1585,7 @@
         }
 
         function showFortunePanel() {
+            setDialogMode("panel");
             recordGanyuFeature("占卜");
             const savedFortune = readTodayFortune();
             const lastFortune = getMemorySnapshot().lastFortune;
@@ -1707,6 +1767,7 @@
         }
 
         function showMusicPlayer() {
+            setDialogMode("panel");
             recordGanyuFeature("听歌");
             const lastSongTitle = applyLastSongPreference();
 
@@ -1723,6 +1784,7 @@
         }
 
         function showWeatherInput() {
+            setDialogMode("panel");
             recordGanyuFeature("天气");
             const favoriteCity = getMemorySnapshot().favoriteCity || "";
 
@@ -1999,6 +2061,7 @@
         }
 
         function showHeroWheel() {
+            setDialogMode("panel");
             recordGanyuFeature("英雄池");
             clearDialog();
             dialog.classList.add("is-wheel");

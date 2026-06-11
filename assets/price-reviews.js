@@ -1,0 +1,341 @@
+(function () {
+    const CONFIG_MISSING_TEXT = "老板评价系统暂未配置，请稍后再来～";
+    const REVIEW_EMPTY_TEXT = "暂无评价，期待第一位老板留下评价～";
+    const SUCCESS_TEXT = "感谢老板的评价，君雪已经收到啦～";
+    const SUPABASE_CDN = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
+    const VALID_SERVICE_TYPES = ["王者荣耀", "永劫无间", "语音聊天", "其它"];
+
+    const authStatus = document.getElementById("price-auth-status");
+    const reviewStatus = document.getElementById("price-review-status");
+    const reviewList = document.getElementById("price-review-list");
+    const authForm = document.getElementById("price-auth-form");
+    const reviewForm = document.getElementById("price-review-form");
+    const emailInput = document.getElementById("price-email");
+    const passwordInput = document.getElementById("price-password");
+    const nicknameInput = document.getElementById("price-review-nickname");
+    const serviceInput = document.getElementById("price-review-service");
+    const ratingInput = document.getElementById("price-review-rating");
+    const messageInput = document.getElementById("price-review-message");
+    const loginButton = document.getElementById("price-login-button");
+    const signupButton = document.getElementById("price-signup-button");
+    const logoutButton = document.getElementById("price-logout-button");
+    const submitButton = document.getElementById("price-review-submit");
+
+    let client = null;
+    let currentUser = null;
+
+    function getConfigValue(name) {
+        if (typeof window[name] === "string") {
+            return window[name].trim();
+        }
+
+        try {
+            return typeof eval(name) === "string" ? eval(name).trim() : "";
+        } catch (error) {
+            return "";
+        }
+    }
+
+    function hasUsableConfig() {
+        const url = getConfigValue("SUPABASE_URL");
+        const key = getConfigValue("SUPABASE_ANON_KEY");
+
+        return /^https:\/\/.+\.supabase\.co$/i.test(url) &&
+            !!key &&
+            key.indexOf("你的 Supabase") === -1 &&
+            key.indexOf("service_role") === -1;
+    }
+
+    function setStatus(node, text, type) {
+        if (!node) {
+            return;
+        }
+
+        node.textContent = text || "";
+        node.className = "price-status" + (type ? " is-" + type : "");
+    }
+
+    function escapeHtml(value) {
+        return String(value).replace(/[&<>"]/g, function (char) {
+            return {
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                "\"": "&quot;"
+            }[char];
+        });
+    }
+
+    function formatTime(value) {
+        const date = value ? new Date(value) : new Date();
+
+        if (Number.isNaN(date.getTime())) {
+            return "";
+        }
+
+        return date.getFullYear() + "年" +
+            (date.getMonth() + 1) + "月" +
+            date.getDate() + "日 " +
+            String(date.getHours()).padStart(2, "0") + ":" +
+            String(date.getMinutes()).padStart(2, "0");
+    }
+
+    function setReviewFormEnabled(enabled) {
+        if (!reviewForm) {
+            return;
+        }
+
+        reviewForm.querySelectorAll("input, select, textarea, button").forEach(function (field) {
+            field.disabled = !enabled;
+        });
+
+        if (submitButton) {
+            submitButton.textContent = enabled ? "发布评价" : "登录后评价";
+        }
+    }
+
+    function showConfigMissing() {
+        setStatus(authStatus, CONFIG_MISSING_TEXT, "warning");
+        setStatus(reviewStatus, CONFIG_MISSING_TEXT, "warning");
+        setReviewFormEnabled(false);
+
+        if (reviewList) {
+            reviewList.innerHTML = '<div class="price-empty">' + CONFIG_MISSING_TEXT + '</div>';
+        }
+    }
+
+    function loadScript(src) {
+        return new Promise(function (resolve, reject) {
+            if (document.querySelector('script[src="' + src + '"]')) {
+                resolve();
+                return;
+            }
+
+            const script = document.createElement("script");
+
+            script.src = src;
+            script.async = true;
+            script.onload = resolve;
+            script.onerror = function () {
+                script.remove();
+                reject(new Error("script-load-failed"));
+            };
+            document.head.appendChild(script);
+        });
+    }
+
+    function renderReviews(reviews) {
+        if (!reviewList) {
+            return;
+        }
+
+        if (!reviews || !reviews.length) {
+            reviewList.innerHTML = '<div class="price-empty">' + REVIEW_EMPTY_TEXT + '</div>';
+            return;
+        }
+
+        reviewList.innerHTML = reviews.map(function (review) {
+            const rating = Math.max(1, Math.min(5, Number(review.rating) || 5));
+
+            return [
+                '<article class="price-review-item">',
+                    '<div class="price-review-head">',
+                        '<strong>' + escapeHtml(review.nickname) + '</strong>',
+                        '<span>' + "★".repeat(rating) + "☆".repeat(5 - rating) + '</span>',
+                    '</div>',
+                    '<div class="price-review-meta">' + escapeHtml(review.service_type) + ' · ' + escapeHtml(formatTime(review.created_at)) + '</div>',
+                    '<p>' + escapeHtml(review.message) + '</p>',
+                '</article>'
+            ].join("");
+        }).join("");
+    }
+
+    async function loadReviews() {
+        if (!client) {
+            return;
+        }
+
+        const response = await client
+            .from("boss_reviews")
+            .select("nickname, service_type, rating, message, created_at")
+            .order("created_at", { ascending: false });
+
+        if (response.error) {
+            setStatus(reviewStatus, "评价暂时没有取到，请稍后再试～", "warning");
+            renderReviews([]);
+            return;
+        }
+
+        renderReviews(response.data || []);
+    }
+
+    function renderAuthState() {
+        if (!currentUser) {
+            setStatus(authStatus, "登录后可以发布老板评价。", "neutral");
+            setReviewFormEnabled(false);
+            if (logoutButton) {
+                logoutButton.hidden = true;
+            }
+            return;
+        }
+
+        const label = currentUser.user_metadata && currentUser.user_metadata.name ?
+            currentUser.user_metadata.name :
+            currentUser.email;
+
+        setStatus(authStatus, "欢迎回来，" + label, "good");
+        setReviewFormEnabled(true);
+        if (logoutButton) {
+            logoutButton.hidden = false;
+        }
+        if (nicknameInput && !nicknameInput.value && currentUser.email) {
+            nicknameInput.value = currentUser.email.split("@")[0].slice(0, 20);
+        }
+    }
+
+    async function refreshSession() {
+        const sessionResponse = await client.auth.getSession();
+
+        currentUser = sessionResponse.data && sessionResponse.data.session ?
+            sessionResponse.data.session.user :
+            null;
+        renderAuthState();
+    }
+
+    async function handleLogin() {
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
+
+        if (!email || !password) {
+            setStatus(authStatus, "请先填写邮箱和密码。", "warning");
+            return;
+        }
+
+        loginButton.disabled = true;
+        const response = await client.auth.signInWithPassword({ email: email, password: password });
+        loginButton.disabled = false;
+
+        if (response.error) {
+            setStatus(authStatus, "登录失败，请检查邮箱或密码。", "warning");
+            return;
+        }
+
+        currentUser = response.data.user;
+        renderAuthState();
+    }
+
+    async function handleSignup() {
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
+
+        if (!email || !password) {
+            setStatus(authStatus, "请先填写邮箱和密码。", "warning");
+            return;
+        }
+
+        signupButton.disabled = true;
+        const response = await client.auth.signUp({ email: email, password: password });
+        signupButton.disabled = false;
+
+        if (response.error) {
+            setStatus(authStatus, "注册失败，请稍后再试。", "warning");
+            return;
+        }
+
+        currentUser = response.data.user || null;
+        setStatus(authStatus, "注册成功。如果没有立即登录，请先到邮箱完成验证哦。", "good");
+        renderAuthState();
+    }
+
+    async function handleLogout() {
+        await client.auth.signOut();
+        currentUser = null;
+        renderAuthState();
+    }
+
+    async function handleReviewSubmit(event) {
+        event.preventDefault();
+
+        if (!currentUser) {
+            setStatus(reviewStatus, "请先登录后再评价。", "warning");
+            return;
+        }
+
+        const nickname = nicknameInput.value.trim().slice(0, 20);
+        const serviceType = serviceInput.value;
+        const rating = Number(ratingInput.value);
+        const message = messageInput.value.trim().slice(0, 300);
+
+        if (!nickname || !message) {
+            setStatus(reviewStatus, "昵称和评价内容都要填写哦。", "warning");
+            return;
+        }
+
+        if (VALID_SERVICE_TYPES.indexOf(serviceType) === -1 || rating < 1 || rating > 5) {
+            setStatus(reviewStatus, "评价内容有点不对，请重新检查一下。", "warning");
+            return;
+        }
+
+        submitButton.disabled = true;
+        const response = await client.from("boss_reviews").insert({
+            user_id: currentUser.id,
+            nickname: nickname,
+            service_type: serviceType,
+            rating: rating,
+            message: message
+        });
+        submitButton.disabled = false;
+
+        if (response.error) {
+            setStatus(reviewStatus, "评价提交失败，请稍后再试～", "warning");
+            return;
+        }
+
+        reviewForm.reset();
+        setStatus(reviewStatus, SUCCESS_TEXT, "good");
+        await loadReviews();
+        renderAuthState();
+    }
+
+    async function init() {
+        if (!authStatus || !reviewStatus || !reviewList || !authForm || !reviewForm) {
+            return;
+        }
+
+        if (!hasUsableConfig()) {
+            showConfigMissing();
+            return;
+        }
+
+        setStatus(authStatus, "正在连接老板评价系统…", "neutral");
+
+        try {
+            await loadScript(SUPABASE_CDN);
+            client = window.supabase.createClient(getConfigValue("SUPABASE_URL"), getConfigValue("SUPABASE_ANON_KEY"));
+        } catch (error) {
+            setStatus(authStatus, "老板评价系统连接失败，请稍后再试～", "warning");
+            setStatus(reviewStatus, "老板评价系统连接失败，请稍后再试～", "warning");
+            setReviewFormEnabled(false);
+            return;
+        }
+
+        loginButton.addEventListener("click", handleLogin);
+        signupButton.addEventListener("click", handleSignup);
+        logoutButton.addEventListener("click", handleLogout);
+        reviewForm.addEventListener("submit", handleReviewSubmit);
+
+        client.auth.onAuthStateChange(function (event, session) {
+            currentUser = session ? session.user : null;
+            renderAuthState();
+        });
+
+        await refreshSession();
+        await loadReviews();
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", init, { once: true });
+    } else {
+        init();
+    }
+})();

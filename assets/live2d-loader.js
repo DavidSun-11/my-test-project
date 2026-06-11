@@ -1,7 +1,7 @@
 /* Lightweight Live2D loader: delays Ganyu until the page is usable. */
 (function () {
-    const WIDGET_SCRIPT = "live2d/live2d-widget.js?v=20260610-1";
-    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260611-5";
+    const WIDGET_SCRIPT = "live2d/live2d-widget.js?v=20260611-6";
+    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260611-6";
     const DRAG_SCRIPT = "assets/live2d-drag.js?v=20260611-3";
     const LOAD_TIMEOUT_MS = 10000;
     const AUTOLOAD_DELAY_MS = 1200;
@@ -123,7 +123,7 @@
         widget.className = "live2d-widget";
         widget.id = "live2d-widget";
         widget.setAttribute("aria-label", "Live2D 看板娘");
-        widget.innerHTML = '<div class="live2d-message">请稍等一下哦，我马上就来。</div>';
+        widget.innerHTML = "";
         document.body.appendChild(widget);
         return widget;
     }

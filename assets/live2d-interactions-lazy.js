@@ -968,16 +968,12 @@
                 return;
             }
 
-            idleBubble.textContent = pickRandomItem(ganyuIdleLines);
-            positionLive2DPopup(idleBubble, {
-                width: 318,
-                height: 92,
-                offsetY: 62
-            });
-            idleBubble.classList.remove("is-fading");
-            idleBubble.classList.add("is-open");
+            if (window.JunxueGanyuTalk && typeof window.JunxueGanyuTalk.say === "function") {
+                window.JunxueGanyuTalk.say(pickRandomItem(ganyuIdleLines), "", randomBetween(4000, 6000));
+                return;
+            }
+
             window.clearTimeout(showIdleTalk.timer);
-            showIdleTalk.timer = window.setTimeout(hideIdleTalk, randomBetween(4000, 6000));
         }
 
         function scheduleIdleTalk(first) {

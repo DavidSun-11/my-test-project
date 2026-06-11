@@ -1,6 +1,6 @@
 /* Live2D 轻量启动脚本：首屏只保留开场提示、点击入口和懒加载控制。 */
 (function () {
-    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260611-5";
+    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260611-6";
     if (typeof window.enableGanyuMemory !== "boolean") {
         window.enableGanyuMemory = true;
     }
@@ -220,9 +220,8 @@
             ".live2d-quiz-exit-bubble{position:fixed;left:252px;top:160px;z-index:62;width:min(318px,calc(100vw - 32px));padding:12px 14px;border:1px solid rgba(213,244,255,.76);border-radius:16px;background:linear-gradient(145deg,rgba(255,178,218,.7),rgba(126,219,255,.58));box-shadow:0 0 22px rgba(126,219,255,.28),0 0 18px rgba(255,142,196,.24),inset 0 0 14px rgba(255,255,255,.14);backdrop-filter:blur(10px);color:rgba(50,32,72,.96);font-size:14px;line-height:1.55;letter-spacing:0;white-space:pre-line;pointer-events:none;opacity:0;transform:translateY(8px);transition:opacity .35s ease,transform .35s ease;}",
             ".live2d-quiz-exit-bubble.is-open{opacity:1;transform:translateY(0);}",
             ".live2d-quiz-exit-bubble.is-fading{opacity:0;transform:translateY(-6px);}",
-            ".live2d-companion-bubble{position:fixed;left:252px;top:160px;z-index:63;width:min(318px,calc(100vw - 32px));padding:12px 14px;border:1px solid rgba(213,244,255,.78);border-radius:16px;background:linear-gradient(145deg,rgba(255,182,220,.72),rgba(132,221,255,.58));box-shadow:0 0 20px rgba(126,219,255,.26),0 0 16px rgba(255,142,196,.22),inset 0 0 14px rgba(255,255,255,.14);backdrop-filter:blur(10px);color:rgba(48,32,72,.96);font-size:14px;line-height:1.55;letter-spacing:0;pointer-events:none;white-space:pre-line;opacity:0;transform:translateY(8px);transition:opacity .35s ease,transform .35s ease;}",
-            ".live2d-companion-bubble.is-open{opacity:1;transform:translateY(0);}",
-            ".live2d-companion-bubble.is-fading{opacity:0;transform:translateY(-6px);}",
+            ".live2d-companion-bubble{display:none!important;}",
+            "#oml2d-tips{display:none!important;}",
             ".live2d-name-prompt{position:fixed;left:252px;top:160px;z-index:64;width:min(328px,calc(100vw - 32px));padding:14px;border:1px solid rgba(213,244,255,.78);border-radius:16px;background:linear-gradient(145deg,rgba(255,182,220,.74),rgba(132,221,255,.6));box-shadow:0 0 20px rgba(126,219,255,.26),0 0 16px rgba(255,142,196,.22),inset 0 0 14px rgba(255,255,255,.14);backdrop-filter:blur(10px);color:rgba(48,32,72,.96);font-size:14px;line-height:1.55;letter-spacing:0;opacity:0;transform:translateY(8px);transition:opacity .35s ease,transform .35s ease;pointer-events:auto;}",
             ".live2d-name-prompt.is-open{opacity:1;transform:translateY(0);}",
             ".live2d-name-prompt__title{margin:0 0 10px;font-weight:700;text-shadow:0 0 8px rgba(255,255,255,.42);}",
@@ -230,7 +229,7 @@
             ".live2d-name-prompt__input{width:100%;box-sizing:border-box;border:1px solid rgba(213,244,255,.68);border-radius:12px;background:rgba(6,22,44,.45);color:rgba(255,255,255,.96);padding:10px 12px;font:inherit;outline:none;}",
             ".live2d-name-prompt__input::placeholder{color:rgba(234,252,255,.62);}",
             ".live2d-name-prompt__button{border:1px solid rgba(120,229,255,.62);border-radius:999px;background:rgba(6,22,44,.7);color:rgba(234,252,255,.96);font-weight:700;min-height:34px;cursor:pointer;box-shadow:0 0 12px rgba(0,190,255,.18),inset 0 0 8px rgba(255,255,255,.08);}",
-            "@media (max-width:768px){.live2d-opening-bubble,.live2d-quiz-exit-bubble,.live2d-companion-bubble,.live2d-name-prompt{width:min(80vw,300px);max-width:80vw;font-size:13px;}}"
+            "@media (max-width:768px){.live2d-opening-bubble,.live2d-quiz-exit-bubble,.live2d-name-prompt{width:min(80vw,300px);max-width:80vw;font-size:13px;}}"
         ].join("");
         document.head.appendChild(style);
     }
@@ -414,14 +413,6 @@
     }
 
     function syncCompanionBubblePosition() {
-        if (companionBubble && companionBubble.textContent) {
-            positionLive2DPopup(companionBubble, {
-                width: 318,
-                height: 92,
-                offsetY: 62
-            });
-        }
-
         syncNamePromptPosition();
     }
 
@@ -628,40 +619,42 @@
             return;
         }
 
-        if (!companionBubble) {
-            companionBubble = createCompanionBubble();
+        if (!openingBubble) {
+            openingBubble = createOpeningBubble();
         }
 
-        companionBubble.textContent = text;
-        positionLive2DPopup(companionBubble, {
-            width: 318,
-            height: 92,
-            offsetY: 62
+        openingBubble.textContent = text;
+        positionLive2DPopup(openingBubble, {
+            width: 328,
+            height: 96,
+            offsetY: 56
         });
-        companionBubble.classList.remove("is-fading");
-        companionBubble.classList.add("is-open");
+        openingBubble.classList.remove("is-fading");
+        openingBubble.classList.add("is-open");
         playOptionalVoice(voice);
         window.clearTimeout(showCompanionBubble.timer);
+        window.clearTimeout(showOpeningBubble.timer);
         showCompanionBubble.timer = window.setTimeout(function () {
-            companionBubble.classList.add("is-fading");
-            companionBubble.classList.remove("is-open");
+            openingBubble.classList.add("is-fading");
+            openingBubble.classList.remove("is-open");
             window.clearTimeout(showCompanionBubble.fadeTimer);
             showCompanionBubble.fadeTimer = window.setTimeout(function () {
-                companionBubble.classList.remove("is-fading");
-                companionBubble.textContent = "";
+                openingBubble.classList.remove("is-fading");
+                openingBubble.textContent = "";
             }, 360);
         }, duration || 5200);
     }
 
     function hideCompanionBubble() {
-        if (!companionBubble) {
+        if (!openingBubble) {
             return;
         }
 
         window.clearTimeout(showCompanionBubble.timer);
         window.clearTimeout(showCompanionBubble.fadeTimer);
-        companionBubble.classList.remove("is-open", "is-fading");
-        companionBubble.textContent = "";
+        window.clearTimeout(showOpeningBubble.timer);
+        openingBubble.classList.remove("is-open", "is-fading");
+        openingBubble.textContent = "";
     }
 
     function getTimePeriod() {
@@ -1338,9 +1331,11 @@
         window.setTimeout(syncOpeningBubblePosition, 500);
         window.setTimeout(syncOpeningBubblePosition, 1500);
         window.setTimeout(syncOpeningBubblePosition, 3000);
-        showOpeningBubble();
-        tryPlayOpeningVoice(true);
         memoryMessage = buildGanyuMemoryMessage(countGanyuVisitOnce());
+        if (!memoryMessage) {
+            showOpeningBubble();
+        }
+        tryPlayOpeningVoice(true);
         scheduleGanyuMemory();
         scheduleNamePrompt();
         scheduleCompanionIdle(true);

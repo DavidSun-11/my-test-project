@@ -13,44 +13,15 @@
     const scriptTimeoutMs = 7000;
     const slowLoadMessage = "甘雨加载有点慢，稍后再试试吧～";
     const readySelector = "#oml2d-main, .oml2d-main, #oml2d, .oml2d, .oml2d-stage, .oml2d-canvas";
-    const waitingMessages = [
-        "请稍等一下哦，我马上就来。",
-        "嗯…让我整理一下思绪。",
-        "今天的工作，也要认真完成呢。",
-        "久等啦，我已经在路上了。",
-        "请再等我片刻，好吗？",
-        "月海亭的事务刚处理完呢。",
-        "能见到你，我很开心。",
-        "谢谢你愿意等我。",
-        "接下来的时间，请多关照。",
-        "希望今天也能帮到你。"
-    ];
-    const stableMessages = [
-        "欢迎来到星空主页。",
-        "点我一下，来和君雪互动吧。",
-        "我会待在左下角，不影响游戏展示。",
-        "接下来的时间，请多关照。",
-        "希望今天也能帮到你。"
-    ];
+    const waitingMessages = [""];
+    const stableMessages = [""];
 
     let loadTimer = null;
     let readyObserver = null;
     let bootstrapHidden = false;
 
     function setMessage(text, persist) {
-        if (!message || !widget) {
-            return;
-        }
-
-        message.textContent = text;
-        widget.classList.add("is-talking");
-
-        window.clearTimeout(setMessage.timer);
-        if (!persist) {
-            setMessage.timer = window.setTimeout(function () {
-                widget.classList.remove("is-talking");
-            }, 3000);
-        }
+        return;
     }
 
     function getRandomMessage(messages) {
@@ -420,7 +391,7 @@
                 models: [buildModelConfig(modelPath)],
                 tips: {
                     idleTips: {
-                        message: idleMessages
+                        message: []
                     }
                 }
             });

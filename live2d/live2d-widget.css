@@ -40,6 +40,7 @@
 }
 
 .live2d-message {
+    display: none !important;
     position: absolute;
     right: -194px;
     top: 104px;
@@ -87,6 +88,10 @@
 [class*="oml2d"] {
     z-index: 42 !important;
     pointer-events: auto !important;
+}
+
+#oml2d-tips {
+    display: none !important;
 }
 
 #oml2d-stage.is-ganyu-drag-startled,
@@ -186,10 +191,10 @@ html.performance-low .oml2d-stage.is-ganyu-drag-bounce {
     position: fixed;
     left: 260px;
     bottom: 190px;
-    width: min(460px, calc(100vw - 32px));
-    max-width: calc(100vw - 32px);
+    width: min(440px, calc(100vw - 32px));
+    max-width: min(520px, calc(100vw - 32px));
     z-index: 70;
-    padding: 16px;
+    padding: 14px;
     border: 1px solid rgba(108, 229, 255, 0.54);
     border-radius: 16px;
     background:
@@ -233,10 +238,10 @@ html.performance-low .oml2d-stage.is-ganyu-drag-bounce {
 
 .live2d-quiz__close {
     position: absolute;
-    top: 10px;
-    right: 10px;
-    width: 28px;
-    height: 28px;
+    top: 9px;
+    right: 9px;
+    width: 30px;
+    height: 30px;
     border: 1px solid rgba(255, 255, 255, 0.22);
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.08);
@@ -253,15 +258,15 @@ html.performance-low .oml2d-stage.is-ganyu-drag-bounce {
 
 .live2d-quiz__meta {
     min-height: 18px;
-    margin: 0 34px 8px 0;
+    margin: 0 34px 6px 0;
     color: rgba(159, 245, 255, 0.84);
     font-size: 12px;
     line-height: 1.4;
 }
 
 .live2d-quiz__question {
-    margin: 4px 34px 14px 0;
-    font-size: 16px;
+    margin: 2px 34px 10px 0;
+    font-size: 15px;
     font-weight: bold;
     line-height: 1.5;
     text-shadow: 0 0 12px rgba(108, 229, 255, 0.42);
@@ -270,7 +275,7 @@ html.performance-low .oml2d-stage.is-ganyu-drag-bounce {
 .live2d-quiz__options {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
+    gap: 8px;
 }
 
 .live2d-quiz__options.live2d-quiz__menu {
@@ -278,7 +283,7 @@ html.performance-low .oml2d-stage.is-ganyu-drag-bounce {
 }
 
 .live2d-quiz__option {
-    min-height: 38px;
+    min-height: 34px;
     border: 1px solid rgba(108, 229, 255, 0.36);
     border-radius: 12px;
     background: rgba(255, 255, 255, 0.08);
@@ -313,7 +318,7 @@ html.performance-low .oml2d-stage.is-ganyu-drag-bounce {
 
 .live2d-quiz__result {
     min-height: 22px;
-    margin-top: 12px;
+    margin-top: 10px;
     color: #9ff5ff;
     font-size: 14px;
     line-height: 1.45;

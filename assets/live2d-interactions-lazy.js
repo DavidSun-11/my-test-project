@@ -987,14 +987,38 @@
             clearDialog();
             question.textContent = "想和君雪做什么？";
             options.classList.add("live2d-quiz__menu");
-            addOption("无奖竞答", startQuiz);
-            addOption("英雄池转盘", showHeroWheel);
+            addOption("娱乐一下", showEntertainmentPanel);
             addOption("咨询", showConsultPanel);
             addOption("认识君雪", showKnowJunxuePanel);
             addOption("意见箱", function () {
                 recordGanyuFeature("意见箱");
                 window.location.href = "suggest.html";
             });
+            showDialog();
+        }
+
+        function showEntertainmentPanel() {
+            clearDialog();
+            meta.textContent = "娱乐一下";
+            question.textContent = "今天想和甘雨玩点什么呢？";
+            options.classList.add("live2d-consult-grid");
+            addConsultCard("无奖竞答", "题目挑战", false, startQuiz);
+            addConsultCard("英雄池转盘", "今天玩谁？", false, showHeroWheel);
+            addConsultCard("直播抽签", "即将开放", false, function () {
+                recordGanyuFeature("直播抽签");
+                result.textContent = "这个节目还在准备中，等直播的时候再一起玩吧～";
+                result.className = "live2d-quiz__result is-neutral";
+            });
+            addConsultCard("更多玩法", "敬请期待", false, function () {
+                recordGanyuFeature("更多玩法");
+                result.textContent = "甘雨还在想新的玩法，要再等一等哦～";
+                result.className = "live2d-quiz__result is-neutral";
+            });
+            addConsultCard("返回", "回到主菜单", false, function () {
+                showMenu();
+            });
+            result.textContent = "选一个小游戏吧。";
+            result.className = "live2d-quiz__result is-neutral";
             showDialog();
         }
 

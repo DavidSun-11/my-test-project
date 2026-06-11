@@ -990,7 +990,20 @@
             addOption("无奖竞答", startQuiz);
             addOption("英雄池转盘", showHeroWheel);
             addOption("咨询", showConsultPanel);
-            addOption("认识一下", function () {
+            addOption("认识君雪", showKnowJunxuePanel);
+            addOption("意见箱", function () {
+                recordGanyuFeature("意见箱");
+                window.location.href = "suggest.html";
+            });
+            showDialog();
+        }
+
+        function showKnowJunxuePanel() {
+            clearDialog();
+            meta.textContent = "认识君雪";
+            question.textContent = "这些事情，甘雨都替君雪记着呢。";
+            options.classList.add("live2d-consult-grid");
+            addConsultCard("认识一下", "告诉甘雨该怎么称呼你", false, function () {
                 recordGanyuFeature("认识一下");
                 closeDialog();
                 const memory = getGanyuMemory();
@@ -999,13 +1012,14 @@
                     memory.showNamePrompt();
                 }
             });
-            addOption("甘雨记得你", function () {
+            addConsultCard("甘雨记得你", "看看甘雨记住的小事", false, function () {
                 showMemoryPanel();
             });
-            addOption("意见箱", function () {
-                recordGanyuFeature("意见箱");
-                window.location.href = "suggest.html";
+            addConsultCard("返回", "回到主菜单", false, function () {
+                showMenu();
             });
+            result.textContent = "想先聊哪一件事呢？";
+            result.className = "live2d-quiz__result is-neutral";
             showDialog();
         }
 
@@ -1189,7 +1203,13 @@
             addConsultCard("查看天气", "查询近三天天气", false, showWeatherInput);
             addConsultCard("听歌", "播放本地歌曲", false, showMusicPlayer);
             addConsultCard("占卜", "看看今日运势", false, showFortunePanel);
-            addConsultCard("敬请期待", "先留一个小悬念", true);
+            addConsultCard("收费咨询", "价格、下单和老板评价", false, function () {
+                recordGanyuFeature("收费咨询");
+                window.location.href = "price.html";
+            });
+            addConsultCard("返回", "回到主菜单", false, function () {
+                showMenu();
+            });
             result.textContent = "想先看看哪一项呢？";
             result.className = "live2d-quiz__result is-neutral";
             showDialog();

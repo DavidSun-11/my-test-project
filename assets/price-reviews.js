@@ -43,7 +43,7 @@
         return /^https:\/\/.+\.supabase\.co$/i.test(url) &&
             !!key &&
             key.indexOf("你的 Supabase") === -1 &&
-            key.indexOf("service_role") === -1;
+            (key.indexOf("sb_publishable_") === 0 || key.indexOf("eyJ") === 0);
     }
 
     function setStatus(node, text, type) {

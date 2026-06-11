@@ -2,52 +2,53 @@
 
 本项目部署在 GitHub Pages，不需要自建 Node 后端。老板评价使用 Supabase Auth + Supabase Database。
 
-## 1. 创建 Supabase Project
+当前线上前端已经使用 Supabase Publishable key：
 
-1. 打开 Supabase 官网并创建一个新 Project。
-2. 等待项目初始化完成。
-3. 进入项目后台的 `Project Settings`。
+```text
+Project URL: https://btkmovuusgazlwgjubkv.supabase.co
+Publishable key: 已写入 assets/supabase-config.js
+```
 
-## 2. 获取前端配置
+Publishable key 可以放在前端页面中使用。绝对不要把 `secret key` 或 Supabase `service role` 权限密钥放进前端，也不要提交任何私密密钥。
 
-在 `Project Settings -> API` 中复制：
+## 1. Supabase 后台必须完成的配置
 
-- `Project URL`
-- `anon public key`
+1. 打开 Supabase Project。
+2. 确认 `Project Settings -> API` 中的 Project URL 与 `assets/supabase-config.js` 一致。
+3. 确认前端只使用 Publishable key / anon public key。
+4. 创建 `boss_reviews` 表。
+5. 开启 RLS。
+6. 添加权限策略。
 
-注意：
+## 2. 前端配置文件
 
-- 前端只能使用 `anon public key`。
-- 不要把 `service_role` key 写进前端。
-- 不要把任何私密密钥提交到仓库。
+线上使用：
 
-## 3. 配置前端文件
+```js
+window.SUPABASE_URL = "https://btkmovuusgazlwgjubkv.supabase.co";
+window.SUPABASE_ANON_KEY = "你的 Publishable key";
+```
 
-复制示例文件：
+示例文件仍保留在：
 
 ```text
 assets/supabase-config.example.js
 ```
 
-另存为：
+如果以后更换 Supabase 项目，只需要更新：
 
 ```text
 assets/supabase-config.js
 ```
 
-然后填入真实配置：
+安全要求：
 
-```js
-const SUPABASE_URL = "你的 Project URL";
-const SUPABASE_ANON_KEY = "你的 anon public key";
+- 前端只允许使用 Publishable key / anon public key。
+- 不要使用 secret key。
+- 不要使用 Supabase service role 权限密钥。
+- 必须开启 RLS，并通过策略限制写入权限。
 
-window.SUPABASE_URL = SUPABASE_URL;
-window.SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
-```
-
-`assets/supabase-config.js` 已加入 `.gitignore`，不要提交真实配置。
-
-## 4. 创建 boss_reviews 表
+## 3. 创建 boss_reviews 表
 
 在 Supabase 后台打开 `SQL Editor`，执行：
 
@@ -63,13 +64,13 @@ create table if not exists public.boss_reviews (
 );
 ```
 
-## 5. 开启 RLS
+## 4. 开启 RLS
 
 ```sql
 alter table public.boss_reviews enable row level security;
 ```
 
-## 6. 添加权限策略
+## 5. 添加权限策略
 
 所有人可以读取评价：
 
@@ -120,7 +121,7 @@ using (auth.uid() = user_id);
 
 编辑/删除策略先保留，页面暂不提供编辑/删除按钮。
 
-## 7. Auth 邮箱验证
+## 6. Auth 邮箱验证
 
 如果 Supabase 开启了邮箱验证，用户注册后可能不会立即登录。页面会提示：
 

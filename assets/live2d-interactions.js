@@ -110,6 +110,7 @@
     let memoryAttempts = 0;
     let namePromptPending = false;
     let namePromptAttempts = 0;
+    let lastDragStartDialogueAt = 0;
     const boundNodes = new WeakSet();
 
     function onReady(callback) {
@@ -498,6 +499,73 @@
             audio.volume = 0.8;
             audio.play().catch(function () {});
         } catch (error) {}
+    }
+
+    function getLive2DStageNode() {
+        return document.querySelector("#oml2d-stage") ||
+            document.querySelector(".oml2d-stage") ||
+            document.querySelector("#live2d-widget");
+    }
+
+    function animateLive2DStage(className, duration) {
+        const stage = getLive2DStageNode();
+
+        if (!stage) {
+            return;
+        }
+
+        stage.classList.remove(className);
+        void stage.offsetWidth;
+        stage.classList.add(className);
+        window.clearTimeout(animateLive2DStage[className]);
+        animateLive2DStage[className] = window.setTimeout(function () {
+            stage.classList.remove(className);
+        }, duration);
+    }
+
+    function tryTriggerLive2DGesture(kind) {
+        const candidates = [
+            window.OML2D,
+            window.oml2d,
+            window.Live2DWidget,
+            window.Live2DWidget && window.Live2DWidget.model,
+            window.Live2DWidget && window.Live2DWidget.stage
+        ];
+        const motionNames = kind === "start" ? ["FlickHead", "TapBody"] : ["TapBody", "Idle"];
+        const expressionNames = kind === "start" ? ["sad", "shy", "f01"] : ["smile", "happy", "f02"];
+
+        candidates.forEach(function (api) {
+            if (!api) {
+                return;
+            }
+
+            try {
+                if (typeof api.motion === "function") {
+                    api.motion(motionNames[0]);
+                } else if (typeof api.startMotion === "function") {
+                    api.startMotion(motionNames[0]);
+                } else if (typeof api.expression === "function") {
+                    api.expression(expressionNames[0]);
+                } else if (typeof api.setExpression === "function") {
+                    api.setExpression(expressionNames[0]);
+                }
+            } catch (error) {}
+        });
+    }
+
+    function canShowDragStartDialogue() {
+        const now = Date.now();
+
+        if (now - lastDragStartDialogueAt < 8000) {
+            return false;
+        }
+
+        if (isGanyuInteractionBusy()) {
+            return false;
+        }
+
+        lastDragStartDialogueAt = now;
+        return true;
     }
 
     function showCompanionBubble(text, voice, duration) {
@@ -1228,9 +1296,19 @@
             recordSong: recordSong,
             recordFortune: recordFortune
         };
+        window.addEventListener("live2d-stage-drag-started", function () {
+            animateLive2DStage("is-ganyu-drag-startled", 560);
+            tryTriggerLive2DGesture("start");
+
+            if (canShowDragStartDialogue()) {
+                showCompanionBubble("你要带甘雨去哪里呀？", "", 3600);
+            }
+        });
         window.addEventListener("live2d-stage-drag-finished", function () {
             const line = pickRandomItem(dragDialogueLines);
 
+            animateLive2DStage("is-ganyu-drag-bounce", 680);
+            tryTriggerLive2DGesture("finish");
             showCompanionBubble(line.text, line.voice, 4800);
         });
         window.addEventListener("ganyu-live2d-visible", function () {

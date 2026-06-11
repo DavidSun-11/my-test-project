@@ -367,6 +367,12 @@
 
         dragState.moved = true;
         setDragging(true);
+        window.dispatchEvent(new CustomEvent("live2d-stage-drag-started", {
+            detail: {
+                position: currentPosition || dragState.startPosition,
+                rect: getStageRect()
+            }
+        }));
         event.preventDefault();
         event.stopPropagation();
 

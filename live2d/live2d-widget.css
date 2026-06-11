@@ -89,6 +89,78 @@
     pointer-events: auto !important;
 }
 
+#oml2d-stage.is-ganyu-drag-startled,
+.oml2d-stage.is-ganyu-drag-startled {
+    animation: ganyu-drag-startled 520ms ease-in-out;
+    transform-origin: 50% 84%;
+}
+
+#oml2d-stage.is-ganyu-drag-bounce,
+.oml2d-stage.is-ganyu-drag-bounce {
+    animation: ganyu-drag-bounce 640ms ease-out;
+    transform-origin: 50% 88%;
+}
+
+@keyframes ganyu-drag-startled {
+    0% {
+        transform: translateX(0) scale(1);
+    }
+
+    24% {
+        transform: translateX(-5px) scale(1.015);
+    }
+
+    48% {
+        transform: translateX(5px) scale(1.025);
+    }
+
+    72% {
+        transform: translateX(-3px) scale(1.01);
+    }
+
+    100% {
+        transform: translateX(0) scale(1);
+    }
+}
+
+@keyframes ganyu-drag-bounce {
+    0% {
+        transform: translateY(0) scale(1);
+    }
+
+    28% {
+        transform: translateY(-8px) scale(1.025);
+    }
+
+    54% {
+        transform: translateY(4px) scale(0.99);
+    }
+
+    78% {
+        transform: translateY(-3px) scale(1.01);
+    }
+
+    100% {
+        transform: translateY(0) scale(1);
+    }
+}
+
+html.performance-low #oml2d-stage.is-ganyu-drag-startled,
+html.performance-low .oml2d-stage.is-ganyu-drag-startled,
+html.performance-low #oml2d-stage.is-ganyu-drag-bounce,
+html.performance-low .oml2d-stage.is-ganyu-drag-bounce {
+    animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #oml2d-stage.is-ganyu-drag-startled,
+    .oml2d-stage.is-ganyu-drag-startled,
+    #oml2d-stage.is-ganyu-drag-bounce,
+    .oml2d-stage.is-ganyu-drag-bounce {
+        animation: none;
+    }
+}
+
 #oml2d-main,
 .oml2d-main {
     bottom: 112px !important;

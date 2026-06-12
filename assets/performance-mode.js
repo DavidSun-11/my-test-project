@@ -1,6 +1,7 @@
 /* Performance mode: auto-detect low power devices and expose a tiny shared API. */
 (function () {
     const STORAGE_KEY = "performanceMode";
+    const HIGH_EFFECT_REQUEST_KEY = "junxueManualHighEffectRequestedAt";
     const VALID_MODES = ["auto", "low", "high"];
     const root = document.documentElement;
 
@@ -92,6 +93,57 @@
         try {
             window.localStorage.setItem(STORAGE_KEY, mode);
         } catch (error) {}
+    }
+
+    function markManualHighEffectRequest(mode) {
+        try {
+            if (mode === "high") {
+                window.sessionStorage.setItem(HIGH_EFFECT_REQUEST_KEY, String(Date.now()));
+                return;
+            }
+
+            window.sessionStorage.removeItem(HIGH_EFFECT_REQUEST_KEY);
+        } catch (error) {}
+    }
+
+    function initKeyboardViewportClass() {
+        let focusTimer = null;
+
+        function isTextControl(element) {
+            return !!element && /^(INPUT|TEXTAREA|SELECT)$/.test(element.tagName || "");
+        }
+
+        function updateKeyboardClass(forceOpen) {
+            if (!document.body) {
+                return;
+            }
+
+            const viewport = window.visualViewport;
+            const viewportShrunk = !!(viewport && window.innerHeight - viewport.height > 120);
+            const hasFocusedInput = isTextControl(document.activeElement);
+            document.body.classList.toggle("keyboard-open", !!(hasFocusedInput && (forceOpen || viewportShrunk)));
+        }
+
+        window.addEventListener("focusin", function () {
+            window.clearTimeout(focusTimer);
+            updateKeyboardClass(true);
+        });
+
+        window.addEventListener("focusout", function () {
+            window.clearTimeout(focusTimer);
+            focusTimer = window.setTimeout(function () {
+                updateKeyboardClass(false);
+            }, 120);
+        });
+
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener("resize", function () {
+                updateKeyboardClass(false);
+            });
+            window.visualViewport.addEventListener("scroll", function () {
+                updateKeyboardClass(false);
+            });
+        }
     }
 
     function injectModeSwitcherStyles() {
@@ -236,6 +288,11 @@
             }
 
             option.addEventListener("click", function () {
+                if (mode.value === "high") {
+                    button.textContent = "特效加载中…";
+                    button.disabled = true;
+                }
+                markManualHighEffectRequest(mode.value);
                 writeStoredMode(mode.value);
                 window.location.reload();
             });
@@ -297,8 +354,12 @@
     };
 
     if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", initModeSwitcher, { once: true });
+        document.addEventListener("DOMContentLoaded", function () {
+            initModeSwitcher();
+            initKeyboardViewportClass();
+        }, { once: true });
     } else {
         initModeSwitcher();
+        initKeyboardViewportClass();
     }
 })();

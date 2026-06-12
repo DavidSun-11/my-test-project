@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>君雪的个人网站</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
-    <script src="assets/performance-mode.js?v=20260612-5"></script>
+    <script src="assets/performance-mode.js?v=20260613-1"></script>
     <link rel="stylesheet" href="live2d/live2d-widget.css?v=20260613-3">
     <style>
         html,
@@ -44,6 +44,26 @@
 
         html[data-performance-preference="high"] .home-bg-video {
             display: block;
+        }
+
+        .home-video-status {
+            position: fixed;
+            left: 50%;
+            bottom: max(86px, calc(env(safe-area-inset-bottom) + 72px));
+            z-index: 20;
+            width: min(420px, calc(100vw - 32px));
+            padding: 10px 14px;
+            border: 1px solid rgba(120, 229, 255, 0.48);
+            border-radius: 16px;
+            background: rgba(6, 22, 44, 0.78);
+            color: rgba(234, 252, 255, 0.94);
+            font-size: 13px;
+            line-height: 1.55;
+            text-align: center;
+            box-shadow: 0 0 16px rgba(0, 190, 255, 0.18), inset 0 0 10px rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(8px);
+            transform: translateX(-50%);
+            pointer-events: none;
         }
 
         .home-bg-overlay {
@@ -611,6 +631,10 @@
             }
 
             html[data-performance-preference="high"] .home-bg-video {
+                display: none;
+            }
+
+            html.mobile-video-unlocked .home-bg-video {
                 display: block;
             }
 
@@ -623,13 +647,16 @@
                 display: none;
             }
 
+            html.performance-high .stars,
+            html.performance-high .stars2 {
+                display: block;
+            }
+
             html.performance-high .cursor-light,
             html.performance-high .ripple,
             html.performance-high .meteor-layer,
-            html.performance-high .stars,
-            html.performance-high .stars2,
             html.performance-high .stars3 {
-                display: block;
+                display: none;
             }
 
             .home-hero {
@@ -738,6 +765,25 @@
             html.performance-low .home-nav a {
                 backdrop-filter: none;
                 box-shadow: none;
+            }
+
+            body.keyboard-open .cursor-light,
+            body.keyboard-open .ripple,
+            body.keyboard-open .meteor-layer,
+            body.keyboard-open .stars,
+            body.keyboard-open .stars2,
+            body.keyboard-open .stars3 {
+                display: none !important;
+            }
+
+            body.keyboard-open .hero-title-svg__shine,
+            body.keyboard-open .hero-title-svg__spark {
+                animation: none !important;
+            }
+
+            body.keyboard-open .home-video-status {
+                bottom: auto;
+                top: max(12px, env(safe-area-inset-top));
             }
         }
 
@@ -916,18 +962,58 @@ const isFullEffectMode = !!(pagePerformance && pagePerformance.requestedMode ===
 const isMobileViewport = window.matchMedia("(max-width: 768px)").matches ||
     window.matchMedia("(pointer: coarse)").matches ||
     /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "");
+const manualHighEffectRequestKey = "junxueManualHighEffectRequestedAt";
+const manualHighEffectWindowMs = 30000;
 const light = document.querySelector(".cursor-light");
 const backgroundVideo = document.querySelector(".home-bg-video");
+
+function consumeManualHighEffectRequest() {
+    try {
+        const value = window.sessionStorage.getItem(manualHighEffectRequestKey);
+        const requestedAt = Number(value || 0);
+        window.sessionStorage.removeItem(manualHighEffectRequestKey);
+        return requestedAt > 0 && Date.now() - requestedAt < manualHighEffectWindowMs;
+    } catch (error) {
+        return false;
+    }
+}
+
+function showHomeVideoStatus(message) {
+    let status = document.querySelector(".home-video-status");
+
+    if (!status) {
+        status = document.createElement("div");
+        status.className = "home-video-status";
+        status.setAttribute("role", "status");
+        status.setAttribute("aria-live", "polite");
+        document.body.appendChild(status);
+    }
+
+    status.textContent = message;
+    window.clearTimeout(showHomeVideoStatus.timer);
+    showHomeVideoStatus.timer = window.setTimeout(() => {
+        status.remove();
+    }, 4200);
+}
+
+const manualHighEffectRequested = isFullEffectMode && consumeManualHighEffectRequest();
+const shouldLoadBackgroundVideo = isFullEffectMode && (!isMobileViewport || manualHighEffectRequested);
+document.documentElement.classList.toggle("mobile-video-unlocked", !!(isMobileViewport && manualHighEffectRequested));
 
 if (backgroundVideo) {
     const videoSource = backgroundVideo.querySelector("source");
 
-    if (isFullEffectMode && !isMobileViewport) {
+    if (shouldLoadBackgroundVideo) {
         if (videoSource && !videoSource.getAttribute("src")) {
             videoSource.setAttribute("src", videoSource.dataset.src || "");
             backgroundVideo.load();
         }
-        backgroundVideo.play().catch(() => {});
+        backgroundVideo.addEventListener("error", () => {
+            showHomeVideoStatus("手机网络有点慢，星空背景暂时没有加载出来。");
+        }, { once: true });
+        backgroundVideo.play().catch(() => {
+            showHomeVideoStatus("手机网络有点慢，星空背景暂时没有加载出来。");
+        });
     } else {
         backgroundVideo.pause();
         backgroundVideo.removeAttribute("autoplay");
@@ -1035,6 +1121,6 @@ document.addEventListener("click", (e) => {
         window.JunxuePerformanceMode.applyLive2DConfig(window.Live2DWidgetConfig);
     }
 </script>
-<script src="assets/live2d-loader.js?v=20260613-3" data-live2d-autoload="home"></script>
+<script src="assets/live2d-loader.js?v=20260613-4" data-live2d-autoload="home"></script>
 </body>
 </html>

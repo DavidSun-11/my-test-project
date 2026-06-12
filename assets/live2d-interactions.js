@@ -6,7 +6,7 @@
 
     window.__JUNXUE_LIVE2D_INTERACTIONS_INSTALLED__ = true;
 
-    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260613-2";
+    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260613-3";
     if (typeof window.enableGanyuMemory !== "boolean") {
         window.enableGanyuMemory = true;
     }
@@ -238,7 +238,7 @@
             ".live2d-name-prompt__input{width:100%;box-sizing:border-box;border:1px solid rgba(213,244,255,.68);border-radius:12px;background:rgba(6,22,44,.45);color:rgba(255,255,255,.96);padding:10px 12px;font:inherit;outline:none;}",
             ".live2d-name-prompt__input::placeholder{color:rgba(234,252,255,.62);}",
             ".live2d-name-prompt__button{border:1px solid rgba(120,229,255,.62);border-radius:999px;background:rgba(6,22,44,.7);color:rgba(234,252,255,.96);font-weight:700;min-height:34px;cursor:pointer;box-shadow:0 0 12px rgba(0,190,255,.18),inset 0 0 8px rgba(255,255,255,.08);}",
-            "@media (max-width:768px){.live2d-opening-bubble,.live2d-quiz-exit-bubble,.live2d-name-prompt{width:min(80vw,300px);max-width:80vw;font-size:13px;}}"
+            "@media (max-width:768px){.live2d-opening-bubble,.live2d-quiz-exit-bubble,.live2d-name-prompt{width:min(92vw,320px);max-width:calc(100vw - 24px);font-size:13px;box-sizing:border-box;}.live2d-name-prompt__input,.live2d-name-prompt__button{width:100%;min-width:0;box-sizing:border-box;}.live2d-name-prompt__button{min-height:40px;white-space:nowrap;}body.keyboard-open .live2d-opening-bubble,body.keyboard-open .live2d-quiz-exit-bubble,body.keyboard-open .live2d-name-prompt{left:50%!important;right:auto!important;top:max(12px,env(safe-area-inset-top))!important;bottom:auto!important;width:min(92vw,320px)!important;max-width:calc(100vw - 24px)!important;max-height:min(54vh,320px);overflow:auto;transform:translateX(-50%)!important;}body.keyboard-open .live2d-name-prompt__form{grid-template-columns:1fr;}}"
         ].join("");
         document.head.appendChild(style);
     }

@@ -302,8 +302,22 @@
 
         .price-auth-actions {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 8px;
+        }
+
+        .price-auth-note {
+            margin: 0;
+            color: rgba(214, 246, 255, 0.72);
+            font-size: 12px;
+            line-height: 1.45;
+        }
+
+        .price-auth-link {
+            width: fit-content;
+            min-height: 34px;
+            padding: 0 14px;
+            font-size: 13px;
         }
 
         .price-status {
@@ -624,19 +638,6 @@
         </article>
     </section>
 
-    <section class="price-card">
-        <h2>接单说明</h2>
-        <ul class="price-list">
-            <li>价格会根据实际段位、时段、状态微调。</li>
-            <li>包赢 / 补星模式以实际上星结果为准。</li>
-            <li>如遇不可抗因素或体验不满意，可协商补单或退款。</li>
-            <li>下单前请先联系确认档期。</li>
-            <li>正常情况下，评分低于前二可联系退款或补单。</li>
-            <li>支持储值，满 100 送 10 元，满 200 送 20 元；未用完可随时退款。</li>
-            <li>老板在游戏体验过程中，若有不满意等正当理由可退款。</li>
-        </ul>
-    </section>
-
     <section class="price-card" aria-labelledby="review-title">
         <h2 id="review-title">老板评价</h2>
         <button class="price-review-toggle" id="price-review-toggle" type="button" aria-expanded="false">我要留下老板评价</button>
@@ -653,9 +654,10 @@
                     </div>
                     <div class="price-auth-actions">
                         <button class="price-auth-button" id="price-login-button" type="button">登录</button>
-                        <button class="price-auth-button" id="price-signup-button" type="button">注册</button>
                         <button class="price-auth-button" id="price-logout-button" type="button" hidden>退出登录</button>
                     </div>
+                    <p class="price-auth-note">还没有账号？请回到首页，点击甘雨 → 认识君雪 → 老板账号注册。</p>
+                    <a class="price-auth-button price-auth-link" href="index.html#ganyu-register">回首页找甘雨注册</a>
                     <div class="price-status" id="price-auth-status" role="status" aria-live="polite"></div>
                 </form>
 
@@ -695,6 +697,19 @@
                 <div class="price-empty">老板评价系统暂未配置，请稍后再来～</div>
             </div>
         </div>
+    </section>
+
+    <section class="price-card">
+        <h2>接单说明</h2>
+        <ul class="price-list">
+            <li>价格会根据实际段位、时段、状态微调。</li>
+            <li>包赢 / 补星模式以实际上星结果为准。</li>
+            <li>如遇不可抗因素或体验不满意，可协商补单或退款。</li>
+            <li>下单前请先联系确认档期。</li>
+            <li>正常情况下，评分低于前二可联系退款或补单。</li>
+            <li>支持储值，满 100 送 10 元，满 200 送 20 元；未用完可随时退款。</li>
+            <li>老板在游戏体验过程中，若有不满意等正当理由可退款。</li>
+        </ul>
     </section>
 </main>
 
@@ -815,10 +830,10 @@ document.addEventListener("click", function (event) {
     }
 
     loadScript("assets/supabase-config.js?v=20260611-1").then(function () {
-        return loadScript("assets/price-reviews.js?v=20260612-1");
+        return loadScript("assets/price-reviews.js?v=20260612-2");
     });
 })();
 </script>
-<script src="assets/live2d-loader.js?v=20260612-2" data-live2d-autoload="manual"></script>
+<script src="assets/live2d-loader.js?v=20260612-3" data-live2d-autoload="manual"></script>
 </body>
 </html>

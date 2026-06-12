@@ -19,10 +19,11 @@
     const ratingInput = document.getElementById("price-review-rating");
     const messageInput = document.getElementById("price-review-message");
     const loginButton = document.getElementById("price-login-button");
-    const signupButton = document.getElementById("price-signup-button");
     const logoutButton = document.getElementById("price-logout-button");
     const submitButton = document.getElementById("price-review-submit");
     const authFields = authForm ? authForm.querySelectorAll(".price-field") : [];
+    const authNote = authForm ? authForm.querySelector(".price-auth-note") : null;
+    const authLink = authForm ? authForm.querySelector(".price-auth-link") : null;
 
     let client = null;
     let currentUser = null;
@@ -121,12 +122,16 @@
             loginButton.hidden = isLoggedIn;
         }
 
-        if (signupButton) {
-            signupButton.hidden = isLoggedIn;
-        }
-
         if (logoutButton) {
             logoutButton.hidden = !isLoggedIn;
+        }
+
+        if (authNote) {
+            authNote.hidden = isLoggedIn;
+        }
+
+        if (authLink) {
+            authLink.hidden = isLoggedIn;
         }
     }
 
@@ -242,7 +247,7 @@
 
     function renderAuthState() {
         if (!currentUser) {
-            setStatus(authStatus, "登录后可以发布老板评价。", "neutral");
+            setStatus(authStatus, "已有老板账号？登录后可以发布评价。", "neutral");
             setReviewFormEnabled(false);
             setAuthControls(false);
             return;
@@ -289,29 +294,6 @@
 
         currentUser = response.data && response.data.session ? response.data.session.user : response.data.user;
         renderAuthState();
-    }
-
-    async function handleSignup() {
-        const email = emailInput.value.trim();
-        const password = passwordInput.value;
-
-        if (!email || !password) {
-            setStatus(authStatus, "请先填写邮箱和密码。", "warning");
-            return;
-        }
-
-        signupButton.disabled = true;
-        const response = await client.auth.signUp({ email: email, password: password });
-        signupButton.disabled = false;
-
-        if (response.error) {
-            setStatus(authStatus, "注册失败，请稍后再试。", "warning");
-            return;
-        }
-
-        currentUser = response.data && response.data.session ? response.data.session.user : null;
-        renderAuthState();
-        setStatus(authStatus, "注册成功。如果没有立即登录，请先到邮箱完成验证哦。", "good");
     }
 
     async function handleLogout() {
@@ -416,7 +398,6 @@
         }
 
         loginButton.addEventListener("click", handleLogin);
-        signupButton.addEventListener("click", handleSignup);
         logoutButton.addEventListener("click", handleLogout);
         reviewForm.addEventListener("submit", handleReviewSubmit);
 

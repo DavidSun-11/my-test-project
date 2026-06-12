@@ -8,6 +8,8 @@
         window.enableGanyuIdleTalk = true;
     }
 
+    const SUPABASE_CDN = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
+
     const quizBank = [
         {
             question: "你觉得君雪是怎么样的人？",
@@ -1093,12 +1095,153 @@
             addConsultCard("甘雨记得你", "看看甘雨记住的小事", false, function () {
                 showMemoryPanel();
             });
+            addConsultCard("老板账号注册", "注册后可发布老板评价", false, function () {
+                recordGanyuFeature("老板账号注册");
+                showBossRegisterPanel();
+            });
             addConsultCard("返回", "回到主菜单", false, function () {
                 showMenu();
             });
             result.textContent = "想先聊哪一件事呢？";
             result.className = "live2d-quiz__result is-neutral";
             showDialog();
+        }
+
+        function getSupabaseConfigValue(name) {
+            return typeof window[name] === "string" ? window[name].trim() : "";
+        }
+
+        function hasBossRegisterConfig() {
+            const url = getSupabaseConfigValue("SUPABASE_URL");
+            const key = getSupabaseConfigValue("SUPABASE_ANON_KEY");
+
+            return /^https:\/\/.+\.supabase\.co$/i.test(url) &&
+                !!key &&
+                key.indexOf("你的 Supabase") === -1 &&
+                (key.indexOf("sb_publishable_") === 0 || key.indexOf("eyJ") === 0);
+        }
+
+        function loadExternalScript(src) {
+            return new Promise(function (resolve, reject) {
+                const existing = Array.prototype.find.call(document.scripts, function (script) {
+                    return script.getAttribute("src") === src;
+                });
+
+                if (existing) {
+                    resolve();
+                    return;
+                }
+
+                const script = document.createElement("script");
+
+                script.src = src;
+                script.async = true;
+                script.onload = resolve;
+                script.onerror = function () {
+                    script.remove();
+                    reject(new Error("script-load-failed"));
+                };
+                document.head.appendChild(script);
+            });
+        }
+
+        async function ensureBossRegisterClient() {
+            await loadExternalScript("assets/supabase-config.js?v=20260611-1").catch(function () {});
+
+            if (!hasBossRegisterConfig()) {
+                throw new Error("老板账号注册暂未配置，请稍后再试。");
+            }
+
+            await loadExternalScript(SUPABASE_CDN);
+            return window.supabase.createClient(
+                getSupabaseConfigValue("SUPABASE_URL"),
+                getSupabaseConfigValue("SUPABASE_ANON_KEY")
+            );
+        }
+
+        function showBossRegisterPanel() {
+            clearDialog();
+            setDialogMode("panel");
+            meta.textContent = "老板账号注册";
+            question.textContent = "这是 Supabase 老板账号，不会覆盖甘雨本地记忆里的称呼。";
+            options.innerHTML = [
+                '<form class="live2d-weather-form live2d-boss-register-form">',
+                    '<input class="live2d-weather-input" name="email" type="email" autocomplete="email" placeholder="邮箱">',
+                    '<input class="live2d-weather-input" name="password" type="password" autocomplete="new-password" placeholder="密码">',
+                    '<input class="live2d-weather-input" name="confirmPassword" type="password" autocomplete="new-password" placeholder="确认密码">',
+                    '<div class="live2d-weather-actions">',
+                        '<button class="live2d-quiz__option" type="submit">注册老板账号</button>',
+                        '<button class="live2d-quiz__option" type="button" data-action="price-login" hidden>去收费咨询页登录</button>',
+                        '<button class="live2d-quiz__option" type="button" data-action="back">返回</button>',
+                    '</div>',
+                '</form>'
+            ].join("");
+            result.textContent = "注册后，请到收费咨询页登录并留下老板评价。";
+            result.className = "live2d-quiz__result is-neutral";
+            showDialog();
+
+            const form = options.querySelector(".live2d-boss-register-form");
+            const submitButton = form.querySelector('button[type="submit"]');
+            const loginButton = form.querySelector('[data-action="price-login"]');
+            const backButton = form.querySelector('[data-action="back"]');
+
+            loginButton.addEventListener("click", function (event) {
+                event.stopPropagation();
+                window.location.href = "price.html";
+            });
+
+            backButton.addEventListener("click", function (event) {
+                event.stopPropagation();
+                showKnowJunxuePanel();
+            });
+
+            form.addEventListener("submit", async function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                const email = form.elements.email.value.trim();
+                const password = form.elements.password.value;
+                const confirmPassword = form.elements.confirmPassword.value;
+
+                if (!email || !password || !confirmPassword) {
+                    result.textContent = "请先把邮箱、密码和确认密码都填好哦。";
+                    result.className = "live2d-quiz__result is-warning";
+                    return;
+                }
+
+                if (password !== confirmPassword) {
+                    result.textContent = "两次密码不一致，请再检查一下。";
+                    result.className = "live2d-quiz__result is-warning";
+                    return;
+                }
+
+                submitButton.disabled = true;
+                result.textContent = "正在帮你注册老板账号……";
+                result.className = "live2d-quiz__result is-neutral";
+
+                try {
+                    const client = await ensureBossRegisterClient();
+                    const response = await client.auth.signUp({ email: email, password: password });
+
+                    if (response.error) {
+                        result.textContent = response.error.message + " 这个邮箱可能已经注册过了，可以去收费咨询页直接登录试试。";
+                        result.className = "live2d-quiz__result is-warning";
+                        return;
+                    }
+
+                    form.reset();
+                    loginButton.hidden = false;
+                    result.textContent = response.data && response.data.session ?
+                        "注册成功啦～现在可以去收费咨询页登录并留下老板评价。" :
+                        "注册成功，请先去邮箱确认账号，再回来登录。";
+                    result.className = "live2d-quiz__result is-good";
+                } catch (error) {
+                    result.textContent = error.message || "老板账号注册暂时不可用，请稍后再试。";
+                    result.className = "live2d-quiz__result is-warning";
+                } finally {
+                    submitButton.disabled = false;
+                }
+            });
         }
 
         function startQuiz() {

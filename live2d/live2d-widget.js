@@ -1,6 +1,6 @@
 /*
  * Live2D 看板娘陪伴脚本。
- * 使用 OhMyLive2D 的纯前端 CDN 运行时，适合直接部署到 GitHub Pages。
+ * 使用本地固定版本 OhMyLive2D 运行时，CDN 仅作为备用兜底。
  * 只加载仓库内甘雨模型；如果入口、moc3 或 textures 缺失，会在控制台明确输出错误，不再回退到旧模型。
  */
 (function () {
@@ -13,8 +13,9 @@
     const scriptTimeoutMs = 7000;
     const slowLoadMessage = "甘雨加载有点慢，稍后再试试吧～";
     const webglWarningMessage = "当前浏览器不支持 WebGL，甘雨可能无法正常显示。";
-    const primaryRuntimeSrc = "https://cdn.jsdelivr.net/npm/oh-my-live2d@0.19.3/dist/index.min.js";
-    const fallbackRuntimeSrc = "https://unpkg.com/oh-my-live2d@0.19.3/dist/index.min.js";
+    const localRuntimeSrc = "live2d/vendor/oh-my-live2d-0.19.3.min.js";
+    const jsdelivrRuntimeSrc = "https://cdn.jsdelivr.net/npm/oh-my-live2d@0.19.3/dist/index.min.js";
+    const unpkgRuntimeSrc = "https://unpkg.com/oh-my-live2d@0.19.3/dist/index.min.js";
     const runtimeResolutionNeedle = "resolution:2,autoStart:!0,autoDensity:!0";
     const readySelector = "#oml2d-main, .oml2d-main, #oml2d, .oml2d, .oml2d-stage, .oml2d-canvas";
     const waitingMessages = [""];
@@ -40,7 +41,8 @@
         dprCap: getLive2DDprCap(),
         dprInjected: false,
         fallbackToOriginalResolution: false,
-        runtime: "oh-my-live2d@0.19.3"
+        runtime: "oh-my-live2d@0.19.3",
+        runtimeSource: ""
     }, window.JunxueLive2DRenderInfo || {});
 
     if (window.__JUNXUE_LIVE2D_READY__ || window.__JUNXUE_LIVE2D_INIT_STARTED__ || hasExistingLive2DInstance()) {
@@ -232,12 +234,41 @@
             details: details || null
         });
         setMessage(slowLoadMessage, true);
+        dispatchLoadFailure(reason);
+        resetInitForRetry();
 
         window.setTimeout(function () {
             if (!findReadyContainer()) {
                 hideBootstrapWidget();
             }
         }, 3600);
+    }
+
+    function getFailureMessage(reason) {
+        if (/runtime/i.test(reason || "")) {
+            return "Live2D runtime 加载失败，请点“再试一次”。";
+        }
+
+        if (/model|moc3|texture|resource/i.test(reason || "")) {
+            return "甘雨模型资源加载失败，请点“再试一次”。";
+        }
+
+        if (/webgl/i.test(reason || "")) {
+            return webglWarningMessage;
+        }
+
+        return "网络加载有点慢，甘雨暂时没赶到。可以点“再试一次”。";
+    }
+
+    function dispatchLoadFailure(reason) {
+        try {
+            window.dispatchEvent(new CustomEvent("junxue-live2d-load-failed", {
+                detail: {
+                    reason: reason,
+                    message: getFailureMessage(reason)
+                }
+            }));
+        } catch (error) {}
     }
 
     function watchLive2DReady() {
@@ -273,6 +304,17 @@
                 timeout: loadTimeoutMs
             });
         }, loadTimeoutMs);
+    }
+
+    function resetInitForRetry() {
+        if (findReadyContainer() || hasExistingLive2DInstance()) {
+            return;
+        }
+
+        window.__JUNXUE_LIVE2D_INIT_STARTED__ = false;
+        window.__JUNXUE_LIVE2D_READY__ = false;
+        window.__JUNXUE_LIVE2D_INSTANCE__ = null;
+        window.JunxueLive2DRenderInfo.isInitialized = false;
     }
 
     function loadScript(src) {
@@ -517,23 +559,51 @@
         }
     }
 
-    async function loadOriginalRuntime() {
+    async function loadRuntimeScriptChain(sources) {
         runtimeUsedOriginal = true;
-        await loadScript(primaryRuntimeSrc).catch(function (primaryError) {
-            console.error("Live2D runtime primary CDN failed", {
+        let lastError = null;
+
+        for (let index = 0; index < sources.length; index += 1) {
+            const source = sources[index];
+
+            try {
+                await loadScript(source.src);
+                window.JunxueLive2DRenderInfo.runtimeSource = source.label;
+                return;
+            } catch (error) {
+                lastError = error;
+                console.error("Live2D runtime source failed", {
+                    stage: "runtime",
+                    source: source.label,
+                    src: source.src,
+                    error: error
+                });
+            }
+        }
+
+        throw lastError || new Error("runtime-load-failed");
+    }
+
+    async function loadOriginalRuntime() {
+        await loadRuntimeScriptChain([
+            { label: "local vendor", src: localRuntimeSrc },
+            { label: "jsdelivr", src: jsdelivrRuntimeSrc },
+            { label: "unpkg", src: unpkgRuntimeSrc }
+        ]).catch(function (error) {
+            console.error("Live2D runtime all sources failed", {
                 stage: "runtime",
-                error: primaryError
+                error: error
             });
-            return loadScript(fallbackRuntimeSrc);
+            throw error;
         });
     }
 
-    async function loadDprInjectedRuntime(src) {
+    async function loadDprInjectedRuntime(src, label) {
         const dprCap = Math.min(Math.max(1, Number(getLive2DDprCap()) || 1.5), 2);
         const source = await loadRuntimeText(src);
 
         if (source.indexOf(runtimeResolutionNeedle) === -1) {
-            console.warn("Live2D runtime DPR injection skipped: resolution marker not found.");
+            console.warn("Live2D runtime DPR injection skipped: resolution marker not found.", label);
             return false;
         }
 
@@ -541,9 +611,10 @@
         await loadScriptText(source.replace(
             runtimeResolutionNeedle,
             "resolution:(window.__JUNXUE_LIVE2D_DPR__||2),autoStart:!0,autoDensity:!0"
-        ), "oh-my-live2d-dpr");
+        ), "oh-my-live2d-dpr-" + label);
         runtimeInjectedDpr = true;
         runtimeUsedOriginal = false;
+        window.JunxueLive2DRenderInfo.runtimeSource = label + " DPR injected";
         return true;
     }
 
@@ -552,8 +623,8 @@
             return;
         }
 
-        const injected = await loadDprInjectedRuntime(primaryRuntimeSrc).catch(function (error) {
-            console.warn("Live2D runtime DPR injection failed, using original runtime.", error);
+        const injected = await loadDprInjectedRuntime(localRuntimeSrc, "local vendor").catch(function (error) {
+            console.warn("Live2D local runtime DPR injection failed, using normal runtime chain.", error);
             return false;
         });
 

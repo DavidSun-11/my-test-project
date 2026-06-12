@@ -1044,6 +1044,7 @@
             addOption("娱乐一下", showEntertainmentPanel);
             addOption("咨询", showConsultPanel);
             addOption("认识君雪", showKnowJunxuePanel);
+            addOption("老板评价", showBossReviewsPanel);
             addOption("意见箱", function () {
                 recordGanyuFeature("意见箱");
                 window.location.href = "suggest.html";
@@ -1237,6 +1238,268 @@
                     result.className = "live2d-quiz__result is-good";
                 } catch (error) {
                     result.textContent = error.message || "老板账号注册暂时不可用，请稍后再试。";
+                    result.className = "live2d-quiz__result is-warning";
+                } finally {
+                    submitButton.disabled = false;
+                }
+            });
+        }
+
+
+        async function ensureBossReviewsApi() {
+            await loadExternalScript("assets/supabase-config.js?v=20260611-1").catch(function () {});
+            await loadExternalScript("assets/price-reviews.js?v=20260612-4");
+
+            if (!window.JunxueBossReviews) {
+                throw new Error("老板评价系统暂未配置，请稍后再来～");
+            }
+
+            return window.JunxueBossReviews;
+        }
+
+        function isPricePage() {
+            return /(^|\/)price\.html$/i.test(window.location.pathname) || window.location.pathname === "/price.html";
+        }
+
+        function scrollToBossReviewWall() {
+            const wall = document.getElementById("boss-reviews");
+
+            if (wall && typeof wall.scrollIntoView === "function") {
+                wall.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+        }
+
+        function getBossReviewEmail(session) {
+            return session && session.user && session.user.email ? session.user.email : "老板";
+        }
+
+        function showBossReviewsPanel(message, type) {
+            clearDialog();
+            setDialogMode("menu");
+            meta.textContent = "老板评价";
+            question.textContent = "想看看老板们留下的话，还是也写一句给君雪呢？";
+            options.classList.add("live2d-consult-grid");
+            addConsultCard("查看老板评价", "评价墙与互动", false, function () {
+                recordGanyuFeature("老板评价");
+
+                if (isPricePage()) {
+                    closeDialog();
+                    scrollToBossReviewWall();
+                    return;
+                }
+
+                window.location.href = "price.html#boss-reviews";
+            });
+            addConsultCard("登录/注册", "老板账号", false, function () {
+                recordGanyuFeature("老板评价登录");
+                showBossReviewAuthPanel("login");
+            });
+            addConsultCard("发布评价", "写给君雪", false, function () {
+                recordGanyuFeature("发布老板评价");
+                showBossReviewSubmitPanel();
+            });
+            addConsultCard("返回", "回到主菜单", false, function () {
+                showMenu();
+            });
+            result.textContent = message || "老板评价会展示在收费咨询页的评价墙里。";
+            result.className = "live2d-quiz__result " + (type || "is-neutral");
+            showDialog();
+        }
+
+        function showBossReviewAuthPanel(mode) {
+            clearDialog();
+            setDialogMode("panel");
+            dialog.classList.add("is-weather");
+            meta.textContent = "老板评价 · 登录/注册";
+            question.textContent = mode === "register" ? "注册老板账号后，就可以发布评价啦。" : "已有老板账号的话，可以先登录。";
+            options.innerHTML = [
+                '<form class="live2d-weather-form live2d-boss-auth-form">',
+                    '<input class="live2d-weather-input" name="email" type="email" autocomplete="email" placeholder="邮箱">',
+                    '<input class="live2d-weather-input" name="password" type="password" autocomplete="current-password" placeholder="密码">',
+                    '<div class="live2d-weather-actions">',
+                        '<button class="live2d-quiz__option" type="submit">' + (mode === "register" ? "注册" : "登录") + '</button>',
+                        '<button class="live2d-quiz__option" type="button" data-action="toggle">' + (mode === "register" ? "已有账号，去登录" : "没有账号，去注册") + '</button>',
+                        '<button class="live2d-quiz__option" type="button" data-action="back">返回</button>',
+                    '</div>',
+                '</form>'
+            ].join("");
+            result.textContent = "老板账号使用 Supabase Auth，不会覆盖甘雨本地记忆里的称呼。";
+            result.className = "live2d-quiz__result is-neutral";
+            showDialog();
+
+            const form = options.querySelector(".live2d-boss-auth-form");
+            const submitButton = form.querySelector('button[type="submit"]');
+            const toggleButton = form.querySelector('[data-action="toggle"]');
+            const backButton = form.querySelector('[data-action="back"]');
+
+            toggleButton.addEventListener("click", function (event) {
+                event.stopPropagation();
+                showBossReviewAuthPanel(mode === "register" ? "login" : "register");
+            });
+
+            backButton.addEventListener("click", function (event) {
+                event.stopPropagation();
+                showBossReviewsPanel();
+            });
+
+            form.addEventListener("submit", async function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                const email = form.elements.email.value.trim();
+                const password = form.elements.password.value;
+
+                if (!email || !password) {
+                    result.textContent = "请先填好邮箱和密码哦。";
+                    result.className = "live2d-quiz__result is-warning";
+                    return;
+                }
+
+                submitButton.disabled = true;
+                result.textContent = mode === "register" ? "正在注册老板账号……" : "正在登录老板账号……";
+                result.className = "live2d-quiz__result is-neutral";
+
+                try {
+                    const api = await ensureBossReviewsApi();
+                    const response = mode === "register" ?
+                        await api.register(email, password) :
+                        await api.login(email, password);
+
+                    if (response && response.error) {
+                        result.textContent = response.error.message + (mode === "register" ? " 这个邮箱可能已经注册过了，可以直接登录试试。" : "");
+                        result.className = "live2d-quiz__result is-warning";
+                        return;
+                    }
+
+                    const session = await api.getSession();
+                    form.reset();
+                    result.textContent = mode === "register" && !(response && response.session) ?
+                        "注册成功，请先去邮箱确认账号，再回来登录。" :
+                        "欢迎回来，" + getBossReviewEmail(session) + "。";
+                    result.className = "live2d-quiz__result is-good";
+                } catch (error) {
+                    result.textContent = error.message || "老板评价系统暂时不可用，请稍后再试。";
+                    result.className = "live2d-quiz__result is-warning";
+                } finally {
+                    submitButton.disabled = false;
+                }
+            });
+        }
+
+        async function showBossReviewSubmitPanel() {
+            clearDialog();
+            setDialogMode("panel");
+            dialog.classList.add("is-weather");
+            meta.textContent = "老板评价 · 发布评价";
+            question.textContent = "谢谢你愿意把体验告诉君雪。";
+            options.innerHTML = '<div class="live2d-quiz__loading">正在确认老板账号……</div>';
+            result.textContent = "";
+            result.className = "live2d-quiz__result is-neutral";
+            showDialog();
+
+            let api;
+            let session;
+
+            try {
+                api = await ensureBossReviewsApi();
+                session = await api.getSession();
+            } catch (error) {
+                result.textContent = error.message || "老板评价系统暂时不可用，请稍后再试。";
+                result.className = "live2d-quiz__result is-warning";
+                return;
+            }
+
+            if (!session || !session.user) {
+                options.innerHTML = '<div class="live2d-quiz__loading">请先登录后再发布评价哦～</div>';
+                options.innerHTML += '<div class="live2d-weather-actions"><button class="live2d-quiz__option" type="button" data-action="login">登录/注册</button><button class="live2d-quiz__option" type="button" data-action="back">返回</button></div>';
+                result.textContent = "登录后，你的评价会展示在老板评价墙里。";
+                result.className = "live2d-quiz__result is-warning";
+                options.querySelector('[data-action="login"]').addEventListener("click", function (event) {
+                    event.stopPropagation();
+                    showBossReviewAuthPanel("login");
+                });
+                options.querySelector('[data-action="back"]').addEventListener("click", function (event) {
+                    event.stopPropagation();
+                    showBossReviewsPanel();
+                });
+                return;
+            }
+
+            options.innerHTML = [
+                '<form class="live2d-weather-form live2d-boss-review-form">',
+                    '<input class="live2d-weather-input" name="nickname" maxlength="20" placeholder="昵称（最多 20 字）">',
+                    '<select class="live2d-weather-input" name="serviceType">',
+                        '<option>王者荣耀</option>',
+                        '<option>永劫无间</option>',
+                        '<option>语音聊天</option>',
+                        '<option>其它</option>',
+                    '</select>',
+                    '<select class="live2d-weather-input" name="rating">',
+                        '<option value="5">5 星</option>',
+                        '<option value="4">4 星</option>',
+                        '<option value="3">3 星</option>',
+                        '<option value="2">2 星</option>',
+                        '<option value="1">1 星</option>',
+                    '</select>',
+                    '<textarea class="live2d-weather-input" name="message" maxlength="300" placeholder="评价内容（最多 300 字）"></textarea>',
+                    '<div class="live2d-weather-actions">',
+                        '<button class="live2d-quiz__option" type="submit">发布评价</button>',
+                        '<button class="live2d-quiz__option" type="button" data-action="back">返回</button>',
+                    '</div>',
+                '</form>'
+            ].join("");
+            result.textContent = "当前账号：" + getBossReviewEmail(session);
+            result.className = "live2d-quiz__result is-neutral";
+
+            const form = options.querySelector(".live2d-boss-review-form");
+            const submitButton = form.querySelector('button[type="submit"]');
+            const backButton = form.querySelector('[data-action="back"]');
+
+            backButton.addEventListener("click", function (event) {
+                event.stopPropagation();
+                showBossReviewsPanel();
+            });
+
+            form.addEventListener("submit", async function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                const message = form.elements.message.value.trim();
+
+                if (!message) {
+                    result.textContent = "评价内容不能为空哦。";
+                    result.className = "live2d-quiz__result is-warning";
+                    return;
+                }
+
+                submitButton.disabled = true;
+                result.textContent = "正在帮你发布评价……";
+                result.className = "live2d-quiz__result is-neutral";
+
+                try {
+                    const response = await api.submitReview({
+                        nickname: form.elements.nickname.value.trim() || getBossReviewEmail(session).split("@")[0].slice(0, 20) || "老板",
+                        serviceType: form.elements.serviceType.value,
+                        rating: form.elements.rating.value,
+                        message: message
+                    });
+
+                    if (response && response.error) {
+                        result.textContent = response.error.message;
+                        result.className = "live2d-quiz__result is-warning";
+                        return;
+                    }
+
+                    form.reset();
+                    if (typeof api.refreshReviewWall === "function") {
+                        await api.refreshReviewWall();
+                    }
+                    if (window.JunxueGanyuTalk && typeof window.JunxueGanyuTalk.say === "function") {
+                        window.JunxueGanyuTalk.say("谢谢你的评价，我会认真收好的。", { duration: 4200 });
+                    }
+                    showBossReviewsPanel("谢谢你的评价，我会认真收好的。", "is-good");
+                } catch (error) {
+                    result.textContent = error.message || "评价发布失败，请稍后再试。";
                     result.className = "live2d-quiz__result is-warning";
                 } finally {
                     submitButton.disabled = false;
@@ -2357,6 +2620,7 @@
         window.Live2DInteractiveMenu = {
             ready: true,
             open: showMenu,
+            openBossReviews: showBossReviewsPanel,
             sync: syncLive2DPopupPositions
         };
     }

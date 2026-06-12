@@ -232,6 +232,49 @@
             margin-top: 12px;
         }
 
+        .price-review-heading {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            align-items: flex-end;
+            justify-content: space-between;
+        }
+
+        .price-review-heading p {
+            margin: 8px 0 0;
+            color: rgba(214, 246, 255, 0.72);
+        }
+
+        .price-review-stats {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .price-review-stat {
+            padding: 12px 14px;
+            border: 1px solid rgba(108, 229, 255, 0.26);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.055);
+            box-shadow: inset 0 0 16px rgba(108, 229, 255, 0.04);
+        }
+
+        .price-review-stat span {
+            display: block;
+            color: rgba(214, 246, 255, 0.64);
+            font-size: 12px;
+            line-height: 1.3;
+        }
+
+        .price-review-stat strong {
+            display: block;
+            margin-top: 4px;
+            color: #eafcff;
+            font-size: 18px;
+            text-shadow: 0 0 10px rgba(108, 229, 255, 0.28);
+        }
+
         .price-review-toggle {
             width: fit-content;
             min-height: 38px;
@@ -337,26 +380,46 @@
 
         .price-review-list {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
             align-items: start;
-            gap: 10px;
-            max-height: 460px;
-            overflow: auto;
+            gap: 12px;
         }
 
         .price-review-item,
         .price-empty {
-            padding: 10px 11px;
+            padding: 13px 14px;
             border: 1px solid rgba(108, 229, 255, 0.28);
             border-radius: 14px;
-            background: rgba(255, 255, 255, 0.07);
+            background:
+                radial-gradient(circle at 20% 0%, rgba(108, 229, 255, 0.08), transparent 42%),
+                rgba(255, 255, 255, 0.07);
+            box-shadow: 0 0 14px rgba(0, 190, 255, 0.08), inset 0 0 14px rgba(255, 255, 255, 0.04);
+        }
+
+        .price-review-item {
+            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .price-review-item:hover {
+            transform: translateY(-2px);
+            border-color: rgba(108, 229, 255, 0.42);
+            box-shadow: 0 0 18px rgba(0, 190, 255, 0.14), inset 0 0 14px rgba(255, 255, 255, 0.05);
         }
 
         .price-empty {
+            display: grid;
+            gap: 10px;
+            justify-items: start;
             min-height: 0;
             color: rgba(214, 246, 255, 0.8);
             font-size: 13px;
             line-height: 1.45;
+        }
+
+        .price-review-empty-action {
+            min-height: 34px;
+            padding: 0 14px;
+            font-size: 13px;
         }
 
         .price-review-head {
@@ -374,6 +437,7 @@
             color: #ffe39a;
             font-size: 12px;
             white-space: nowrap;
+            text-shadow: 0 0 8px rgba(255, 214, 105, 0.24);
         }
 
         .price-review-meta {
@@ -634,6 +698,10 @@
                 grid-template-columns: 1fr;
             }
 
+            .price-review-stats {
+                grid-template-columns: 1fr;
+            }
+
             .price-row {
                 grid-template-columns: 1fr;
             }
@@ -650,7 +718,6 @@
 
             .price-review-list {
                 grid-template-columns: 1fr;
-                max-height: none;
             }
 
             .price-actions {
@@ -754,61 +821,21 @@
         </article>
     </section>
 
-    <section class="price-card" aria-labelledby="review-title">
-        <h2 id="review-title">老板评价</h2>
-        <button class="price-review-toggle" id="price-review-toggle" type="button" aria-expanded="false">我要留下老板评价</button>
+    <section class="price-card" id="boss-reviews" aria-labelledby="review-title">
+        <div class="price-review-heading">
+            <div>
+                <h2 id="review-title">老板评价墙</h2>
+                <p>每一句评价，都是君雪继续努力的理由。</p>
+            </div>
+            <button class="price-button price-review-empty-action" id="price-open-ganyu-review" type="button">找甘雨发布评价</button>
+        </div>
+        <div class="price-review-stats" id="price-review-stats" aria-label="老板评价统计">
+            <div class="price-review-stat"><span>总评价数</span><strong>0</strong></div>
+            <div class="price-review-stat"><span>平均星级</span><strong>0.0 ★</strong></div>
+            <div class="price-review-stat"><span>最受欢迎服务</span><strong>暂无</strong></div>
+        </div>
         <div class="price-status price-review-global-status" id="price-review-status" role="status" aria-live="polite"></div>
         <div class="price-review-layout">
-            <div class="price-review-panel" id="price-review-panel" hidden>
-                <form class="price-form" id="price-auth-form">
-                    <div class="price-field">
-                        <label for="price-email">邮箱</label>
-                        <input id="price-email" type="email" autocomplete="email">
-                    </div>
-                    <div class="price-field">
-                        <label for="price-password">密码</label>
-                        <input id="price-password" type="password" autocomplete="current-password">
-                    </div>
-                    <div class="price-auth-actions">
-                        <button class="price-auth-button" id="price-login-button" type="button">登录</button>
-                        <button class="price-auth-button" id="price-logout-button" type="button" hidden>退出登录</button>
-                    </div>
-                    <p class="price-auth-note">还没有账号？请回到首页，点击甘雨 → 认识君雪 → 老板账号注册。</p>
-                    <a class="price-auth-button price-auth-link" href="index.html#ganyu-register">回首页找甘雨注册</a>
-                    <div class="price-status" id="price-auth-status" role="status" aria-live="polite"></div>
-                </form>
-
-                <form class="price-form" id="price-review-form">
-                    <div class="price-field">
-                        <label for="price-review-nickname">昵称</label>
-                        <input id="price-review-nickname" maxlength="20" placeholder="最多 20 字">
-                    </div>
-                    <div class="price-field">
-                        <label for="price-review-service">服务类型</label>
-                        <select id="price-review-service">
-                            <option>王者荣耀</option>
-                            <option>永劫无间</option>
-                            <option>语音聊天</option>
-                            <option>其它</option>
-                        </select>
-                    </div>
-                    <div class="price-field">
-                        <label for="price-review-rating">星级</label>
-                        <select id="price-review-rating">
-                            <option value="5">5 星</option>
-                            <option value="4">4 星</option>
-                            <option value="3">3 星</option>
-                            <option value="2">2 星</option>
-                            <option value="1">1 星</option>
-                        </select>
-                    </div>
-                    <div class="price-field">
-                        <label for="price-review-message">评价内容</label>
-                        <textarea id="price-review-message" maxlength="300" placeholder="最多 300 字"></textarea>
-                    </div>
-                    <button class="price-submit" id="price-review-submit" type="submit">登录后评价</button>
-                </form>
-            </div>
             <div class="price-review-list" id="price-review-list">
                 <div class="price-empty">老板评价系统暂未配置，请稍后再来～</div>
             </div>
@@ -946,10 +973,10 @@ document.addEventListener("click", function (event) {
     }
 
     loadScript("assets/supabase-config.js?v=20260611-1").then(function () {
-        return loadScript("assets/price-reviews.js?v=20260612-3");
+        return loadScript("assets/price-reviews.js?v=20260612-4");
     });
 })();
 </script>
-<script src="assets/live2d-loader.js?v=20260612-3" data-live2d-autoload="manual"></script>
+<script src="assets/live2d-loader.js?v=20260612-4" data-live2d-autoload="manual"></script>
 </body>
 </html>

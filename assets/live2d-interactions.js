@@ -1,6 +1,6 @@
 /* Live2D 轻量启动脚本：首屏只保留开场提示、点击入口和懒加载控制。 */
 (function () {
-    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260612-3";
+    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260612-4";
     if (typeof window.enableGanyuMemory !== "boolean") {
         window.enableGanyuMemory = true;
     }
@@ -1355,6 +1355,22 @@
             recordWeatherCity: recordWeatherCity,
             recordSong: recordSong,
             recordFortune: recordFortune
+        };
+        window.JunxueGanyuLazy = {
+            load: loadLazyInteractions,
+            openMenu: openLazyMenu,
+            openBossReviews: function () {
+                return loadLazyInteractions().then(function (menu) {
+                    if (menu && typeof menu.openBossReviews === "function") {
+                        menu.openBossReviews();
+                        return;
+                    }
+
+                    if (menu && typeof menu.open === "function") {
+                        menu.open();
+                    }
+                });
+            }
         };
         window.addEventListener("live2d-stage-drag-started", function () {
             animateLive2DStage("is-ganyu-drag-startled", 560);

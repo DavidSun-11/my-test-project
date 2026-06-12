@@ -626,7 +626,9 @@
         const maxLeft = Math.max(margin, viewportWidth - popupWidth - margin);
         const maxTop = Math.max(margin, viewportHeight - popupHeight - margin);
         const headBottom = rect.top + rect.height * 0.35;
-        const preferredTop = clamp(rect.top + Math.max(settings.offsetY || 0, rect.height * 0.38), margin, maxTop);
+        const preferredRatio = typeof settings.preferredRatio === "number" ? settings.preferredRatio : 0.22;
+        const preferredOffset = typeof settings.offsetY === "number" ? settings.offsetY : rect.height * preferredRatio;
+        const preferredTop = clamp(rect.top + preferredOffset, margin, maxTop);
         const footTop = clamp(rect.bottom - popupHeight - gap, margin, maxTop);
         const candidates = [
             { left: rect.right + gap, top: preferredTop },
@@ -820,10 +822,10 @@
             hideIdleTalk();
             notifyDialogOpen();
             positionLive2DPopup(dialog, {
-                width: (dialog.classList.contains("is-fortune") || dialog.classList.contains("is-memory")) ? 580 : 460,
+                width: (dialog.classList.contains("is-fortune") || dialog.classList.contains("is-memory")) ? 440 : 400,
                 height: 220,
-                offsetY: 68,
-                gap: 24
+                preferredRatio: 0.22,
+                gap: 20
             });
             dialog.classList.add("is-open");
             replayOpenAnimation();
@@ -888,10 +890,10 @@
 
             if (dialog.classList.contains("is-open")) {
                 positionLive2DPopup(dialog, {
-                    width: (dialog.classList.contains("is-fortune") || dialog.classList.contains("is-memory")) ? 580 : 460,
+                    width: (dialog.classList.contains("is-fortune") || dialog.classList.contains("is-memory")) ? 440 : 400,
                     height: 220,
-                    offsetY: 68,
-                    gap: 24
+                    preferredRatio: 0.22,
+                    gap: 20
                 });
             }
 

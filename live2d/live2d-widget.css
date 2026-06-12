@@ -191,10 +191,10 @@ html.performance-low .oml2d-stage.is-ganyu-drag-bounce {
     position: fixed;
     left: 260px;
     bottom: 190px;
-    width: min(440px, calc(100vw - 32px));
-    max-width: min(520px, calc(100vw - 32px));
+    width: min(400px, calc(100vw - 32px));
+    max-width: min(440px, calc(100vw - 32px));
     z-index: 70;
-    padding: 14px;
+    padding: 12px;
     border: 1px solid rgba(108, 229, 255, 0.54);
     border-radius: 16px;
     background:
@@ -258,24 +258,24 @@ html.performance-low .oml2d-stage.is-ganyu-drag-bounce {
 
 .live2d-quiz__meta {
     min-height: 18px;
-    margin: 0 34px 6px 0;
+    margin: 0 34px 5px 0;
     color: rgba(159, 245, 255, 0.84);
     font-size: 12px;
     line-height: 1.4;
 }
 
 .live2d-quiz__question {
-    margin: 2px 34px 10px 0;
-    font-size: 15px;
+    margin: 2px 34px 9px 0;
+    font-size: 14px;
     font-weight: bold;
-    line-height: 1.5;
+    line-height: 1.45;
     text-shadow: 0 0 12px rgba(108, 229, 255, 0.42);
 }
 
 .live2d-quiz__options {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
+    gap: 10px;
 }
 
 .live2d-quiz__options.live2d-quiz__menu {
@@ -283,7 +283,7 @@ html.performance-low .oml2d-stage.is-ganyu-drag-bounce {
 }
 
 .live2d-quiz__option {
-    min-height: 34px;
+    min-height: 44px;
     border: 1px solid rgba(108, 229, 255, 0.36);
     border-radius: 12px;
     background: rgba(255, 255, 255, 0.08);
@@ -318,7 +318,7 @@ html.performance-low .oml2d-stage.is-ganyu-drag-bounce {
 
 .live2d-quiz__result {
     min-height: 22px;
-    margin-top: 10px;
+    margin-top: 8px;
     color: #9ff5ff;
     font-size: 14px;
     line-height: 1.45;
@@ -344,8 +344,8 @@ html.performance-low .oml2d-stage.is-ganyu-drag-bounce {
 }
 
 .live2d-consult-card {
-    min-height: 76px;
-    padding: 12px;
+    min-height: 64px;
+    padding: 10px;
     border: 1px solid rgba(108, 229, 255, 0.36);
     border-radius: 14px;
     background:
@@ -375,7 +375,7 @@ html.performance-low .oml2d-stage.is-ganyu-drag-bounce {
 }
 
 .live2d-consult-card__title {
-    margin-bottom: 6px;
+    margin-bottom: 4px;
     color: #eafcff;
     font-size: 15px;
     font-weight: bold;
@@ -397,11 +397,11 @@ html.performance-low .oml2d-stage.is-ganyu-drag-bounce {
 }
 
 .live2d-quiz.is-fortune {
-    width: min(580px, calc(100vw - 44px));
+    width: min(440px, calc(100vw - 44px));
 }
 
 .live2d-quiz.is-memory {
-    width: min(580px, calc(100vw - 44px));
+    width: min(440px, calc(100vw - 44px));
 }
 
 .live2d-quiz__result.is-fortune-hidden {

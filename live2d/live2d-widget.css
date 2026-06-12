@@ -778,6 +778,177 @@ body.is-live2d-external-dragging .live2d-hit-area {
     line-height: 1.55;
 }
 
+.live2d-quiz.is-boss-review {
+    width: min(760px, 92vw);
+    max-width: min(760px, 92vw);
+    padding: 32px;
+    border-radius: 22px;
+    background:
+        radial-gradient(circle at 14% 10%, rgba(148, 232, 255, 0.18), transparent 34%),
+        linear-gradient(145deg, rgba(6, 18, 38, 0.94), rgba(13, 34, 64, 0.9));
+    box-shadow: 0 0 30px rgba(0, 190, 255, 0.28), inset 0 0 22px rgba(255, 255, 255, 0.06);
+}
+
+.live2d-quiz.is-boss-review::before {
+    content: "";
+    position: absolute;
+    left: 26px;
+    right: 58px;
+    top: 18px;
+    height: 1px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, transparent, rgba(150, 236, 255, 0.72), transparent);
+    pointer-events: none;
+}
+
+.live2d-quiz.is-boss-review .live2d-quiz__close {
+    top: 14px;
+    right: 14px;
+}
+
+.live2d-quiz.is-boss-review .live2d-quiz__meta {
+    min-height: 0;
+    margin: 0 48px 6px 0;
+    color: rgba(238, 252, 255, 0.96);
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1.25;
+}
+
+.live2d-quiz.is-boss-review .live2d-quiz__question {
+    margin: 0 48px 22px 0;
+    color: rgba(211, 244, 255, 0.8);
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.55;
+    text-shadow: none;
+}
+
+.live2d-quiz.is-boss-review .live2d-quiz__options {
+    display: block;
+}
+
+.boss-modal-panel {
+    position: relative;
+    display: grid;
+    gap: 18px;
+    padding: 20px;
+    border: 1px solid rgba(126, 224, 255, 0.3);
+    border-radius: 18px;
+    background: rgba(7, 18, 36, 0.55);
+    box-shadow: inset 0 0 18px rgba(126, 224, 255, 0.07), 0 0 18px rgba(0, 190, 255, 0.08);
+    overflow: hidden;
+}
+
+.boss-modal-panel::after {
+    content: "✦";
+    position: absolute;
+    right: 18px;
+    top: 14px;
+    color: rgba(190, 244, 255, 0.42);
+    font-size: 16px;
+    pointer-events: none;
+}
+
+.boss-form-heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    color: rgba(245, 252, 255, 0.92);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.45;
+}
+
+.boss-form-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    padding: 0 10px;
+    border: 1px solid rgba(255, 221, 114, 0.34);
+    border-radius: 999px;
+    background: rgba(255, 221, 114, 0.09);
+    color: rgba(255, 231, 160, 0.94);
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.boss-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.boss-form-control {
+    width: 100%;
+    min-height: 52px;
+    border-radius: 15px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.boss-form-stars {
+    min-height: 52px;
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    border: 1px solid rgba(255, 221, 114, 0.22);
+    border-radius: 15px;
+    background: rgba(255, 221, 114, 0.07);
+    color: rgba(255, 221, 114, 0.9);
+    letter-spacing: 0.14em;
+    text-shadow: 0 0 12px rgba(255, 221, 114, 0.28);
+}
+
+.boss-form-textarea {
+    grid-column: 1 / -1;
+    min-height: 132px;
+    padding-top: 13px;
+    padding-bottom: 13px;
+    line-height: 1.55;
+    resize: vertical;
+}
+
+.boss-modal-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.boss-modal-actions .live2d-quiz__option {
+    flex: 1 1 140px;
+    min-width: 140px;
+    min-height: 52px;
+    padding: 0 18px;
+    border-radius: 14px;
+    white-space: nowrap;
+}
+
+.boss-modal-primary {
+    border-color: rgba(132, 234, 255, 0.72);
+    background: linear-gradient(135deg, rgba(52, 205, 255, 0.38), rgba(174, 236, 255, 0.16));
+    box-shadow: 0 0 18px rgba(0, 190, 255, 0.22), inset 0 0 12px rgba(255, 255, 255, 0.08);
+    font-weight: 800;
+}
+
+.boss-modal-actions .live2d-quiz__option:hover:not(:disabled) {
+    border-color: rgba(159, 245, 255, 0.86);
+    box-shadow: 0 0 18px rgba(0, 190, 255, 0.24), inset 0 0 12px rgba(255, 255, 255, 0.08);
+}
+
+.boss-info-strip {
+    margin-top: 18px;
+    min-height: 0;
+    padding: 11px 13px;
+    border: 1px solid rgba(255, 221, 114, 0.24);
+    border-radius: 14px;
+    background: rgba(255, 221, 114, 0.08);
+    color: rgba(255, 241, 182, 0.88);
+    font-size: 12px;
+    line-height: 1.55;
+}
+
 .live2d-weather-page {
     position: relative;
     display: grid;
@@ -1372,6 +1543,7 @@ body.is-live2d-external-dragging .live2d-hit-area {
     .live2d-quiz,
     .live2d-quiz.is-weather,
     .live2d-quiz.is-boss-auth,
+    .live2d-quiz.is-boss-review,
     .live2d-quiz.is-music,
     .live2d-quiz.is-fortune,
     .live2d-quiz.is-wheel {
@@ -1394,7 +1566,17 @@ body.is-live2d-external-dragging .live2d-hit-area {
         border-radius: 18px;
     }
 
+    .live2d-quiz.is-boss-review {
+        padding: 18px;
+        border-radius: 18px;
+    }
+
     .live2d-quiz.is-boss-auth .live2d-quiz__meta {
+        margin-right: 38px;
+        font-size: 18px;
+    }
+
+    .live2d-quiz.is-boss-review .live2d-quiz__meta {
         margin-right: 38px;
         font-size: 18px;
     }
@@ -1405,7 +1587,18 @@ body.is-live2d-external-dragging .live2d-hit-area {
         font-size: 13px;
     }
 
+    .live2d-quiz.is-boss-review .live2d-quiz__question {
+        margin-right: 38px;
+        margin-bottom: 16px;
+        font-size: 13px;
+    }
+
     .live2d-boss-auth-card {
+        gap: 14px;
+        padding: 14px;
+    }
+
+    .boss-modal-panel {
         gap: 14px;
         padding: 14px;
     }
@@ -1415,11 +1608,29 @@ body.is-live2d-external-dragging .live2d-hit-area {
         gap: 10px;
     }
 
+    .boss-form-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
     .live2d-boss-auth-input {
         min-height: 48px;
     }
 
+    .boss-form-control,
+    .boss-form-stars {
+        min-height: 48px;
+    }
+
+    .boss-form-textarea {
+        min-height: 128px;
+    }
+
     .live2d-boss-auth-actions {
+        gap: 10px;
+    }
+
+    .boss-modal-actions {
         gap: 10px;
     }
 
@@ -1427,6 +1638,15 @@ body.is-live2d-external-dragging .live2d-hit-area {
         flex: 1 1 calc(50% - 10px);
         min-width: 126px;
         min-height: 42px;
+        padding: 0 12px;
+        font-size: 13px;
+        white-space: nowrap;
+    }
+
+    .boss-modal-actions .live2d-quiz__option {
+        flex: 1 1 100%;
+        min-width: 0;
+        min-height: 44px;
         padding: 0 12px;
         font-size: 13px;
         white-space: nowrap;
@@ -1569,6 +1789,12 @@ html.performance-low .live2d-idle-bubble {
 
 html.performance-low .live2d-quiz.is-opening {
     animation: none;
+}
+
+html.performance-low .boss-modal-panel,
+html.performance-low .boss-form-stars,
+html.performance-low .boss-info-strip {
+    box-shadow: none;
 }
 
 html.performance-low #oml2d-stage,

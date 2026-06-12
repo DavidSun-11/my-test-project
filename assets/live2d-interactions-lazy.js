@@ -804,7 +804,7 @@
             clearSpinTimers();
             window.clearTimeout(fortuneProcessTimer);
             fortuneProcessTimer = null;
-            dialog.classList.remove("is-wheel", "is-weather", "is-music", "is-fortune", "is-memory", "is-boss-auth");
+            dialog.classList.remove("is-wheel", "is-weather", "is-music", "is-fortune", "is-memory", "is-boss-auth", "is-boss-review");
             meta.textContent = "";
             question.textContent = "";
             options.innerHTML = "";
@@ -1421,7 +1421,7 @@
         async function showBossReviewSubmitPanel() {
             clearDialog();
             setDialogMode("panel");
-            dialog.classList.add("is-weather");
+            dialog.classList.add("is-weather", "is-boss-review");
             meta.textContent = "老板评价 · 发布评价";
             question.textContent = "谢谢你愿意把体验告诉君雪。";
             options.innerHTML = '<div class="live2d-quiz__loading">正在确认老板账号……</div>';
@@ -1458,30 +1458,34 @@
             }
 
             options.innerHTML = [
-                '<form class="live2d-weather-form live2d-boss-review-form">',
-                    '<input class="live2d-weather-input" name="nickname" maxlength="20" placeholder="昵称（最多 20 字）">',
-                    '<select class="live2d-weather-input" name="serviceType">',
-                        '<option>王者荣耀</option>',
-                        '<option>永劫无间</option>',
-                        '<option>语音聊天</option>',
-                        '<option>其它</option>',
-                    '</select>',
-                    '<select class="live2d-weather-input" name="rating">',
-                        '<option value="5">5 星</option>',
-                        '<option value="4">4 星</option>',
-                        '<option value="3">3 星</option>',
-                        '<option value="2">2 星</option>',
-                        '<option value="1">1 星</option>',
-                    '</select>',
-                    '<textarea class="live2d-weather-input" name="message" maxlength="300" placeholder="评价内容（最多 300 字）"></textarea>',
-                    '<div class="live2d-weather-actions">',
-                        '<button class="live2d-quiz__option" type="submit">发布评价</button>',
+                '<form class="boss-modal-panel live2d-boss-review-form">',
+                    '<div class="boss-form-heading"><span class="boss-form-badge">★ 老板评价</span><span>把这次体验写下来吧。</span></div>',
+                    '<div class="boss-form-grid">',
+                        '<input class="live2d-weather-input boss-form-control" name="nickname" maxlength="20" placeholder="昵称（最多 20 字）">',
+                        '<select class="live2d-weather-input boss-form-control" name="serviceType">',
+                            '<option>王者荣耀</option>',
+                            '<option>永劫无间</option>',
+                            '<option>语音聊天</option>',
+                            '<option>其它</option>',
+                        '</select>',
+                        '<select class="live2d-weather-input boss-form-control" name="rating">',
+                            '<option value="5">★★★★★ 5 星</option>',
+                            '<option value="4">★★★★☆ 4 星</option>',
+                            '<option value="3">★★★☆☆ 3 星</option>',
+                            '<option value="2">★★☆☆☆ 2 星</option>',
+                            '<option value="1">★☆☆☆☆ 1 星</option>',
+                        '</select>',
+                        '<div class="boss-form-stars" aria-hidden="true">★★★★★</div>',
+                        '<textarea class="live2d-weather-input boss-form-control boss-form-textarea" name="message" maxlength="300" placeholder="评价内容（最多 300 字）"></textarea>',
+                    '</div>',
+                    '<div class="boss-modal-actions">',
+                        '<button class="live2d-quiz__option boss-modal-primary" type="submit">发布评价</button>',
                         '<button class="live2d-quiz__option" type="button" data-action="back">返回</button>',
                     '</div>',
                 '</form>'
             ].join("");
             result.textContent = "当前账号：" + getBossReviewEmail(session);
-            result.className = "live2d-quiz__result is-neutral";
+            result.className = "live2d-quiz__result boss-info-strip is-neutral";
 
             const form = options.querySelector(".live2d-boss-review-form");
             const submitButton = form.querySelector('button[type="submit"]');

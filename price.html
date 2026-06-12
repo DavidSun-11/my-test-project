@@ -24,6 +24,30 @@
             overflow-x: hidden;
         }
 
+        body::before,
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+        }
+
+        body::before {
+            z-index: -6;
+            background:
+                radial-gradient(circle at 15% 18%, rgba(105, 214, 255, 0.16), transparent 28%),
+                radial-gradient(circle at 86% 12%, rgba(159, 132, 255, 0.13), transparent 30%),
+                radial-gradient(circle at 54% 78%, rgba(91, 195, 255, 0.1), transparent 34%);
+        }
+
+        body::after {
+            z-index: -5;
+            background:
+                linear-gradient(180deg, transparent 0%, rgba(116, 215, 255, 0.045) 45%, rgba(150, 125, 255, 0.07) 76%, transparent 100%),
+                radial-gradient(ellipse at 50% 92%, rgba(178, 231, 255, 0.1), transparent 42%);
+            opacity: 0.86;
+        }
+
         .price-bg-overlay,
         .stars,
         .stars2,
@@ -38,6 +62,8 @@
             z-index: -4;
             background:
                 radial-gradient(ellipse at 50% 34%, rgba(19, 65, 116, 0.26), transparent 50%),
+                radial-gradient(ellipse at 12% 72%, rgba(93, 202, 255, 0.08), transparent 36%),
+                radial-gradient(ellipse at 92% 58%, rgba(168, 129, 255, 0.08), transparent 34%),
                 linear-gradient(to bottom, rgba(1, 7, 18, 0.22), rgba(2, 12, 28, 0.46));
         }
 
@@ -105,6 +131,7 @@
 
         .price-hero,
         .price-card {
+            position: relative;
             border: 1px solid rgba(108, 229, 255, 0.42);
             border-radius: 18px;
             background:
@@ -117,8 +144,70 @@
         }
 
         .price-hero {
-            padding: 30px;
+            display: grid;
+            grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.85fr);
+            gap: 22px;
+            align-items: center;
+            min-height: 0;
+            padding: 28px;
             margin-bottom: 18px;
+            border-radius: 26px;
+            overflow: hidden;
+        }
+
+        .price-hero::before,
+        .price-card::before {
+            content: "";
+            position: absolute;
+            left: 24px;
+            right: 24px;
+            top: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(165, 242, 255, 0.78), rgba(177, 152, 255, 0.48), transparent);
+            box-shadow: 0 0 16px rgba(108, 229, 255, 0.34);
+            pointer-events: none;
+        }
+
+        .price-kicker,
+        .price-section-kicker {
+            width: fit-content;
+            padding: 5px 11px;
+            border: 1px solid rgba(146, 231, 255, 0.56);
+            border-radius: 999px;
+            background: rgba(83, 196, 255, 0.1);
+            color: #bff6ff;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            box-shadow: inset 0 0 12px rgba(116, 229, 255, 0.08);
+        }
+
+        .price-hero-copy {
+            display: grid;
+            gap: 10px;
+        }
+
+        .price-hero-selling {
+            display: grid;
+            gap: 10px;
+        }
+
+        .price-hero-badge {
+            padding: 13px 14px;
+            border: 1px solid rgba(135, 225, 255, 0.28);
+            border-radius: 16px;
+            background:
+                radial-gradient(circle at 12% 0%, rgba(108, 229, 255, 0.12), transparent 42%),
+                rgba(255, 255, 255, 0.055);
+            color: rgba(234, 252, 255, 0.86);
+            box-shadow: inset 0 0 16px rgba(255, 255, 255, 0.035);
+        }
+
+        .price-hero-badge strong {
+            display: block;
+            margin-bottom: 3px;
+            color: #f2fdff;
+            font-size: 15px;
         }
 
         .price-hero h1,
@@ -135,6 +224,12 @@
             line-height: 1.28;
         }
 
+        .price-subtitle {
+            margin: 0;
+            color: rgba(192, 235, 255, 0.72);
+            font-weight: 700;
+        }
+
         .price-hero p,
         .price-card p,
         .price-card li {
@@ -146,7 +241,7 @@
             display: flex;
             flex-wrap: wrap;
             gap: 12px;
-            margin-top: 22px;
+            margin-top: 8px;
         }
 
         .price-button,
@@ -174,9 +269,49 @@
             gap: 18px;
         }
 
+        .price-service-grid {
+            grid-template-columns: minmax(0, 1.55fr) minmax(320px, 0.95fr);
+            align-items: start;
+        }
+
         .price-card {
             padding: 24px;
             margin-top: 18px;
+            overflow: hidden;
+        }
+
+        .price-card.is-service {
+            border-color: rgba(124, 224, 255, 0.4);
+            background:
+                radial-gradient(circle at 18% 0%, rgba(108, 229, 255, 0.12), transparent 38%),
+                rgba(5, 18, 36, 0.8);
+        }
+
+        .price-card.is-info {
+            border-color: rgba(156, 218, 255, 0.3);
+            background:
+                radial-gradient(circle at 88% 0%, rgba(160, 132, 255, 0.08), transparent 36%),
+                rgba(7, 22, 41, 0.74);
+        }
+
+        .price-card.is-review {
+            border-color: rgba(153, 235, 255, 0.5);
+            border-radius: 24px;
+            background:
+                radial-gradient(circle at 10% 0%, rgba(108, 229, 255, 0.16), transparent 34%),
+                radial-gradient(circle at 92% 8%, rgba(255, 218, 147, 0.07), transparent 30%),
+                rgba(5, 18, 36, 0.82);
+        }
+
+        .price-section-head {
+            display: grid;
+            gap: 7px;
+            margin-bottom: 14px;
+        }
+
+        .price-section-head p {
+            margin: 0;
+            color: rgba(214, 246, 255, 0.72);
         }
 
         .price-table {
@@ -194,12 +329,39 @@
             border-radius: 12px;
             background: rgba(255, 255, 255, 0.07);
             color: rgba(234, 252, 255, 0.88);
+            transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
+        }
+
+        .price-row:not(.is-head):hover {
+            border-color: rgba(122, 229, 255, 0.45);
+            background: rgba(108, 229, 255, 0.1);
+            transform: translateY(-1px);
         }
 
         .price-row.is-head {
             color: #eafcff;
             font-weight: bold;
-            background: rgba(108, 229, 255, 0.13);
+            background: linear-gradient(135deg, rgba(108, 229, 255, 0.2), rgba(138, 157, 255, 0.12));
+        }
+
+        .price-mode {
+            color: #d9fbff;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(108, 229, 255, 0.18);
+        }
+
+        .price-tag {
+            display: inline-flex;
+            align-items: center;
+            min-height: 22px;
+            margin-left: 6px;
+            padding: 0 8px;
+            border: 1px solid rgba(255, 222, 139, 0.42);
+            border-radius: 999px;
+            color: #ffe6a8;
+            font-size: 12px;
+            font-weight: 700;
+            background: rgba(255, 218, 118, 0.08);
         }
 
         .price-list {
@@ -215,6 +377,101 @@
             border: 1px solid rgba(108, 229, 255, 0.24);
             border-radius: 12px;
             background: rgba(255, 255, 255, 0.06);
+        }
+
+        .price-mini-grid,
+        .price-feature-grid,
+        .price-rule-grid,
+        .price-step-grid {
+            display: grid;
+            gap: 10px;
+        }
+
+        .price-step-grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            margin-top: 18px;
+        }
+
+        .price-step {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr);
+            gap: 9px;
+            align-items: center;
+            padding: 12px;
+            border: 1px solid rgba(120, 226, 255, 0.24);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.055);
+        }
+
+        .price-step-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px;
+            height: 26px;
+            border: 1px solid rgba(151, 235, 255, 0.48);
+            border-radius: 50%;
+            color: #c8f7ff;
+            font-size: 12px;
+            font-weight: 800;
+            background: rgba(86, 201, 255, 0.12);
+            box-shadow: 0 0 10px rgba(108, 229, 255, 0.14);
+        }
+
+        .price-step strong,
+        .price-service-tile strong,
+        .price-feature-tile strong,
+        .price-rule-tile strong {
+            color: #f1fdff;
+        }
+
+        .price-mini-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            margin: 14px 0;
+        }
+
+        .price-service-tile,
+        .price-feature-tile,
+        .price-rule-tile {
+            padding: 13px 14px;
+            border: 1px solid rgba(120, 226, 255, 0.22);
+            border-radius: 14px;
+            background:
+                radial-gradient(circle at 14% 0%, rgba(108, 229, 255, 0.08), transparent 38%),
+                rgba(255, 255, 255, 0.055);
+            color: rgba(234, 252, 255, 0.78);
+            line-height: 1.6;
+        }
+
+        .price-service-tile strong,
+        .price-feature-tile strong,
+        .price-rule-tile strong {
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .price-feature-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .price-rule-grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+
+        .price-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .price-skill-tag {
+            padding: 7px 10px;
+            border: 1px solid rgba(157, 230, 255, 0.28);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.06);
+            color: rgba(234, 252, 255, 0.86);
+            font-size: 13px;
         }
 
         .price-note {
@@ -256,7 +513,8 @@
             padding: 12px 14px;
             border: 1px solid rgba(108, 229, 255, 0.26);
             border-radius: 14px;
-            background: rgba(255, 255, 255, 0.055);
+            background:
+                linear-gradient(135deg, rgba(108, 229, 255, 0.1), rgba(255, 255, 255, 0.05));
             box-shadow: inset 0 0 16px rgba(108, 229, 255, 0.04);
         }
 
@@ -630,9 +888,17 @@
             display: none !important;
         }
 
+        html.performance-low body::after {
+            opacity: 0.34;
+        }
+
         html.performance-low .price-card,
-        html.performance-low .price-hero {
-            box-shadow: 0 0 10px rgba(0, 190, 255, 0.12);
+        html.performance-low .price-hero,
+        html.performance-low .price-service-tile,
+        html.performance-low .price-feature-tile,
+        html.performance-low .price-rule-tile,
+        html.performance-low .price-step {
+            box-shadow: none;
             backdrop-filter: none;
         }
 
@@ -682,8 +948,13 @@
             }
 
             .price-page {
-                width: min(100vw - 28px, 1120px);
+                width: min(1120px, calc(100vw - 28px));
                 padding: 72px 0 112px;
+            }
+
+            .price-hero {
+                grid-template-columns: 1fr;
+                gap: 16px;
             }
 
             .price-hero,
@@ -694,7 +965,15 @@
             }
 
             .price-grid,
+            .price-service-grid,
             .price-review-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .price-step-grid,
+            .price-mini-grid,
+            .price-feature-grid,
+            .price-rule-grid {
                 grid-template-columns: 1fr;
             }
 
@@ -704,6 +983,30 @@
 
             .price-row {
                 grid-template-columns: 1fr;
+                gap: 5px;
+            }
+
+            .price-row.is-head {
+                display: none;
+            }
+
+            .price-row span::before {
+                display: block;
+                color: rgba(191, 246, 255, 0.62);
+                font-size: 12px;
+                font-weight: 700;
+            }
+
+            .price-row span:nth-child(1)::before {
+                content: "段位";
+            }
+
+            .price-row span:nth-child(2)::before {
+                content: "普通陪玩";
+            }
+
+            .price-row span:nth-child(3)::before {
+                content: "包赢 / 补星模式";
             }
 
             .price-auth-actions {
@@ -743,26 +1046,44 @@
 
 <main class="price-page">
     <section class="price-hero">
-        <h1>收费咨询</h1>
-        <p>君雪个人主页 · 陪玩服务站 · 主播主页</p>
-        <p>这里先放清楚价格、服务边界和评价入口。下单前请先确认档期，避免撞车。</p>
-        <div class="price-actions">
-            <a class="price-button" href="contact.html">我要下单 / 咨询档期</a>
-            <a class="price-button" href="index.html">返回首页</a>
+        <div class="price-hero-copy">
+            <div class="price-kicker">君雪陪玩服务台</div>
+            <h1>收费咨询</h1>
+            <p class="price-subtitle">陪玩服务站 · 主播主页 · 老板评价入口</p>
+            <p>下单前请先确认档期、区服、段位和服务需求。价格写清楚，体验也会认真照顾。</p>
+            <div class="price-actions">
+                <a class="price-button" href="contact.html">我要下单 / 咨询档期</a>
+                <a class="price-button" href="index.html">返回首页</a>
+            </div>
+        </div>
+        <div class="price-hero-selling" aria-label="服务亮点">
+            <div class="price-hero-badge"><strong>语音陪玩</strong>开麦沟通，娱乐或认真都能提前说清楚。</div>
+            <div class="price-hero-badge"><strong>可边打边教学</strong>想学思路、英雄或位置，都可以边玩边复盘。</div>
+            <div class="price-hero-badge"><strong>支持正当理由退款/补单</strong>体验优先，规则温柔但说得明白。</div>
         </div>
     </section>
 
-    <section class="price-grid" aria-label="陪玩收费内容">
-        <article class="price-card">
-            <h2>王者荣耀陪玩</h2>
+    <section class="price-step-grid" aria-label="下单前请确认">
+        <div class="price-step"><span class="price-step-num">1</span><strong>确认区服和段位</strong></div>
+        <div class="price-step"><span class="price-step-num">2</span><strong>确认英雄/位置</strong></div>
+        <div class="price-step"><span class="price-step-num">3</span><strong>确认是否需要语音</strong></div>
+        <div class="price-step"><span class="price-step-num">4</span><strong>确认档期后下单</strong></div>
+    </section>
+
+    <section class="price-grid price-service-grid" aria-label="陪玩收费内容">
+        <article class="price-card is-service">
+            <div class="price-section-head">
+                <div class="price-section-kicker">普通陪玩 / 包赢补星 / 复盘服务</div>
+                <h2>王者荣耀陪玩</h2>
+            </div>
             <div class="price-table" role="table" aria-label="王者荣耀收费表">
                 <div class="price-row is-head" role="row"><span>段位区间</span><span>普通陪玩</span><span>包赢 / 补星模式</span></div>
-                <div class="price-row" role="row"><span>王者以下</span><span>6 元/把</span><span>12 元</span></div>
-                <div class="price-row" role="row"><span>王者 0-50 星</span><span>8 元/把</span><span>16 元</span></div>
-                <div class="price-row" role="row"><span>王者 50-80 星</span><span>12 元/把</span><span>24 元</span></div>
-                <div class="price-row" role="row"><span>王者 80-100 星</span><span>16 元/把</span><span>32 元</span></div>
-                <div class="price-row" role="row"><span>王者 100 星以上</span><span>20 元/把</span><span>40 元</span></div>
-                <div class="price-row" role="row"><span>王者复盘</span><span>50 元/小时</span><span>教学复盘</span></div>
+                <div class="price-row" role="row"><span>王者以下</span><span>6 元/把</span><span class="price-mode">12 元</span></div>
+                <div class="price-row" role="row"><span>王者 0-50 星</span><span>8 元/把</span><span class="price-mode">16 元</span></div>
+                <div class="price-row" role="row"><span>王者 50-80 星</span><span>12 元/把</span><span class="price-mode">24 元</span></div>
+                <div class="price-row" role="row"><span>王者 80-100 星</span><span>16 元/把</span><span class="price-mode">32 元</span></div>
+                <div class="price-row" role="row"><span>王者 100 星以上 <em class="price-tag">高星局</em></span><span>20 元/把</span><span class="price-mode">40 元</span></div>
+                <div class="price-row" role="row"><span>王者复盘</span><span>50 元/小时</span><span class="price-mode">教学复盘</span></div>
             </div>
             <div class="price-note">包赢主要以实际上星数为主。若因特殊情况未达成，可协商补单或退款。</div>
             <h3>陪玩特色</h3>
@@ -779,53 +1100,58 @@
             </ul>
         </article>
 
-        <article class="price-card">
-            <h2>永劫无间陪玩</h2>
-            <ul class="price-list">
-                <li>娱乐陪玩：35 元/小时</li>
-                <li>可接段位以主播实际可接段位为准</li>
-                <li>语音聊天：30 元/半小时</li>
-            </ul>
+        <article class="price-card is-service">
+            <div class="price-section-head">
+                <div class="price-section-kicker">娱乐陪玩 / 语音聊天</div>
+                <h2>永劫无间陪玩</h2>
+            </div>
+            <div class="price-mini-grid">
+                <div class="price-service-tile"><strong>娱乐陪玩</strong>35 元/小时</div>
+                <div class="price-service-tile"><strong>语音聊天</strong>30 元/半小时</div>
+                <div class="price-service-tile"><strong>可接段位</strong>以主播实际可接段位为准</div>
+            </div>
             <h3>语音聊天</h3>
             <p>可开麦聊天，轻松娱乐或认真上分都可以提前沟通。</p>
             <h3>实力介绍</h3>
-            <ul class="price-list">
-                <li>超绝省服季莹莹大王</li>
-                <li>超绝妖刀姬</li>
-                <li>超绝水娘</li>
-            </ul>
+            <div class="price-tags" aria-label="永劫无间实力标签">
+                <span class="price-skill-tag">省服季莹莹</span>
+                <span class="price-skill-tag">妖刀姬</span>
+                <span class="price-skill-tag">水娘</span>
+            </div>
         </article>
     </section>
 
     <section class="price-grid" aria-label="下单说明">
-        <article class="price-card">
-            <h2>接单前请确认</h2>
-            <ul class="price-list">
-                <li>游戏区服</li>
-                <li>当前段位</li>
-                <li>想玩的英雄/位置</li>
-                <li>是否需要语音</li>
-                <li>预计游戏时间</li>
-                <li>是否接受直播同款陪玩效果</li>
-            </ul>
+        <article class="price-card is-info">
+            <div class="price-section-head">
+                <h2>接单前请确认</h2>
+            </div>
+            <div class="price-feature-grid">
+                <div class="price-feature-tile"><strong>游戏区服</strong>先确认服务器和当前段位。</div>
+                <div class="price-feature-tile"><strong>英雄/位置</strong>提前说想玩的英雄或位置。</div>
+                <div class="price-feature-tile"><strong>预计时间</strong>确认语音、时长和直播同款需求。</div>
+            </div>
         </article>
-        <article class="price-card">
-            <h2>为什么选择君雪</h2>
-            <ul class="price-list">
-                <li>全程语音，可娱乐可认真</li>
-                <li>可边打边教学，情绪稳定</li>
-                <li>游戏体验优先</li>
-                <li>支持正当理由退款或补单</li>
-                <li>直播同款陪玩体验</li>
-            </ul>
+        <article class="price-card is-info">
+            <div class="price-section-head">
+                <h2>为什么选择君雪</h2>
+            </div>
+            <div class="price-feature-grid">
+                <div class="price-feature-tile"><strong>可指定英雄</strong>按老板想玩的方向安排。</div>
+                <div class="price-feature-tile"><strong>全程语音</strong>沟通更轻松，体验更完整。</div>
+                <div class="price-feature-tile"><strong>边打边教学</strong>娱乐局也可以学思路。</div>
+                <div class="price-feature-tile"><strong>体验感优先</strong>可娱乐，也可认真上分。</div>
+                <div class="price-feature-tile"><strong>情绪稳定</strong>少点压力，多点陪伴。</div>
+                <div class="price-feature-tile"><strong>正当理由可退款或补单</strong>规则清楚，处理温柔。</div>
+            </div>
         </article>
     </section>
 
-    <section class="price-card" id="boss-reviews" aria-labelledby="review-title">
+    <section class="price-card is-review" id="boss-reviews" aria-labelledby="review-title">
         <div class="price-review-heading">
             <div>
                 <h2 id="review-title">老板评价墙</h2>
-                <p>每一句评价，都是君雪继续努力的理由。</p>
+                <p>真实老板反馈，会比君雪自己介绍更有说服力。</p>
             </div>
             <button class="price-button price-review-empty-action" id="price-open-ganyu-review" type="button">找甘雨发布评价</button>
         </div>
@@ -842,17 +1168,17 @@
         </div>
     </section>
 
-    <section class="price-card">
-        <h2>接单说明</h2>
-        <ul class="price-list">
-            <li>价格会根据实际段位、时段、状态微调。</li>
-            <li>包赢 / 补星模式以实际上星结果为准。</li>
-            <li>如遇不可抗因素或体验不满意，可协商补单或退款。</li>
-            <li>下单前请先联系确认档期。</li>
-            <li>正常情况下，评分低于前二可联系退款或补单。</li>
-            <li>支持储值，满 100 送 10 元，满 200 送 20 元；未用完可随时退款。</li>
-            <li>老板在游戏体验过程中，若有不满意等正当理由可退款。</li>
-        </ul>
+    <section class="price-card is-info">
+        <div class="price-section-head">
+            <h2>服务说明</h2>
+            <p>规则提前说清楚，下单时也会再确认一遍。</p>
+        </div>
+        <div class="price-rule-grid">
+            <div class="price-rule-tile"><strong>退款与补单</strong>正常情况下，评分低于前二可联系退款或补单。老板在游戏体验过程中，若有不满意等正当理由可退款。</div>
+            <div class="price-rule-tile"><strong>包赢说明</strong>包赢 / 补星模式以实际上星结果为准。如遇不可抗因素或体验不满意，可协商补单或退款。</div>
+            <div class="price-rule-tile"><strong>储值优惠</strong>支持储值，满 100 送 10 元，满 200 送 20 元；未用完可随时退款。</div>
+            <div class="price-rule-tile"><strong>下单提醒</strong>价格会根据实际段位、时段、状态微调。下单前请先联系确认档期。</div>
+        </div>
     </section>
 </main>
 

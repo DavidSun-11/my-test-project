@@ -130,3 +130,93 @@ using (auth.uid() = user_id);
 ```
 
 可以在 Supabase 后台的 `Authentication -> Providers -> Email` 中调整邮箱验证设置。
+
+## 7. Boss review likes and comments
+
+Run this SQL in Supabase SQL Editor to enable likes and comments for `price.html`.
+
+The SQL is repeatable: tables and indexes use `if not exists`, and policies are dropped before being recreated.
+
+```sql
+create table if not exists public.boss_review_likes (
+  review_id uuid not null references public.boss_reviews(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  created_at timestamp with time zone default now(),
+  primary key (review_id, user_id)
+);
+
+create index if not exists boss_review_likes_review_id_idx
+on public.boss_review_likes (review_id);
+
+create index if not exists boss_review_likes_user_id_idx
+on public.boss_review_likes (user_id);
+
+alter table public.boss_review_likes enable row level security;
+
+drop policy if exists "Anyone can read boss review likes" on public.boss_review_likes;
+create policy "Anyone can read boss review likes"
+on public.boss_review_likes
+for select
+using (true);
+
+drop policy if exists "Authenticated users can insert own boss review likes" on public.boss_review_likes;
+create policy "Authenticated users can insert own boss review likes"
+on public.boss_review_likes
+for insert
+to authenticated
+with check (auth.uid() = user_id);
+
+drop policy if exists "Users can delete own boss review likes" on public.boss_review_likes;
+create policy "Users can delete own boss review likes"
+on public.boss_review_likes
+for delete
+to authenticated
+using (auth.uid() = user_id);
+
+create table if not exists public.boss_review_comments (
+  id uuid primary key default gen_random_uuid(),
+  review_id uuid not null references public.boss_reviews(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  nickname text not null check (char_length(nickname) <= 20),
+  message text not null check (char_length(message) <= 120),
+  created_at timestamp with time zone default now()
+);
+
+create index if not exists boss_review_comments_review_id_idx
+on public.boss_review_comments (review_id);
+
+create index if not exists boss_review_comments_created_at_idx
+on public.boss_review_comments (created_at);
+
+alter table public.boss_review_comments enable row level security;
+
+drop policy if exists "Anyone can read boss review comments" on public.boss_review_comments;
+create policy "Anyone can read boss review comments"
+on public.boss_review_comments
+for select
+using (true);
+
+drop policy if exists "Authenticated users can insert own boss review comments" on public.boss_review_comments;
+create policy "Authenticated users can insert own boss review comments"
+on public.boss_review_comments
+for insert
+to authenticated
+with check (auth.uid() = user_id);
+
+drop policy if exists "Users can update own boss review comments" on public.boss_review_comments;
+create policy "Users can update own boss review comments"
+on public.boss_review_comments
+for update
+to authenticated
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
+
+drop policy if exists "Users can delete own boss review comments" on public.boss_review_comments;
+create policy "Users can delete own boss review comments"
+on public.boss_review_comments
+for delete
+to authenticated
+using (auth.uid() = user_id);
+```
+
+The first page version only supports reading, liking/unliking, and posting comments. Update/delete policies are kept for future expansion, but the page does not show edit/delete buttons.

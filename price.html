@@ -410,6 +410,122 @@
             cursor: pointer;
         }
 
+        .price-review-global-status {
+            margin-top: 8px;
+        }
+
+        .price-review-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px 8px;
+            margin-top: 8px;
+            padding-top: 7px;
+            border-top: 1px solid rgba(108, 229, 255, 0.16);
+        }
+
+        .price-review-action,
+        .price-review-small-button {
+            min-height: 28px;
+            padding: 0 10px;
+            border: 1px solid rgba(108, 229, 255, 0.32);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.07);
+            color: #eafcff;
+            font: inherit;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(0, 190, 255, 0.1);
+        }
+
+        .price-review-action.is-liked {
+            border-color: rgba(255, 160, 207, 0.58);
+            background: rgba(255, 142, 196, 0.12);
+            color: #ffd6e9;
+        }
+
+        .price-review-count {
+            color: rgba(214, 246, 255, 0.62);
+            font-size: 12px;
+            line-height: 1.3;
+        }
+
+        .price-review-comments {
+            display: grid;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .price-review-comment-list {
+            display: grid;
+            gap: 6px;
+        }
+
+        .price-review-comment {
+            padding: 8px;
+            border: 1px solid rgba(108, 229, 255, 0.16);
+            border-radius: 10px;
+            background: rgba(6, 22, 44, 0.22);
+        }
+
+        .price-review-comment-meta {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            color: rgba(234, 252, 255, 0.86);
+            font-size: 12px;
+            line-height: 1.35;
+        }
+
+        .price-review-comment-meta span {
+            color: rgba(214, 246, 255, 0.58);
+            white-space: nowrap;
+        }
+
+        .price-review-comment p {
+            margin: 5px 0 0;
+            color: rgba(247, 251, 255, 0.84);
+            font-size: 12px;
+            line-height: 1.45;
+            overflow-wrap: anywhere;
+        }
+
+        .price-review-comment-empty,
+        .price-review-comment-login {
+            color: rgba(214, 246, 255, 0.62);
+            font-size: 12px;
+            line-height: 1.45;
+        }
+
+        .price-review-comment-form {
+            display: grid;
+            gap: 6px;
+        }
+
+        .price-review-comment-form input,
+        .price-review-comment-form textarea {
+            width: 100%;
+            border: 1px solid rgba(108, 229, 255, 0.26);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.06);
+            color: #f7fbff;
+            font: inherit;
+            font-size: 12px;
+            outline: none;
+            padding: 8px 9px;
+        }
+
+        .price-review-comment-form textarea {
+            min-height: 58px;
+            resize: vertical;
+            line-height: 1.45;
+        }
+
+        .price-review-small-button {
+            width: fit-content;
+        }
+
         .back-home {
             display: inline-block;
             margin-top: 22px;
@@ -641,6 +757,7 @@
     <section class="price-card" aria-labelledby="review-title">
         <h2 id="review-title">老板评价</h2>
         <button class="price-review-toggle" id="price-review-toggle" type="button" aria-expanded="false">我要留下老板评价</button>
+        <div class="price-status price-review-global-status" id="price-review-status" role="status" aria-live="polite"></div>
         <div class="price-review-layout">
             <div class="price-review-panel" id="price-review-panel" hidden>
                 <form class="price-form" id="price-auth-form">
@@ -690,7 +807,6 @@
                         <textarea id="price-review-message" maxlength="300" placeholder="最多 300 字"></textarea>
                     </div>
                     <button class="price-submit" id="price-review-submit" type="submit">登录后评价</button>
-                    <div class="price-status" id="price-review-status" role="status" aria-live="polite"></div>
                 </form>
             </div>
             <div class="price-review-list" id="price-review-list">
@@ -830,7 +946,7 @@ document.addEventListener("click", function (event) {
     }
 
     loadScript("assets/supabase-config.js?v=20260611-1").then(function () {
-        return loadScript("assets/price-reviews.js?v=20260612-2");
+        return loadScript("assets/price-reviews.js?v=20260612-3");
     });
 })();
 </script>

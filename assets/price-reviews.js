@@ -27,7 +27,9 @@
 
     let client = null;
     let currentUser = null;
+    let currentReviews = [];
     let reviewPanelExpanded = false;
+    const reviewInteractions = new Map();
 
     function getConfigValue(name) {
         if (typeof window[name] === "string") {
@@ -96,6 +98,30 @@
             date.getDate() + "日 " +
             String(date.getHours()).padStart(2, "0") + ":" +
             String(date.getMinutes()).padStart(2, "0");
+    }
+
+    function getEmailNickname() {
+        return currentUser && currentUser.email ? currentUser.email.split("@")[0].slice(0, 20) : "";
+    }
+
+    function getReviewById(reviewId) {
+        return currentReviews.find(function (review) {
+            return review.id === reviewId;
+        }) || null;
+    }
+
+    function ensureInteraction(reviewId) {
+        const current = reviewInteractions.get(reviewId) || {};
+        const next = {
+            likesCount: Number(current.likesCount) || 0,
+            userLiked: !!current.userLiked,
+            comments: Array.isArray(current.comments) ? current.comments : [],
+            commentsOpen: !!current.commentsOpen,
+            commentsExpanded: !!current.commentsExpanded
+        };
+
+        reviewInteractions.set(reviewId, next);
+        return next;
     }
 
     function setReviewFormEnabled(enabled) {
@@ -171,12 +197,14 @@
         });
     }
 
-    function syncExpandableReviews() {
-        if (!reviewList) {
+    function syncExpandableReviews(root) {
+        const container = root || reviewList;
+
+        if (!container) {
             return;
         }
 
-        reviewList.querySelectorAll(".price-review-message").forEach(function (message) {
+        container.querySelectorAll(".price-review-message").forEach(function (message) {
             const item = message.closest(".price-review-item");
             const button = item ? item.querySelector(".price-review-expand") : null;
 
@@ -198,6 +226,73 @@
         });
     }
 
+    function renderComments(reviewId, interaction) {
+        const comments = interaction.comments || [];
+        const visibleComments = interaction.commentsExpanded ? comments : comments.slice(0, 3);
+        const commentsHtml = visibleComments.length ? visibleComments.map(function (comment) {
+            return [
+                '<div class="price-review-comment">',
+                    '<div class="price-review-comment-meta">',
+                        '<strong>' + escapeHtml(comment.nickname || "老板") + '</strong>',
+                        '<span>' + escapeHtml(formatTime(comment.created_at)) + '</span>',
+                    '</div>',
+                    '<p>' + escapeHtml(comment.message || "") + '</p>',
+                '</div>'
+            ].join("");
+        }).join("") : '<div class="price-review-comment-empty">暂无评论。</div>';
+        const moreButton = comments.length > 3 ?
+            '<button class="price-review-small-button" type="button" data-action="toggle-more-comments">' +
+                (interaction.commentsExpanded ? "收起评论" : "查看更多评论") +
+            '</button>' :
+            '';
+        const formHtml = currentUser ? [
+            '<form class="price-review-comment-form">',
+                '<input name="nickname" maxlength="20" placeholder="昵称，可选" value="' + escapeHtml(getEmailNickname()) + '">',
+                '<textarea name="message" maxlength="120" placeholder="写一条评论，最多 120 字"></textarea>',
+                '<button class="price-review-small-button" type="submit">发布评论</button>',
+            '</form>'
+        ].join("") : '<div class="price-review-comment-login">登录后可以发表评论。</div>';
+
+        return [
+            '<div class="price-review-comments">',
+                '<div class="price-review-comment-list">',
+                    commentsHtml,
+                '</div>',
+                moreButton,
+                formHtml,
+            '</div>'
+        ].join("");
+    }
+
+    function renderReviewItem(review) {
+        const rating = Math.max(1, Math.min(5, Number(review.rating) || 5));
+        const interaction = ensureInteraction(review.id);
+        const commentsCount = interaction.comments.length;
+
+        return [
+            '<article class="price-review-item" data-review-id="' + escapeHtml(review.id) + '">',
+                '<div class="price-review-head">',
+                    '<strong>' + escapeHtml(review.nickname) + '</strong>',
+                    '<span class="price-review-stars">' + "★".repeat(rating) + "☆".repeat(5 - rating) + '</span>',
+                '</div>',
+                '<div class="price-review-meta">' + escapeHtml(review.service_type) + ' · ' + escapeHtml(formatTime(review.created_at)) + '</div>',
+                '<p class="price-review-message is-collapsed">' + escapeHtml(review.message) + '</p>',
+                '<button class="price-review-expand" type="button" hidden>展开全文</button>',
+                '<div class="price-review-actions">',
+                    '<button class="price-review-action' + (interaction.userLiked ? ' is-liked' : '') + '" type="button" data-action="toggle-like">' +
+                        (interaction.userLiked ? "♥ 已赞" : "♡ 点赞") +
+                    '</button>',
+                    '<span class="price-review-count">' + interaction.likesCount + ' 赞</span>',
+                    '<button class="price-review-action" type="button" data-action="toggle-comments">' +
+                        (interaction.commentsOpen ? "收起评论" : "评论") +
+                    '</button>',
+                    '<span class="price-review-count">' + commentsCount + ' 条评论</span>',
+                '</div>',
+                interaction.commentsOpen ? renderComments(review.id, interaction) : '',
+            '</article>'
+        ].join("");
+    }
+
     function renderReviews(reviews) {
         if (!reviewList) {
             return;
@@ -208,22 +303,74 @@
             return;
         }
 
-        reviewList.innerHTML = reviews.map(function (review) {
-            const rating = Math.max(1, Math.min(5, Number(review.rating) || 5));
-
-            return [
-                '<article class="price-review-item">',
-                    '<div class="price-review-head">',
-                        '<strong>' + escapeHtml(review.nickname) + '</strong>',
-                        '<span class="price-review-stars">' + "★".repeat(rating) + "☆".repeat(5 - rating) + '</span>',
-                    '</div>',
-                    '<div class="price-review-meta">' + escapeHtml(review.service_type) + ' · ' + escapeHtml(formatTime(review.created_at)) + '</div>',
-                    '<p class="price-review-message is-collapsed">' + escapeHtml(review.message) + '</p>',
-                    '<button class="price-review-expand" type="button" hidden>展开全文</button>',
-                '</article>'
-            ].join("");
-        }).join("");
+        reviewList.innerHTML = reviews.map(renderReviewItem).join("");
         syncExpandableReviews();
+    }
+
+    async function loadReviewInteractions(reviewIds) {
+        if (!client || !reviewIds.length) {
+            return;
+        }
+
+        reviewIds.forEach(function (reviewId) {
+            const interaction = ensureInteraction(reviewId);
+
+            interaction.likesCount = 0;
+            interaction.userLiked = false;
+            interaction.comments = [];
+        });
+
+        const likesResponse = await client
+            .from("boss_review_likes")
+            .select("review_id, user_id")
+            .in("review_id", reviewIds);
+
+        if (likesResponse.error) {
+            setStatus(reviewStatus, likesResponse.error.message, "warning");
+        } else {
+            (likesResponse.data || []).forEach(function (like) {
+                const interaction = ensureInteraction(like.review_id);
+
+                interaction.likesCount += 1;
+                if (currentUser && like.user_id === currentUser.id) {
+                    interaction.userLiked = true;
+                }
+            });
+        }
+
+        const commentsResponse = await client
+            .from("boss_review_comments")
+            .select("id, review_id, user_id, nickname, message, created_at")
+            .in("review_id", reviewIds)
+            .order("created_at", { ascending: true });
+
+        if (commentsResponse.error) {
+            setStatus(reviewStatus, commentsResponse.error.message, "warning");
+            return;
+        }
+
+        (commentsResponse.data || []).forEach(function (comment) {
+            ensureInteraction(comment.review_id).comments.push(comment);
+        });
+    }
+
+    async function refreshSingleReview(reviewId) {
+        await loadReviewInteractions([reviewId]);
+        updateReviewCard(reviewId);
+    }
+
+    function updateReviewCard(reviewId) {
+        const review = getReviewById(reviewId);
+        const card = reviewList ? reviewList.querySelector('[data-review-id="' + reviewId + '"]') : null;
+
+        if (!review || !card) {
+            renderReviews(currentReviews);
+            return;
+        }
+
+        card.outerHTML = renderReviewItem(review);
+        const nextCard = reviewList.querySelector('[data-review-id="' + reviewId + '"]');
+        syncExpandableReviews(nextCard);
     }
 
     async function loadReviews() {
@@ -233,16 +380,20 @@
 
         const response = await client
             .from("boss_reviews")
-            .select("nickname, service_type, rating, message, created_at")
+            .select("id, nickname, service_type, rating, message, created_at")
             .order("created_at", { ascending: false });
 
         if (response.error) {
-            setStatus(reviewStatus, "评价暂时没有取到，请稍后再试～", "warning");
+            setStatus(reviewStatus, response.error.message, "warning");
             renderReviews([]);
             return;
         }
 
-        renderReviews(response.data || []);
+        currentReviews = response.data || [];
+        await loadReviewInteractions(currentReviews.map(function (review) {
+            return review.id;
+        }));
+        renderReviews(currentReviews);
     }
 
     function renderAuthState() {
@@ -261,7 +412,7 @@
         setReviewFormEnabled(true);
         setAuthControls(true);
         if (nicknameInput && !nicknameInput.value && currentUser.email) {
-            nicknameInput.value = currentUser.email.split("@")[0].slice(0, 20);
+            nicknameInput.value = getEmailNickname();
         }
     }
 
@@ -288,18 +439,20 @@
         loginButton.disabled = false;
 
         if (response.error) {
-            setStatus(authStatus, "登录失败，请检查邮箱或密码。", "warning");
+            setStatus(authStatus, response.error.message, "warning");
             return;
         }
 
         currentUser = response.data && response.data.session ? response.data.session.user : response.data.user;
         renderAuthState();
+        await loadReviews();
     }
 
     async function handleLogout() {
         await client.auth.signOut();
         currentUser = null;
         renderAuthState();
+        await loadReviews();
     }
 
     async function handleReviewSubmit(event) {
@@ -347,6 +500,75 @@
         renderAuthState();
     }
 
+    async function toggleLike(reviewId) {
+        const interaction = ensureInteraction(reviewId);
+        let response = null;
+
+        if (!currentUser) {
+            setStatus(reviewStatus, "请先登录后再点赞。", "warning");
+            return;
+        }
+
+        if (interaction.userLiked) {
+            response = await client
+                .from("boss_review_likes")
+                .delete()
+                .eq("review_id", reviewId)
+                .eq("user_id", currentUser.id);
+        } else {
+            response = await client.from("boss_review_likes").insert({
+                review_id: reviewId,
+                user_id: currentUser.id
+            });
+        }
+
+        if (response.error) {
+            setStatus(reviewStatus, response.error.message, "warning");
+            return;
+        }
+
+        setStatus(reviewStatus, "", "");
+        await refreshSingleReview(reviewId);
+    }
+
+    async function submitComment(form) {
+        const card = form.closest(".price-review-item");
+        const reviewId = card ? card.getAttribute("data-review-id") : "";
+        const nicknameInputLocal = form.elements.nickname;
+        const messageInputLocal = form.elements.message;
+        const nickname = (nicknameInputLocal.value.trim() || getEmailNickname() || "老板").slice(0, 20);
+        const message = messageInputLocal.value.trim().slice(0, 120);
+
+        if (!currentUser) {
+            setStatus(reviewStatus, "请先登录后再评论。", "warning");
+            return;
+        }
+
+        if (!message) {
+            setStatus(reviewStatus, "评论内容不能为空。", "warning");
+            return;
+        }
+
+        const response = await client.from("boss_review_comments").insert({
+            review_id: reviewId,
+            user_id: currentUser.id,
+            nickname: nickname,
+            message: message
+        });
+
+        if (response.error) {
+            setStatus(reviewStatus, response.error.message, "warning");
+            return;
+        }
+
+        messageInputLocal.value = "";
+        if (nicknameInputLocal.value.trim()) {
+            nicknameInputLocal.value = nickname;
+        }
+        setStatus(reviewStatus, "评论已发布。", "good");
+        await refreshSingleReview(reviewId);
+    }
+
     async function init() {
         if (!authStatus || !reviewStatus || !reviewList || !authForm || !reviewForm) {
             return;
@@ -362,21 +584,58 @@
 
         if (reviewList) {
             reviewList.addEventListener("click", function (event) {
-                const button = event.target.closest(".price-review-expand");
+                const expandButton = event.target.closest(".price-review-expand");
+                const actionButton = event.target.closest("[data-action]");
+                const card = event.target.closest(".price-review-item");
+                const reviewId = card ? card.getAttribute("data-review-id") : "";
 
-                if (!button) {
+                if (expandButton) {
+                    const item = expandButton.closest(".price-review-item");
+                    const message = item ? item.querySelector(".price-review-message") : null;
+
+                    if (!message) {
+                        return;
+                    }
+
+                    const isCollapsed = message.classList.toggle("is-collapsed");
+                    expandButton.textContent = isCollapsed ? "展开全文" : "收起";
                     return;
                 }
 
-                const item = button.closest(".price-review-item");
-                const message = item ? item.querySelector(".price-review-message") : null;
-
-                if (!message) {
+                if (!actionButton || !reviewId) {
                     return;
                 }
 
-                const isCollapsed = message.classList.toggle("is-collapsed");
-                button.textContent = isCollapsed ? "展开全文" : "收起";
+                if (actionButton.dataset.action === "toggle-like") {
+                    toggleLike(reviewId);
+                    return;
+                }
+
+                if (actionButton.dataset.action === "toggle-comments") {
+                    const interaction = ensureInteraction(reviewId);
+
+                    interaction.commentsOpen = !interaction.commentsOpen;
+                    updateReviewCard(reviewId);
+                    return;
+                }
+
+                if (actionButton.dataset.action === "toggle-more-comments") {
+                    const interaction = ensureInteraction(reviewId);
+
+                    interaction.commentsExpanded = !interaction.commentsExpanded;
+                    updateReviewCard(reviewId);
+                }
+            });
+
+            reviewList.addEventListener("submit", function (event) {
+                const form = event.target.closest(".price-review-comment-form");
+
+                if (!form) {
+                    return;
+                }
+
+                event.preventDefault();
+                submitComment(form);
             });
         }
 
@@ -404,6 +663,7 @@
         client.auth.onAuthStateChange(function (event, session) {
             currentUser = session ? session.user : null;
             renderAuthState();
+            loadReviews();
         });
 
         await refreshSession();

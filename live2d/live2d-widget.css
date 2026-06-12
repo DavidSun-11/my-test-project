@@ -1215,8 +1215,8 @@ body.is-live2d-external-dragging .live2d-hit-area {
     .live2d-widget {
         right: 8px;
         bottom: 8px;
-        width: 168px;
-        height: 240px;
+        width: 132px;
+        height: 188px;
     }
 
     .live2d-widget.is-left {
@@ -1248,8 +1248,8 @@ body.is-live2d-external-dragging .live2d-hit-area {
     .live2d-hit-area {
         left: 4px;
         bottom: 88px;
-        width: 210px;
-        height: 280px;
+        width: 168px;
+        height: 224px;
     }
 
     .live2d-quiz {
@@ -1324,8 +1324,8 @@ body.is-live2d-external-dragging .live2d-hit-area {
         left: auto;
         right: 8px;
         bottom: 78px;
-        width: 150px;
-        height: 218px;
+        width: 120px;
+        height: 174px;
         filter: drop-shadow(0 0 10px rgba(0, 210, 255, 0.18));
     }
 
@@ -1359,14 +1359,14 @@ body.is-live2d-external-dragging .live2d-hit-area {
 
     #oml2d-main,
     .oml2d-main {
-        bottom: 102px !important;
+        bottom: 88px !important;
     }
 
     .live2d-hit-area {
         left: 4px;
-        bottom: 96px;
-        width: 176px;
-        height: 240px;
+        bottom: 82px;
+        width: 142px;
+        height: 194px;
     }
 
     .live2d-quiz,

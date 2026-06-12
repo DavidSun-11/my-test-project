@@ -19,6 +19,7 @@
     let dragState = null;
     let currentPosition = null;
     let suppressNextClickUntil = 0;
+    let resizeFrame = 0;
 
     function onReady(callback) {
         if (document.readyState === "loading") {
@@ -412,6 +413,24 @@
         }
     }
 
+    function syncAfterResize() {
+        resizeFrame = 0;
+        if (currentPosition) {
+            applyStagePosition(currentPosition, true);
+            return;
+        }
+
+        restoreSavedPosition();
+    }
+
+    function scheduleResizeSync() {
+        if (resizeFrame) {
+            return;
+        }
+
+        resizeFrame = window.requestAnimationFrame(syncAfterResize);
+    }
+
     function syncRuntimeDom() {
         removeLegacyDragButton();
 
@@ -438,19 +457,13 @@
             subtree: true
         });
 
-        window.addEventListener("resize", function () {
-            if (currentPosition) {
-                applyStagePosition(currentPosition, true);
-                return;
-            }
-
-            restoreSavedPosition();
-        });
+        window.addEventListener("resize", scheduleResizeSync);
     }
 
     window.JunxueLive2DDrag = window.JunxueLive2DDrag || {};
     window.JunxueLive2DDrag.shouldIgnoreMenuEvent = shouldIgnoreMenuEvent;
     window.JunxueLive2DDrag.sync = syncRuntimeDom;
+    window.JunxueLive2DDrag.scheduleSync = scheduleResizeSync;
 
     onReady(init);
 })();

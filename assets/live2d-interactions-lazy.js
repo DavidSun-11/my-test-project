@@ -706,6 +706,7 @@
         let idleTalkTimer = null;
         let fortuneProcessTimer = null;
         let dialogMode = "menu";
+        let popupSyncFrame = 0;
 
         function clearSpinTimers() {
             window.clearInterval(heroSpinTimer);
@@ -808,6 +809,14 @@
 
         function randomBetween(min, max) {
             return Math.random() * (max - min) + min;
+        }
+
+        function getIdleDelayMultiplier() {
+            const mode = window.JunxuePerformanceMode;
+
+            return mode && typeof mode.getLive2DIdleDelayMultiplier === "function" ?
+                mode.getLive2DIdleDelayMultiplier() :
+                1;
         }
 
         function pickRandomItem(items) {
@@ -932,6 +941,17 @@
             }
         }
 
+        function scheduleLive2DPopupPositions() {
+            if (popupSyncFrame) {
+                return;
+            }
+
+            popupSyncFrame = window.requestAnimationFrame(function () {
+                popupSyncFrame = 0;
+                syncLive2DPopupPositions();
+            });
+        }
+
         function closeDialog() {
             clearSpinTimers();
             dialog.classList.remove("is-open", "is-opening");
@@ -987,10 +1007,12 @@
                 return;
             }
 
+            const delayMultiplier = getIdleDelayMultiplier();
+
             idleTalkTimer = window.setTimeout(function () {
                 showIdleTalk();
                 scheduleIdleTalk(false);
-            }, first ? randomBetween(8000, 12000) : randomBetween(45000, 90000));
+            }, (first ? randomBetween(8000, 12000) : randomBetween(45000, 90000)) * delayMultiplier);
         }
 
         function addOption(label, onClick) {
@@ -2599,8 +2621,13 @@
             findLive2DRoots().forEach(bindNode);
         }
 
-        window.addEventListener("live2d-stage-position-changed", syncLive2DPopupPositions);
-        window.addEventListener("resize", syncLive2DPopupPositions);
+        window.addEventListener("live2d-stage-position-changed", scheduleLive2DPopupPositions);
+        window.addEventListener("resize", scheduleLive2DPopupPositions);
+        document.addEventListener("visibilitychange", function () {
+            if (!document.hidden) {
+                scheduleLive2DPopupPositions();
+            }
+        });
         window.setTimeout(syncLive2DPopupPositions, 500);
         window.setTimeout(syncLive2DPopupPositions, 1500);
         window.setTimeout(syncLive2DPopupPositions, 3000);

@@ -12,6 +12,10 @@
     const fetchTimeoutMs = 5000;
     const scriptTimeoutMs = 7000;
     const slowLoadMessage = "甘雨加载有点慢，稍后再试试吧～";
+    const webglWarningMessage = "当前浏览器不支持 WebGL，甘雨可能无法正常显示。";
+    const primaryRuntimeSrc = "https://cdn.jsdelivr.net/npm/oh-my-live2d@0.19.3/dist/index.min.js";
+    const fallbackRuntimeSrc = "https://unpkg.com/oh-my-live2d@0.19.3/dist/index.min.js";
+    const runtimeResolutionNeedle = "resolution:2,autoStart:!0,autoDensity:!0";
     const readySelector = "#oml2d-main, .oml2d-main, #oml2d, .oml2d, .oml2d-stage, .oml2d-canvas";
     const waitingMessages = [""];
     const stableMessages = [""];
@@ -19,9 +23,113 @@
     let loadTimer = null;
     let readyObserver = null;
     let bootstrapHidden = false;
+    let runtimeInjectedDpr = false;
+    let runtimeUsedOriginal = false;
+    let fallbackBootStarted = false;
+    let pausedPixiTicker = null;
+
+    window.JunxueLive2DRenderInfo = Object.assign({
+        usesCanvas: false,
+        canvasFound: false,
+        webglSupported: false,
+        webgl2Supported: false,
+        actualContext: "",
+        dprCap: getLive2DDprCap(),
+        dprInjected: false,
+        fallbackToOriginalResolution: false,
+        runtime: "oh-my-live2d@0.19.3"
+    }, window.JunxueLive2DRenderInfo || {});
 
     function setMessage(text, persist) {
         return;
+    }
+
+    function getLive2DDprCap() {
+        const mode = window.JunxuePerformanceMode;
+
+        if (mode && typeof mode.getLive2DDprCap === "function") {
+            return mode.getLive2DDprCap();
+        }
+
+        return 1.5;
+    }
+
+    function hasContext(name) {
+        try {
+            return !!document.createElement("canvas").getContext(name, {
+                alpha: true,
+                antialias: true
+            });
+        } catch (error) {
+            return false;
+        }
+    }
+
+    function detectWebGLSupport() {
+        const webgl2 = hasContext("webgl2");
+        const webgl = webgl2 || hasContext("webgl") || hasContext("experimental-webgl");
+
+        window.JunxueLive2DRenderInfo.webgl2Supported = webgl2;
+        window.JunxueLive2DRenderInfo.webglSupported = webgl;
+        return webgl;
+    }
+
+    function showWebGLWarning() {
+        if (document.getElementById("live2d-webgl-warning")) {
+            return;
+        }
+
+        const warning = document.createElement("div");
+
+        warning.id = "live2d-webgl-warning";
+        warning.textContent = webglWarningMessage;
+        warning.style.cssText = [
+            "position:fixed",
+            "left:18px",
+            "bottom:132px",
+            "z-index:10011",
+            "max-width:min(280px,calc(100vw - 36px))",
+            "padding:9px 12px",
+            "border:1px solid rgba(120,229,255,.48)",
+            "border-radius:12px",
+            "background:rgba(6,22,44,.82)",
+            "color:rgba(234,252,255,.92)",
+            "font:12px/1.5 Arial,sans-serif",
+            "box-shadow:0 0 14px rgba(0,190,255,.16)",
+            "pointer-events:none"
+        ].join(";");
+        document.body.appendChild(warning);
+        window.setTimeout(function () {
+            warning.remove();
+        }, 6500);
+    }
+
+    function updateCanvasRenderInfo() {
+        const canvas = document.querySelector("#oml2d-canvas, .oml2d-canvas, #oml2d-stage canvas, canvas");
+        let contextName = "";
+
+        if (canvas && canvas.getContext) {
+            try {
+                if (canvas.getContext("webgl2")) {
+                    contextName = "webgl2";
+                } else if (canvas.getContext("webgl")) {
+                    contextName = "webgl";
+                } else if (canvas.getContext("experimental-webgl")) {
+                    contextName = "experimental-webgl";
+                } else if (canvas.getContext("2d")) {
+                    contextName = "2d";
+                }
+            } catch (error) {
+                contextName = "";
+            }
+        }
+
+        window.JunxueLive2DRenderInfo.usesCanvas = !!canvas;
+        window.JunxueLive2DRenderInfo.canvasFound = !!canvas;
+        window.JunxueLive2DRenderInfo.actualContext = contextName;
+        window.JunxueLive2DRenderInfo.dprCap = getLive2DDprCap();
+        window.JunxueLive2DRenderInfo.dprInjected = runtimeInjectedDpr;
+        window.JunxueLive2DRenderInfo.fallbackToOriginalResolution = runtimeUsedOriginal;
     }
 
     function getRandomMessage(messages) {
@@ -53,6 +161,7 @@
             readyObserver.disconnect();
             readyObserver = null;
         }
+        updateCanvasRenderInfo();
         hideBootstrapWidget();
     }
 
@@ -141,6 +250,65 @@
                 done = true;
                 window.clearTimeout(timer);
                 reject(new Error("script-load-failed: " + src));
+            };
+            document.head.appendChild(script);
+        });
+    }
+
+    function loadRuntimeText(src) {
+        return fetch(src, {
+            method: "GET",
+            cache: "force-cache"
+        }).then(function (response) {
+            if (!response.ok) {
+                throw new Error("runtime-fetch-failed: " + response.status);
+            }
+
+            return response.text();
+        });
+    }
+
+    function loadScriptText(source, label) {
+        return new Promise(function (resolve, reject) {
+            const script = document.createElement("script");
+            const blob = new Blob([source], {
+                type: "application/javascript"
+            });
+            const url = URL.createObjectURL(blob);
+            let done = false;
+            const timer = window.setTimeout(function () {
+                if (done) {
+                    return;
+                }
+
+                done = true;
+                script.remove();
+                URL.revokeObjectURL(url);
+                reject(new Error("script-timeout: " + label));
+            }, scriptTimeoutMs);
+
+            script.src = url;
+            script.async = true;
+            script.onload = function () {
+                if (done) {
+                    return;
+                }
+
+                done = true;
+                window.clearTimeout(timer);
+                URL.revokeObjectURL(url);
+                resolve();
+            };
+            script.onerror = function () {
+                if (done) {
+                    return;
+                }
+
+                done = true;
+                window.clearTimeout(timer);
+                script.remove();
+                URL.revokeObjectURL(url);
+                reject(new Error("script-load-failed: " + label));
             };
             document.head.appendChild(script);
         });
@@ -294,20 +462,51 @@
         }
     }
 
+    async function loadOriginalRuntime() {
+        runtimeUsedOriginal = true;
+        await loadScript(primaryRuntimeSrc).catch(function (primaryError) {
+            console.error("Live2D runtime primary CDN failed", {
+                stage: "runtime",
+                error: primaryError
+            });
+            return loadScript(fallbackRuntimeSrc);
+        });
+    }
+
+    async function loadDprInjectedRuntime(src) {
+        const dprCap = Math.min(Math.max(1, Number(getLive2DDprCap()) || 1.5), 2);
+        const source = await loadRuntimeText(src);
+
+        if (source.indexOf(runtimeResolutionNeedle) === -1) {
+            console.warn("Live2D runtime DPR injection skipped: resolution marker not found.");
+            return false;
+        }
+
+        window.__JUNXUE_LIVE2D_DPR__ = dprCap;
+        await loadScriptText(source.replace(
+            runtimeResolutionNeedle,
+            "resolution:(window.__JUNXUE_LIVE2D_DPR__||2),autoStart:!0,autoDensity:!0"
+        ), "oh-my-live2d-dpr");
+        runtimeInjectedDpr = true;
+        runtimeUsedOriginal = false;
+        return true;
+    }
+
     async function ensureRuntime() {
         if (window.OML2D && typeof window.OML2D.loadOml2d === "function") {
             return;
         }
 
-        try {
-            await loadScript("https://cdn.jsdelivr.net/npm/oh-my-live2d@0.19.3/dist/index.min.js");
-        } catch (primaryError) {
-            console.error("Live2D runtime primary CDN failed", {
-                stage: "runtime",
-                error: primaryError
-            });
-            await loadScript("https://unpkg.com/oh-my-live2d@0.19.3/dist/index.min.js");
+        const injected = await loadDprInjectedRuntime(primaryRuntimeSrc).catch(function (error) {
+            console.warn("Live2D runtime DPR injection failed, using original runtime.", error);
+            return false;
+        });
+
+        if (injected) {
+            return;
         }
+
+        await loadOriginalRuntime();
     }
 
     function buildModelConfig(modelPath) {
@@ -337,6 +536,11 @@
 
         if (widget && dockedPosition === "left") {
             widget.classList.add("is-left");
+        }
+
+        window.JunxueLive2DRenderInfo.dprCap = getLive2DDprCap();
+        if (!detectWebGLSupport()) {
+            showWebGLWarning();
         }
 
         setMessage(waitingMessage, true);
@@ -373,34 +577,63 @@
 
         watchLive2DReady();
 
-        try {
-            window.OML2D.loadOml2d({
-                dockedPosition: dockedPosition,
-                primaryColor: "#38d9ff",
-                sayHello: true,
-                mobileDisplay: true,
-                menus: {
-                    disable: true
-                },
-                statusBar: {
-                    disable: false,
-                    loadingMessage: waitingMessage,
-                    loadSuccessMessage: "我来啦，请多关照。",
-                    loadFailMessage: slowLoadMessage
-                },
-                models: [buildModelConfig(modelPath)],
-                tips: {
-                    idleTips: {
-                        message: []
-                    }
+        const oml2dOptions = {
+            dockedPosition: dockedPosition,
+            primaryColor: "#38d9ff",
+            sayHello: true,
+            mobileDisplay: true,
+            menus: {
+                disable: true
+            },
+            statusBar: {
+                disable: false,
+                loadingMessage: waitingMessage,
+                loadSuccessMessage: "\u6211\u6765\u5566\uff0c\u8bf7\u591a\u5173\u7167\u3002",
+                loadFailMessage: slowLoadMessage
+            },
+            models: [buildModelConfig(modelPath)],
+            tips: {
+                idleTips: {
+                    message: []
                 }
-            });
+            }
+        };
 
+        function startOml2D(options) {
+            window.OML2D.loadOml2d(options);
             window.setTimeout(function () {
                 if (findReadyContainer()) {
                     markLive2DReady();
                 }
             }, 1200);
+        }
+
+        function scheduleInjectedRuntimeFallback() {
+            if (!runtimeInjectedDpr) {
+                return;
+            }
+
+            window.setTimeout(function () {
+                if (findReadyContainer() || fallbackBootStarted) {
+                    return;
+                }
+
+                fallbackBootStarted = true;
+                runtimeInjectedDpr = false;
+                runtimeUsedOriginal = true;
+                window.JunxueLive2DRenderInfo.fallbackToOriginalResolution = true;
+                console.warn("Live2D DPR injected runtime did not become ready; falling back to original resolution runtime.");
+                loadOriginalRuntime().then(function () {
+                    startOml2D(oml2dOptions);
+                }).catch(function (error) {
+                    console.error("Live2D original runtime fallback failed", error);
+                });
+            }, loadTimeoutMs);
+        }
+
+        try {
+            startOml2D(oml2dOptions);
+            scheduleInjectedRuntimeFallback();
         } catch (error) {
             console.error("Live2D Cubism init failed", {
                 stage: "Cubism Init Failed",
@@ -410,5 +643,37 @@
         }
     }
 
+    function getPixiTicker() {
+        return window.PIXI && window.PIXI.Ticker && window.PIXI.Ticker.shared ? window.PIXI.Ticker.shared : null;
+    }
+
+    function handleVisibilityChange() {
+        const ticker = getPixiTicker();
+
+        if (!ticker) {
+            return;
+        }
+
+        try {
+            if (document.hidden) {
+                if (ticker.started !== false) {
+                    pausedPixiTicker = ticker;
+                    ticker.stop();
+                }
+                return;
+            }
+
+            if (pausedPixiTicker === ticker) {
+                ticker.start();
+                pausedPixiTicker = null;
+                updateCanvasRenderInfo();
+                window.dispatchEvent(new CustomEvent("live2d-stage-position-changed"));
+            }
+        } catch (error) {
+            console.warn("Live2D ticker visibility optimization skipped.", error);
+        }
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
     boot();
 })();

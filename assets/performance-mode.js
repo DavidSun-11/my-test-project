@@ -72,6 +72,22 @@
         return config;
     }
 
+    function getLive2DDprCap() {
+        if (requestedMode === "high") {
+            return 2;
+        }
+
+        if (requestedMode === "low") {
+            return 1;
+        }
+
+        return 1.5;
+    }
+
+    function getLive2DIdleDelayMultiplier() {
+        return resolvedMode === "low" ? 1.6 : 1;
+    }
+
     function writeStoredMode(mode) {
         try {
             window.localStorage.setItem(STORAGE_KEY, mode);
@@ -275,6 +291,8 @@
         isHigh: function () {
             return resolvedMode === "high";
         },
+        getLive2DDprCap: getLive2DDprCap,
+        getLive2DIdleDelayMultiplier: getLive2DIdleDelayMultiplier,
         applyLive2DConfig: applyLive2DConfig
     };
 

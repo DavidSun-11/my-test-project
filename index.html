@@ -269,6 +269,33 @@
             max-width: 980px;
         }
 
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        .hero-title-art {
+            position: relative;
+            width: min(1120px, 72vw);
+            max-width: 100%;
+            margin-left: clamp(-18px, -1.4vw, -8px);
+            pointer-events: none;
+        }
+
+        .hero-title-art img {
+            display: block;
+            width: 100%;
+            height: auto;
+            filter: drop-shadow(0 0 8px rgba(140, 218, 255, 0.38));
+        }
+
         .home-title {
             position: relative;
             display: inline-grid;
@@ -339,6 +366,10 @@
             opacity: 0.78;
             -webkit-text-fill-color: initial;
             animation: titleFrostFlow 7s ease-in-out infinite;
+        }
+
+        .home-title-fallback[hidden] {
+            display: none;
         }
 
         @keyframes titleStarPulse {
@@ -531,6 +562,16 @@
                 max-width: min(92vw, 560px);
             }
 
+            .hero-title-art {
+                width: min(92vw, 560px);
+                margin-left: 0;
+                margin-top: 4px;
+            }
+
+            .hero-title-art img {
+                filter: drop-shadow(0 0 5px rgba(140, 218, 255, 0.26));
+            }
+
             .home-title {
                 max-width: 100%;
                 font-size: clamp(26px, 8.4vw, 40px);
@@ -616,6 +657,10 @@
             filter: none;
         }
 
+        html.performance-low .hero-title-art img {
+            filter: none;
+        }
+
         html.performance-low .home-title::before,
         html.performance-low .home-title::after {
             animation: none;
@@ -644,10 +689,14 @@
 <div class="meteor-layer" aria-hidden="true"></div>
 <header class="home-hero">
     <div class="home-hero__content">
-        <h1 class="home-title" aria-label="除却君身三重雪，天下谁人配白衣">
-            <span class="home-title__line">除却君身三重雪，</span>
-            <span class="home-title__line">天下谁人配白衣</span>
-        </h1>
+        <h1 class="sr-only">除却君身三重雪，天下谁人配白衣</h1>
+        <div class="hero-title-art" aria-hidden="true">
+            <img src="assets/images/hero-title-art.png" alt="" aria-hidden="true" onerror="this.hidden=true;this.nextElementSibling.hidden=false;">
+            <div class="home-title home-title-fallback" hidden>
+                <span class="home-title__line">除却君身三重雪，</span>
+                <span class="home-title__line">天下谁人配白衣</span>
+            </div>
+        </div>
     </div>
 </header>
 

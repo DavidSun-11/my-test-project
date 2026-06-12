@@ -8,6 +8,8 @@
     const authStatus = document.getElementById("price-auth-status");
     const reviewStatus = document.getElementById("price-review-status");
     const reviewList = document.getElementById("price-review-list");
+    const reviewToggle = document.getElementById("price-review-toggle");
+    const reviewPanel = document.getElementById("price-review-panel");
     const authForm = document.getElementById("price-auth-form");
     const reviewForm = document.getElementById("price-review-form");
     const emailInput = document.getElementById("price-email");
@@ -24,6 +26,7 @@
 
     let client = null;
     let currentUser = null;
+    let reviewPanelExpanded = false;
 
     function getConfigValue(name) {
         if (typeof window[name] === "string") {
@@ -54,6 +57,19 @@
 
         node.textContent = text || "";
         node.className = "price-status" + (type ? " is-" + type : "");
+    }
+
+    function setReviewPanelExpanded(expanded) {
+        reviewPanelExpanded = !!expanded;
+
+        if (reviewPanel) {
+            reviewPanel.hidden = !reviewPanelExpanded;
+        }
+
+        if (reviewToggle) {
+            reviewToggle.textContent = reviewPanelExpanded ? "收起评价表单" : "我要留下老板评价";
+            reviewToggle.setAttribute("aria-expanded", reviewPanelExpanded ? "true" : "false");
+        }
     }
 
     function escapeHtml(value) {
@@ -96,17 +112,6 @@
         }
     }
 
-    function showConfigMissing() {
-        setStatus(authStatus, CONFIG_MISSING_TEXT, "warning");
-        setStatus(reviewStatus, CONFIG_MISSING_TEXT, "warning");
-        setReviewFormEnabled(false);
-        setAuthControls(false);
-
-        if (reviewList) {
-            reviewList.innerHTML = '<div class="price-empty">' + CONFIG_MISSING_TEXT + '</div>';
-        }
-    }
-
     function setAuthControls(isLoggedIn) {
         authFields.forEach(function (field) {
             field.hidden = isLoggedIn;
@@ -122,6 +127,22 @@
 
         if (logoutButton) {
             logoutButton.hidden = !isLoggedIn;
+        }
+    }
+
+    function showConfigMissing() {
+        setStatus(authStatus, CONFIG_MISSING_TEXT, "warning");
+        setStatus(reviewStatus, CONFIG_MISSING_TEXT, "warning");
+        setReviewFormEnabled(false);
+        setAuthControls(false);
+        setReviewPanelExpanded(false);
+
+        if (reviewToggle) {
+            reviewToggle.hidden = true;
+        }
+
+        if (reviewList) {
+            reviewList.innerHTML = '<div class="price-empty">' + CONFIG_MISSING_TEXT + '</div>';
         }
     }
 
@@ -145,6 +166,33 @@
         });
     }
 
+    function syncExpandableReviews() {
+        if (!reviewList) {
+            return;
+        }
+
+        reviewList.querySelectorAll(".price-review-message").forEach(function (message) {
+            const item = message.closest(".price-review-item");
+            const button = item ? item.querySelector(".price-review-expand") : null;
+
+            if (!button) {
+                return;
+            }
+
+            message.classList.add("is-collapsed");
+            button.hidden = true;
+
+            window.requestAnimationFrame(function () {
+                const isOverflowing = message.scrollHeight > message.clientHeight + 1;
+
+                button.hidden = !isOverflowing;
+                if (!isOverflowing) {
+                    message.classList.remove("is-collapsed");
+                }
+            });
+        });
+    }
+
     function renderReviews(reviews) {
         if (!reviewList) {
             return;
@@ -162,13 +210,15 @@
                 '<article class="price-review-item">',
                     '<div class="price-review-head">',
                         '<strong>' + escapeHtml(review.nickname) + '</strong>',
-                        '<span>' + "★".repeat(rating) + "☆".repeat(5 - rating) + '</span>',
+                        '<span class="price-review-stars">' + "★".repeat(rating) + "☆".repeat(5 - rating) + '</span>',
                     '</div>',
                     '<div class="price-review-meta">' + escapeHtml(review.service_type) + ' · ' + escapeHtml(formatTime(review.created_at)) + '</div>',
-                    '<p>' + escapeHtml(review.message) + '</p>',
+                    '<p class="price-review-message is-collapsed">' + escapeHtml(review.message) + '</p>',
+                    '<button class="price-review-expand" type="button" hidden>展开全文</button>',
                 '</article>'
             ].join("");
         }).join("");
+        syncExpandableReviews();
     }
 
     async function loadReviews() {
@@ -304,12 +354,13 @@
         submitButton.disabled = false;
 
         if (response.error) {
-            setStatus(reviewStatus, "评价提交失败，请稍后再试～", "warning");
+            setStatus(reviewStatus, response.error.message || "评价提交失败，请稍后再试～", "warning");
             return;
         }
 
         reviewForm.reset();
         setStatus(reviewStatus, SUCCESS_TEXT, "good");
+        setReviewPanelExpanded(false);
         await loadReviews();
         renderAuthState();
     }
@@ -317,6 +368,34 @@
     async function init() {
         if (!authStatus || !reviewStatus || !reviewList || !authForm || !reviewForm) {
             return;
+        }
+
+        setReviewPanelExpanded(false);
+
+        if (reviewToggle) {
+            reviewToggle.addEventListener("click", function () {
+                setReviewPanelExpanded(!reviewPanelExpanded);
+            });
+        }
+
+        if (reviewList) {
+            reviewList.addEventListener("click", function (event) {
+                const button = event.target.closest(".price-review-expand");
+
+                if (!button) {
+                    return;
+                }
+
+                const item = button.closest(".price-review-item");
+                const message = item ? item.querySelector(".price-review-message") : null;
+
+                if (!message) {
+                    return;
+                }
+
+                const isCollapsed = message.classList.toggle("is-collapsed");
+                button.textContent = isCollapsed ? "展开全文" : "收起";
+            });
         }
 
         if (!hasUsableConfig()) {

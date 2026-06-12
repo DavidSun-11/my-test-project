@@ -804,7 +804,7 @@
             clearSpinTimers();
             window.clearTimeout(fortuneProcessTimer);
             fortuneProcessTimer = null;
-            dialog.classList.remove("is-wheel", "is-weather", "is-music", "is-fortune", "is-memory");
+            dialog.classList.remove("is-wheel", "is-weather", "is-music", "is-fortune", "is-memory", "is-boss-auth");
             meta.textContent = "";
             question.textContent = "";
             options.innerHTML = "";
@@ -1337,22 +1337,26 @@
         function showBossReviewAuthPanel(mode) {
             clearDialog();
             setDialogMode("panel");
-            dialog.classList.add("is-weather");
-            meta.textContent = "老板评价 · 登录/注册";
-            question.textContent = mode === "register" ? "注册老板账号后，就可以发布评价啦。" : "已有老板账号的话，可以先登录。";
+            dialog.classList.add("is-weather", "is-boss-auth");
+            meta.textContent = "老板评价账号";
+            question.textContent = "登录后可以发布老板评价、点赞和评论。";
             options.innerHTML = [
-                '<form class="live2d-weather-form live2d-boss-auth-form">',
-                    '<input class="live2d-weather-input" name="email" type="email" autocomplete="email" placeholder="邮箱">',
-                    '<input class="live2d-weather-input" name="password" type="password" autocomplete="current-password" placeholder="密码">',
-                    '<div class="live2d-weather-actions">',
-                        '<button class="live2d-quiz__option" type="submit">' + (mode === "register" ? "注册" : "登录") + '</button>',
-                        '<button class="live2d-quiz__option" type="button" data-action="toggle">' + (mode === "register" ? "已有账号，去登录" : "没有账号，去注册") + '</button>',
+                '<form class="live2d-boss-auth-card live2d-boss-auth-form">',
+                    '<div class="live2d-boss-auth-heading">' + (mode === "register" ? "还没有老板账号的话，可以先注册。" : "已有老板账号的话，可以先登录。") + '</div>',
+                    '<div class="live2d-boss-auth-fields">',
+                        '<input class="live2d-weather-input live2d-boss-auth-input" name="email" type="email" autocomplete="email" placeholder="邮箱">',
+                        '<input class="live2d-weather-input live2d-boss-auth-input" name="password" type="password" autocomplete="' + (mode === "register" ? "new-password" : "current-password") + '" placeholder="密码">',
+                    '</div>',
+                    '<div class="live2d-boss-auth-actions">',
+                        '<button class="live2d-quiz__option live2d-boss-auth-primary" type="submit">' + (mode === "register" ? "注册" : "登录") + '</button>',
+                        '<button class="live2d-quiz__option" type="button" data-action="toggle">' + (mode === "register" ? "去登录" : "去注册") + '</button>',
                         '<button class="live2d-quiz__option" type="button" data-action="back">返回</button>',
                     '</div>',
+                    '<p class="live2d-boss-auth-hint">还没有老板账号？点击“去注册”，甘雨会带你完成注册。</p>',
                 '</form>'
             ].join("");
             result.textContent = "老板账号使用 Supabase Auth，不会覆盖甘雨本地记忆里的称呼。";
-            result.className = "live2d-quiz__result is-neutral";
+            result.className = "live2d-quiz__result live2d-boss-auth-note is-neutral";
             showDialog();
 
             const form = options.querySelector(".live2d-boss-auth-form");

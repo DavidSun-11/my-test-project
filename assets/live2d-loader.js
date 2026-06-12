@@ -1,8 +1,8 @@
 /* Lightweight Live2D loader: delays Ganyu until the page is usable. */
 (function () {
-    const WIDGET_SCRIPT = "live2d/live2d-widget.js?v=20260612-5";
-    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260612-5";
-    const DRAG_SCRIPT = "assets/live2d-drag.js?v=20260612-5";
+    const WIDGET_SCRIPT = "live2d/live2d-widget.js?v=20260612-6";
+    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260612-6";
+    const DRAG_SCRIPT = "assets/live2d-drag.js?v=20260612-6";
     const LOAD_TIMEOUT_MS = 10000;
     const AUTOLOAD_DELAY_MS = 1200;
     const currentScript = document.currentScript;
@@ -116,6 +116,11 @@
         let widget = document.getElementById("live2d-widget");
 
         if (widget) {
+            document.querySelectorAll("#live2d-widget").forEach(function (node) {
+                if (node !== widget && node.parentNode) {
+                    node.parentNode.removeChild(node);
+                }
+            });
             return widget;
         }
 
@@ -157,13 +162,38 @@
         return document.querySelector("#oml2d-stage, #oml2d-canvas, .oml2d-stage, .oml2d-canvas");
     }
 
+    function updateRenderInfo() {
+        window.JunxueLive2DRenderInfo = window.JunxueLive2DRenderInfo || {};
+        window.JunxueLive2DRenderInfo.canvasCount = document.querySelectorAll("#oml2d-canvas, .oml2d-canvas, #oml2d-stage canvas").length;
+        window.JunxueLive2DRenderInfo.estimatedInstanceCount = Math.max(
+            window.JunxueLive2DRenderInfo.canvasCount,
+            document.querySelectorAll("#oml2d-main, .oml2d-main, #oml2d-stage, .oml2d-stage").length
+        );
+        window.JunxueLive2DRenderInfo.isInitialized = !!(window.__JUNXUE_LIVE2D_READY__ || findLive2DStage());
+    }
+
+    function markLoadedFromExisting() {
+        window.clearTimeout(loaderState.timeout);
+        window.__JUNXUE_LIVE2D_INIT_STARTED__ = true;
+        window.__JUNXUE_LIVE2D_READY__ = true;
+        window.__JUNXUE_LIVE2D_INSTANCE__ = window.__JUNXUE_LIVE2D_INSTANCE__ || findLive2DStage();
+        loaderState.loaded = true;
+        loaderState.loading = false;
+        updateRenderInfo();
+        setLive2DVisible(true);
+    }
+
+    function loadSupportScripts() {
+        return loadScript(INTERACTIONS_SCRIPT).then(function () {
+            return loadScript(DRAG_SCRIPT);
+        });
+    }
+
     function startLoadTimeout() {
         window.clearTimeout(loaderState.timeout);
         loaderState.timeout = window.setTimeout(function () {
             if (findLive2DStage()) {
-                loaderState.loaded = true;
-                loaderState.loading = false;
-                setLive2DVisible(loaderState.visible !== false);
+                markLoadedFromExisting();
                 return;
             }
 
@@ -175,17 +205,17 @@
 
     function finishIfReady() {
         if (findLive2DStage()) {
-            window.clearTimeout(loaderState.timeout);
-            loaderState.loaded = true;
-            loaderState.loading = false;
-            setLive2DVisible(true);
+            markLoadedFromExisting();
         }
     }
 
     function loadLive2D() {
-        if (loaderState.loaded) {
+        if (loaderState.loaded || window.__JUNXUE_LIVE2D_READY__ || findLive2DStage()) {
             setLive2DVisible(true);
-            return Promise.resolve();
+            if (findLive2DStage()) {
+                markLoadedFromExisting();
+            }
+            return loadSupportScripts();
         }
 
         if (loaderState.loading) {
@@ -200,12 +230,7 @@
         startLoadTimeout();
 
         loaderState.promise = loadScript(WIDGET_SCRIPT)
-            .then(function () {
-                return loadScript(INTERACTIONS_SCRIPT);
-            })
-            .then(function () {
-                return loadScript(DRAG_SCRIPT);
-            })
+            .then(loadSupportScripts)
             .then(function () {
                 window.setTimeout(finishIfReady, 1200);
                 window.setTimeout(finishIfReady, 3000);

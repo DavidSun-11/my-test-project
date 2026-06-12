@@ -1,5 +1,11 @@
 /* Live2D 互动模块：菜单、无奖竞答题库、英雄池转盘、咨询功能都集中在这里，方便后续继续加题。 */
 (function () {
+    if (window.__JUNXUE_LIVE2D_LAZY_INTERACTIONS_INSTALLED__ && window.Live2DInteractiveMenu && window.Live2DInteractiveMenu.ready) {
+        return;
+    }
+
+    window.__JUNXUE_LIVE2D_LAZY_INTERACTIONS_INSTALLED__ = true;
+
     if (window.Live2DInteractiveMenu && window.Live2DInteractiveMenu.ready) {
         return;
     }

@@ -1,5 +1,14 @@
 /* Live2D direct drag: drag the Ganyu model area, while simple clicks still open the menu. */
 (function () {
+    if (window.__JUNXUE_LIVE2D_DRAG_INSTALLED__) {
+        if (window.JunxueLive2DDrag && typeof window.JunxueLive2DDrag.scheduleSync === "function") {
+            window.JunxueLive2DDrag.scheduleSync();
+        }
+        return;
+    }
+
+    window.__JUNXUE_LIVE2D_DRAG_INSTALLED__ = true;
+
     const STORAGE_KEY = "junxue-live2d-stage-position";
     const LEGACY_STORAGE_KEY = "ganyuLive2DPosition";
     const STAGE_SELECTOR = "#oml2d-stage";

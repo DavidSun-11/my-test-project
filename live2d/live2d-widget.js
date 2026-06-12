@@ -34,11 +34,30 @@
         webglSupported: false,
         webgl2Supported: false,
         actualContext: "",
+        canvasCount: 0,
+        estimatedInstanceCount: 0,
+        isInitialized: false,
         dprCap: getLive2DDprCap(),
         dprInjected: false,
         fallbackToOriginalResolution: false,
         runtime: "oh-my-live2d@0.19.3"
     }, window.JunxueLive2DRenderInfo || {});
+
+    if (window.__JUNXUE_LIVE2D_READY__ || window.__JUNXUE_LIVE2D_INIT_STARTED__ || hasExistingLive2DInstance()) {
+        window.__JUNXUE_LIVE2D_INIT_STARTED__ = true;
+        cleanupDuplicateLive2DNodes();
+        updateCanvasRenderInfo();
+        window.__JUNXUE_LIVE2D_INSTANCE__ = window.__JUNXUE_LIVE2D_INSTANCE__ || findReadyContainer();
+
+        if (window.__JUNXUE_LIVE2D_INSTANCE__) {
+            window.__JUNXUE_LIVE2D_READY__ = true;
+            window.JunxueLive2DRenderInfo.isInitialized = true;
+        }
+
+        return;
+    }
+
+    window.__JUNXUE_LIVE2D_INIT_STARTED__ = true;
 
     function setMessage(text, persist) {
         return;
@@ -106,6 +125,8 @@
 
     function updateCanvasRenderInfo() {
         const canvas = document.querySelector("#oml2d-canvas, .oml2d-canvas, #oml2d-stage canvas, canvas");
+        const canvasCount = document.querySelectorAll("#oml2d-canvas, .oml2d-canvas, #oml2d-stage canvas").length;
+        const stageCount = document.querySelectorAll("#oml2d-main, .oml2d-main, #oml2d-stage, .oml2d-stage").length;
         let contextName = "";
 
         if (canvas && canvas.getContext) {
@@ -126,10 +147,41 @@
 
         window.JunxueLive2DRenderInfo.usesCanvas = !!canvas;
         window.JunxueLive2DRenderInfo.canvasFound = !!canvas;
+        window.JunxueLive2DRenderInfo.canvasCount = canvasCount;
+        window.JunxueLive2DRenderInfo.estimatedInstanceCount = Math.max(canvasCount, stageCount);
+        window.JunxueLive2DRenderInfo.isInitialized = !!(window.__JUNXUE_LIVE2D_READY__ || findReadyContainer());
         window.JunxueLive2DRenderInfo.actualContext = contextName;
         window.JunxueLive2DRenderInfo.dprCap = getLive2DDprCap();
         window.JunxueLive2DRenderInfo.dprInjected = runtimeInjectedDpr;
         window.JunxueLive2DRenderInfo.fallbackToOriginalResolution = runtimeUsedOriginal;
+    }
+
+    function hasExistingLive2DInstance() {
+        return !!document.querySelector("#oml2d-canvas, .oml2d-canvas, #oml2d-stage, .oml2d-stage, #oml2d-main, .oml2d-main");
+    }
+
+    function removeDuplicateNodes(selector) {
+        const nodes = Array.prototype.slice.call(document.querySelectorAll(selector));
+
+        if (nodes.length <= 1) {
+            return;
+        }
+
+        nodes.slice(1).forEach(function (node) {
+            if (node && node.parentNode) {
+                node.parentNode.removeChild(node);
+            }
+        });
+    }
+
+    function cleanupDuplicateLive2DNodes() {
+        removeDuplicateNodes("#oml2d-main");
+        removeDuplicateNodes(".oml2d-main");
+        removeDuplicateNodes("#oml2d-stage");
+        removeDuplicateNodes(".oml2d-stage");
+        removeDuplicateNodes("#oml2d-canvas");
+        removeDuplicateNodes(".oml2d-canvas");
+        removeDuplicateNodes("#oml2d-tips");
     }
 
     function getRandomMessage(messages) {
@@ -161,6 +213,9 @@
             readyObserver.disconnect();
             readyObserver = null;
         }
+        cleanupDuplicateLive2DNodes();
+        window.__JUNXUE_LIVE2D_READY__ = true;
+        window.__JUNXUE_LIVE2D_INSTANCE__ = findReadyContainer();
         updateCanvasRenderInfo();
         hideBootstrapWidget();
     }
@@ -600,6 +655,11 @@
         };
 
         function startOml2D(options) {
+            if (window.__JUNXUE_LIVE2D_READY__ || (window.__JUNXUE_LIVE2D_INSTANCE__ && findReadyContainer())) {
+                markLive2DReady();
+                return;
+            }
+
             window.OML2D.loadOml2d(options);
             window.setTimeout(function () {
                 if (findReadyContainer()) {
@@ -615,6 +675,9 @@
 
             window.setTimeout(function () {
                 if (findReadyContainer() || fallbackBootStarted) {
+                    if (findReadyContainer()) {
+                        markLive2DReady();
+                    }
                     return;
                 }
 

@@ -106,6 +106,18 @@
     transform-origin: 50% 88%;
 }
 
+#oml2d-stage.ganyu-dragging,
+.oml2d-stage.ganyu-dragging {
+    animation: ganyu-direct-drag 520ms ease-in-out infinite;
+    transform-origin: 50% 84%;
+}
+
+#oml2d-stage.ganyu-drag-end,
+.oml2d-stage.ganyu-drag-end {
+    animation: ganyu-direct-drag-end 620ms ease-out;
+    transform-origin: 50% 88%;
+}
+
 @keyframes ganyu-drag-startled {
     0% {
         transform: translateX(0) scale(1);
@@ -150,10 +162,46 @@
     }
 }
 
+@keyframes ganyu-direct-drag {
+    0% {
+        transform: translateX(0) scale(1);
+    }
+
+    50% {
+        transform: translateX(4px) scale(1.012);
+    }
+
+    100% {
+        transform: translateX(0) scale(1);
+    }
+}
+
+@keyframes ganyu-direct-drag-end {
+    0% {
+        transform: translateY(0) scale(1);
+    }
+
+    34% {
+        transform: translateY(-8px) scale(1.025);
+    }
+
+    68% {
+        transform: translateY(3px) scale(0.995);
+    }
+
+    100% {
+        transform: translateY(0) scale(1);
+    }
+}
+
 html.performance-low #oml2d-stage.is-ganyu-drag-startled,
 html.performance-low .oml2d-stage.is-ganyu-drag-startled,
 html.performance-low #oml2d-stage.is-ganyu-drag-bounce,
-html.performance-low .oml2d-stage.is-ganyu-drag-bounce {
+html.performance-low .oml2d-stage.is-ganyu-drag-bounce,
+html.performance-low #oml2d-stage.ganyu-dragging,
+html.performance-low .oml2d-stage.ganyu-dragging,
+html.performance-low #oml2d-stage.ganyu-drag-end,
+html.performance-low .oml2d-stage.ganyu-drag-end {
     animation: none;
 }
 
@@ -161,7 +209,11 @@ html.performance-low .oml2d-stage.is-ganyu-drag-bounce {
     #oml2d-stage.is-ganyu-drag-startled,
     .oml2d-stage.is-ganyu-drag-startled,
     #oml2d-stage.is-ganyu-drag-bounce,
-    .oml2d-stage.is-ganyu-drag-bounce {
+    .oml2d-stage.is-ganyu-drag-bounce,
+    #oml2d-stage.ganyu-dragging,
+    .oml2d-stage.ganyu-dragging,
+    #oml2d-stage.ganyu-drag-end,
+    .oml2d-stage.ganyu-drag-end {
         animation: none;
     }
 }
@@ -181,10 +233,21 @@ html.performance-low .oml2d-stage.is-ganyu-drag-bounce {
     padding: 0;
     border: 0;
     appearance: none;
-    cursor: pointer;
+    cursor: grab;
     background: transparent;
     color: transparent;
     pointer-events: auto;
+    touch-action: none;
+}
+
+.live2d-drag-button {
+    display: none !important;
+}
+
+body.is-live2d-external-dragging #oml2d-stage,
+body.is-live2d-external-dragging #oml2d-canvas,
+body.is-live2d-external-dragging .live2d-hit-area {
+    cursor: grabbing !important;
 }
 
 .live2d-quiz {

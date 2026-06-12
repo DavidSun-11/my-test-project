@@ -1,6 +1,6 @@
 /* Live2D 轻量启动脚本：首屏只保留开场提示、点击入口和懒加载控制。 */
 (function () {
-    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260612-1";
+    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260612-2";
     if (typeof window.enableGanyuMemory !== "boolean") {
         window.enableGanyuMemory = true;
     }
@@ -49,9 +49,11 @@
         ]
     };
     const dragDialogueLines = [
-        { text: "这里的位置不错呢。", voice: "assets/audio/ganyu_drag_done_1.mp3" },
-        { text: "嗯，我会记住这里的。", voice: "assets/audio/ganyu_drag_done_2.mp3" },
-        { text: "谢谢你帮我换了个位置。", voice: "assets/audio/ganyu_drag_done_3.mp3" }
+        { text: "这里也不错呢。", voice: "assets/audio/ganyu_drag_done_1.mp3" },
+        { text: "甘雨会乖乖待在这里的。", voice: "assets/audio/ganyu_drag_done_2.mp3" },
+        { text: "唔……下次轻一点呀。", voice: "assets/audio/ganyu_drag_done_3.mp3" },
+        { text: "你把甘雨放到这里了吗？", voice: "assets/audio/ganyu_drag_done_4.mp3" },
+        { text: "好吧，那甘雨就在这里陪你。", voice: "assets/audio/ganyu_drag_done_5.mp3" }
     ];
     const ganyuIdleLines = [
         "今天也辛苦了，记得休息一下哦。",
@@ -1296,10 +1298,6 @@
         boundNodes.add(node);
         node.style.pointerEvents = "auto";
         node.addEventListener("click", openLazyMenu, true);
-        node.addEventListener("touchstart", openLazyMenu, {
-            capture: true,
-            passive: false
-        });
     }
 
     function bindLive2DRoots() {

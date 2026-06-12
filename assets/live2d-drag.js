@@ -1,18 +1,24 @@
-/* Live2D 外置拖动按钮：只拖按钮，不拖 canvas / 模型本体，避免和点击互动菜单冲突。 */
+/* Live2D direct drag: drag the Ganyu model area, while simple clicks still open the menu. */
 (function () {
     const STORAGE_KEY = "junxue-live2d-stage-position";
+    const LEGACY_STORAGE_KEY = "ganyuLive2DPosition";
     const STAGE_SELECTOR = "#oml2d-stage";
     const CANVAS_SELECTOR = "#oml2d-canvas";
     const HIT_AREA_SELECTOR = ".live2d-hit-area";
     const BUTTON_CLASS = "live2d-drag-button";
-    const BUTTON_SELECTOR = "." + BUTTON_CLASS;
-    const DRAG_THRESHOLD = 5;
+    const DRAG_THRESHOLD = 8;
     const STAGE_Z_INDEX = 55;
-    const BUTTON_Z_INDEX = 58;
+    const CLICK_SUPPRESS_MS = 450;
+    const EDGE_LIMITS = {
+        leftVisible: 40,
+        rightVisible: 80,
+        topVisible: 40,
+        bottomVisible: 80
+    };
 
     let dragState = null;
     let currentPosition = null;
-    let hoverHideTimer = null;
+    let suppressNextClickUntil = 0;
 
     function onReady(callback) {
         if (document.readyState === "loading") {
@@ -24,13 +30,17 @@
     }
 
     function injectStyles() {
-        if (document.getElementById("live2d-external-drag-style")) {
+        if (document.getElementById("live2d-direct-drag-style")) {
             return;
         }
 
         const style = document.createElement("style");
-        style.id = "live2d-external-drag-style";
+        style.id = "live2d-direct-drag-style";
         style.textContent = `
+            .${BUTTON_CLASS} {
+                display: none !important;
+            }
+
             #oml2d-stage {
                 pointer-events: auto !important;
                 z-index: ${STAGE_Z_INDEX} !important;
@@ -40,74 +50,17 @@
             #oml2d-statusBar,
             .live2d-hit-area {
                 pointer-events: auto !important;
-            }
-
-            .${BUTTON_CLASS} {
-                position: fixed;
-                left: 172px;
-                bottom: 248px;
-                z-index: ${BUTTON_Z_INDEX};
-                min-width: 72px;
-                min-height: 30px;
-                padding: 0 10px;
-                border: 1px solid rgba(120, 229, 255, 0.72);
-                border-radius: 999px;
-                background: rgba(8, 29, 56, 0.72);
-                color: rgba(238, 252, 255, 0.96);
-                font-size: 12px;
-                font-weight: 700;
-                line-height: 30px;
-                text-align: center;
-                white-space: nowrap;
-                box-shadow: 0 0 14px rgba(0, 190, 255, 0.28), inset 0 0 12px rgba(255, 255, 255, 0.08);
-                backdrop-filter: blur(8px);
-                cursor: grab;
-                pointer-events: auto;
                 touch-action: none;
                 user-select: none;
-                opacity: 0.34;
-                transform: translateY(0);
-                transition: opacity 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+                cursor: grab;
             }
 
-            body.is-live2d-drag-hovering .${BUTTON_CLASS},
-            .${BUTTON_CLASS}:hover,
-            .${BUTTON_CLASS}:focus-visible,
-            .${BUTTON_CLASS}.is-dragging {
-                opacity: 1;
-                transform: translateY(-2px);
-            }
-
-            .${BUTTON_CLASS}:hover {
-                border-color: rgba(255, 232, 163, 0.86);
-                box-shadow: 0 0 18px rgba(111, 220, 255, 0.38), 0 0 12px rgba(255, 232, 163, 0.24);
-            }
-
-            html.performance-low .${BUTTON_CLASS} {
-                box-shadow: 0 0 8px rgba(0, 190, 255, 0.14);
-                backdrop-filter: none;
-            }
-
-            html.performance-low .${BUTTON_CLASS}:hover {
-                box-shadow: 0 0 10px rgba(111, 220, 255, 0.18);
-            }
-
-            .${BUTTON_CLASS}.is-dragging,
-            body.is-live2d-external-dragging {
+            body.is-live2d-external-dragging,
+            body.is-live2d-external-dragging #oml2d-stage,
+            body.is-live2d-external-dragging #oml2d-canvas,
+            body.is-live2d-external-dragging .live2d-hit-area {
                 cursor: grabbing !important;
                 user-select: none;
-            }
-
-            @media (max-width: 720px) {
-                .${BUTTON_CLASS} {
-                    left: 126px;
-                    bottom: 234px;
-                    min-width: 66px;
-                    min-height: 28px;
-                    padding: 0 8px;
-                    font-size: 11px;
-                    line-height: 28px;
-                }
             }
         `;
         document.head.appendChild(style);
@@ -121,12 +74,18 @@
         return document.querySelector(CANVAS_SELECTOR);
     }
 
-    function getDragButton() {
-        return document.querySelector(BUTTON_SELECTOR);
-    }
-
     function getHitArea() {
         return document.querySelector(HIT_AREA_SELECTOR);
+    }
+
+    function getDragTargets() {
+        const targets = [];
+        [getStage(), getCanvas(), getHitArea()].forEach(function (node) {
+            if (node && !targets.includes(node)) {
+                targets.push(node);
+            }
+        });
+        return targets;
     }
 
     function getStageRect() {
@@ -153,27 +112,38 @@
         return {
             left: 10,
             top: Math.max(0, window.innerHeight - 500),
+            right: 310,
+            bottom: window.innerHeight - 96,
             width: 260,
             height: 400
         };
+    }
+
+    function clamp(value, min, max) {
+        if (max < min) {
+            return min;
+        }
+
+        return Math.min(Math.max(value, min), max);
     }
 
     function clampPosition(position) {
         const rect = getStageRect();
         const width = Math.max(1, rect.width || 260);
         const height = Math.max(1, rect.height || 400);
-        const maxLeft = Math.max(0, window.innerWidth - width);
-        const maxTop = Math.max(0, window.innerHeight - height);
+        const minLeft = EDGE_LIMITS.leftVisible - width;
+        const maxLeft = Math.max(minLeft, window.innerWidth - EDGE_LIMITS.rightVisible);
+        const minTop = EDGE_LIMITS.topVisible - height;
+        const maxTop = Math.max(minTop, window.innerHeight - EDGE_LIMITS.bottomVisible);
 
         return {
-            left: Math.min(Math.max(0, position.left), maxLeft),
-            top: Math.min(Math.max(0, position.top), maxTop)
+            left: clamp(position.left, minLeft, maxLeft),
+            top: clamp(position.top, minTop, maxTop)
         };
     }
 
-    function readSavedPosition() {
+    function parseSavedPosition(raw) {
         try {
-            const raw = localStorage.getItem(STORAGE_KEY);
             const parsed = raw ? JSON.parse(raw) : null;
 
             if (parsed && Number.isFinite(parsed.left) && Number.isFinite(parsed.top)) {
@@ -186,36 +156,20 @@
         return null;
     }
 
+    function readSavedPosition() {
+        try {
+            return parseSavedPosition(localStorage.getItem(STORAGE_KEY)) ||
+                parseSavedPosition(localStorage.getItem(LEGACY_STORAGE_KEY));
+        } catch (error) {
+            return null;
+        }
+    }
+
     function savePosition(position) {
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(position));
         } catch (error) {
-            // localStorage 被禁用时，只保持当前页面位置。
-        }
-    }
-
-    function applyStagePosition(position, shouldSave) {
-        const stage = getStage();
-        const nextPosition = clampPosition(position);
-
-        currentPosition = nextPosition;
-
-        if (stage) {
-            stage.style.setProperty("position", "fixed", "important");
-            stage.style.setProperty("left", nextPosition.left + "px", "important");
-            stage.style.setProperty("top", nextPosition.top + "px", "important");
-            stage.style.setProperty("right", "auto", "important");
-            stage.style.setProperty("bottom", "auto", "important");
-            stage.style.setProperty("z-index", String(STAGE_Z_INDEX), "important");
-            stage.style.setProperty("pointer-events", "auto", "important");
-        }
-
-        syncHitArea(nextPosition);
-        positionDragButton(nextPosition);
-        notifyStagePosition(nextPosition);
-
-        if (shouldSave) {
-            savePosition(nextPosition);
+            // Keep the current in-page position when localStorage is unavailable.
         }
     }
 
@@ -239,6 +193,7 @@
 
     function syncHitArea(position) {
         const hitArea = getHitArea();
+        const rect = getStageRect();
 
         if (!hitArea) {
             return;
@@ -249,77 +204,92 @@
         hitArea.style.setProperty("top", position.top + "px", "important");
         hitArea.style.setProperty("right", "auto", "important");
         hitArea.style.setProperty("bottom", "auto", "important");
+        hitArea.style.setProperty("width", rect.width + "px", "important");
+        hitArea.style.setProperty("height", rect.height + "px", "important");
         hitArea.style.setProperty("z-index", String(STAGE_Z_INDEX + 1), "important");
         hitArea.style.setProperty("pointer-events", "auto", "important");
+        hitArea.style.setProperty("touch-action", "none", "important");
+        hitArea.style.setProperty("cursor", "grab", "important");
     }
 
-    function positionDragButton(stagePosition) {
-        const button = getDragButton();
-        const rect = getStageRect();
-        const position = stagePosition || currentPosition || {
-            left: rect.left,
-            top: rect.top
-        };
+    function applyStagePosition(position, shouldSave) {
+        const stage = getStage();
+        const nextPosition = clampPosition(position);
 
-        if (!button) {
-            return;
+        currentPosition = nextPosition;
+
+        if (stage) {
+            stage.style.setProperty("position", "fixed", "important");
+            stage.style.setProperty("left", nextPosition.left + "px", "important");
+            stage.style.setProperty("top", nextPosition.top + "px", "important");
+            stage.style.setProperty("right", "auto", "important");
+            stage.style.setProperty("bottom", "auto", "important");
+            stage.style.setProperty("z-index", String(STAGE_Z_INDEX), "important");
+            stage.style.setProperty("pointer-events", "auto", "important");
+            stage.style.setProperty("touch-action", "none", "important");
+            stage.style.setProperty("cursor", "grab", "important");
         }
 
-        const buttonWidth = button.offsetWidth || 72;
-        const buttonHeight = button.offsetHeight || 30;
-        const nextLeft = Math.min(
-            Math.max(8, position.left + rect.width / 2 - buttonWidth / 2),
-            Math.max(8, window.innerWidth - button.offsetWidth - 8)
-        );
-        const nextTop = Math.min(
-            Math.max(8, position.top + rect.height - buttonHeight - 36),
-            Math.max(8, window.innerHeight - buttonHeight - 88)
-        );
+        syncHitArea(nextPosition);
+        notifyStagePosition(nextPosition);
 
-        button.style.left = nextLeft + "px";
-        button.style.top = nextTop + "px";
-        button.style.bottom = "auto";
+        if (shouldSave) {
+            savePosition(nextPosition);
+        }
     }
 
-    function ensureDragButton() {
-        let button = getDragButton();
-
-        if (button) {
-            return button;
-        }
-
-        button = document.createElement("button");
-        button.type = "button";
-        button.className = BUTTON_CLASS;
-        button.textContent = "拖动甘雨";
-        button.setAttribute("aria-label", "拖动甘雨位置");
-        document.body.appendChild(button);
-        bindDragButton(button);
-        positionDragButton();
-
-        return button;
+    function removeLegacyDragButton() {
+        document.querySelectorAll("." + BUTTON_CLASS).forEach(function (button) {
+            button.remove();
+        });
     }
 
     function setDragging(isDragging) {
-        const button = getDragButton();
+        const stage = getStage();
 
         document.body.classList.toggle("is-live2d-external-dragging", isDragging);
-        if (button) {
-            button.classList.toggle("is-dragging", isDragging);
+        if (stage) {
+            stage.classList.toggle("ganyu-dragging", isDragging);
+            if (isDragging) {
+                stage.classList.remove("ganyu-drag-end");
+            }
         }
     }
 
-    function setHovering(isHovering) {
-        window.clearTimeout(hoverHideTimer);
+    function playDragEndAnimation() {
+        const stage = getStage();
 
-        if (isHovering) {
-            document.body.classList.add("is-live2d-drag-hovering");
+        if (!stage) {
             return;
         }
 
-        hoverHideTimer = window.setTimeout(function () {
-            document.body.classList.remove("is-live2d-drag-hovering");
-        }, 120);
+        stage.classList.remove("ganyu-drag-end");
+        window.requestAnimationFrame(function () {
+            stage.classList.add("ganyu-drag-end");
+            window.setTimeout(function () {
+                stage.classList.remove("ganyu-drag-end");
+            }, 720);
+        });
+    }
+
+    function markSuppressNextClick() {
+        suppressNextClickUntil = Date.now() + CLICK_SUPPRESS_MS;
+    }
+
+    function shouldIgnoreMenuEvent(event) {
+        if (Date.now() > suppressNextClickUntil) {
+            return false;
+        }
+
+        if (event && typeof event.preventDefault === "function") {
+            event.preventDefault();
+        }
+
+        if (event && typeof event.stopPropagation === "function") {
+            event.stopPropagation();
+        }
+
+        return true;
     }
 
     function handlePointerDown(event) {
@@ -328,26 +298,26 @@
         }
 
         const rect = getStageRect();
-
-        event.preventDefault();
-        event.stopPropagation();
+        const target = event.currentTarget;
 
         dragState = {
             pointerId: event.pointerId,
+            target: target,
             startX: event.clientX,
             startY: event.clientY,
             startPosition: clampPosition({
                 left: rect.left,
                 top: rect.top
             }),
-            moved: false
+            moved: false,
+            started: false
         };
 
-        if (event.currentTarget.setPointerCapture) {
+        if (target && target.setPointerCapture) {
             try {
-                event.currentTarget.setPointerCapture(event.pointerId);
+                target.setPointerCapture(event.pointerId);
             } catch (error) {
-                // 某些移动浏览器可能不支持当前 pointer 捕获，忽略即可。
+                // Some mobile browsers may reject pointer capture for this target.
             }
         }
     }
@@ -365,17 +335,20 @@
             return;
         }
 
-        dragState.moved = true;
-        setDragging(true);
-        window.dispatchEvent(new CustomEvent("live2d-stage-drag-started", {
-            detail: {
-                position: currentPosition || dragState.startPosition,
-                rect: getStageRect()
-            }
-        }));
+        if (!dragState.started) {
+            dragState.started = true;
+            dragState.moved = true;
+            setDragging(true);
+            window.dispatchEvent(new CustomEvent("live2d-stage-drag-started", {
+                detail: {
+                    position: currentPosition || dragState.startPosition,
+                    rect: getStageRect()
+                }
+            }));
+        }
+
         event.preventDefault();
         event.stopPropagation();
-
         applyStagePosition({
             left: dragState.startPosition.left + deltaX,
             top: dragState.startPosition.top + deltaY
@@ -387,10 +360,21 @@
             return;
         }
 
-        event.preventDefault();
-        event.stopPropagation();
+        const completedDrag = dragState.moved;
+        const captureTarget = dragState.target;
 
-        if (dragState.moved) {
+        if (captureTarget && captureTarget.releasePointerCapture) {
+            try {
+                captureTarget.releasePointerCapture(event.pointerId);
+            } catch (error) {
+                // Ignore unsupported pointer release.
+            }
+        }
+
+        if (completedDrag) {
+            event.preventDefault();
+            event.stopPropagation();
+            markSuppressNextClick();
             savePosition(currentPosition || dragState.startPosition);
             window.dispatchEvent(new CustomEvent("live2d-stage-drag-finished", {
                 detail: {
@@ -398,75 +382,50 @@
                     rect: getStageRect()
                 }
             }));
+            playDragEndAnimation();
         }
 
         dragState = null;
         setDragging(false);
     }
 
-    function bindDragButton(button) {
-        if (button.dataset.live2dExternalDragReady === "true") {
+    function bindDragTarget(node) {
+        if (!node || node.dataset.live2dDirectDragReady === "true") {
             return;
         }
 
-        button.dataset.live2dExternalDragReady = "true";
-        button.addEventListener("pointerdown", handlePointerDown);
-        button.addEventListener("pointermove", handlePointerMove);
-        button.addEventListener("pointerup", handlePointerEnd);
-        button.addEventListener("pointercancel", handlePointerEnd);
-        button.addEventListener("pointerenter", function () {
-            setHovering(true);
-        });
-        button.addEventListener("pointerleave", function () {
-            setHovering(false);
-        });
-        button.addEventListener("click", function (event) {
-            event.preventDefault();
-            event.stopPropagation();
-        });
-    }
-
-    function bindHoverTarget(node) {
-        if (!node || node.dataset.live2dDragHoverReady === "true") {
-            return;
-        }
-
-        node.dataset.live2dDragHoverReady = "true";
-        node.addEventListener("pointerenter", function () {
-            setHovering(true);
-        });
-        node.addEventListener("pointerleave", function () {
-            setHovering(false);
-        });
+        node.dataset.live2dDirectDragReady = "true";
+        node.addEventListener("pointerdown", handlePointerDown);
+        node.addEventListener("pointermove", handlePointerMove);
+        node.addEventListener("pointerup", handlePointerEnd);
+        node.addEventListener("pointercancel", handlePointerEnd);
+        node.addEventListener("click", function (event) {
+            shouldIgnoreMenuEvent(event);
+        }, true);
     }
 
     function restoreSavedPosition() {
-        if (currentPosition) {
-            applyStagePosition(currentPosition, false);
-            return;
-        }
-
-        const savedPosition = readSavedPosition();
+        const savedPosition = currentPosition || readSavedPosition();
 
         if (savedPosition) {
             applyStagePosition(savedPosition, false);
-            return;
         }
-
-        positionDragButton();
     }
 
     function syncRuntimeDom() {
-        if (getStage()) {
-            ensureDragButton();
-            bindHoverTarget(getStage());
-            bindHoverTarget(getCanvas());
-            bindHoverTarget(getHitArea());
-            if (dragState) {
-                return;
-            }
-            restoreSavedPosition();
+        removeLegacyDragButton();
+
+        if (!getStage()) {
+            return;
         }
+
+        getDragTargets().forEach(bindDragTarget);
+
+        if (dragState) {
+            return;
+        }
+
+        restoreSavedPosition();
     }
 
     function init() {
@@ -485,9 +444,13 @@
                 return;
             }
 
-            positionDragButton();
+            restoreSavedPosition();
         });
     }
+
+    window.JunxueLive2DDrag = window.JunxueLive2DDrag || {};
+    window.JunxueLive2DDrag.shouldIgnoreMenuEvent = shouldIgnoreMenuEvent;
+    window.JunxueLive2DDrag.sync = syncRuntimeDom;
 
     onReady(init);
 })();

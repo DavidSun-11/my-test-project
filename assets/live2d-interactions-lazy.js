@@ -2187,10 +2187,6 @@
             }
 
             node.addEventListener("click", showMenu, true);
-            node.addEventListener("touchstart", showMenu, {
-                capture: true,
-                passive: false
-            });
         }
 
         function bindLive2DRoots() {

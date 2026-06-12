@@ -270,24 +270,91 @@
         }
 
         .home-title {
+            position: relative;
+            display: inline-grid;
+            gap: 0.02em;
             margin: 0;
-            max-width: 960px;
-            font-size: clamp(42px, 6vw, 92px);
-            line-height: 1.18;
+            max-width: min(960px, 68vw);
+            font-family: STKaiti, KaiTi, "FZKai-Z03", "Songti SC", "Noto Serif SC", serif;
+            font-size: clamp(48px, 5.8vw, 98px);
+            line-height: 1.04;
             font-weight: 700;
-            letter-spacing: 0.12em;
-            color: rgba(255, 255, 255, 0.96);
-            text-shadow: 0 0 18px rgba(120, 218, 255, 0.32), 0 0 44px rgba(44, 141, 222, 0.18);
+            letter-spacing: 0.05em;
+            color: rgba(245, 252, 255, 0.96);
+            background: linear-gradient(180deg, #ffffff 0%, #edf9ff 28%, #bfeaff 58%, #f7fcff 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow:
+                0 0 4px rgba(255, 255, 255, 0.98),
+                0 0 18px rgba(164, 229, 255, 0.88),
+                0 0 42px rgba(70, 162, 255, 0.5),
+                0 8px 18px rgba(0, 16, 38, 0.58);
+            filter: drop-shadow(0 0 14px rgba(150, 225, 255, 0.34));
+            isolation: isolate;
+        }
+
+        .home-title__line {
+            display: block;
+            white-space: nowrap;
+        }
+
+        .home-title__line:last-child {
+            padding-left: clamp(74px, 8vw, 150px);
+        }
+
+        .home-title::before {
+            content: "✦";
+            position: absolute;
+            left: clamp(-44px, -3vw, -24px);
+            top: 52%;
+            color: rgba(247, 252, 255, 0.96);
+            font-size: clamp(18px, 1.8vw, 30px);
+            -webkit-text-fill-color: currentColor;
+            text-shadow:
+                0 0 10px rgba(255, 255, 255, 0.95),
+                0 0 22px rgba(116, 218, 255, 0.86);
+            animation: titleStarPulse 4.8s ease-in-out infinite;
         }
 
         .home-title::after {
             content: "";
             display: block;
-            width: min(320px, 54vw);
-            height: 1px;
-            margin-top: 28px;
-            background: linear-gradient(90deg, rgba(255,255,255,0.92), rgba(96, 210, 255, 0.74), transparent);
-            box-shadow: 0 0 14px rgba(96, 210, 255, 0.6);
+            width: min(620px, 50vw);
+            height: 52px;
+            margin-top: -10px;
+            margin-left: clamp(-24px, -1.5vw, -10px);
+            background:
+                radial-gradient(circle at 15% 52%, rgba(255,255,255,0.96) 0 2px, rgba(124, 218, 255, 0.48) 3px, transparent 8px),
+                radial-gradient(circle at 86% 36%, rgba(255,255,255,0.86) 0 1.5px, rgba(124, 218, 255, 0.36) 3px, transparent 8px),
+                linear-gradient(100deg, transparent 0%, rgba(235, 250, 255, 0.92) 18%, rgba(112, 202, 255, 0.68) 50%, transparent 92%);
+            clip-path: polygon(0 48%, 34% 41%, 64% 52%, 100% 44%, 100% 48%, 64% 56%, 34% 45%, 0 52%);
+            filter: drop-shadow(0 0 10px rgba(116, 218, 255, 0.78));
+            opacity: 0.9;
+            -webkit-text-fill-color: initial;
+            animation: titleFrostFlow 7s ease-in-out infinite;
+        }
+
+        @keyframes titleStarPulse {
+            0%, 100% {
+                opacity: 0.62;
+                transform: scale(0.92) rotate(0deg);
+            }
+            48% {
+                opacity: 1;
+                transform: scale(1.08) rotate(10deg);
+            }
+        }
+
+        @keyframes titleFrostFlow {
+            0%, 100% {
+                opacity: 0.66;
+                transform: translateX(0);
+            }
+            50% {
+                opacity: 0.96;
+                transform: translateX(14px);
+            }
         }
 
         .home-nav {
@@ -461,14 +528,33 @@
             .home-title {
                 max-width: 100%;
                 font-size: clamp(26px, 8.4vw, 40px);
-                line-height: 1.32;
-                letter-spacing: 0.05em;
-                text-shadow: 0 0 12px rgba(120, 218, 255, 0.28);
+                line-height: 1.18;
+                letter-spacing: 0.03em;
+                text-shadow:
+                    0 0 4px rgba(255, 255, 255, 0.88),
+                    0 0 14px rgba(120, 218, 255, 0.5),
+                    0 5px 12px rgba(0, 16, 38, 0.54);
+            }
+
+            .home-title__line {
+                white-space: normal;
+            }
+
+            .home-title__line:last-child {
+                padding-left: 0;
+            }
+
+            .home-title::before {
+                left: auto;
+                right: 4px;
+                top: -18px;
+                font-size: 18px;
             }
 
             .home-title::after {
-                width: min(220px, 48vw);
-                margin-top: 18px;
+                width: min(250px, 62vw);
+                height: 34px;
+                margin-top: 2px;
             }
 
             .home-nav {
@@ -508,6 +594,27 @@
                 box-shadow: none;
             }
         }
+
+        html.performance-low .home-title {
+            filter: none;
+            text-shadow:
+                0 0 4px rgba(255, 255, 255, 0.75),
+                0 0 14px rgba(120, 218, 255, 0.34);
+        }
+
+        html.performance-low .home-title::before,
+        html.performance-low .home-title::after {
+            animation: none;
+            filter: none;
+            opacity: 0.54;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .home-title::before,
+            .home-title::after {
+                animation: none;
+            }
+        }
     </style>
 </head>
 
@@ -523,7 +630,10 @@
 <div class="meteor-layer" aria-hidden="true"></div>
 <header class="home-hero">
     <div class="home-hero__content">
-        <h1 class="home-title">除却君身三重雪，天下谁人配白衣</h1>
+        <h1 class="home-title" aria-label="除却君身三重雪，天下谁人配白衣">
+            <span class="home-title__line">除却君身三重雪，</span>
+            <span class="home-title__line">天下谁人配白衣</span>
+        </h1>
     </div>
 </header>
 

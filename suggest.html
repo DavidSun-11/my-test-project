@@ -13,6 +13,7 @@
         }
 
         body {
+            position: relative;
             min-height: 100vh;
             margin: 0;
             font-family: Arial, sans-serif;
@@ -20,7 +21,11 @@
             background:
                 radial-gradient(circle at 22% 18%, rgba(108, 178, 255, 0.18), transparent 34%),
                 radial-gradient(circle at 78% 72%, rgba(108, 229, 255, 0.12), transparent 36%),
+                url("assets/images/suggest-gongsunli-bg.png"),
                 linear-gradient(145deg, #01040b 0%, #04111f 48%, #071b31 100%);
+            background-size: auto, auto, cover, auto;
+            background-position: center, center, center, center;
+            background-repeat: no-repeat;
             overflow-x: hidden;
         }
 
@@ -35,6 +40,7 @@
         body::before {
             z-index: -6;
             background:
+                linear-gradient(90deg, rgba(0, 5, 14, 0.18), rgba(1, 8, 20, 0.54) 44%, rgba(1, 6, 16, 0.78) 100%),
                 radial-gradient(circle at 14% 28%, rgba(112, 218, 255, 0.18), transparent 26%),
                 radial-gradient(circle at 82% 18%, rgba(177, 142, 255, 0.14), transparent 30%),
                 radial-gradient(circle at 72% 84%, rgba(84, 205, 255, 0.12), transparent 34%);
@@ -61,6 +67,7 @@
         .suggest-bg-overlay {
             z-index: -4;
             background:
+                radial-gradient(ellipse at 74% 48%, rgba(0, 8, 20, 0.74), transparent 44%),
                 radial-gradient(ellipse at 50% 34%, rgba(19, 65, 116, 0.26), transparent 50%),
                 radial-gradient(ellipse at 84% 16%, rgba(135, 220, 255, 0.12), transparent 36%),
                 radial-gradient(ellipse at 14% 86%, rgba(163, 130, 255, 0.1), transparent 34%),
@@ -127,8 +134,8 @@
             min-height: 100vh;
             display: flex;
             align-items: center;
-            justify-content: center;
-            padding: 82px 22px 124px;
+            justify-content: flex-end;
+            padding: 82px clamp(28px, 7vw, 112px) 124px min(36vw, 520px);
         }
 
         .suggest-card {
@@ -140,7 +147,7 @@
             background:
                 radial-gradient(circle at 12% 0%, rgba(116, 229, 255, 0.16), transparent 34%),
                 radial-gradient(circle at 92% 12%, rgba(172, 142, 255, 0.14), transparent 32%),
-                rgba(5, 18, 36, 0.82);
+                rgba(5, 18, 36, 0.88);
             box-shadow:
                 0 22px 58px rgba(0, 8, 24, 0.44),
                 0 0 34px rgba(0, 190, 255, 0.18),
@@ -218,7 +225,7 @@
             border-radius: 22px;
             background:
                 linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(99, 202, 255, 0.06)),
-                rgba(9, 28, 52, 0.72);
+                rgba(9, 28, 52, 0.78);
             box-shadow:
                 inset 0 0 28px rgba(255, 255, 255, 0.05),
                 inset 0 1px 0 rgba(255, 255, 255, 0.12);
@@ -609,6 +616,16 @@
         html.performance-low .suggest-card,
         html.performance-low .suggest-form {
             backdrop-filter: none;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                background-position: center, center, 28% center, center;
+            }
+
+            .suggest-page {
+                justify-content: center;
+            }
         }
 
         @media (prefers-reduced-motion: reduce) {

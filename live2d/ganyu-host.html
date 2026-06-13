@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ganyu Live2D Host</title>
+    <link rel="stylesheet" href="live2d-widget.css?v=20260613-6">
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+            background: transparent;
+        }
+
+        body {
+            position: relative;
+            touch-action: none;
+        }
+
+        #live2d-widget {
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+            background: transparent;
+            pointer-events: none;
+        }
+
+        #oml2d-stage,
+        .oml2d-stage,
+        #oml2d-canvas,
+        .oml2d-canvas,
+        #oml2d-main,
+        .oml2d-main {
+            background: transparent !important;
+        }
+
+        body.is-host-hidden #oml2d-stage,
+        body.is-host-hidden .oml2d-stage,
+        body.is-host-hidden #oml2d-canvas,
+        body.is-host-hidden .oml2d-canvas,
+        body.is-host-hidden #oml2d-main,
+        body.is-host-hidden .oml2d-main {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="live2d-widget" class="live2d-widget" aria-hidden="true"></div>
+    <script>
+        window.Live2DWidgetConfig = {
+            hostMode: true,
+            assetBasePath: ".",
+            runtimeBasePath: ".",
+            modelName: "ganyu",
+            modelPath: "models/ganyu/Ganyu1024.model3.json",
+            dockedPosition: "left",
+            scale: 0.066,
+            mobileScale: 0.066,
+            position: [0, 20],
+            mobilePosition: [0, 20],
+            stageStyle: {
+                width: 204,
+                height: 376
+            },
+            mobileStageStyle: {
+                width: 204,
+                height: 376
+            },
+            sayHello: false,
+            disableStatusBar: true,
+            messages: [""]
+        };
+
+        window.addEventListener("message", function (event) {
+            var data = event.data || {};
+
+            if (!data || typeof data.type !== "string") {
+                return;
+            }
+
+            if (data.type === "hide") {
+                document.body.classList.add("is-host-hidden");
+            }
+
+            if (data.type === "show" || data.type === "resize") {
+                document.body.classList.remove("is-host-hidden");
+            }
+
+            if (data.type === "recover") {
+                window.location.reload();
+            }
+        });
+
+        window.addEventListener("error", function (event) {
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({
+                    type: "ganyu-host-error",
+                    message: event.message || "host-error"
+                }, "*");
+            }
+        });
+
+        window.addEventListener("unhandledrejection", function (event) {
+            var reason = event.reason || {};
+
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({
+                    type: "ganyu-host-error",
+                    message: reason.message || String(reason || "host-promise-error")
+                }, "*");
+            }
+        });
+    </script>
+    <script src="live2d-widget.js?v=20260613-5"></script>
+</body>
+</html>

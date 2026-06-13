@@ -13,6 +13,8 @@
     const LEGACY_STORAGE_KEY = "ganyuLive2DPosition";
     const STAGE_SELECTOR = "#oml2d-stage";
     const CANVAS_SELECTOR = "#oml2d-canvas";
+    const FRAME_SHELL_SELECTOR = "#ganyu-live2d-frame-shell";
+    const FRAME_SELECTOR = "#ganyu-live2d-frame";
     const HIT_AREA_SELECTOR = ".live2d-hit-area";
     const BUTTON_CLASS = "live2d-drag-button";
     const DRAG_THRESHOLD = 8;
@@ -56,7 +58,14 @@
                 z-index: ${STAGE_Z_INDEX} !important;
             }
 
+            #ganyu-live2d-frame-shell {
+                pointer-events: none !important;
+                z-index: ${STAGE_Z_INDEX} !important;
+                overflow: visible !important;
+            }
+
             #oml2d-canvas,
+            #ganyu-live2d-frame-shell > .live2d-hit-area,
             #oml2d-statusBar,
             .live2d-hit-area {
                 pointer-events: auto !important;
@@ -68,6 +77,7 @@
             body.is-live2d-external-dragging,
             body.is-live2d-external-dragging #oml2d-stage,
             body.is-live2d-external-dragging #oml2d-canvas,
+            body.is-live2d-external-dragging #ganyu-live2d-frame-shell,
             body.is-live2d-external-dragging .live2d-hit-area {
                 cursor: grabbing !important;
                 user-select: none;
@@ -77,11 +87,11 @@
     }
 
     function getStage() {
-        return document.querySelector(STAGE_SELECTOR);
+        return document.querySelector(STAGE_SELECTOR) || document.querySelector(FRAME_SHELL_SELECTOR);
     }
 
     function getCanvas() {
-        return document.querySelector(CANVAS_SELECTOR);
+        return document.querySelector(CANVAS_SELECTOR) || document.querySelector(FRAME_SELECTOR);
     }
 
     function getHitArea() {

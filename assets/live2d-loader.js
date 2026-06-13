@@ -1,8 +1,9 @@
 /* Lightweight Live2D loader: delays Ganyu until the page is usable. */
 (function () {
-    const WIDGET_SCRIPT = "live2d/live2d-widget.js?v=20260613-4";
+    const WIDGET_SCRIPT = "live2d/live2d-widget.js?v=20260613-5";
     const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260613-3";
-    const DRAG_SCRIPT = "assets/live2d-drag.js?v=20260613-1";
+    const DRAG_SCRIPT = "assets/live2d-drag.js?v=20260613-2";
+    const FRAME_HOST_SRC = "live2d/ganyu-host.html?v=20260613-iframe1";
     const LOAD_TIMEOUT_MS = 10000;
     const AUTOLOAD_DELAY_MS = 1200;
     const currentScript = document.currentScript;
@@ -10,6 +11,10 @@
     const performanceMode = window.JunxuePerformanceMode;
     const isLowPerformance = !!(performanceMode && typeof performanceMode.isLow === "function" && performanceMode.isLow());
     const isHomeAutoload = autoloadMode === "home";
+    const isMobileViewport = window.matchMedia && window.matchMedia("(max-width: 768px)").matches;
+    const isCoarsePointer = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+    const isMobileUserAgent = /Android|iPhone|iPad|iPod|Mobile|HarmonyOS/i.test(navigator.userAgent || "");
+    const useIframeMobile = !!(isMobileViewport || isCoarsePointer || isMobileUserAgent);
     const lowModeHint = "流畅模式下甘雨不会自动出现，点击这里显示甘雨。";
     const loaderState = window.JunxueLive2DLoader || {
         loading: false,
@@ -18,6 +23,7 @@
         visible: true
     };
 
+    loaderState.mode = useIframeMobile ? "iframe-mobile" : "inline";
     window.JunxueLive2DLoader = loaderState;
 
     function injectStyles() {
@@ -34,9 +40,12 @@
             ".live2d-load-control__button:disabled{cursor:wait;opacity:.72;}",
             ".live2d-load-control__status{max-width:min(240px,calc(100vw - 36px));padding:8px 10px;border:1px solid rgba(213,244,255,.5);border-radius:12px;background:rgba(6,22,44,.7);color:rgba(234,252,255,.86);font-size:12px;line-height:1.45;box-shadow:0 0 12px rgba(0,190,255,.14);backdrop-filter:blur(8px);}",
             ".live2d-load-control.is-hidden{display:none;}",
-            "body.live2d-hidden #live2d-widget,body.live2d-hidden #oml2d-stage,body.live2d-hidden #oml2d-canvas,body.live2d-hidden #oml2d-tips,body.live2d-hidden .live2d-hit-area{display:none!important;}",
+            "#ganyu-live2d-frame-shell{position:fixed;left:10px;bottom:max(86px,calc(env(safe-area-inset-bottom) + 84px));width:min(54vw,196px);height:min(58vh,360px);z-index:55;overflow:visible;background:transparent;border:0;pointer-events:none;}",
+            "#ganyu-live2d-frame{display:block;width:100%;height:100%;border:0;background:transparent;overflow:visible;pointer-events:none;}",
+            "#ganyu-live2d-frame-shell>.live2d-hit-area{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;border:0!important;border-radius:0!important;background:transparent!important;padding:0!important;margin:0!important;cursor:grab;touch-action:none;pointer-events:auto!important;z-index:56!important;}",
+            "body.live2d-hidden #live2d-widget,body.live2d-hidden #oml2d-stage,body.live2d-hidden #oml2d-canvas,body.live2d-hidden #oml2d-tips,body.live2d-hidden #ganyu-live2d-frame-shell,body.live2d-hidden .live2d-hit-area{display:none!important;}",
             "html.performance-low .live2d-load-control__button,html.performance-low .live2d-load-control__status{backdrop-filter:none;box-shadow:inset 0 0 8px rgba(255,255,255,.05);}",
-            "@media(max-width:768px){.live2d-load-control{left:12px;bottom:88px}.live2d-load-control__button{min-height:34px;padding:0 13px;font-size:12px}.live2d-load-control__status{max-width:min(78vw,240px);font-size:12px;}}"
+            "@media(max-width:768px){.live2d-load-control{left:12px;bottom:88px}.live2d-load-control__button{min-height:34px;padding:0 13px;font-size:12px}.live2d-load-control__status{max-width:min(78vw,240px);font-size:12px;}#ganyu-live2d-frame-shell{left:10px;bottom:max(88px,calc(env(safe-area-inset-bottom) + 86px));width:min(54vw,204px);height:min(60vh,376px);}}"
         ].join("");
         document.head.appendChild(style);
     }
@@ -114,6 +123,10 @@
     function setLive2DVisible(visible) {
         loaderState.visible = visible;
         document.body.classList.toggle("live2d-hidden", !visible);
+        if (isIframeMobileMode()) {
+            sendFrameMessage(visible ? "show" : "hide");
+        }
+
         if (loaderState.loaded) {
             setControlState("loaded");
 
@@ -121,6 +134,10 @@
                 window.setTimeout(notifyLive2DVisible, 0);
             }
         }
+    }
+
+    function isIframeMobileMode() {
+        return loaderState.mode === "iframe-mobile";
     }
 
     function ensureWidget() {
@@ -142,6 +159,65 @@
         widget.innerHTML = "";
         document.body.appendChild(widget);
         return widget;
+    }
+
+    function getFrameShell() {
+        return document.getElementById("ganyu-live2d-frame-shell");
+    }
+
+    function getFrame() {
+        return document.getElementById("ganyu-live2d-frame");
+    }
+
+    function ensureFrameShell() {
+        let shell = getFrameShell();
+
+        if (shell) {
+            return shell;
+        }
+
+        injectStyles();
+        shell = document.createElement("div");
+        shell.id = "ganyu-live2d-frame-shell";
+        shell.setAttribute("aria-label", "甘雨 Live2D");
+
+        const frame = document.createElement("iframe");
+        frame.id = "ganyu-live2d-frame";
+        frame.title = "甘雨 Live2D";
+        frame.setAttribute("allowtransparency", "true");
+        frame.setAttribute("scrolling", "no");
+
+        const hitArea = document.createElement("button");
+        hitArea.type = "button";
+        hitArea.className = "live2d-hit-area";
+        hitArea.setAttribute("aria-label", "打开甘雨菜单");
+
+        shell.append(frame, hitArea);
+        document.body.appendChild(shell);
+        return shell;
+    }
+
+    function setFrameSrc(forceFresh) {
+        const frame = getFrame();
+
+        if (!frame) {
+            return;
+        }
+
+        const separator = FRAME_HOST_SRC.indexOf("?") === -1 ? "?" : "&";
+        frame.src = forceFresh ? FRAME_HOST_SRC + separator + "retry=" + Date.now() : FRAME_HOST_SRC;
+    }
+
+    function sendFrameMessage(type, detail) {
+        const frame = getFrame();
+
+        if (!frame || !frame.contentWindow) {
+            return;
+        }
+
+        try {
+            frame.contentWindow.postMessage(Object.assign({ type: type }, detail || {}), "*");
+        } catch (error) {}
     }
 
     function scriptExists(src) {
@@ -217,6 +293,10 @@
     }
 
     function getLive2DVisibilitySnapshot() {
+        if (isIframeMobileMode()) {
+            return getFrameVisibilitySnapshot();
+        }
+
         const widget = document.getElementById("live2d-widget");
         const stage = document.querySelector("#oml2d-stage, .oml2d-stage");
         const canvas = getLive2DCanvas();
@@ -244,6 +324,7 @@
         }
 
         return {
+            mode: "inline",
             isVisible: !problem,
             problem: problem,
             widgetFound: !!widget,
@@ -251,6 +332,42 @@
             canvasFound: !!canvas,
             stageRect: rectToObject(primaryRect),
             canvasRect: rectToObject(canvasRect)
+        };
+    }
+
+    function getFrameVisibilitySnapshot() {
+        const shell = getFrameShell();
+        const frame = getFrame();
+        const shellRect = shell && shell.getBoundingClientRect ? shell.getBoundingClientRect() : null;
+        const frameRect = frame && frame.getBoundingClientRect ? frame.getBoundingClientRect() : null;
+        const renderInfo = window.JunxueLive2DRenderInfo || {};
+        let problem = "";
+
+        if (renderInfo.contextLost) {
+            problem = "webgl-context-lost";
+        } else if (!shell || !frame) {
+            problem = "missing-frame";
+        } else if (!isStyleVisible(shell) || !isStyleVisible(frame)) {
+            problem = "hidden-frame";
+        } else if (!isReasonableLive2DRect(shellRect) || !isReasonableLive2DRect(frameRect)) {
+            problem = "frame-too-small";
+        } else if (!hasViewportIntersection(shellRect)) {
+            problem = "frame-offscreen";
+        } else if (!loaderState.frameReady) {
+            problem = "frame-not-ready";
+        }
+
+        return {
+            mode: "iframe-mobile",
+            isVisible: !problem,
+            problem: problem,
+            widgetFound: !!shell,
+            frameFound: !!frame,
+            stageFound: false,
+            canvasFound: false,
+            stageRect: rectToObject(shellRect),
+            canvasRect: rectToObject(frameRect),
+            frameRect: rectToObject(shellRect)
         };
     }
 
@@ -276,28 +393,54 @@
         loaderState.loaded = false;
         loaderState.failed = false;
         loaderState.promise = null;
-        window.__JUNXUE_LIVE2D_INIT_STARTED__ = false;
-        window.__JUNXUE_LIVE2D_READY__ = false;
-        window.__JUNXUE_LIVE2D_INSTANCE__ = null;
+        loaderState.frameReady = false;
+        loaderState.frameError = false;
+        loaderState.frameResolve = null;
+
+        if (isIframeMobileMode()) {
+            loaderState.retryCount = (loaderState.retryCount || 0) + 1;
+            removeFrameShell();
+        } else {
+            window.__JUNXUE_LIVE2D_INIT_STARTED__ = false;
+            window.__JUNXUE_LIVE2D_READY__ = false;
+            window.__JUNXUE_LIVE2D_INSTANCE__ = null;
+            removeScriptBySrc(WIDGET_SCRIPT);
+        }
+
         window.JunxueLive2DRenderInfo = window.JunxueLive2DRenderInfo || {};
         window.JunxueLive2DRenderInfo.contextLost = false;
-        removeScriptBySrc(WIDGET_SCRIPT);
     }
 
     function updateRenderInfo() {
         const snapshot = getLive2DVisibilitySnapshot();
+
         window.JunxueLive2DRenderInfo = window.JunxueLive2DRenderInfo || {};
+        window.JunxueLive2DRenderInfo.mode = loaderState.mode;
+        window.JunxueLive2DRenderInfo.contextLost = !!window.JunxueLive2DRenderInfo.contextLost;
+        window.JunxueLive2DRenderInfo.isActuallyVisible = snapshot.isVisible;
+        window.JunxueLive2DRenderInfo.visibilityProblem = snapshot.problem;
+        window.JunxueLive2DRenderInfo.stageRect = snapshot.stageRect;
+        window.JunxueLive2DRenderInfo.canvasRect = snapshot.canvasRect;
+
+        if (isIframeMobileMode()) {
+            window.JunxueLive2DRenderInfo.canvasCount = document.querySelectorAll("#oml2d-canvas, .oml2d-canvas, #oml2d-stage canvas").length;
+            window.JunxueLive2DRenderInfo.estimatedInstanceCount = document.querySelectorAll("#ganyu-live2d-frame").length;
+            window.JunxueLive2DRenderInfo.isInitialized = !!loaderState.frameReady;
+            window.JunxueLive2DRenderInfo.frameReady = !!loaderState.frameReady;
+            window.JunxueLive2DRenderInfo.frameError = !!loaderState.frameError;
+            window.JunxueLive2DRenderInfo.frameRect = snapshot.frameRect || snapshot.stageRect;
+            window.JunxueLive2DRenderInfo.retryCount = loaderState.retryCount || 0;
+            window.JunxueLive2DRenderInfo.lastError = loaderState.lastError || "";
+            return;
+        }
+
         window.JunxueLive2DRenderInfo.canvasCount = document.querySelectorAll("#oml2d-canvas, .oml2d-canvas, #oml2d-stage canvas").length;
         window.JunxueLive2DRenderInfo.estimatedInstanceCount = Math.max(
             window.JunxueLive2DRenderInfo.canvasCount,
             document.querySelectorAll("#oml2d-main, .oml2d-main, #oml2d-stage, .oml2d-stage").length
         );
         window.JunxueLive2DRenderInfo.isInitialized = !!(window.__JUNXUE_LIVE2D_READY__ || hasActuallyVisibleLive2D());
-        window.JunxueLive2DRenderInfo.isActuallyVisible = snapshot.isVisible;
-        window.JunxueLive2DRenderInfo.visibilityProblem = snapshot.problem;
         window.JunxueLive2DRenderInfo.widgetFound = snapshot.widgetFound;
-        window.JunxueLive2DRenderInfo.stageRect = snapshot.stageRect;
-        window.JunxueLive2DRenderInfo.canvasRect = snapshot.canvasRect;
     }
 
     function markLoadedFromExisting() {
@@ -307,11 +450,12 @@
         }
 
         window.clearTimeout(loaderState.timeout);
-        window.__JUNXUE_LIVE2D_INIT_STARTED__ = true;
-        window.__JUNXUE_LIVE2D_READY__ = true;
-        window.__JUNXUE_LIVE2D_INSTANCE__ = window.__JUNXUE_LIVE2D_INSTANCE__ || findLive2DStage();
+        window.__JUNXUE_LIVE2D_INIT_STARTED__ = !isIframeMobileMode();
+        window.__JUNXUE_LIVE2D_READY__ = !isIframeMobileMode();
+        window.__JUNXUE_LIVE2D_INSTANCE__ = isIframeMobileMode() ? null : (window.__JUNXUE_LIVE2D_INSTANCE__ || findLive2DStage());
         loaderState.loaded = true;
         loaderState.loading = false;
+        loaderState.failed = false;
         updateRenderInfo();
         setLive2DVisible(true);
         return true;
@@ -333,7 +477,10 @@
             loaderState.failed = true;
             loaderState.loading = false;
             loaderState.promise = null;
-            setControlState("failed", "网络加载有点慢，甘雨暂时没赶到。可以点“再试一次”。");
+            loaderState.frameError = isIframeMobileMode();
+            loaderState.lastError = isIframeMobileMode() ? "iframe-timeout" : "inline-timeout";
+            updateRenderInfo();
+            setControlState("failed", isIframeMobileMode() ? "甘雨加载有点慢，点这里再试一次。" : "网络加载有点慢，甘雨暂时没赶到。可以点“再试一次”。");
         }, LOAD_TIMEOUT_MS);
     }
 
@@ -349,7 +496,81 @@
         }
     }
 
+    window.addEventListener("message", function (event) {
+        const frame = getFrame();
+        const data = event.data || {};
+
+        if (!isIframeMobileMode() || !frame || event.source !== frame.contentWindow || typeof data.type !== "string") {
+            return;
+        }
+
+        if (data.type === "ganyu-host-ready") {
+            window.clearTimeout(loaderState.timeout);
+            loaderState.frameReady = true;
+            loaderState.frameError = false;
+            loaderState.loading = false;
+            loaderState.loaded = true;
+            loaderState.failed = false;
+            loaderState.visible = true;
+            loaderState.lastError = "";
+            window.JunxueLive2DRenderInfo = Object.assign(window.JunxueLive2DRenderInfo || {}, data.renderInfo || {}, {
+                mode: "iframe-mobile",
+                contextLost: false
+            });
+            updateRenderInfo();
+            setLive2DVisible(true);
+            loadSupportScripts();
+
+            if (typeof loaderState.frameResolve === "function") {
+                loaderState.frameResolve();
+                loaderState.frameResolve = null;
+            }
+            return;
+        }
+
+        if (data.type === "ganyu-host-error") {
+            window.clearTimeout(loaderState.timeout);
+            loaderState.frameError = true;
+            loaderState.loading = false;
+            loaderState.loaded = false;
+            loaderState.failed = true;
+            loaderState.promise = null;
+            loaderState.lastError = data.message || data.reason || "ganyu-host-error";
+            updateRenderInfo();
+            setControlState("failed", "甘雨加载失败了，点这里再试一次。");
+            return;
+        }
+
+        if (data.type === "ganyu-host-context-lost") {
+            loaderState.frameError = true;
+            loaderState.loading = false;
+            loaderState.loaded = true;
+            loaderState.failed = true;
+            loaderState.visible = true;
+            loaderState.lastError = data.message || "webgl-context-lost";
+            window.JunxueLive2DRenderInfo = window.JunxueLive2DRenderInfo || {};
+            window.JunxueLive2DRenderInfo.contextLost = true;
+            updateRenderInfo();
+            document.body.classList.remove("live2d-hidden");
+            setControlState("loaded", "甘雨渲染暂时中断，点这里恢复。");
+            return;
+        }
+
+        if (data.type === "ganyu-host-context-restored") {
+            loaderState.frameError = false;
+            loaderState.lastError = "";
+            window.JunxueLive2DRenderInfo = window.JunxueLive2DRenderInfo || {};
+            window.JunxueLive2DRenderInfo.contextLost = false;
+            updateRenderInfo();
+            setControlState(loaderState.frameReady ? "loaded" : "failed");
+        }
+    });
+
     window.addEventListener("junxue-live2d-load-failed", function (event) {
+        if (isIframeMobileMode()) {
+            return;
+        }
+
         if (hasActuallyVisibleLive2D()) {
             markLoadedFromExisting();
             return;
@@ -363,6 +584,10 @@
     });
 
     window.addEventListener("junxue-live2d-render-lost", function (event) {
+        if (isIframeMobileMode()) {
+            return;
+        }
+
         loaderState.failed = true;
         loaderState.loading = false;
         loaderState.loaded = true;
@@ -377,7 +602,7 @@
             return false;
         }
 
-        const nodes = Array.prototype.slice.call(document.querySelectorAll("#oml2d-stage, .oml2d-stage, #oml2d-canvas, .oml2d-canvas, #oml2d-main, .oml2d-main"));
+        const nodes = Array.prototype.slice.call(document.querySelectorAll("#oml2d-stage, .oml2d-stage, #oml2d-canvas, .oml2d-canvas, #oml2d-main, .oml2d-main, #live2d-widget"));
         const snapshot = getLive2DVisibilitySnapshot();
 
         if (!nodes.length) {
@@ -398,7 +623,35 @@
         return true;
     }
 
+    function removeInlineRuntimeNodes() {
+        if (!isIframeMobileMode()) {
+            return;
+        }
+
+        document.querySelectorAll("#live2d-widget, #oml2d-stage, .oml2d-stage, #oml2d-canvas, .oml2d-canvas, #oml2d-main, .oml2d-main, #oml2d-tips").forEach(function (node) {
+            if (node && node.parentNode) {
+                node.parentNode.removeChild(node);
+            }
+        });
+        window.__JUNXUE_LIVE2D_INIT_STARTED__ = false;
+        window.__JUNXUE_LIVE2D_READY__ = false;
+        window.__JUNXUE_LIVE2D_INSTANCE__ = null;
+    }
+
+    function removeFrameShell() {
+        const shell = getFrameShell();
+
+        if (shell && shell.parentNode) {
+            shell.parentNode.removeChild(shell);
+        }
+    }
+
     function recoverLive2D() {
+        if (isIframeMobileMode()) {
+            recoverFrameLive2D();
+            return;
+        }
+
         setControlState("loading", "正在恢复甘雨的位置和渲染状态……");
 
         if (window.JunxueLive2DDrag && typeof window.JunxueLive2DDrag.scheduleSync === "function") {
@@ -426,7 +679,67 @@
         }, 180);
     }
 
+    function recoverFrameLive2D() {
+        setControlState("loading", "正在恢复甘雨……");
+        sendFrameMessage("recover");
+        window.setTimeout(function () {
+            if (hasActuallyVisibleLive2D() && markLoadedFromExisting()) {
+                return;
+            }
+
+            window.clearTimeout(loaderState.timeout);
+            loaderState.loading = false;
+            loaderState.loaded = false;
+            loaderState.failed = false;
+            loaderState.promise = null;
+            loaderState.frameReady = false;
+            loaderState.frameError = false;
+            loaderState.frameResolve = null;
+            loaderState.retryCount = (loaderState.retryCount || 0) + 1;
+            loaderState.lastError = "";
+            window.JunxueLive2DRenderInfo = window.JunxueLive2DRenderInfo || {};
+            window.JunxueLive2DRenderInfo.contextLost = false;
+            removeFrameShell();
+            loadLive2D();
+        }, 160);
+    }
+
+    function loadFrameLive2D() {
+        if (loaderState.loading) {
+            return loaderState.promise || Promise.resolve();
+        }
+
+        if (loaderState.loaded && hasActuallyVisibleLive2D()) {
+            setLive2DVisible(true);
+            return loadSupportScripts();
+        }
+
+        removeInlineRuntimeNodes();
+        ensureFrameShell();
+        setFrameSrc(!!loaderState.retryCount);
+
+        loaderState.loading = true;
+        loaderState.loaded = false;
+        loaderState.failed = false;
+        loaderState.frameReady = false;
+        loaderState.frameError = false;
+        loaderState.visible = true;
+        setLive2DVisible(true);
+        setControlState("loading");
+        updateRenderInfo();
+        startLoadTimeout();
+
+        loaderState.promise = new Promise(function (resolve) {
+            loaderState.frameResolve = resolve;
+        });
+        return loaderState.promise;
+    }
+
     function loadLive2D() {
+        if (isIframeMobileMode()) {
+            return loadFrameLive2D();
+        }
+
         if (loaderState.loading) {
             return loaderState.promise || Promise.resolve();
         }
@@ -466,6 +779,7 @@
 
     function init() {
         getControl();
+        updateRenderInfo();
 
         if (isHomeAutoload && !isLowPerformance) {
             setControlState("hidden");
@@ -476,6 +790,8 @@
     }
 
     loaderState.load = loadLive2D;
+    loaderState.recover = recoverLive2D;
+    loaderState.isIframeMobile = isIframeMobileMode;
 
     if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", init, { once: true });

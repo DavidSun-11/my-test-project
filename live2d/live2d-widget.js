@@ -7,13 +7,23 @@
     const config = window.Live2DWidgetConfig || {};
     const widget = document.getElementById("live2d-widget");
     const message = widget ? widget.querySelector(".live2d-message") : null;
-    const defaultGanyuModel = "live2d/models/ganyu/Ganyu1024.model3.json";
+    function joinPath(base, path) {
+        if (!base || /^(?:https?:)?\/\//i.test(path) || path.charAt(0) === "/") {
+            return path;
+        }
+
+        return String(base).replace(/\/+$/, "") + "/" + String(path).replace(/^\/+/, "");
+    }
+
+    const assetBasePath = typeof config.assetBasePath === "string" ? config.assetBasePath : "live2d";
+    const runtimeBasePath = typeof config.runtimeBasePath === "string" ? config.runtimeBasePath : assetBasePath;
+    const defaultGanyuModel = config.defaultModelPath || joinPath(assetBasePath, "models/ganyu/Ganyu1024.model3.json");
     const loadTimeoutMs = 10000;
     const fetchTimeoutMs = 5000;
     const scriptTimeoutMs = 7000;
     const slowLoadMessage = "甘雨加载有点慢，稍后再试试吧～";
     const webglWarningMessage = "当前浏览器不支持 WebGL，甘雨可能无法正常显示。";
-    const localRuntimeSrc = "live2d/vendor/oh-my-live2d-0.19.3.min.js";
+    const localRuntimeSrc = joinPath(runtimeBasePath, "vendor/oh-my-live2d-0.19.3.min.js");
     const jsdelivrRuntimeSrc = "https://cdn.jsdelivr.net/npm/oh-my-live2d@0.19.3/dist/index.min.js";
     const unpkgRuntimeSrc = "https://unpkg.com/oh-my-live2d@0.19.3/dist/index.min.js";
     const runtimeResolutionNeedle = "resolution:2,autoStart:!0,autoDensity:!0";
@@ -346,6 +356,18 @@
         }, 350);
     }
 
+    function postHostMessage(type, detail) {
+        if (!config.hostMode || !window.parent || window.parent === window) {
+            return;
+        }
+
+        try {
+            window.parent.postMessage(Object.assign({
+                type: type
+            }, detail || {}), "*");
+        } catch (error) {}
+    }
+
     function findReadyContainer() {
         const snapshot = getLive2DVisibilitySnapshot();
         return snapshot.isVisible ? snapshot.primary : null;
@@ -368,6 +390,9 @@
         updateCanvasRenderInfo();
         bindCanvasContextEvents();
         hideBootstrapWidget();
+        postHostMessage("ganyu-host-ready", {
+            renderInfo: window.JunxueLive2DRenderInfo
+        });
         return true;
     }
 
@@ -383,6 +408,10 @@
             details: details || null
         });
         setMessage(slowLoadMessage, true);
+        postHostMessage("ganyu-host-error", {
+            reason: reason,
+            message: getFailureMessage(reason)
+        });
         dispatchLoadFailure(reason);
         resetInitForRetry();
 
@@ -466,7 +495,10 @@
         window.JunxueLive2DRenderInfo.isInitialized = false;
     }
 
-    function dispatchRenderLost(message) {
+    function dispatchRenderLost(message, hostMessageType) {
+        postHostMessage(hostMessageType || "ganyu-host-context-lost", {
+            message: message || "甘雨渲染暂时中断，点这里恢复。"
+        });
         try {
             window.dispatchEvent(new CustomEvent("junxue-live2d-render-lost", {
                 detail: {
@@ -494,7 +526,7 @@
         canvas.addEventListener("webglcontextrestored", function () {
             window.JunxueLive2DRenderInfo.contextLost = false;
             updateCanvasRenderInfo();
-            dispatchRenderLost("甘雨渲染已经恢复，可以点这里重新唤醒。");
+            dispatchRenderLost("甘雨渲染已经恢复，可以点这里重新唤醒。", "ganyu-host-context-restored");
         }, false);
     }
 
@@ -887,13 +919,13 @@
         const oml2dOptions = {
             dockedPosition: dockedPosition,
             primaryColor: "#38d9ff",
-            sayHello: true,
+            sayHello: config.sayHello !== false,
             mobileDisplay: true,
             menus: {
                 disable: true
             },
             statusBar: {
-                disable: false,
+                disable: !!config.disableStatusBar,
                 loadingMessage: waitingMessage,
                 loadSuccessMessage: "\u6211\u6765\u5566\uff0c\u8bf7\u591a\u5173\u7167\u3002",
                 loadFailMessage: slowLoadMessage

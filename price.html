@@ -962,6 +962,10 @@
                 padding: 18px;
                 border-radius: 16px;
                 backdrop-filter: blur(6px);
+                overflow: visible;
+                width: 100%;
+                max-width: 100%;
+                margin-top: 22px;
             }
 
             .price-grid,
@@ -975,6 +979,36 @@
             .price-feature-grid,
             .price-rule-grid {
                 grid-template-columns: 1fr;
+                align-items: stretch;
+                gap: 14px;
+                width: 100%;
+                max-width: 100%;
+                min-height: 0;
+                overflow: visible;
+            }
+
+            .price-rule-tile {
+                position: relative;
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+                min-height: 0;
+                height: auto;
+                transform: none;
+                overflow: visible;
+                overflow-wrap: anywhere;
+            }
+
+            .live2d-load-control {
+                left: 10px !important;
+                bottom: calc(env(safe-area-inset-bottom) + 84px) !important;
+                z-index: 72 !important;
+                transform: scale(0.92);
+                transform-origin: left bottom;
+            }
+
+            .live2d-load-control__status {
+                max-width: min(68vw, 210px) !important;
             }
 
             .price-review-stats {
@@ -1299,7 +1333,7 @@ document.addEventListener("click", function (event) {
     }
 
     loadScript("assets/supabase-config.js?v=20260611-1").then(function () {
-        return loadScript("assets/price-reviews.js?v=20260612-4");
+        return loadScript("assets/price-reviews.js?v=20260613-1");
     });
 })();
 </script>

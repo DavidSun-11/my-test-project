@@ -1,6 +1,7 @@
 (function () {
     const CONFIG_MISSING_TEXT = "老板评价系统暂未配置，请稍后再来～";
     const REVIEW_EMPTY_TEXT = "这里还没有老板留下评价哦～";
+    const INTERACTION_LOAD_ERROR_TEXT = "暂时加载失败";
     const SUPABASE_CDN = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
     const VALID_SERVICE_TYPES = ["王者荣耀", "永劫无间", "语音聊天", "其它"];
 
@@ -46,6 +47,18 @@
         node.className = "price-status" + (type ? " is-" + type : "");
     }
 
+    function logSupabaseError(context, error) {
+        if (!error) {
+            return;
+        }
+
+        console.error("[JunxueBossReviews] " + context, error);
+    }
+
+    function isConfigMissingError(error) {
+        return !!error && error.message === CONFIG_MISSING_TEXT;
+    }
+
     function escapeHtml(value) {
         return String(value == null ? "" : value).replace(/[&<>"]/g, function (char) {
             return {
@@ -87,6 +100,8 @@
             likesCount: Number(current.likesCount) || 0,
             userLiked: !!current.userLiked,
             comments: Array.isArray(current.comments) ? current.comments : [],
+            likesFailed: !!current.likesFailed,
+            commentsFailed: !!current.commentsFailed,
             commentsOpen: !!current.commentsOpen,
             commentsExpanded: !!current.commentsExpanded
         };
@@ -191,15 +206,28 @@
             interaction.likesCount = 0;
             interaction.userLiked = false;
             interaction.comments = [];
+            interaction.likesFailed = false;
+            interaction.commentsFailed = false;
         });
 
-        const likesResponse = await client
-            .from("boss_review_likes")
-            .select("review_id, user_id")
-            .in("review_id", reviewIds);
+        let likesResponse = null;
+        let commentsResponse = null;
+
+        try {
+            likesResponse = await client
+                .from("boss_review_likes")
+                .select("review_id, user_id")
+                .in("review_id", reviewIds);
+        } catch (error) {
+            likesResponse = { error: error };
+        }
 
         if (likesResponse.error) {
-            setStatus(reviewStatus, likesResponse.error.message, "warning");
+            logSupabaseError("boss_review_likes load failed", likesResponse.error);
+            reviewIds.forEach(function (reviewId) {
+                ensureInteraction(reviewId).likesFailed = true;
+            });
+            setStatus(reviewStatus, "点赞数据暂时加载失败：" + (likesResponse.error.message || INTERACTION_LOAD_ERROR_TEXT), "warning");
         } else {
             (likesResponse.data || []).forEach(function (like) {
                 const interaction = ensureInteraction(like.review_id);
@@ -211,14 +239,22 @@
             });
         }
 
-        const commentsResponse = await client
-            .from("boss_review_comments")
-            .select("id, review_id, user_id, nickname, message, created_at")
-            .in("review_id", reviewIds)
-            .order("created_at", { ascending: true });
+        try {
+            commentsResponse = await client
+                .from("boss_review_comments")
+                .select("id, review_id, user_id, nickname, message, created_at")
+                .in("review_id", reviewIds)
+                .order("created_at", { ascending: true });
+        } catch (error) {
+            commentsResponse = { error: error };
+        }
 
         if (commentsResponse.error) {
-            setStatus(reviewStatus, commentsResponse.error.message, "warning");
+            logSupabaseError("boss_review_comments load failed", commentsResponse.error);
+            reviewIds.forEach(function (reviewId) {
+                ensureInteraction(reviewId).commentsFailed = true;
+            });
+            setStatus(reviewStatus, "评论数据暂时加载失败：" + (commentsResponse.error.message || INTERACTION_LOAD_ERROR_TEXT), "warning");
             return;
         }
 
@@ -324,6 +360,18 @@
         ].join("");
     }
 
+    function renderStatsError() {
+        if (!reviewStats) {
+            return;
+        }
+
+        reviewStats.innerHTML = [
+            '<div class="price-review-stat"><span>总评价数</span><strong>--</strong></div>',
+            '<div class="price-review-stat"><span>平均星级</span><strong>--</strong></div>',
+            '<div class="price-review-stat"><span>最受欢迎服务</span><strong>加载失败</strong></div>'
+        ].join("");
+    }
+
     function syncExpandableReviews(root) {
         const container = root || reviewList;
 
@@ -354,6 +402,14 @@
     }
 
     function renderComments(reviewId, interaction) {
+        if (interaction.commentsFailed) {
+            return [
+                '<div class="price-review-comments">',
+                    '<div class="price-review-comment-empty">评论暂时加载失败。</div>',
+                '</div>'
+            ].join("");
+        }
+
         const comments = interaction.comments || [];
         const visibleComments = interaction.commentsExpanded ? comments : comments.slice(0, 3);
         const commentsHtml = visibleComments.length ? visibleComments.map(function (comment) {
@@ -395,6 +451,8 @@
         const rating = Math.max(1, Math.min(5, Number(review.rating) || 5));
         const interaction = ensureInteraction(review.id);
         const commentsCount = interaction.comments.length;
+        const likeCountText = interaction.likesFailed ? INTERACTION_LOAD_ERROR_TEXT : interaction.likesCount + ' 赞';
+        const commentCountText = interaction.commentsFailed ? INTERACTION_LOAD_ERROR_TEXT : commentsCount + ' 条评论';
 
         return [
             '<article class="price-review-item" data-review-id="' + escapeHtml(review.id) + '">',
@@ -409,11 +467,11 @@
                     '<button class="price-review-action' + (interaction.userLiked ? ' is-liked' : '') + '" type="button" data-action="toggle-like">' +
                         (interaction.userLiked ? "♥ 已赞" : "♡ 点赞") +
                     '</button>',
-                    '<span class="price-review-count">' + interaction.likesCount + ' 赞</span>',
+                    '<span class="price-review-count">' + escapeHtml(likeCountText) + '</span>',
                     '<button class="price-review-action" type="button" data-action="toggle-comments">' +
                         (interaction.commentsOpen ? "收起评论" : "评论") +
                     '</button>',
-                    '<span class="price-review-count">' + commentsCount + ' 条评论</span>',
+                    '<span class="price-review-count">' + escapeHtml(commentCountText) + '</span>',
                 '</div>',
                 interaction.commentsOpen ? renderComments(review.id, interaction) : '',
             '</article>'
@@ -445,18 +503,30 @@
         }
 
         try {
-            setStatus(reviewStatus, "正在读取老板评价…", "neutral");
+            const loadingText = "正在读取老板评价…";
+
+            setStatus(reviewStatus, loadingText, "neutral");
             const reviews = await loadReviews();
 
             renderStats(reviews);
             renderReviews(reviews);
-            setStatus(reviewStatus, "", "");
+            if (!reviewStatus || reviewStatus.textContent === loadingText) {
+                setStatus(reviewStatus, "", "");
+            }
             return reviews;
         } catch (error) {
-            setStatus(reviewStatus, error.message || CONFIG_MISSING_TEXT, "warning");
-            renderStats([]);
+            renderStatsError();
             if (reviewList) {
-                reviewList.innerHTML = '<div class="price-empty">' + CONFIG_MISSING_TEXT + '</div>';
+                if (isConfigMissingError(error)) {
+                    setStatus(reviewStatus, CONFIG_MISSING_TEXT, "warning");
+                    reviewList.innerHTML = '<div class="price-empty">' + CONFIG_MISSING_TEXT + '</div>';
+                } else {
+                    logSupabaseError("boss_reviews load failed", error);
+                    const message = "老板评价加载失败：" + (error.message || "请稍后再试");
+
+                    setStatus(reviewStatus, message, "warning");
+                    reviewList.innerHTML = '<div class="price-empty">' + escapeHtml(message) + '</div>';
+                }
             }
             return [];
         }

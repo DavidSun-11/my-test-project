@@ -142,6 +142,10 @@
         return document.querySelector("#oml2d-canvas, .oml2d-canvas, #oml2d-stage canvas, .oml2d-stage canvas");
     }
 
+    function getHostCanvasFallback() {
+        return config.hostMode ? document.querySelector("#live2d-widget canvas, canvas") : null;
+    }
+
     function isStyleVisible(node) {
         if (!node || !window.getComputedStyle) {
             return false;
@@ -165,13 +169,72 @@
         return !!rect && rect.width >= 80 && rect.height >= 120;
     }
 
+    function isReasonableHostRect(rect) {
+        return !!rect && rect.width >= 40 && rect.height >= 40;
+    }
+
+    function getHostVisibleCandidate(nodes) {
+        for (let index = 0; index < nodes.length; index += 1) {
+            const node = nodes[index];
+            const rect = node && node.getBoundingClientRect ? node.getBoundingClientRect() : null;
+
+            if (node && isStyleVisible(node) && isReasonableHostRect(rect) && hasViewportIntersection(rect)) {
+                return {
+                    node: node,
+                    rect: rect
+                };
+            }
+        }
+
+        return null;
+    }
+
     function getLive2DVisibilitySnapshot() {
         const stage = getPrimaryStage();
-        const canvas = getPrimaryCanvas();
+        const canvas = getPrimaryCanvas() || getHostCanvasFallback();
         const primary = stage || canvas;
         const primaryRect = primary && primary.getBoundingClientRect ? primary.getBoundingClientRect() : null;
         const canvasRect = canvas && canvas.getBoundingClientRect ? canvas.getBoundingClientRect() : null;
         let problem = "";
+
+        if (config.hostMode) {
+            const candidates = [stage, canvas].filter(Boolean);
+            const candidate = getHostVisibleCandidate(candidates);
+
+            if (window.JunxueLive2DRenderInfo && window.JunxueLive2DRenderInfo.contextLost) {
+                problem = "webgl-context-lost";
+            } else if (!candidates.length) {
+                problem = "missing-stage-or-canvas";
+            } else if (!candidate) {
+                const hasVisibleStyle = candidates.some(isStyleVisible);
+                const hasReasonableRect = candidates.some(function (node) {
+                    return isReasonableHostRect(node && node.getBoundingClientRect ? node.getBoundingClientRect() : null);
+                });
+                const hasIntersection = candidates.some(function (node) {
+                    return hasViewportIntersection(node && node.getBoundingClientRect ? node.getBoundingClientRect() : null);
+                });
+
+                if (!hasVisibleStyle) {
+                    problem = "hidden-style";
+                } else if (!hasReasonableRect) {
+                    problem = "host-canvas-too-small";
+                } else if (!hasIntersection) {
+                    problem = "host-canvas-offscreen";
+                } else {
+                    problem = "host-canvas-not-visible";
+                }
+            }
+
+            return {
+                isVisible: !problem,
+                problem: problem,
+                stage: stage,
+                canvas: canvas,
+                primary: candidate ? candidate.node : primary,
+                stageRect: rectToObject(primaryRect),
+                canvasRect: rectToObject(canvasRect)
+            };
+        }
 
         if (window.JunxueLive2DRenderInfo && window.JunxueLive2DRenderInfo.contextLost) {
             problem = "webgl-context-lost";
@@ -478,7 +541,7 @@
                 timeout: loadTimeoutMs,
                 selector: readySelector
             });
-            showFallbackMessage("timeout", {
+            showFallbackMessage(config.hostMode ? "host canvas not visible" : "timeout", {
                 timeout: loadTimeoutMs
             });
         }, loadTimeoutMs);

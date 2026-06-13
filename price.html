@@ -12,15 +12,21 @@
             box-sizing: border-box;
         }
 
+        html {
+            overflow-x: hidden;
+        }
+
         body {
             min-height: 100vh;
             margin: 0;
             font-family: Arial, sans-serif;
-            color: #f7fbff;
+            color: #153b73;
             background:
-                radial-gradient(circle at 22% 18%, rgba(108, 178, 255, 0.18), transparent 34%),
-                radial-gradient(circle at 78% 72%, rgba(108, 229, 255, 0.12), transparent 36%),
-                linear-gradient(145deg, #01040b 0%, #04111f 48%, #071b31 100%);
+                radial-gradient(circle at 18% 12%, rgba(220, 252, 255, 0.82), transparent 27%),
+                radial-gradient(circle at 72% 8%, rgba(205, 203, 255, 0.48), transparent 32%),
+                radial-gradient(circle at 86% 58%, rgba(108, 229, 255, 0.28), transparent 34%),
+                radial-gradient(ellipse at 50% 92%, rgba(211, 248, 255, 0.34), transparent 46%),
+                linear-gradient(180deg, #bceeff 0%, #74c7f0 28%, #245b96 62%, #061a3a 100%);
             overflow-x: hidden;
         }
 
@@ -35,17 +41,20 @@
         body::before {
             z-index: -6;
             background:
-                radial-gradient(circle at 15% 18%, rgba(105, 214, 255, 0.16), transparent 28%),
-                radial-gradient(circle at 86% 12%, rgba(159, 132, 255, 0.13), transparent 30%),
-                radial-gradient(circle at 54% 78%, rgba(91, 195, 255, 0.1), transparent 34%);
+                linear-gradient(115deg, transparent 4%, rgba(182, 255, 245, 0.24) 18%, transparent 38%),
+                linear-gradient(72deg, transparent 20%, rgba(186, 168, 255, 0.2) 43%, transparent 62%),
+                radial-gradient(circle at 12% 18%, rgba(255, 255, 255, 0.42), transparent 26%),
+                radial-gradient(circle at 86% 14%, rgba(180, 225, 255, 0.34), transparent 31%);
+            opacity: 0.96;
         }
 
         body::after {
             z-index: -5;
             background:
-                linear-gradient(180deg, transparent 0%, rgba(116, 215, 255, 0.045) 45%, rgba(150, 125, 255, 0.07) 76%, transparent 100%),
-                radial-gradient(ellipse at 50% 92%, rgba(178, 231, 255, 0.1), transparent 42%);
-            opacity: 0.86;
+                linear-gradient(180deg, rgba(255, 255, 255, 0.28) 0%, rgba(232, 250, 255, 0.08) 34%, rgba(8, 35, 72, 0.28) 100%),
+                radial-gradient(ellipse at 50% 88%, rgba(237, 253, 255, 0.5), transparent 43%),
+                linear-gradient(0deg, rgba(235, 255, 255, 0.2), transparent 36%);
+            opacity: 0.88;
         }
 
         .price-bg-overlay,
@@ -61,10 +70,10 @@
         .price-bg-overlay {
             z-index: -4;
             background:
-                radial-gradient(ellipse at 50% 34%, rgba(19, 65, 116, 0.26), transparent 50%),
-                radial-gradient(ellipse at 12% 72%, rgba(93, 202, 255, 0.08), transparent 36%),
-                radial-gradient(ellipse at 92% 58%, rgba(168, 129, 255, 0.08), transparent 34%),
-                linear-gradient(to bottom, rgba(1, 7, 18, 0.22), rgba(2, 12, 28, 0.46));
+                radial-gradient(ellipse at 50% 34%, rgba(230, 255, 255, 0.28), transparent 48%),
+                radial-gradient(ellipse at 12% 72%, rgba(146, 226, 255, 0.22), transparent 36%),
+                radial-gradient(ellipse at 92% 58%, rgba(196, 170, 255, 0.18), transparent 34%),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.04), rgba(2, 16, 39, 0.38));
         }
 
         .stars,
@@ -84,7 +93,7 @@
                 radial-gradient(circle at 174px 26px, rgba(255,255,255,0.42) 0 0.8px, transparent 1.15px);
             background-size: 310px 210px;
             animation: driftStars 125s linear infinite, starBreath 8s ease-in-out infinite alternate;
-            opacity: 0.9;
+            opacity: 0.72;
         }
 
         .stars2 {
@@ -93,7 +102,7 @@
                 radial-gradient(circle at 162px 144px, rgba(178,218,255,0.54) 0 0.9px, transparent 1.55px);
             background-size: 260px 180px;
             animation: driftStarsReverse 150s linear infinite, starBreath 9s ease-in-out infinite alternate;
-            opacity: 0.72;
+            opacity: 0.54;
         }
 
         .stars3 {
@@ -102,7 +111,7 @@
                 radial-gradient(circle at 210px 118px, rgba(146,198,255,0.28) 0 0.65px, transparent 1px);
             background-size: 360px 240px;
             animation: driftStars 190s linear infinite, starBreath 11s ease-in-out infinite alternate;
-            opacity: 0.6;
+            opacity: 0.42;
         }
 
         .meteor-layer {
@@ -115,8 +124,8 @@
             width: var(--meteor-length, 300px);
             height: 2px;
             border-radius: 999px;
-            background: linear-gradient(90deg, transparent, rgba(199,233,255,0.18), rgba(255,255,255,0.95));
-            filter: drop-shadow(0 0 8px rgba(158,220,255,0.9));
+            background: linear-gradient(90deg, transparent, rgba(199,233,255,0.14), rgba(255,255,255,0.76));
+            filter: drop-shadow(0 0 6px rgba(158,220,255,0.72));
             transform: rotate(-28deg);
             animation: meteorFall var(--meteor-duration, 2400ms) cubic-bezier(0.08, 0.7, 0.2, 1) forwards;
         }
@@ -124,23 +133,25 @@
         .price-page {
             position: relative;
             z-index: 1;
-            width: min(1120px, calc(100vw - 44px));
+            width: min(1160px, calc(100vw - 44px));
             margin: 0 auto;
-            padding: 82px 0 120px;
+            padding: 74px 0 120px;
         }
 
         .price-hero,
         .price-card {
             position: relative;
-            border: 1px solid rgba(108, 229, 255, 0.42);
-            border-radius: 18px;
+            border: 1px solid rgba(226, 252, 255, 0.68);
+            border-radius: 20px;
             background:
-                radial-gradient(circle at 18% 10%, rgba(108, 229, 255, 0.13), transparent 36%),
-                rgba(5, 18, 36, 0.82);
+                radial-gradient(circle at 18% 0%, rgba(255, 255, 255, 0.48), transparent 34%),
+                linear-gradient(145deg, rgba(239, 253, 255, 0.58), rgba(181, 225, 255, 0.34) 48%, rgba(171, 177, 255, 0.24));
             box-shadow:
-                0 0 28px rgba(0, 190, 255, 0.18),
-                inset 0 0 22px rgba(255, 255, 255, 0.06);
-            backdrop-filter: blur(12px);
+                0 22px 58px rgba(43, 136, 213, 0.24),
+                0 0 0 1px rgba(255, 255, 255, 0.22) inset,
+                inset 0 1px 0 rgba(255, 255, 255, 0.74),
+                inset 0 -28px 58px rgba(94, 183, 255, 0.12);
+            backdrop-filter: blur(18px) saturate(142%);
         }
 
         .price-hero {
@@ -153,6 +164,10 @@
             margin-bottom: 18px;
             border-radius: 26px;
             overflow: hidden;
+            background:
+                radial-gradient(circle at 8% 0%, rgba(255, 255, 255, 0.64), transparent 36%),
+                radial-gradient(circle at 85% 10%, rgba(207, 194, 255, 0.42), transparent 34%),
+                linear-gradient(145deg, rgba(241, 254, 255, 0.62), rgba(177, 226, 255, 0.36) 52%, rgba(159, 179, 255, 0.24));
         }
 
         .price-hero::before,
@@ -163,8 +178,8 @@
             right: 24px;
             top: 0;
             height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(165, 242, 255, 0.78), rgba(177, 152, 255, 0.48), transparent);
-            box-shadow: 0 0 16px rgba(108, 229, 255, 0.34);
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9), rgba(126, 232, 255, 0.76), rgba(189, 166, 255, 0.58), transparent);
+            box-shadow: 0 0 18px rgba(108, 229, 255, 0.36);
             pointer-events: none;
         }
 
@@ -172,14 +187,14 @@
         .price-section-kicker {
             width: fit-content;
             padding: 5px 11px;
-            border: 1px solid rgba(146, 231, 255, 0.56);
+            border: 1px solid rgba(255, 255, 255, 0.72);
             border-radius: 999px;
-            background: rgba(83, 196, 255, 0.1);
-            color: #bff6ff;
+            background: linear-gradient(135deg, rgba(94, 203, 255, 0.28), rgba(167, 143, 255, 0.18));
+            color: #1f60b7;
             font-size: 12px;
             font-weight: 700;
             letter-spacing: 0.08em;
-            box-shadow: inset 0 0 12px rgba(116, 229, 255, 0.08);
+            box-shadow: 0 8px 18px rgba(80, 160, 225, 0.14), inset 0 0 12px rgba(255, 255, 255, 0.38);
         }
 
         .price-hero-copy {
@@ -193,20 +208,36 @@
         }
 
         .price-hero-badge {
-            padding: 13px 14px;
-            border: 1px solid rgba(135, 225, 255, 0.28);
+            position: relative;
+            min-height: 96px;
+            padding: 16px 16px 16px 70px;
+            border: 1px solid rgba(235, 253, 255, 0.7);
             border-radius: 16px;
             background:
-                radial-gradient(circle at 12% 0%, rgba(108, 229, 255, 0.12), transparent 42%),
-                rgba(255, 255, 255, 0.055);
-            color: rgba(234, 252, 255, 0.86);
-            box-shadow: inset 0 0 16px rgba(255, 255, 255, 0.035);
+                radial-gradient(circle at 16% 10%, rgba(255, 255, 255, 0.58), transparent 38%),
+                linear-gradient(145deg, rgba(255, 255, 255, 0.46), rgba(188, 230, 255, 0.22));
+            color: rgba(24, 66, 121, 0.82);
+            box-shadow: 0 14px 26px rgba(62, 143, 220, 0.16), inset 0 0 18px rgba(255, 255, 255, 0.26);
+        }
+
+        .price-hero-badge::before {
+            content: "";
+            position: absolute;
+            left: 17px;
+            top: 18px;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background:
+                radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.95), transparent 27%),
+                linear-gradient(135deg, rgba(66, 204, 255, 0.9), rgba(174, 144, 255, 0.72));
+            box-shadow: 0 0 20px rgba(90, 205, 255, 0.38), inset 0 0 14px rgba(255, 255, 255, 0.62);
         }
 
         .price-hero-badge strong {
             display: block;
             margin-bottom: 3px;
-            color: #f2fdff;
+            color: #124995;
             font-size: 15px;
         }
 
@@ -214,26 +245,27 @@
         .price-card h2,
         .price-card h3 {
             margin: 0;
-            color: #eafcff;
+            color: #174f9e;
             letter-spacing: 0;
-            text-shadow: 0 0 16px rgba(108, 229, 255, 0.42);
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.76), 0 0 18px rgba(86, 185, 255, 0.2);
         }
 
         .price-hero h1 {
-            font-size: clamp(28px, 5vw, 42px);
+            font-size: clamp(34px, 5vw, 52px);
             line-height: 1.28;
+            color: #426fd8;
         }
 
         .price-subtitle {
             margin: 0;
-            color: rgba(192, 235, 255, 0.72);
+            color: rgba(35, 85, 154, 0.78);
             font-weight: 700;
         }
 
         .price-hero p,
         .price-card p,
         .price-card li {
-            color: rgba(234, 252, 255, 0.82);
+            color: rgba(25, 64, 119, 0.84);
             line-height: 1.7;
         }
 
@@ -248,19 +280,32 @@
         .price-submit,
         .price-auth-button {
             min-height: 40px;
-            border: 1px solid rgba(108, 229, 255, 0.46);
+            border: 1px solid rgba(223, 252, 255, 0.76);
             border-radius: 999px;
-            background: linear-gradient(135deg, rgba(73, 214, 255, 0.24), rgba(255, 255, 255, 0.1));
-            color: #f7fbff;
+            background: linear-gradient(135deg, #40c9ff, #8c78ff);
+            color: #ffffff;
             font: inherit;
             font-weight: bold;
             cursor: pointer;
-            box-shadow: 0 0 14px rgba(0, 190, 255, 0.16), inset 0 0 10px rgba(255, 255, 255, 0.06);
+            box-shadow: 0 12px 22px rgba(65, 157, 236, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.56);
             text-decoration: none;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             padding: 0 18px;
+            white-space: nowrap;
+            transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, filter 0.18s ease;
+        }
+
+        .price-button:hover,
+        .price-submit:hover,
+        .price-auth-button:hover,
+        .price-review-action:hover,
+        .price-review-small-button:hover {
+            transform: translateY(-1px);
+            border-color: rgba(255, 255, 255, 0.92);
+            filter: saturate(1.08);
+            box-shadow: 0 15px 28px rgba(65, 157, 236, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.58);
         }
 
         .price-grid {
@@ -281,26 +326,26 @@
         }
 
         .price-card.is-service {
-            border-color: rgba(124, 224, 255, 0.4);
+            border-color: rgba(229, 252, 255, 0.7);
             background:
-                radial-gradient(circle at 18% 0%, rgba(108, 229, 255, 0.12), transparent 38%),
-                rgba(5, 18, 36, 0.8);
+                radial-gradient(circle at 18% 0%, rgba(255, 255, 255, 0.52), transparent 38%),
+                linear-gradient(145deg, rgba(241, 254, 255, 0.56), rgba(172, 222, 255, 0.3) 48%, rgba(174, 164, 255, 0.2));
         }
 
         .price-card.is-info {
-            border-color: rgba(156, 218, 255, 0.3);
+            border-color: rgba(214, 247, 255, 0.58);
             background:
-                radial-gradient(circle at 88% 0%, rgba(160, 132, 255, 0.08), transparent 36%),
-                rgba(7, 22, 41, 0.74);
+                radial-gradient(circle at 88% 0%, rgba(207, 190, 255, 0.28), transparent 36%),
+                linear-gradient(145deg, rgba(230, 250, 255, 0.48), rgba(165, 219, 255, 0.22));
         }
 
         .price-card.is-review {
-            border-color: rgba(153, 235, 255, 0.5);
+            border-color: rgba(229, 252, 255, 0.74);
             border-radius: 24px;
             background:
-                radial-gradient(circle at 10% 0%, rgba(108, 229, 255, 0.16), transparent 34%),
-                radial-gradient(circle at 92% 8%, rgba(255, 218, 147, 0.07), transparent 30%),
-                rgba(5, 18, 36, 0.82);
+                radial-gradient(circle at 10% 0%, rgba(255, 255, 255, 0.58), transparent 34%),
+                radial-gradient(circle at 92% 8%, rgba(255, 228, 168, 0.18), transparent 30%),
+                linear-gradient(145deg, rgba(238, 253, 255, 0.52), rgba(157, 219, 255, 0.24));
         }
 
         .price-section-head {
@@ -311,7 +356,7 @@
 
         .price-section-head p {
             margin: 0;
-            color: rgba(214, 246, 255, 0.72);
+            color: rgba(30, 72, 131, 0.68);
         }
 
         .price-table {
@@ -325,27 +370,28 @@
             grid-template-columns: minmax(120px, 1.1fr) minmax(90px, .8fr) minmax(120px, 1fr);
             gap: 8px;
             padding: 11px 12px;
-            border: 1px solid rgba(108, 229, 255, 0.28);
+            border: 1px solid rgba(201, 244, 255, 0.58);
             border-radius: 12px;
-            background: rgba(255, 255, 255, 0.07);
-            color: rgba(234, 252, 255, 0.88);
+            background: rgba(255, 255, 255, 0.34);
+            color: rgba(21, 61, 116, 0.9);
             transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
         }
 
         .price-row:not(.is-head):hover {
-            border-color: rgba(122, 229, 255, 0.45);
-            background: rgba(108, 229, 255, 0.1);
+            border-color: rgba(96, 202, 255, 0.72);
+            background: rgba(233, 252, 255, 0.5);
             transform: translateY(-1px);
         }
 
         .price-row.is-head {
-            color: #eafcff;
+            color: #1b5cb3;
             font-weight: bold;
-            background: linear-gradient(135deg, rgba(108, 229, 255, 0.2), rgba(138, 157, 255, 0.12));
+            background: linear-gradient(135deg, rgba(214, 250, 255, 0.74), rgba(207, 205, 255, 0.42));
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.68);
         }
 
         .price-mode {
-            color: #d9fbff;
+            color: #164ea6;
             font-weight: 700;
             text-shadow: 0 0 10px rgba(108, 229, 255, 0.18);
         }
@@ -358,10 +404,10 @@
             padding: 0 8px;
             border: 1px solid rgba(255, 222, 139, 0.42);
             border-radius: 999px;
-            color: #ffe6a8;
+            color: #9a5c00;
             font-size: 12px;
             font-weight: 700;
-            background: rgba(255, 218, 118, 0.08);
+            background: rgba(255, 227, 145, 0.36);
         }
 
         .price-list {
@@ -374,9 +420,9 @@
 
         .price-list li {
             padding: 10px 12px;
-            border: 1px solid rgba(108, 229, 255, 0.24);
+            border: 1px solid rgba(198, 242, 255, 0.48);
             border-radius: 12px;
-            background: rgba(255, 255, 255, 0.06);
+            background: rgba(255, 255, 255, 0.28);
         }
 
         .price-mini-grid,
@@ -388,19 +434,34 @@
         }
 
         .price-step-grid {
+            position: relative;
             grid-template-columns: repeat(4, minmax(0, 1fr));
             margin-top: 18px;
         }
 
+        .price-step-grid::before {
+            content: "";
+            position: absolute;
+            left: 8%;
+            right: 8%;
+            top: 50%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(117, 211, 255, 0.6), rgba(184, 160, 255, 0.34), transparent);
+            pointer-events: none;
+        }
+
         .price-step {
+            position: relative;
+            z-index: 1;
             display: grid;
             grid-template-columns: auto minmax(0, 1fr);
             gap: 9px;
             align-items: center;
             padding: 12px;
-            border: 1px solid rgba(120, 226, 255, 0.24);
+            border: 1px solid rgba(223, 251, 255, 0.7);
             border-radius: 14px;
-            background: rgba(255, 255, 255, 0.055);
+            background: linear-gradient(145deg, rgba(250, 255, 255, 0.64), rgba(185, 230, 255, 0.28));
+            box-shadow: 0 12px 24px rgba(52, 143, 219, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.64);
         }
 
         .price-step-num {
@@ -411,18 +472,18 @@
             height: 26px;
             border: 1px solid rgba(151, 235, 255, 0.48);
             border-radius: 50%;
-            color: #c8f7ff;
+            color: #ffffff;
             font-size: 12px;
             font-weight: 800;
-            background: rgba(86, 201, 255, 0.12);
-            box-shadow: 0 0 10px rgba(108, 229, 255, 0.14);
+            background: linear-gradient(135deg, #58caff, #9280ff);
+            box-shadow: 0 0 16px rgba(108, 229, 255, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.58);
         }
 
         .price-step strong,
         .price-service-tile strong,
         .price-feature-tile strong,
         .price-rule-tile strong {
-            color: #f1fdff;
+            color: #174f9e;
         }
 
         .price-mini-grid {
@@ -434,13 +495,14 @@
         .price-feature-tile,
         .price-rule-tile {
             padding: 13px 14px;
-            border: 1px solid rgba(120, 226, 255, 0.22);
+            border: 1px solid rgba(211, 248, 255, 0.56);
             border-radius: 14px;
             background:
-                radial-gradient(circle at 14% 0%, rgba(108, 229, 255, 0.08), transparent 38%),
-                rgba(255, 255, 255, 0.055);
-            color: rgba(234, 252, 255, 0.78);
+                radial-gradient(circle at 14% 0%, rgba(255, 255, 255, 0.5), transparent 38%),
+                linear-gradient(145deg, rgba(255, 255, 255, 0.44), rgba(181, 226, 255, 0.2));
+            color: rgba(28, 67, 122, 0.8);
             line-height: 1.6;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.46);
         }
 
         .price-service-tile strong,
@@ -467,20 +529,20 @@
 
         .price-skill-tag {
             padding: 7px 10px;
-            border: 1px solid rgba(157, 230, 255, 0.28);
+            border: 1px solid rgba(203, 244, 255, 0.56);
             border-radius: 999px;
-            background: rgba(255, 255, 255, 0.06);
-            color: rgba(234, 252, 255, 0.86);
+            background: rgba(255, 255, 255, 0.34);
+            color: rgba(26, 73, 135, 0.86);
             font-size: 13px;
         }
 
         .price-note {
             margin-top: 14px;
             padding: 12px 14px;
-            border: 1px solid rgba(255, 221, 114, 0.34);
+            border: 1px solid rgba(255, 221, 114, 0.54);
             border-radius: 14px;
-            background: rgba(255, 221, 114, 0.08);
-            color: rgba(255, 245, 204, 0.9);
+            background: rgba(255, 239, 184, 0.3);
+            color: rgba(105, 75, 20, 0.9);
         }
 
         .price-review-layout {
@@ -499,7 +561,7 @@
 
         .price-review-heading p {
             margin: 8px 0 0;
-            color: rgba(214, 246, 255, 0.72);
+            color: rgba(30, 72, 131, 0.68);
         }
 
         .price-review-stats {
@@ -511,16 +573,16 @@
 
         .price-review-stat {
             padding: 12px 14px;
-            border: 1px solid rgba(108, 229, 255, 0.26);
+            border: 1px solid rgba(210, 248, 255, 0.62);
             border-radius: 14px;
             background:
-                linear-gradient(135deg, rgba(108, 229, 255, 0.1), rgba(255, 255, 255, 0.05));
-            box-shadow: inset 0 0 16px rgba(108, 229, 255, 0.04);
+                linear-gradient(135deg, rgba(244, 255, 255, 0.58), rgba(181, 229, 255, 0.22));
+            box-shadow: 0 10px 22px rgba(55, 143, 220, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.58);
         }
 
         .price-review-stat span {
             display: block;
-            color: rgba(214, 246, 255, 0.64);
+            color: rgba(30, 72, 131, 0.6);
             font-size: 12px;
             line-height: 1.3;
         }
@@ -528,22 +590,22 @@
         .price-review-stat strong {
             display: block;
             margin-top: 4px;
-            color: #eafcff;
+            color: #154e9f;
             font-size: 18px;
-            text-shadow: 0 0 10px rgba(108, 229, 255, 0.28);
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.64), 0 0 10px rgba(108, 229, 255, 0.22);
         }
 
         .price-review-toggle {
             width: fit-content;
             min-height: 38px;
             padding: 0 16px;
-            border: 1px solid rgba(108, 229, 255, 0.46);
+            border: 1px solid rgba(207, 248, 255, 0.66);
             border-radius: 999px;
-            background: rgba(8, 29, 56, 0.72);
-            color: rgba(234, 252, 255, 0.95);
+            background: rgba(242, 254, 255, 0.44);
+            color: rgba(19, 75, 151, 0.95);
             font-weight: 700;
             cursor: pointer;
-            box-shadow: 0 0 14px rgba(0, 190, 255, 0.18), inset 0 0 10px rgba(255, 255, 255, 0.06);
+            box-shadow: 0 8px 18px rgba(43, 142, 217, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.52);
         }
 
         .price-review-panel {
@@ -551,9 +613,9 @@
             gap: 10px;
             max-width: 560px;
             padding: 12px;
-            border: 1px solid rgba(108, 229, 255, 0.22);
+            border: 1px solid rgba(205, 244, 255, 0.5);
             border-radius: 14px;
-            background: rgba(255, 255, 255, 0.045);
+            background: rgba(255, 255, 255, 0.28);
         }
 
         .price-review-panel[hidden] {
@@ -571,7 +633,7 @@
         }
 
         .price-field label {
-            color: rgba(234, 252, 255, 0.9);
+            color: rgba(26, 70, 130, 0.9);
             font-size: 14px;
             font-weight: bold;
         }
@@ -580,14 +642,14 @@
         .price-field select,
         .price-field textarea {
             width: 100%;
-            border: 1px solid rgba(108, 229, 255, 0.34);
+            border: 1px solid rgba(172, 226, 255, 0.66);
             border-radius: 12px;
-            background: rgba(255, 255, 255, 0.08);
-            color: #f7fbff;
+            background: rgba(255, 255, 255, 0.64);
+            color: #143a70;
             font: inherit;
             outline: none;
             padding: 9px 10px;
-            box-shadow: inset 0 0 12px rgba(108, 229, 255, 0.05);
+            box-shadow: inset 0 1px 8px rgba(80, 163, 228, 0.08);
         }
 
         .price-field select option {
@@ -609,7 +671,7 @@
 
         .price-auth-note {
             margin: 0;
-            color: rgba(214, 246, 255, 0.72);
+            color: rgba(30, 72, 131, 0.66);
             font-size: 12px;
             line-height: 1.45;
         }
@@ -623,17 +685,17 @@
 
         .price-status {
             min-height: 18px;
-            color: rgba(214, 246, 255, 0.78);
+            color: rgba(30, 72, 131, 0.68);
             font-size: 12px;
             line-height: 1.45;
         }
 
         .price-status.is-good {
-            color: #c8ffe6;
+            color: #168263;
         }
 
         .price-status.is-warning {
-            color: #ffe6ad;
+            color: #9a6a00;
         }
 
         .price-review-list {
@@ -646,12 +708,12 @@
         .price-review-item,
         .price-empty {
             padding: 13px 14px;
-            border: 1px solid rgba(108, 229, 255, 0.28);
+            border: 1px solid rgba(205, 244, 255, 0.58);
             border-radius: 14px;
             background:
-                radial-gradient(circle at 20% 0%, rgba(108, 229, 255, 0.08), transparent 42%),
-                rgba(255, 255, 255, 0.07);
-            box-shadow: 0 0 14px rgba(0, 190, 255, 0.08), inset 0 0 14px rgba(255, 255, 255, 0.04);
+                radial-gradient(circle at 20% 0%, rgba(255, 255, 255, 0.5), transparent 42%),
+                linear-gradient(145deg, rgba(255, 255, 255, 0.48), rgba(181, 226, 255, 0.22));
+            box-shadow: 0 12px 24px rgba(51, 139, 217, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.52);
         }
 
         .price-review-item {
@@ -660,8 +722,8 @@
 
         .price-review-item:hover {
             transform: translateY(-2px);
-            border-color: rgba(108, 229, 255, 0.42);
-            box-shadow: 0 0 18px rgba(0, 190, 255, 0.14), inset 0 0 14px rgba(255, 255, 255, 0.05);
+            border-color: rgba(96, 202, 255, 0.72);
+            box-shadow: 0 16px 30px rgba(51, 139, 217, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.58);
         }
 
         .price-empty {
@@ -669,7 +731,7 @@
             gap: 10px;
             justify-items: start;
             min-height: 0;
-            color: rgba(214, 246, 255, 0.8);
+            color: rgba(30, 72, 131, 0.78);
             font-size: 13px;
             line-height: 1.45;
         }
@@ -685,7 +747,7 @@
             grid-template-columns: minmax(0, 1fr) auto;
             gap: 8px;
             align-items: center;
-            color: #eafcff;
+            color: #174f9e;
             font-weight: bold;
             font-size: 14px;
             line-height: 1.35;
@@ -700,14 +762,14 @@
 
         .price-review-meta {
             margin-top: 3px;
-            color: rgba(214, 246, 255, 0.62);
+            color: rgba(30, 72, 131, 0.58);
             font-size: 12px;
             line-height: 1.35;
         }
 
         .price-review-item p {
             margin: 7px 0 0;
-            color: rgba(247, 251, 255, 0.9);
+            color: rgba(23, 58, 108, 0.88);
             font-size: 13px;
             line-height: 1.5;
             overflow-wrap: anywhere;
@@ -725,7 +787,7 @@
             padding: 0;
             border: 0;
             background: transparent;
-            color: #9ff5ff;
+            color: #1e7fd2;
             font: inherit;
             font-size: 12px;
             font-weight: 700;
@@ -743,32 +805,32 @@
             gap: 6px 8px;
             margin-top: 8px;
             padding-top: 7px;
-            border-top: 1px solid rgba(108, 229, 255, 0.16);
+            border-top: 1px solid rgba(112, 203, 255, 0.26);
         }
 
         .price-review-action,
         .price-review-small-button {
             min-height: 28px;
             padding: 0 10px;
-            border: 1px solid rgba(108, 229, 255, 0.32);
+            border: 1px solid rgba(174, 231, 255, 0.58);
             border-radius: 999px;
-            background: rgba(255, 255, 255, 0.07);
-            color: #eafcff;
+            background: rgba(255, 255, 255, 0.4);
+            color: #155aa9;
             font: inherit;
             font-size: 12px;
             font-weight: 700;
             cursor: pointer;
-            box-shadow: 0 0 8px rgba(0, 190, 255, 0.1);
+            box-shadow: 0 6px 14px rgba(40, 139, 220, 0.1);
         }
 
         .price-review-action.is-liked {
             border-color: rgba(255, 160, 207, 0.58);
-            background: rgba(255, 142, 196, 0.12);
-            color: #ffd6e9;
+            background: rgba(255, 183, 219, 0.34);
+            color: #a41c6f;
         }
 
         .price-review-count {
-            color: rgba(214, 246, 255, 0.62);
+            color: rgba(30, 72, 131, 0.58);
             font-size: 12px;
             line-height: 1.3;
         }
@@ -786,28 +848,28 @@
 
         .price-review-comment {
             padding: 8px;
-            border: 1px solid rgba(108, 229, 255, 0.16);
+            border: 1px solid rgba(177, 229, 255, 0.4);
             border-radius: 10px;
-            background: rgba(6, 22, 44, 0.22);
+            background: rgba(255, 255, 255, 0.34);
         }
 
         .price-review-comment-meta {
             display: flex;
             justify-content: space-between;
             gap: 8px;
-            color: rgba(234, 252, 255, 0.86);
+            color: rgba(20, 70, 128, 0.86);
             font-size: 12px;
             line-height: 1.35;
         }
 
         .price-review-comment-meta span {
-            color: rgba(214, 246, 255, 0.58);
+            color: rgba(30, 72, 131, 0.56);
             white-space: nowrap;
         }
 
         .price-review-comment p {
             margin: 5px 0 0;
-            color: rgba(247, 251, 255, 0.84);
+            color: rgba(23, 58, 108, 0.82);
             font-size: 12px;
             line-height: 1.45;
             overflow-wrap: anywhere;
@@ -815,7 +877,7 @@
 
         .price-review-comment-empty,
         .price-review-comment-login {
-            color: rgba(214, 246, 255, 0.62);
+            color: rgba(30, 72, 131, 0.58);
             font-size: 12px;
             line-height: 1.45;
         }
@@ -828,10 +890,10 @@
         .price-review-comment-form input,
         .price-review-comment-form textarea {
             width: 100%;
-            border: 1px solid rgba(108, 229, 255, 0.26);
+            border: 1px solid rgba(172, 226, 255, 0.54);
             border-radius: 10px;
-            background: rgba(255, 255, 255, 0.06);
-            color: #f7fbff;
+            background: rgba(255, 255, 255, 0.58);
+            color: #153b73;
             font: inherit;
             font-size: 12px;
             outline: none;
@@ -851,7 +913,7 @@
         .back-home {
             display: inline-block;
             margin-top: 22px;
-            color: #9fefff;
+            color: #227cce;
             font-weight: bold;
             text-decoration: none;
         }
@@ -861,7 +923,7 @@
             width: 280px;
             height: 280px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(108, 229, 255, 0.15), transparent 62%);
+            background: radial-gradient(circle, rgba(150, 232, 255, 0.18), transparent 62%);
             pointer-events: none;
             transform: translate(-50%, -50%);
             z-index: 0;
@@ -871,7 +933,7 @@
             position: fixed;
             width: 18px;
             height: 18px;
-            border: 1px solid rgba(159, 245, 255, 0.65);
+            border: 1px solid rgba(159, 245, 255, 0.48);
             border-radius: 50%;
             transform: translate(-50%, -50%);
             pointer-events: none;
@@ -889,7 +951,7 @@
         }
 
         html.performance-low body::after {
-            opacity: 0.34;
+            opacity: 0.5;
         }
 
         html.performance-low .price-card,
@@ -900,6 +962,21 @@
         html.performance-low .price-step {
             box-shadow: none;
             backdrop-filter: none;
+        }
+
+        html.performance-low .price-hero,
+        html.performance-low .price-card {
+            background: rgba(218, 244, 255, 0.5);
+        }
+
+        html.performance-low .price-button:hover,
+        html.performance-low .price-submit:hover,
+        html.performance-low .price-auth-button:hover,
+        html.performance-low .price-review-action:hover,
+        html.performance-low .price-review-small-button:hover,
+        html.performance-low .price-row:not(.is-head):hover,
+        html.performance-low .price-review-item:hover {
+            transform: none;
         }
 
         @keyframes driftStars {
@@ -948,8 +1025,8 @@
             }
 
             .price-page {
-                width: min(1120px, calc(100vw - 28px));
-                padding: 72px 0 112px;
+                width: min(94vw, calc(100vw - 24px));
+                padding: 70px 0 112px;
             }
 
             .price-hero {
@@ -959,7 +1036,7 @@
 
             .price-hero,
             .price-card {
-                padding: 18px;
+                padding: 16px;
                 border-radius: 16px;
                 backdrop-filter: blur(6px);
                 overflow: visible;
@@ -987,6 +1064,14 @@
                 overflow: visible;
             }
 
+            .price-step-grid::before {
+                display: none;
+            }
+
+            .price-mini-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+
             .price-rule-tile {
                 position: relative;
                 width: 100%;
@@ -1001,14 +1086,22 @@
 
             .live2d-load-control {
                 left: 10px !important;
-                bottom: calc(env(safe-area-inset-bottom) + 84px) !important;
+                bottom: calc(env(safe-area-inset-bottom) + 92px) !important;
                 z-index: 72 !important;
-                transform: scale(0.92);
+                transform: scale(0.86);
                 transform-origin: left bottom;
             }
 
             .live2d-load-control__status {
-                max-width: min(68vw, 210px) !important;
+                max-width: min(62vw, 190px) !important;
+            }
+
+            #ganyu-live2d-frame-shell {
+                left: 6px !important;
+                bottom: calc(env(safe-area-inset-bottom) + 118px) !important;
+                width: min(42vw, 168px) !important;
+                height: min(50vh, 318px) !important;
+                opacity: 0.94;
             }
 
             .price-review-stats {
@@ -1018,6 +1111,8 @@
             .price-row {
                 grid-template-columns: 1fr;
                 gap: 5px;
+                padding: 12px;
+                border-radius: 14px;
             }
 
             .price-row.is-head {
@@ -1026,7 +1121,7 @@
 
             .price-row span::before {
                 display: block;
-                color: rgba(191, 246, 255, 0.62);
+                color: rgba(31, 92, 164, 0.62);
                 font-size: 12px;
                 font-weight: 700;
             }

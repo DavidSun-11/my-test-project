@@ -249,6 +249,18 @@
         document.head.appendChild(style);
     }
 
+    function getModeButtonLabel() {
+        if (requestedMode === "high") {
+            return "特效模式";
+        }
+
+        if (requestedMode === "low") {
+            return "流畅模式";
+        }
+
+        return resolvedMode === "low" ? "自动·流畅" : "自动·特效";
+    }
+
     function initModeSwitcher() {
         if (document.querySelector(".performance-switcher")) {
             return;
@@ -268,7 +280,7 @@
         wrapper.className = "performance-switcher";
         button.className = "performance-switcher__button";
         button.type = "button";
-        button.textContent = "特效模式";
+        button.textContent = getModeButtonLabel();
         button.setAttribute("aria-haspopup", "true");
         button.setAttribute("aria-expanded", "false");
 

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>君雪的个人网站</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
-    <script src="assets/performance-mode.js?v=20260613-1"></script>
+    <script src="assets/performance-mode.js?v=20260613-2"></script>
     <link rel="stylesheet" href="live2d/live2d-widget.css?v=20260613-5">
     <style>
         html,
@@ -1000,10 +1000,20 @@ const manualHighEffectRequested = isFullEffectMode && consumeManualHighEffectReq
 const shouldLoadBackgroundVideo = isFullEffectMode && (!isMobileViewport || manualHighEffectRequested);
 document.documentElement.classList.toggle("mobile-video-unlocked", !!(isMobileViewport && manualHighEffectRequested));
 
+console.info("[JunxuePerformance]", {
+    performanceMode: pagePerformance ? pagePerformance.resolvedMode : "unknown",
+    isMobile: isMobileViewport,
+    shouldLoadVideo: shouldLoadBackgroundVideo,
+    live2dAutoload: "home"
+});
+
 if (backgroundVideo) {
     const videoSource = backgroundVideo.querySelector("source");
 
     if (shouldLoadBackgroundVideo) {
+        if (isMobileViewport && manualHighEffectRequested) {
+            showHomeVideoStatus("星空背景正在加载，手机网络慢时可能需要几秒。");
+        }
         if (videoSource && !videoSource.getAttribute("src")) {
             videoSource.setAttribute("src", videoSource.dataset.src || "");
             backgroundVideo.load();
@@ -1015,6 +1025,8 @@ if (backgroundVideo) {
             showHomeVideoStatus("手机网络有点慢，星空背景暂时没有加载出来。");
         });
     } else {
+        const hadVideoSource = backgroundVideo.getAttribute("src") ||
+            (videoSource && videoSource.getAttribute("src"));
         backgroundVideo.pause();
         backgroundVideo.removeAttribute("autoplay");
         backgroundVideo.removeAttribute("loop");
@@ -1022,11 +1034,13 @@ if (backgroundVideo) {
         if (videoSource) {
             videoSource.removeAttribute("src");
         }
-        backgroundVideo.load();
+        if (hadVideoSource) {
+            backgroundVideo.load();
+        }
     }
 }
 
-if (!isLowPerformance && light) {
+if (!isLowPerformance && !isMobileViewport && light) {
     document.addEventListener("pointermove", (e) => {
         light.style.left = e.clientX + "px";
         light.style.top = e.clientY + "px";
@@ -1034,7 +1048,7 @@ if (!isLowPerformance && light) {
 }
 
 document.addEventListener("click", (e) => {
-    if (isLowPerformance) {
+    if (isLowPerformance || isMobileViewport) {
         return;
     }
 
@@ -1057,7 +1071,7 @@ document.addEventListener("click", (e) => {
     const maxMeteors = 3;
     let timer = null;
 
-    if (isLowPerformance || !layer || reduceMotion.matches) {
+    if (isLowPerformance || isMobileViewport || !layer || reduceMotion.matches) {
         return;
     }
 

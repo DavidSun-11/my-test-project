@@ -22,11 +22,11 @@
             font-family: Arial, sans-serif;
             color: #153b73;
             background:
-                radial-gradient(circle at 18% 12%, rgba(220, 252, 255, 0.82), transparent 27%),
-                radial-gradient(circle at 72% 8%, rgba(205, 203, 255, 0.48), transparent 32%),
-                radial-gradient(circle at 86% 58%, rgba(108, 229, 255, 0.28), transparent 34%),
-                radial-gradient(ellipse at 50% 92%, rgba(211, 248, 255, 0.34), transparent 46%),
-                linear-gradient(180deg, #bceeff 0%, #74c7f0 28%, #245b96 62%, #061a3a 100%);
+                radial-gradient(circle at 16% 10%, rgba(232, 255, 255, 0.86), transparent 24%),
+                radial-gradient(circle at 84% 16%, rgba(214, 198, 255, 0.52), transparent 29%),
+                radial-gradient(circle at 12% 82%, rgba(121, 236, 255, 0.26), transparent 33%),
+                radial-gradient(circle at 88% 68%, rgba(177, 151, 255, 0.22), transparent 35%),
+                linear-gradient(180deg, #d4f8ff 0%, #91dbf7 25%, #4a91cb 55%, #123f72 78%, #071d43 100%);
             overflow-x: hidden;
         }
 
@@ -41,19 +41,20 @@
         body::before {
             z-index: -6;
             background:
-                linear-gradient(115deg, transparent 4%, rgba(182, 255, 245, 0.24) 18%, transparent 38%),
-                linear-gradient(72deg, transparent 20%, rgba(186, 168, 255, 0.2) 43%, transparent 62%),
-                radial-gradient(circle at 12% 18%, rgba(255, 255, 255, 0.42), transparent 26%),
-                radial-gradient(circle at 86% 14%, rgba(180, 225, 255, 0.34), transparent 31%);
-            opacity: 0.96;
+                linear-gradient(118deg, transparent 4%, rgba(189, 255, 239, 0.32) 16%, rgba(153, 216, 255, 0.14) 30%, transparent 45%),
+                linear-gradient(70deg, transparent 18%, rgba(196, 171, 255, 0.26) 39%, rgba(139, 228, 255, 0.16) 52%, transparent 68%),
+                radial-gradient(circle at 12% 18%, rgba(255, 255, 255, 0.52), transparent 24%),
+                radial-gradient(circle at 86% 14%, rgba(196, 232, 255, 0.42), transparent 30%);
+            opacity: 0.98;
         }
 
         body::after {
             z-index: -5;
             background:
-                linear-gradient(180deg, rgba(255, 255, 255, 0.28) 0%, rgba(232, 250, 255, 0.08) 34%, rgba(8, 35, 72, 0.28) 100%),
-                radial-gradient(ellipse at 50% 88%, rgba(237, 253, 255, 0.5), transparent 43%),
-                linear-gradient(0deg, rgba(235, 255, 255, 0.2), transparent 36%);
+                linear-gradient(180deg, rgba(255, 255, 255, 0.38) 0%, rgba(232, 250, 255, 0.1) 34%, rgba(8, 35, 72, 0.3) 100%),
+                radial-gradient(ellipse at 48% 74%, rgba(245, 255, 255, 0.42), transparent 34%),
+                linear-gradient(0deg, rgba(236, 255, 255, 0.3) 0%, rgba(181, 231, 255, 0.16) 16%, transparent 41%),
+                repeating-linear-gradient(0deg, rgba(255,255,255,0.08) 0 1px, transparent 1px 18px);
             opacity: 0.88;
         }
 
@@ -70,10 +71,41 @@
         .price-bg-overlay {
             z-index: -4;
             background:
-                radial-gradient(ellipse at 50% 34%, rgba(230, 255, 255, 0.28), transparent 48%),
-                radial-gradient(ellipse at 12% 72%, rgba(146, 226, 255, 0.22), transparent 36%),
-                radial-gradient(ellipse at 92% 58%, rgba(196, 170, 255, 0.18), transparent 34%),
-                linear-gradient(to bottom, rgba(255, 255, 255, 0.04), rgba(2, 16, 39, 0.38));
+                linear-gradient(168deg, transparent 0 18%, rgba(235, 255, 255, 0.22) 19% 20%, transparent 21% 100%),
+                linear-gradient(192deg, transparent 0 21%, rgba(171, 220, 255, 0.16) 22% 23%, transparent 24% 100%),
+                radial-gradient(ellipse at 50% 38%, rgba(240, 255, 255, 0.32), transparent 46%),
+                radial-gradient(ellipse at 12% 72%, rgba(146, 226, 255, 0.25), transparent 36%),
+                radial-gradient(ellipse at 92% 58%, rgba(196, 170, 255, 0.22), transparent 34%),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.08), rgba(2, 16, 39, 0.4));
+        }
+
+        .price-bg-overlay::before,
+        .price-bg-overlay::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            pointer-events: none;
+        }
+
+        .price-bg-overlay::before {
+            top: 23%;
+            height: 26%;
+            background:
+                linear-gradient(135deg, transparent 0 18%, rgba(230, 250, 255, 0.44) 18.5% 19.2%, transparent 19.8% 100%),
+                linear-gradient(45deg, transparent 0 35%, rgba(181, 218, 255, 0.26) 35.4% 36%, transparent 36.6% 100%);
+            clip-path: polygon(0 76%, 8% 56%, 15% 70%, 24% 42%, 33% 68%, 44% 38%, 53% 65%, 64% 46%, 75% 72%, 86% 48%, 100% 70%, 100% 100%, 0 100%);
+            opacity: 0.55;
+        }
+
+        .price-bg-overlay::after {
+            bottom: 0;
+            height: 28%;
+            background:
+                radial-gradient(ellipse at 48% 32%, rgba(255, 255, 255, 0.28), transparent 52%),
+                repeating-linear-gradient(0deg, rgba(234, 255, 255, 0.14) 0 1px, transparent 1px 16px),
+                linear-gradient(180deg, transparent, rgba(219, 251, 255, 0.18));
+            opacity: 0.8;
         }
 
         .stars,
@@ -138,6 +170,91 @@
             padding: 74px 0 120px;
         }
 
+        .price-topbar {
+            position: relative;
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr) auto;
+            gap: 18px;
+            align-items: center;
+            margin-bottom: 18px;
+            padding: 10px 14px;
+            border: 1px solid rgba(238, 253, 255, 0.64);
+            border-radius: 999px;
+            background:
+                linear-gradient(135deg, rgba(255, 255, 255, 0.54), rgba(174, 224, 255, 0.22) 52%, rgba(198, 181, 255, 0.18));
+            box-shadow: 0 16px 34px rgba(54, 145, 220, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+            -webkit-backdrop-filter: blur(18px) saturate(145%);
+            backdrop-filter: blur(18px) saturate(145%);
+        }
+
+        .price-topbar::before {
+            content: "";
+            position: absolute;
+            left: 20px;
+            right: 20px;
+            top: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.9), rgba(130,226,255,0.74), transparent);
+        }
+
+        .price-topbar-brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #1958ad;
+            font-size: 14px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            white-space: nowrap;
+        }
+
+        .price-topbar-brand::before {
+            content: "✦";
+            display: inline-grid;
+            place-items: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            color: #ffffff;
+            background: linear-gradient(135deg, #4ecbff, #967dff);
+            box-shadow: 0 0 18px rgba(85, 201, 255, 0.38), inset 0 1px 0 rgba(255,255,255,0.58);
+        }
+
+        .price-topbar-nav {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 6px 12px;
+            min-width: 0;
+        }
+
+        .price-topbar-nav a,
+        .price-topbar-home {
+            min-height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 12px;
+            border-radius: 999px;
+            color: rgba(31, 86, 164, 0.82);
+            font-size: 13px;
+            font-weight: 700;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .price-topbar-nav a:hover,
+        .price-topbar-home:hover {
+            background: rgba(255, 255, 255, 0.38);
+            color: #1551a5;
+        }
+
+        .price-topbar-home {
+            border: 1px solid rgba(222, 250, 255, 0.68);
+            background: linear-gradient(135deg, rgba(83, 205, 255, 0.22), rgba(151, 126, 255, 0.16));
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.5);
+        }
+
         .price-hero,
         .price-card {
             position: relative;
@@ -151,6 +268,7 @@
                 0 0 0 1px rgba(255, 255, 255, 0.22) inset,
                 inset 0 1px 0 rgba(255, 255, 255, 0.74),
                 inset 0 -28px 58px rgba(94, 183, 255, 0.12);
+            -webkit-backdrop-filter: blur(18px) saturate(142%);
             backdrop-filter: blur(18px) saturate(142%);
         }
 
@@ -171,7 +289,8 @@
         }
 
         .price-hero::before,
-        .price-card::before {
+        .price-card::before,
+        .price-flow::before {
             content: "";
             position: absolute;
             left: 24px;
@@ -180,6 +299,20 @@
             height: 1px;
             background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9), rgba(126, 232, 255, 0.76), rgba(189, 166, 255, 0.58), transparent);
             box-shadow: 0 0 18px rgba(108, 229, 255, 0.36);
+            pointer-events: none;
+        }
+
+        .price-hero::after,
+        .price-card::after,
+        .price-flow::after {
+            content: "✧";
+            position: absolute;
+            right: 18px;
+            top: 13px;
+            color: rgba(92, 188, 255, 0.38);
+            font-size: 28px;
+            line-height: 1;
+            text-shadow: 0 0 16px rgba(105, 214, 255, 0.26);
             pointer-events: none;
         }
 
@@ -253,11 +386,21 @@
         .price-hero h1 {
             font-size: clamp(34px, 5vw, 52px);
             line-height: 1.28;
-            color: #426fd8;
+            color: transparent;
+            background: linear-gradient(180deg, #fbfeff 0%, #5cc9ff 42%, #6968e7 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-stroke: 0.4px rgba(255, 255, 255, 0.72);
+            text-shadow: 0 1px 0 rgba(255,255,255,0.72), 0 0 18px rgba(83, 194, 255, 0.28);
         }
 
         .price-subtitle {
+            width: fit-content;
             margin: 0;
+            padding: 5px 13px;
+            border: 1px solid rgba(214, 245, 255, 0.62);
+            border-radius: 999px;
+            background: linear-gradient(135deg, rgba(100, 203, 255, 0.22), rgba(169, 139, 255, 0.16));
             color: rgba(35, 85, 154, 0.78);
             font-weight: 700;
         }
@@ -325,6 +468,42 @@
             overflow: hidden;
         }
 
+        .price-flow {
+            position: relative;
+            margin: 18px 0;
+            padding: 18px 20px 20px;
+            border: 1px solid rgba(226, 252, 255, 0.64);
+            border-radius: 22px;
+            background:
+                radial-gradient(circle at 15% 0%, rgba(255,255,255,0.5), transparent 34%),
+                linear-gradient(145deg, rgba(236, 253, 255, 0.52), rgba(167, 222, 255, 0.24) 52%, rgba(190, 172, 255, 0.16));
+            box-shadow: 0 16px 36px rgba(49, 139, 217, 0.16), inset 0 1px 0 rgba(255,255,255,0.62);
+            -webkit-backdrop-filter: blur(16px) saturate(135%);
+            backdrop-filter: blur(16px) saturate(135%);
+            overflow: hidden;
+        }
+
+        .price-flow-head {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 14px;
+            color: #1f5db0;
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-align: center;
+        }
+
+        .price-flow-head::before,
+        .price-flow-head::after {
+            content: "";
+            width: min(80px, 16vw);
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(77, 184, 255, 0.7), transparent);
+        }
+
         .price-card.is-service {
             border-color: rgba(229, 252, 255, 0.7);
             background:
@@ -363,6 +542,11 @@
             display: grid;
             gap: 8px;
             margin: 16px 0;
+            padding: 10px;
+            border: 1px solid rgba(221, 250, 255, 0.52);
+            border-radius: 16px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.26), rgba(203, 236, 255, 0.16));
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.5);
         }
 
         .price-row {
@@ -374,6 +558,7 @@
             border-radius: 12px;
             background: rgba(255, 255, 255, 0.34);
             color: rgba(21, 61, 116, 0.9);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.44);
             transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
         }
 
@@ -393,6 +578,9 @@
         .price-mode {
             color: #164ea6;
             font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, rgba(118, 211, 255, 0.22), rgba(169, 139, 255, 0.2));
             text-shadow: 0 0 10px rgba(108, 229, 255, 0.18);
         }
 
@@ -436,7 +624,7 @@
         .price-step-grid {
             position: relative;
             grid-template-columns: repeat(4, minmax(0, 1fr));
-            margin-top: 18px;
+            margin-top: 0;
         }
 
         .price-step-grid::before {
@@ -462,6 +650,13 @@
             border-radius: 14px;
             background: linear-gradient(145deg, rgba(250, 255, 255, 0.64), rgba(185, 230, 255, 0.28));
             box-shadow: 0 12px 24px rgba(52, 143, 219, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.64);
+        }
+
+        .price-step::after {
+            content: "◇";
+            justify-self: end;
+            color: rgba(87, 179, 255, 0.36);
+            font-size: 18px;
         }
 
         .price-step-num {
@@ -494,6 +689,7 @@
         .price-service-tile,
         .price-feature-tile,
         .price-rule-tile {
+            position: relative;
             padding: 13px 14px;
             border: 1px solid rgba(211, 248, 255, 0.56);
             border-radius: 14px;
@@ -503,6 +699,21 @@
             color: rgba(28, 67, 122, 0.8);
             line-height: 1.6;
             box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.46);
+            overflow: hidden;
+        }
+
+        .price-service-tile::after,
+        .price-feature-tile::after,
+        .price-rule-tile::after {
+            content: "";
+            position: absolute;
+            right: -16px;
+            bottom: -18px;
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(121, 211, 255, 0.18), transparent 64%);
+            pointer-events: none;
         }
 
         .price-service-tile strong,
@@ -510,6 +721,19 @@
         .price-rule-tile strong {
             display: block;
             margin-bottom: 3px;
+        }
+
+        .price-service-tile {
+            min-height: 110px;
+            display: grid;
+            align-content: center;
+            background:
+                radial-gradient(circle at 18% 0%, rgba(255,255,255,0.62), transparent 36%),
+                linear-gradient(135deg, rgba(255,255,255,0.5), rgba(164, 224, 255, 0.26), rgba(189, 162, 255, 0.18));
+        }
+
+        .price-service-tile strong {
+            font-size: 16px;
         }
 
         .price-feature-grid {
@@ -956,12 +1180,15 @@
 
         html.performance-low .price-card,
         html.performance-low .price-hero,
+        html.performance-low .price-flow,
+        html.performance-low .price-topbar,
         html.performance-low .price-service-tile,
         html.performance-low .price-feature-tile,
         html.performance-low .price-rule-tile,
         html.performance-low .price-step {
             box-shadow: none;
             backdrop-filter: none;
+            -webkit-backdrop-filter: none;
         }
 
         html.performance-low .price-hero,
@@ -1029,6 +1256,33 @@
                 padding: 70px 0 112px;
             }
 
+            .price-topbar {
+                grid-template-columns: minmax(0, 1fr) auto;
+                gap: 8px;
+                padding: 9px 10px;
+                border-radius: 18px;
+            }
+
+            .price-topbar-brand {
+                min-width: 0;
+                font-size: 13px;
+                letter-spacing: 0.04em;
+            }
+
+            .price-topbar-nav {
+                grid-column: 1 / -1;
+                order: 3;
+                justify-content: flex-start;
+                gap: 4px 6px;
+            }
+
+            .price-topbar-nav a,
+            .price-topbar-home {
+                min-height: 28px;
+                padding: 0 9px;
+                font-size: 12px;
+            }
+
             .price-hero {
                 grid-template-columns: 1fr;
                 gap: 16px;
@@ -1043,6 +1297,16 @@
                 width: 100%;
                 max-width: 100%;
                 margin-top: 22px;
+            }
+
+            .price-flow {
+                padding: 15px;
+                border-radius: 18px;
+            }
+
+            .price-flow-head {
+                font-size: 16px;
+                letter-spacing: 0.04em;
             }
 
             .price-grid,
@@ -1062,6 +1326,10 @@
                 max-width: 100%;
                 min-height: 0;
                 overflow: visible;
+            }
+
+            .price-step-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
 
             .price-step-grid::before {
@@ -1163,6 +1431,17 @@
                 min-height: 42px;
             }
         }
+
+        @media (max-width: 420px) {
+            .price-step-grid,
+            .price-mini-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .price-topbar-nav {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1173,7 +1452,18 @@
 <div class="stars stars3"></div>
 <div class="meteor-layer" aria-hidden="true"></div>
 
-<main class="price-page">
+<main class="price-page" id="top">
+    <nav class="price-topbar" aria-label="收费咨询导航">
+        <div class="price-topbar-brand">君雪陪玩服务台</div>
+        <div class="price-topbar-nav">
+            <a href="#top">收费咨询</a>
+            <a href="#service-prices">陪玩服务</a>
+            <a href="index.html">主播主页</a>
+            <a href="#boss-reviews">老板评价</a>
+        </div>
+        <a class="price-topbar-home" href="index.html">返回首页</a>
+    </nav>
+
     <section class="price-hero">
         <div class="price-hero-copy">
             <div class="price-kicker">君雪陪玩服务台</div>
@@ -1192,18 +1482,21 @@
         </div>
     </section>
 
-    <section class="price-step-grid" aria-label="下单前请确认">
-        <div class="price-step"><span class="price-step-num">1</span><strong>确认区服和段位</strong></div>
-        <div class="price-step"><span class="price-step-num">2</span><strong>确认英雄/位置</strong></div>
-        <div class="price-step"><span class="price-step-num">3</span><strong>确认是否需要语音</strong></div>
-        <div class="price-step"><span class="price-step-num">4</span><strong>确认档期后下单</strong></div>
+    <section class="price-flow" aria-label="下单前请确认">
+        <div class="price-flow-head">下单前请确认</div>
+        <div class="price-step-grid">
+            <div class="price-step"><span class="price-step-num">1</span><strong>确认区服和段位</strong></div>
+            <div class="price-step"><span class="price-step-num">2</span><strong>确认英雄/位置</strong></div>
+            <div class="price-step"><span class="price-step-num">3</span><strong>确认是否需要语音</strong></div>
+            <div class="price-step"><span class="price-step-num">4</span><strong>确认档期后下单</strong></div>
+        </div>
     </section>
 
-    <section class="price-grid price-service-grid" aria-label="陪玩收费内容">
+    <section class="price-grid price-service-grid" id="service-prices" aria-label="陪玩收费内容">
         <article class="price-card is-service">
             <div class="price-section-head">
                 <div class="price-section-kicker">普通陪玩 / 包赢补星 / 复盘服务</div>
-                <h2>王者荣耀陪玩</h2>
+                <h2>王者荣耀陪玩价格表</h2>
             </div>
             <div class="price-table" role="table" aria-label="王者荣耀收费表">
                 <div class="price-row is-head" role="row"><span>段位区间</span><span>普通陪玩</span><span>包赢 / 补星模式</span></div>

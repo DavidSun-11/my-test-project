@@ -1500,6 +1500,36 @@ body.is-live2d-external-dragging .live2d-hit-area {
         filter: drop-shadow(0 0 10px rgba(0, 210, 255, 0.18));
     }
 
+    #oml2d-main,
+    .oml2d-main,
+    #oml2d-stage,
+    .oml2d-stage {
+        position: fixed !important;
+        left: 8px;
+        bottom: max(92px, calc(env(safe-area-inset-bottom) + 82px));
+        width: min(56vw, 216px) !important;
+        height: min(65vh, 360px) !important;
+        max-width: calc(100vw - 16px) !important;
+        max-height: calc(100vh - 116px) !important;
+        overflow: visible !important;
+        z-index: 55 !important;
+        pointer-events: auto !important;
+    }
+
+    #oml2d-canvas,
+    .oml2d-canvas,
+    #oml2d-stage canvas,
+    .oml2d-stage canvas {
+        width: 100% !important;
+        height: 100% !important;
+        min-width: 120px;
+        min-height: 180px;
+        max-width: 100% !important;
+        max-height: 100% !important;
+        overflow: visible !important;
+        pointer-events: auto !important;
+    }
+
     .live2d-widget.is-left {
         left: 8px;
         right: auto;
@@ -1526,11 +1556,6 @@ body.is-live2d-external-dragging .live2d-hit-area {
     .live2d-widget.is-left .live2d-message {
         left: calc(100% + 8px);
         top: 12px;
-    }
-
-    #oml2d-main,
-    .oml2d-main {
-        bottom: 88px !important;
     }
 
     .live2d-hit-area {

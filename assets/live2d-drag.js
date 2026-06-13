@@ -157,6 +157,14 @@
             const parsed = raw ? JSON.parse(raw) : null;
 
             if (parsed && Number.isFinite(parsed.left) && Number.isFinite(parsed.top)) {
+                const maxOffsetX = Math.max(window.innerWidth || 0, 360) * 3;
+                const maxOffsetY = Math.max(window.innerHeight || 0, 640) * 3;
+
+                if (Math.abs(parsed.left) > maxOffsetX || Math.abs(parsed.top) > maxOffsetY) {
+                    console.warn("Live2D saved position ignored because it is far outside the viewport.", parsed);
+                    return null;
+                }
+
                 return parsed;
             }
         } catch (error) {
@@ -454,6 +462,14 @@
         }
 
         restoreSavedPosition();
+
+        const rect = getStageRect();
+        if (rect.width < 80 || rect.height < 120) {
+            console.warn("Live2D drag sync skipped abnormal stage rect.", {
+                width: rect.width,
+                height: rect.height
+            });
+        }
     }
 
     function init() {

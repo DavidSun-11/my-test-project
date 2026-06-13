@@ -1,8 +1,8 @@
 /* Lightweight Live2D loader: delays Ganyu until the page is usable. */
 (function () {
-    const WIDGET_SCRIPT = "live2d/live2d-widget.js?v=20260613-3";
+    const WIDGET_SCRIPT = "live2d/live2d-widget.js?v=20260613-4";
     const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260613-3";
-    const DRAG_SCRIPT = "assets/live2d-drag.js?v=20260612-6";
+    const DRAG_SCRIPT = "assets/live2d-drag.js?v=20260613-1";
     const LOAD_TIMEOUT_MS = 10000;
     const AUTOLOAD_DELAY_MS = 1200;
     const currentScript = document.currentScript;
@@ -58,6 +58,11 @@
         document.body.appendChild(control);
         control.querySelector("button").addEventListener("click", function () {
             if (loaderState.loaded) {
+                if (!getLive2DVisibilitySnapshot().isVisible) {
+                    recoverLive2D();
+                    return;
+                }
+
                 setLive2DVisible(!loaderState.visible);
                 return;
             }
@@ -94,8 +99,9 @@
         }
 
         if (state === "loaded") {
+            const renderInfo = window.JunxueLive2DRenderInfo || {};
             button.disabled = false;
-            button.textContent = loaderState.visible ? "隐藏甘雨" : "显示甘雨";
+            button.textContent = loaderState.visible && (renderInfo.contextLost || !getLive2DVisibilitySnapshot().isVisible) ? "恢复甘雨" : loaderState.visible ? "隐藏甘雨" : "显示甘雨";
         }
     }
 
@@ -164,7 +170,92 @@
     }
 
     function findLive2DStage() {
-        return document.querySelector("#oml2d-stage, #oml2d-canvas, .oml2d-stage, .oml2d-canvas");
+        return document.querySelector("#oml2d-stage, .oml2d-stage") ||
+            document.querySelector("#oml2d-canvas, .oml2d-canvas");
+    }
+
+    function getLive2DCanvas() {
+        return document.querySelector("#oml2d-canvas, .oml2d-canvas, #oml2d-stage canvas, .oml2d-stage canvas");
+    }
+
+    function rectToObject(rect) {
+        if (!rect) {
+            return null;
+        }
+
+        return {
+            left: Math.round(rect.left),
+            top: Math.round(rect.top),
+            right: Math.round(rect.right),
+            bottom: Math.round(rect.bottom),
+            width: Math.round(rect.width),
+            height: Math.round(rect.height)
+        };
+    }
+
+    function isStyleVisible(node) {
+        if (!node || !window.getComputedStyle) {
+            return false;
+        }
+
+        const style = window.getComputedStyle(node);
+        return style.display !== "none" &&
+            style.visibility !== "hidden" &&
+            Number(style.opacity || 1) > 0.01;
+    }
+
+    function hasViewportIntersection(rect) {
+        return !!rect &&
+            rect.right > 0 &&
+            rect.bottom > 0 &&
+            rect.left < window.innerWidth &&
+            rect.top < window.innerHeight;
+    }
+
+    function isReasonableLive2DRect(rect) {
+        return !!rect && rect.width >= 80 && rect.height >= 120;
+    }
+
+    function getLive2DVisibilitySnapshot() {
+        const widget = document.getElementById("live2d-widget");
+        const stage = document.querySelector("#oml2d-stage, .oml2d-stage");
+        const canvas = getLive2DCanvas();
+        const primary = stage || canvas;
+        const primaryRect = primary && primary.getBoundingClientRect ? primary.getBoundingClientRect() : null;
+        const canvasRect = canvas && canvas.getBoundingClientRect ? canvas.getBoundingClientRect() : null;
+        let problem = "";
+
+        const renderInfo = window.JunxueLive2DRenderInfo || {};
+
+        if (renderInfo.contextLost) {
+            problem = "webgl-context-lost";
+        } else if (!primary) {
+            problem = "missing-stage-or-canvas";
+        } else if (!isStyleVisible(primary) || (canvas && !isStyleVisible(canvas))) {
+            problem = "hidden-style";
+        } else if (!isReasonableLive2DRect(primaryRect)) {
+            problem = "stage-too-small";
+        } else if (canvas && !isReasonableLive2DRect(canvasRect)) {
+            problem = "canvas-too-small";
+        } else if (!hasViewportIntersection(primaryRect)) {
+            problem = "stage-offscreen";
+        } else if (canvas && !hasViewportIntersection(canvasRect)) {
+            problem = "canvas-offscreen";
+        }
+
+        return {
+            isVisible: !problem,
+            problem: problem,
+            widgetFound: !!widget,
+            stageFound: !!stage,
+            canvasFound: !!canvas,
+            stageRect: rectToObject(primaryRect),
+            canvasRect: rectToObject(canvasRect)
+        };
+    }
+
+    function hasActuallyVisibleLive2D() {
+        return getLive2DVisibilitySnapshot().isVisible;
     }
 
     function removeScriptBySrc(src) {
@@ -176,7 +267,7 @@
     }
 
     function resetFailedLoadState() {
-        if (findLive2DStage()) {
+        if (hasActuallyVisibleLive2D()) {
             return;
         }
 
@@ -188,20 +279,33 @@
         window.__JUNXUE_LIVE2D_INIT_STARTED__ = false;
         window.__JUNXUE_LIVE2D_READY__ = false;
         window.__JUNXUE_LIVE2D_INSTANCE__ = null;
+        window.JunxueLive2DRenderInfo = window.JunxueLive2DRenderInfo || {};
+        window.JunxueLive2DRenderInfo.contextLost = false;
         removeScriptBySrc(WIDGET_SCRIPT);
     }
 
     function updateRenderInfo() {
+        const snapshot = getLive2DVisibilitySnapshot();
         window.JunxueLive2DRenderInfo = window.JunxueLive2DRenderInfo || {};
         window.JunxueLive2DRenderInfo.canvasCount = document.querySelectorAll("#oml2d-canvas, .oml2d-canvas, #oml2d-stage canvas").length;
         window.JunxueLive2DRenderInfo.estimatedInstanceCount = Math.max(
             window.JunxueLive2DRenderInfo.canvasCount,
             document.querySelectorAll("#oml2d-main, .oml2d-main, #oml2d-stage, .oml2d-stage").length
         );
-        window.JunxueLive2DRenderInfo.isInitialized = !!(window.__JUNXUE_LIVE2D_READY__ || findLive2DStage());
+        window.JunxueLive2DRenderInfo.isInitialized = !!(window.__JUNXUE_LIVE2D_READY__ || hasActuallyVisibleLive2D());
+        window.JunxueLive2DRenderInfo.isActuallyVisible = snapshot.isVisible;
+        window.JunxueLive2DRenderInfo.visibilityProblem = snapshot.problem;
+        window.JunxueLive2DRenderInfo.widgetFound = snapshot.widgetFound;
+        window.JunxueLive2DRenderInfo.stageRect = snapshot.stageRect;
+        window.JunxueLive2DRenderInfo.canvasRect = snapshot.canvasRect;
     }
 
     function markLoadedFromExisting() {
+        if (!hasActuallyVisibleLive2D()) {
+            updateRenderInfo();
+            return false;
+        }
+
         window.clearTimeout(loaderState.timeout);
         window.__JUNXUE_LIVE2D_INIT_STARTED__ = true;
         window.__JUNXUE_LIVE2D_READY__ = true;
@@ -210,6 +314,7 @@
         loaderState.loading = false;
         updateRenderInfo();
         setLive2DVisible(true);
+        return true;
     }
 
     function loadSupportScripts() {
@@ -221,8 +326,7 @@
     function startLoadTimeout() {
         window.clearTimeout(loaderState.timeout);
         loaderState.timeout = window.setTimeout(function () {
-            if (findLive2DStage()) {
-                markLoadedFromExisting();
+            if (hasActuallyVisibleLive2D() && markLoadedFromExisting()) {
                 return;
             }
 
@@ -234,13 +338,19 @@
     }
 
     function finishIfReady() {
-        if (findLive2DStage()) {
+        if (hasActuallyVisibleLive2D()) {
             markLoadedFromExisting();
+            return;
+        }
+
+        updateRenderInfo();
+        if (loaderState.loaded) {
+            setControlState("loaded");
         }
     }
 
     window.addEventListener("junxue-live2d-load-failed", function (event) {
-        if (findLive2DStage()) {
+        if (hasActuallyVisibleLive2D()) {
             markLoadedFromExisting();
             return;
         }
@@ -252,17 +362,83 @@
         setControlState("failed", event.detail && event.detail.message ? event.detail.message : "甘雨加载有点慢，请点“再试一次”。");
     });
 
-    function loadLive2D() {
-        if (loaderState.loaded || window.__JUNXUE_LIVE2D_READY__ || findLive2DStage()) {
-            setLive2DVisible(true);
-            if (findLive2DStage()) {
-                markLoadedFromExisting();
-            }
-            return loadSupportScripts();
+    window.addEventListener("junxue-live2d-render-lost", function (event) {
+        loaderState.failed = true;
+        loaderState.loading = false;
+        loaderState.loaded = true;
+        loaderState.visible = true;
+        updateRenderInfo();
+        document.body.classList.remove("live2d-hidden");
+        setControlState("loaded", event.detail && event.detail.message ? event.detail.message : "甘雨渲染暂时中断，点这里恢复。");
+    });
+
+    function warnAndRemoveBrokenNodes() {
+        if (hasActuallyVisibleLive2D()) {
+            return false;
         }
 
+        const nodes = Array.prototype.slice.call(document.querySelectorAll("#oml2d-stage, .oml2d-stage, #oml2d-canvas, .oml2d-canvas, #oml2d-main, .oml2d-main"));
+        const snapshot = getLive2DVisibilitySnapshot();
+
+        if (!nodes.length) {
+            return false;
+        }
+
+        console.warn("Live2D removing broken runtime nodes before recovery.", {
+            reason: snapshot.problem,
+            count: nodes.length,
+            stageRect: snapshot.stageRect,
+            canvasRect: snapshot.canvasRect
+        });
+        nodes.forEach(function (node) {
+            if (node && node.parentNode) {
+                node.parentNode.removeChild(node);
+            }
+        });
+        return true;
+    }
+
+    function recoverLive2D() {
+        setControlState("loading", "正在恢复甘雨的位置和渲染状态……");
+
+        if (window.JunxueLive2DDrag && typeof window.JunxueLive2DDrag.scheduleSync === "function") {
+            window.JunxueLive2DDrag.scheduleSync();
+        }
+
+        window.setTimeout(function () {
+            if (hasActuallyVisibleLive2D() && markLoadedFromExisting()) {
+                return;
+            }
+
+            warnAndRemoveBrokenNodes();
+            window.clearTimeout(loaderState.timeout);
+            loaderState.loading = false;
+            loaderState.loaded = false;
+            loaderState.failed = false;
+            loaderState.promise = null;
+            window.JunxueLive2DRenderInfo = window.JunxueLive2DRenderInfo || {};
+            window.JunxueLive2DRenderInfo.contextLost = false;
+            window.__JUNXUE_LIVE2D_INIT_STARTED__ = false;
+            window.__JUNXUE_LIVE2D_READY__ = false;
+            window.__JUNXUE_LIVE2D_INSTANCE__ = null;
+            removeScriptBySrc(WIDGET_SCRIPT);
+            loadLive2D();
+        }, 180);
+    }
+
+    function loadLive2D() {
         if (loaderState.loading) {
             return loaderState.promise || Promise.resolve();
+        }
+
+        if (loaderState.loaded || window.__JUNXUE_LIVE2D_READY__ || findLive2DStage()) {
+            setLive2DVisible(true);
+            if (hasActuallyVisibleLive2D()) {
+                markLoadedFromExisting();
+            } else {
+                recoverLive2D();
+            }
+            return loadSupportScripts();
         }
 
         loaderState.loading = true;

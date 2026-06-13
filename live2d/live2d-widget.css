@@ -256,7 +256,7 @@ body.is-live2d-external-dragging .live2d-hit-area {
     bottom: 190px;
     width: min(400px, calc(100vw - 32px));
     max-width: min(440px, calc(100vw - 32px));
-    z-index: 70;
+    z-index: 80;
     padding: 12px;
     border: 1px solid rgba(108, 229, 255, 0.54);
     border-radius: 16px;
@@ -959,7 +959,7 @@ body.is-live2d-external-dragging .live2d-hit-area {
     position: absolute;
     top: 8px;
     right: 8px;
-    z-index: 2;
+    z-index: 82;
     width: 28px;
     height: 28px;
     display: grid;
@@ -1386,8 +1386,8 @@ body.is-live2d-external-dragging .live2d-hit-area {
     .live2d-widget {
         right: 8px;
         bottom: 8px;
-        width: 132px;
-        height: 188px;
+        width: 148px;
+        height: 210px;
     }
 
     .live2d-widget.is-left {
@@ -1417,10 +1417,10 @@ body.is-live2d-external-dragging .live2d-hit-area {
     }
 
     .live2d-hit-area {
-        left: 4px;
+        left: 8px;
         bottom: 88px;
-        width: 168px;
-        height: 224px;
+        width: 184px;
+        height: 246px;
     }
 
     .live2d-quiz {
@@ -1495,8 +1495,8 @@ body.is-live2d-external-dragging .live2d-hit-area {
         left: auto;
         right: 8px;
         bottom: 78px;
-        width: 120px;
-        height: 174px;
+        width: 136px;
+        height: 198px;
         filter: drop-shadow(0 0 10px rgba(0, 210, 255, 0.18));
     }
 
@@ -1534,10 +1534,10 @@ body.is-live2d-external-dragging .live2d-hit-area {
     }
 
     .live2d-hit-area {
-        left: 4px;
+        left: 8px;
         bottom: 82px;
-        width: 142px;
-        height: 194px;
+        width: 160px;
+        height: 218px;
     }
 
     .live2d-quiz,
@@ -1547,27 +1547,50 @@ body.is-live2d-external-dragging .live2d-hit-area {
     .live2d-quiz.is-music,
     .live2d-quiz.is-fortune,
     .live2d-quiz.is-wheel {
-        left: 4vw;
+        left: 50%;
         right: auto;
-        bottom: auto;
-        width: min(92vw, 620px);
-        max-width: min(92vw, 620px);
-        max-height: 85vh;
+        top: auto !important;
+        bottom: max(92px, calc(env(safe-area-inset-bottom) + 86px));
+        width: min(92vw, 420px);
+        max-width: calc(100vw - 24px);
+        max-height: 70vh;
         padding: 12px;
         overflow-x: hidden;
         overflow-y: auto;
         font-size: 13px;
         box-sizing: border-box;
         backdrop-filter: blur(6px);
+        z-index: 80;
+        transform: translateX(-50%) translateY(12px) scale(0.98);
+    }
+
+    .live2d-quiz.is-open {
+        transform: translateX(-50%) translateY(0) scale(1);
+    }
+
+    .live2d-quiz.is-opening {
+        animation: live2dQuizPopMobile 0.24s ease both;
+    }
+
+    @keyframes live2dQuizPopMobile {
+        0% {
+            transform: translateX(-50%) translateY(12px) scale(0.98);
+            opacity: 0;
+        }
+
+        100% {
+            transform: translateX(-50%) translateY(0) scale(1);
+            opacity: 1;
+        }
     }
 
     .live2d-quiz.is-boss-auth {
-        padding: 18px;
+        padding: 14px;
         border-radius: 18px;
     }
 
     .live2d-quiz.is-boss-review {
-        padding: 18px;
+        padding: 14px;
         border-radius: 18px;
     }
 
@@ -1595,12 +1618,12 @@ body.is-live2d-external-dragging .live2d-hit-area {
 
     .live2d-boss-auth-card {
         gap: 14px;
-        padding: 14px;
+        padding: 12px;
     }
 
     .boss-modal-panel {
         gap: 14px;
-        padding: 14px;
+        padding: 12px;
     }
 
     .live2d-boss-auth-fields {

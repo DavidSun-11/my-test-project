@@ -804,13 +804,17 @@
             clearSpinTimers();
             window.clearTimeout(fortuneProcessTimer);
             fortuneProcessTimer = null;
-            dialog.classList.remove("is-wheel", "is-weather", "is-music", "is-fortune", "is-memory", "is-boss-auth", "is-boss-review");
+            dialog.classList.remove("is-opening", "is-wheel", "is-weather", "is-music", "is-fortune", "is-memory", "is-boss-auth", "is-boss-review");
             meta.textContent = "";
             question.textContent = "";
             options.innerHTML = "";
             result.textContent = "";
             result.className = "live2d-quiz__result";
             options.className = "live2d-quiz__options";
+        }
+
+        function safeText(value, fallback) {
+            return typeof value === "string" ? value : (fallback || "");
         }
 
         function randomBetween(min, max) {
@@ -835,15 +839,37 @@
             dialog.classList.add("is-opening");
         }
 
-        function showDialog() {
-            hideIdleTalk();
-            notifyDialogOpen();
-            positionLive2DPopup(dialog, {
-                width: (dialog.classList.contains("is-fortune") || dialog.classList.contains("is-memory")) ? 440 : 400,
+        function getDialogPositionOptions() {
+            let width = 400;
+
+            if (dialog.classList.contains("is-boss-review")) {
+                width = 720;
+            } else if (dialog.classList.contains("is-boss-auth")) {
+                width = 660;
+            } else if (dialog.classList.contains("is-fortune") || dialog.classList.contains("is-memory")) {
+                width = 440;
+            }
+
+            return {
+                width: width,
                 height: 220,
                 preferredRatio: 0.22,
                 gap: 20
-            });
+            };
+        }
+
+        function refreshDialogPosition() {
+            if (!dialog.classList.contains("is-open")) {
+                return;
+            }
+
+            positionLive2DPopup(dialog, getDialogPositionOptions());
+        }
+
+        function showDialog() {
+            hideIdleTalk();
+            notifyDialogOpen();
+            positionLive2DPopup(dialog, getDialogPositionOptions());
             dialog.classList.add("is-open");
             replayOpenAnimation();
             window.clearTimeout(showDialog.closeTimer);
@@ -906,12 +932,7 @@
             positionDefaultTips();
 
             if (dialog.classList.contains("is-open")) {
-                positionLive2DPopup(dialog, {
-                    width: (dialog.classList.contains("is-fortune") || dialog.classList.contains("is-memory")) ? 440 : 400,
-                    height: 220,
-                    preferredRatio: 0.22,
-                    gap: 20
-                });
+                refreshDialogPosition();
             }
 
             if (openingBubble.textContent) {
@@ -1072,7 +1093,9 @@
             addOption("娱乐一下", showEntertainmentPanel);
             addOption("咨询", showConsultPanel);
             addOption("认识君雪", showKnowJunxuePanel);
-            addOption("老板评价", showBossReviewsPanel);
+            addOption("老板评价", function () {
+                showBossReviewsPanel();
+            });
             addOption("意见箱", function () {
                 recordGanyuFeature("意见箱");
                 window.location.href = "suggest.html";
@@ -1329,8 +1352,10 @@
             addConsultCard("返回", "回到主菜单", false, function () {
                 showMenu();
             });
-            result.textContent = message || "老板评价会展示在收费咨询页的评价墙里。";
-            result.className = "live2d-quiz__result " + (type || "is-neutral");
+            const safeMessage = safeText(message, "老板评价会展示在收费咨询页的评价墙里。");
+            const safeType = safeText(type, "is-neutral");
+            result.textContent = safeMessage;
+            result.className = "live2d-quiz__result " + safeType;
             showDialog();
         }
 
@@ -1446,6 +1471,7 @@
                 options.innerHTML += '<div class="live2d-weather-actions"><button class="live2d-quiz__option" type="button" data-action="login">登录/注册</button><button class="live2d-quiz__option" type="button" data-action="back">返回</button></div>';
                 result.textContent = "登录后，你的评价会展示在老板评价墙里。";
                 result.className = "live2d-quiz__result is-warning";
+                refreshDialogPosition();
                 options.querySelector('[data-action="login"]').addEventListener("click", function (event) {
                     event.stopPropagation();
                     showBossReviewAuthPanel("login");
@@ -1486,6 +1512,7 @@
             ].join("");
             result.textContent = "当前账号：" + getBossReviewEmail(session);
             result.className = "live2d-quiz__result boss-info-strip is-neutral";
+            refreshDialogPosition();
 
             const form = options.querySelector(".live2d-boss-review-form");
             const submitButton = form.querySelector('button[type="submit"]');
@@ -1712,8 +1739,9 @@
                 });
             });
 
-            result.textContent = message || "如果想重新开始，也可以告诉甘雨。";
-            result.className = message ? "live2d-quiz__result is-good" : "live2d-quiz__result is-neutral";
+            const safeMessage = safeText(message, "");
+            result.textContent = safeMessage || "如果想重新开始，也可以告诉甘雨。";
+            result.className = safeMessage ? "live2d-quiz__result is-good" : "live2d-quiz__result is-neutral";
             showDialog();
         }
 

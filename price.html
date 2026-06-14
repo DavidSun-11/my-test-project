@@ -274,7 +274,7 @@
 
         .price-hero {
             display: grid;
-            grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.85fr);
+            grid-template-columns: minmax(230px, 0.74fr) minmax(0, 1.15fr) minmax(300px, 0.9fr);
             gap: 22px;
             align-items: center;
             min-height: 0;
@@ -286,6 +286,86 @@
                 radial-gradient(circle at 8% 0%, rgba(255, 255, 255, 0.64), transparent 36%),
                 radial-gradient(circle at 85% 10%, rgba(207, 194, 255, 0.42), transparent 34%),
                 linear-gradient(145deg, rgba(241, 254, 255, 0.62), rgba(177, 226, 255, 0.36) 52%, rgba(159, 179, 255, 0.24));
+        }
+
+        .price-hero-character {
+            position: relative;
+            width: min(100%, 300px);
+            min-height: 390px;
+            justify-self: center;
+            padding: 10px;
+            border: 1px solid rgba(231, 252, 255, 0.78);
+            border-radius: 28px;
+            background:
+                linear-gradient(135deg, rgba(255, 255, 255, 0.72), rgba(151, 218, 255, 0.26) 48%, rgba(188, 162, 255, 0.24)),
+                radial-gradient(circle at 18% 0%, rgba(255,255,255,0.72), transparent 35%);
+            box-shadow:
+                0 24px 46px rgba(50, 140, 220, 0.2),
+                0 0 28px rgba(122, 218, 255, 0.16),
+                inset 0 1px 0 rgba(255,255,255,0.78);
+            overflow: visible;
+        }
+
+        .price-hero-character::before {
+            content: "✧";
+            position: absolute;
+            left: -8px;
+            top: 24px;
+            z-index: 2;
+            width: 42px;
+            height: 42px;
+            display: grid;
+            place-items: center;
+            border: 1px solid rgba(236, 253, 255, 0.72);
+            border-radius: 50%;
+            color: rgba(75, 178, 255, 0.72);
+            background: linear-gradient(135deg, rgba(255,255,255,0.86), rgba(163, 226, 255, 0.34));
+            box-shadow: 0 0 22px rgba(85, 201, 255, 0.26);
+        }
+
+        .price-hero-character::after {
+            content: "";
+            position: absolute;
+            left: 14%;
+            right: 14%;
+            bottom: -16px;
+            height: 28px;
+            border-radius: 999px;
+            background: radial-gradient(ellipse, rgba(116, 217, 255, 0.34), transparent 68%);
+            filter: blur(2px);
+            pointer-events: none;
+        }
+
+        .price-hero-character__frame {
+            position: relative;
+            height: clamp(360px, 34vw, 470px);
+            border-radius: 22px;
+            overflow: hidden;
+            background: linear-gradient(180deg, rgba(232, 251, 255, 0.52), rgba(103, 176, 224, 0.24));
+            box-shadow:
+                inset 0 0 0 1px rgba(255,255,255,0.58),
+                inset 0 -46px 70px rgba(28, 91, 158, 0.28);
+        }
+
+        .price-hero-character__frame::after {
+            content: "";
+            position: absolute;
+            inset: auto 0 0;
+            height: 38%;
+            background: linear-gradient(180deg, transparent, rgba(12, 47, 93, 0.34));
+            pointer-events: none;
+        }
+
+        .price-hero-character picture,
+        .price-hero-character img {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .price-hero-character img {
+            object-fit: cover;
+            object-position: center 36%;
         }
 
         .price-hero::before,
@@ -1288,6 +1368,29 @@
                 gap: 16px;
             }
 
+            .price-hero-character {
+                width: min(82vw, 260px);
+                min-height: 0;
+                justify-self: center;
+                order: 2;
+            }
+
+            .price-hero-character__frame {
+                height: min(58vh, 360px);
+            }
+
+            .price-hero-character img {
+                object-position: center 34%;
+            }
+
+            .price-hero-copy {
+                order: 1;
+            }
+
+            .price-hero-selling {
+                order: 3;
+            }
+
             .price-hero,
             .price-card {
                 padding: 16px;
@@ -1441,6 +1544,10 @@
             .price-topbar-nav {
                 display: none;
             }
+
+            .price-hero-character {
+                display: none;
+            }
         }
     </style>
 </head>
@@ -1465,6 +1572,14 @@
     </nav>
 
     <section class="price-hero">
+        <aside class="price-hero-character" aria-label="甘雨展示图">
+            <div class="price-hero-character__frame">
+                <picture>
+                    <source srcset="assets/images/price-ganyu-showcase.webp" type="image/webp">
+                    <img src="assets/images/price-ganyu-showcase.png" alt="甘雨展示图" loading="eager" decoding="async">
+                </picture>
+            </div>
+        </aside>
         <div class="price-hero-copy">
             <div class="price-kicker">君雪陪玩服务台</div>
             <h1>收费咨询</h1>

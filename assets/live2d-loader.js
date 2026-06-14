@@ -1,7 +1,7 @@
 /* Lightweight Live2D loader: delays Ganyu until the page is usable. */
 (function () {
     const WIDGET_SCRIPT = "live2d/live2d-widget.js?v=20260613-5";
-    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260613-3";
+    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260614-music1";
     const DRAG_SCRIPT = "assets/live2d-drag.js?v=20260613-2";
     const FRAME_HOST_SRC = "live2d/ganyu-host.html?v=20260613-iframe1";
     const LOAD_TIMEOUT_MS = 10000;

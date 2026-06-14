@@ -134,10 +134,31 @@
     const fortuneVoicePath = "assets/audio/ganyu_fortune.mp3";
     const fortuneBubbleText = "星象已经给出答案了，剩下的路，要由你自己决定。";
     const fortuneStorageKeyPrefix = "junxue_fortune_";
-    const musicList = [
-        { title: "感谢你曾来过", src: "assets/audio/music.mp3" },
-        { title: "不要说话", src: "assets/audio/dont-speak.mp3" }
+    // 以后新增本地歌曲，只需要把 mp3 放到 assets/audio/，然后在 LOCAL_MUSIC_TRACKS 里加一项。
+    // lrc 可以先预留，后续再做歌词显示。本轮不要加载 lrc。
+    const LOCAL_MUSIC_TRACKS = [
+        { title: "感谢你曾来过", artist: "", src: "assets/audio/music.mp3" },
+        { title: "不要说话", artist: "", src: "assets/audio/dont-speak.mp3" },
+        {
+            title: "学会自己长大",
+            artist: "Rom邢锐",
+            src: "assets/audio/xuehui-ziji-zhangda.mp3",
+            lrc: "assets/lyrics/xuehui-ziji-zhangda.lrc"
+        },
+        {
+            title: "妈妈的话",
+            artist: "渡川",
+            src: "assets/audio/mamadehua.mp3",
+            lrc: "assets/lyrics/mamadehua.lrc"
+        },
+        {
+            title: "念旧",
+            artist: "姜铭杨",
+            src: "assets/audio/nianjiu.mp3",
+            lrc: "assets/lyrics/nianjiu.lrc"
+        }
     ];
+    const musicList = LOCAL_MUSIC_TRACKS;
     const fortuneLevels = ["大吉", "中吉", "小吉", "平", "小凶"];
     const fortuneLevelClasses = {
         "大吉": "live2d-fortune-value--great",
@@ -734,6 +755,17 @@
                 musicAudio.onended = function () {
                     selectMusic(currentMusicIndex + 1, true);
                 };
+                musicAudio.onerror = function () {
+                    const failedSrc = musicAudio.currentSrc || musicAudio.getAttribute("src") || "";
+
+                    if (failedSrc) {
+                        console.warn("[JunxueMusic] Audio failed to load:", failedSrc);
+                    }
+                    musicPlaying = false;
+                    result.textContent = "这首歌暂时播放不了，换一首试试吧～";
+                    result.className = "live2d-quiz__result is-warning";
+                    refreshMusicPlayerContent();
+                };
             }
 
             return musicAudio;
@@ -751,6 +783,12 @@
                 musicAudio.currentTime = 0;
             } catch (error) {
                 // Ignore browsers that block seeking before audio metadata is loaded.
+            }
+            musicAudio.removeAttribute("src");
+            try {
+                musicAudio.load();
+            } catch (error) {
+                // Ignore browsers that do not like loading after src cleanup.
             }
             musicPlaying = false;
             refreshMusicPlayerContent();
@@ -2111,13 +2149,16 @@
             const currentMusic = getCurrentMusic();
             const listHtml = musicList.map(function (music, index) {
                 const isCurrent = index === currentMusicIndex ? " is-current" : "";
+                const artistText = music.artist ? " · " + music.artist : "";
 
-                return '<button class="live2d-music-track' + isCurrent + '" type="button" data-music-index="' + index + '">' + escapeHtml(music.title) + '</button>';
+                return '<button class="live2d-music-track' + isCurrent + '" type="button" data-music-index="' + index + '">' + escapeHtml(music.title + artistText) + '</button>';
             }).join("");
+            const currentArtistText = currentMusic && currentMusic.artist ? " · " + currentMusic.artist : "";
+            const currentStatus = musicPlaying ? "播放中" : "待播放";
 
             options.innerHTML = [
                 '<div class="live2d-music-player">',
-                    '<div class="live2d-music-current">当前播放：<span>' + escapeHtml(currentMusic ? currentMusic.title : "暂无歌曲") + '</span></div>',
+                    '<div class="live2d-music-current">当前播放：<span>' + escapeHtml(currentMusic ? currentMusic.title + currentArtistText : "暂无歌曲") + '</span><small> · ' + currentStatus + '</small></div>',
                     '<div class="live2d-music-list" aria-label="歌曲列表">' + listHtml + '</div>',
                     '<div class="live2d-music-controls">',
                         '<button class="live2d-wheel__small" type="button" data-music-action="prev">上一首</button>',
@@ -2151,8 +2192,11 @@
                     memory.recordSong(currentMusic.title, currentMusic.src);
                 }
                 refreshMusicPlayerContent();
-            }).catch(function () {
+            }).catch(function (error) {
+                console.warn("[JunxueMusic] Audio play failed:", currentMusic.src, error);
                 musicPlaying = false;
+                result.textContent = "这首歌暂时播放不了，换一首试试吧～";
+                result.className = "live2d-quiz__result is-warning";
                 refreshMusicPlayerContent();
             });
         }
@@ -2188,7 +2232,7 @@
             options.querySelectorAll("[data-music-index]").forEach(function (button) {
                 button.addEventListener("click", function (event) {
                     event.stopPropagation();
-                    selectMusic(Number(button.dataset.musicIndex), musicPlaying);
+                    selectMusic(Number(button.dataset.musicIndex), true);
                 });
             });
 
@@ -2244,7 +2288,6 @@
             options.classList.add("live2d-music-panel");
             meta.textContent = "咨询 · 听歌";
             question.innerHTML = '<span class="live2d-music-title">♪ 听歌</span><span class="live2d-music-subtitle">甘雨想和你分享一些音乐呢～</span>';
-            syncMusicAudioSource();
             renderMusicPlayerContent();
             result.textContent = lastSongTitle ? "上次听到的是《" + lastSongTitle + "》，还想继续吗？" : "需要你点播放，甘雨才会开始放歌。";
             result.className = "live2d-quiz__result is-neutral";

@@ -12,16 +12,52 @@
             box-sizing: border-box;
         }
 
+        html,
+        body {
+            width: 100%;
+            min-height: 100%;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
         body {
             min-height: 100vh;
-            margin: 0;
-            font-family: Arial, sans-serif;
-            color: #f7fbff;
+            font-family: Arial, "Microsoft YaHei", sans-serif;
+            color: #f6fbff;
             background:
-                radial-gradient(circle at 22% 18%, rgba(108, 178, 255, 0.18), transparent 34%),
-                radial-gradient(circle at 78% 72%, rgba(108, 229, 255, 0.12), transparent 36%),
-                linear-gradient(145deg, #01040b 0%, #04111f 48%, #071b31 100%);
-            overflow-x: hidden;
+                radial-gradient(circle at 14% 72%, rgba(84, 226, 255, 0.28), transparent 28%),
+                radial-gradient(circle at 86% 22%, rgba(176, 139, 255, 0.25), transparent 31%),
+                radial-gradient(circle at 52% 48%, rgba(202, 244, 255, 0.16), transparent 36%),
+                linear-gradient(180deg, #07183a 0%, #0a2b59 46%, #06122d 100%);
+        }
+
+        body::before,
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+        }
+
+        body::before {
+            z-index: -5;
+            background:
+                linear-gradient(118deg, transparent 0 18%, rgba(85, 228, 255, 0.22) 28%, transparent 42%),
+                linear-gradient(64deg, transparent 0 52%, rgba(203, 147, 255, 0.2) 61%, transparent 74%),
+                radial-gradient(ellipse at 50% 88%, rgba(184, 238, 255, 0.3), transparent 44%);
+            filter: saturate(1.08);
+        }
+
+        body::after {
+            z-index: -4;
+            background:
+                linear-gradient(to top, rgba(190, 242, 255, 0.18), transparent 22%),
+                repeating-linear-gradient(178deg, rgba(224, 251, 255, 0.14) 0 1px, transparent 1px 28px),
+                radial-gradient(circle at 12% 76%, rgba(226, 251, 255, 0.28) 0 1px, transparent 1.5px),
+                radial-gradient(circle at 82% 32%, rgba(255, 255, 255, 0.32) 0 1px, transparent 1.5px),
+                radial-gradient(circle at 68% 68%, rgba(190, 221, 255, 0.22) 0 1px, transparent 1.6px);
+            background-size: auto, auto, 210px 170px, 250px 190px, 280px 220px;
+            opacity: 0.86;
         }
 
         .contact-bg-overlay,
@@ -35,52 +71,84 @@
         }
 
         .contact-bg-overlay {
-            z-index: -4;
+            z-index: -3;
+            overflow: hidden;
             background:
-                radial-gradient(ellipse at 50% 34%, rgba(19, 65, 116, 0.26), transparent 50%),
-                linear-gradient(to bottom, rgba(1, 7, 18, 0.22), rgba(2, 12, 28, 0.46));
+                radial-gradient(ellipse at 50% 62%, rgba(221, 249, 255, 0.24), transparent 39%),
+                linear-gradient(to bottom, rgba(3, 16, 45, 0.04), rgba(4, 14, 35, 0.42));
+        }
+
+        .contact-bg-overlay::before,
+        .contact-bg-overlay::after {
+            content: "";
+            position: absolute;
+            pointer-events: none;
+        }
+
+        .contact-bg-overlay::before {
+            left: -8vw;
+            right: -8vw;
+            bottom: -8px;
+            height: 34vh;
+            background:
+                linear-gradient(160deg, transparent 0 18%, rgba(181, 238, 255, 0.34) 19% 20%, transparent 22%),
+                linear-gradient(24deg, transparent 0 58%, rgba(214, 247, 255, 0.24) 59% 61%, transparent 64%),
+                linear-gradient(to bottom, transparent, rgba(147, 215, 255, 0.2));
+            clip-path: polygon(0 60%, 8% 42%, 18% 55%, 29% 33%, 39% 56%, 52% 30%, 64% 57%, 76% 36%, 88% 58%, 100% 39%, 100% 100%, 0 100%);
+            opacity: 0.72;
+        }
+
+        .contact-bg-overlay::after {
+            left: 6vw;
+            right: 6vw;
+            bottom: 8vh;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(226, 252, 255, 0.58), transparent);
+            box-shadow:
+                0 18px 36px rgba(120, 223, 255, 0.16),
+                0 54px 72px rgba(192, 152, 255, 0.12);
         }
 
         .stars,
         .stars2,
         .stars3 {
+            z-index: -2;
             width: 100%;
             height: 200%;
             background-repeat: repeat;
-            z-index: -3;
             will-change: transform, opacity;
         }
 
         .stars {
             background-image:
-                radial-gradient(circle at 7px 12px, rgba(255,255,255,0.54) 0 0.75px, transparent 1.1px),
-                radial-gradient(circle at 76px 132px, rgba(170,212,255,0.36) 0 0.75px, transparent 1.1px),
-                radial-gradient(circle at 174px 26px, rgba(255,255,255,0.42) 0 0.8px, transparent 1.15px);
+                radial-gradient(circle at 7px 12px, rgba(255,255,255,0.62) 0 0.75px, transparent 1.15px),
+                radial-gradient(circle at 76px 132px, rgba(180,225,255,0.42) 0 0.75px, transparent 1.1px),
+                radial-gradient(circle at 174px 26px, rgba(255,255,255,0.48) 0 0.8px, transparent 1.15px);
             background-size: 310px 210px;
             animation: driftStars 125s linear infinite, starBreath 8s ease-in-out infinite alternate;
-            opacity: 0.9;
+            opacity: 0.82;
         }
 
         .stars2 {
             background-image:
                 radial-gradient(circle at 18px 28px, rgba(255,255,255,0.78) 0 1px, transparent 1.7px),
-                radial-gradient(circle at 162px 144px, rgba(178,218,255,0.54) 0 0.9px, transparent 1.55px);
+                radial-gradient(circle at 162px 144px, rgba(190,226,255,0.54) 0 0.9px, transparent 1.55px);
             background-size: 260px 180px;
             animation: driftStarsReverse 150s linear infinite, starBreath 9s ease-in-out infinite alternate;
-            opacity: 0.72;
+            opacity: 0.66;
         }
 
         .stars3 {
             background-image:
                 radial-gradient(circle at 36px 54px, rgba(255,255,255,0.34) 0 0.6px, transparent 1px),
-                radial-gradient(circle at 210px 118px, rgba(146,198,255,0.28) 0 0.65px, transparent 1px);
+                radial-gradient(circle at 210px 118px, rgba(169,207,255,0.3) 0 0.65px, transparent 1px);
             background-size: 360px 240px;
             animation: driftStars 190s linear infinite, starBreath 11s ease-in-out infinite alternate;
-            opacity: 0.6;
+            opacity: 0.58;
         }
 
         .meteor-layer {
-            z-index: -2;
+            z-index: -1;
             overflow: hidden;
         }
 
@@ -99,152 +167,553 @@
             position: relative;
             z-index: 1;
             min-height: 100vh;
+            padding: 28px 24px 54px;
+        }
+
+        .contact-shell {
+            width: min(1200px, 100%);
+            margin: 0 auto;
+        }
+
+        .contact-topbar {
             display: flex;
             align-items: center;
-            justify-content: center;
-            padding: 80px 22px 120px;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 18px;
+            padding: 10px 14px;
+            border: 1px solid rgba(198, 240, 255, 0.26);
+            border-radius: 22px;
+            background: rgba(8, 29, 72, 0.38);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 12px 38px rgba(2, 16, 42, 0.18);
+            -webkit-backdrop-filter: blur(14px);
+            backdrop-filter: blur(14px);
+        }
+
+        .brand-lockup {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-mark {
+            display: grid;
+            place-items: center;
+            width: 42px;
+            height: 42px;
+            border: 1px solid rgba(209, 247, 255, 0.76);
+            border-radius: 15px;
+            background: radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.86), rgba(92, 206, 255, 0.24) 40%, rgba(118, 104, 255, 0.2));
+            color: #eaffff;
+            font-size: 23px;
+            box-shadow: 0 0 22px rgba(105, 221, 255, 0.34), inset 0 0 14px rgba(255, 255, 255, 0.16);
+        }
+
+        .brand-title {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            color: #f2fbff;
+            text-shadow: 0 0 12px rgba(113, 218, 255, 0.35);
+        }
+
+        .brand-subtitle {
+            margin-top: 2px;
+            color: rgba(224, 243, 255, 0.72);
+            font-size: 12px;
+        }
+
+        .safe-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 36px;
+            padding: 0 14px;
+            border: 1px solid rgba(196, 234, 255, 0.4);
+            border-radius: 999px;
+            background: rgba(218, 245, 255, 0.12);
+            color: rgba(241, 251, 255, 0.86);
+            font-size: 13px;
+            white-space: nowrap;
+            box-shadow: inset 0 0 12px rgba(255, 255, 255, 0.08);
         }
 
         .contact-card {
-            width: min(760px, calc(100vw - 44px));
-            padding: 28px;
-            border: 1px solid rgba(108, 229, 255, 0.42);
-            border-radius: 18px;
+            position: relative;
+            overflow: hidden;
+            padding: clamp(22px, 3vw, 38px);
+            border: 1px solid rgba(199, 241, 255, 0.54);
+            border-radius: 32px;
             background:
-                radial-gradient(circle at 18% 10%, rgba(108, 229, 255, 0.13), transparent 36%),
-                rgba(5, 18, 36, 0.82);
+                linear-gradient(140deg, rgba(222, 249, 255, 0.18), rgba(100, 189, 255, 0.12) 42%, rgba(185, 147, 255, 0.14)),
+                rgba(9, 31, 74, 0.68);
             box-shadow:
-                0 0 28px rgba(0, 190, 255, 0.18),
-                inset 0 0 22px rgba(255, 255, 255, 0.06);
-            backdrop-filter: blur(12px);
+                0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+                0 0 44px rgba(88, 215, 255, 0.24),
+                0 24px 80px rgba(2, 12, 36, 0.42);
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
+        }
+
+        .contact-card::before,
+        .contact-card::after {
+            content: "";
+            position: absolute;
+            pointer-events: none;
+        }
+
+        .contact-card::before {
+            left: 28px;
+            right: 28px;
+            top: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(229, 252, 255, 0.9), transparent);
+            box-shadow: 0 0 18px rgba(118, 225, 255, 0.48);
+        }
+
+        .contact-card::after {
+            right: 24px;
+            top: 22px;
+            width: 88px;
+            height: 88px;
+            background:
+                linear-gradient(90deg, transparent 47%, rgba(228, 250, 255, 0.45) 48% 52%, transparent 53%),
+                linear-gradient(0deg, transparent 47%, rgba(228, 250, 255, 0.45) 48% 52%, transparent 53%);
+            opacity: 0.25;
+            transform: rotate(45deg);
+        }
+
+        .hero-copy {
+            position: relative;
+            z-index: 1;
             text-align: center;
         }
 
-        .contact-card h1 {
-            margin: 0 0 12px;
-            color: #eafcff;
-            font-size: clamp(24px, 4vw, 32px);
-            line-height: 1.35;
-            letter-spacing: 0;
-            text-shadow: 0 0 16px rgba(108, 229, 255, 0.42);
+        .ice-kicker,
+        .support-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border-radius: 999px;
+            white-space: normal;
         }
 
-        .contact-lead,
-        .contact-note {
-            margin: 0 auto;
-            color: rgba(234, 252, 255, 0.82);
-            line-height: 1.7;
-        }
-
-        .contact-note {
-            margin-top: 12px;
-            color: rgba(255, 232, 163, 0.9);
+        .ice-kicker {
+            min-height: 34px;
+            padding: 0 16px;
+            border: 1px solid rgba(211, 247, 255, 0.58);
+            background: linear-gradient(135deg, rgba(93, 219, 255, 0.24), rgba(196, 151, 255, 0.16));
+            color: rgba(239, 252, 255, 0.94);
             font-size: 14px;
-            text-shadow: 0 0 10px rgba(255, 232, 163, 0.18);
+            font-weight: 800;
+            box-shadow: 0 0 18px rgba(115, 222, 255, 0.2), inset 0 0 12px rgba(255, 255, 255, 0.1);
+        }
+
+        .contact-card h1 {
+            margin: 16px 0 8px;
+            color: #f5fbff;
+            font-size: clamp(34px, 6vw, 62px);
+            line-height: 1.08;
+            letter-spacing: 0.04em;
+            text-shadow:
+                0 1px 0 rgba(14, 45, 91, 0.7),
+                0 0 18px rgba(97, 210, 255, 0.42);
+        }
+
+        .contact-lead {
+            margin: 0;
+            color: rgba(247, 252, 255, 0.95);
+            font-size: clamp(18px, 2.3vw, 25px);
+            font-weight: 800;
+            text-shadow: 0 0 10px rgba(111, 218, 255, 0.28);
+        }
+
+        .contact-copy {
+            width: min(780px, 100%);
+            margin: 12px auto 0;
+            color: rgba(226, 244, 255, 0.86);
+            font-size: 15px;
+            line-height: 1.75;
+        }
+
+        .support-pill {
+            margin-top: 14px;
+            padding: 8px 14px;
+            border: 1px solid rgba(255, 238, 184, 0.5);
+            background: rgba(255, 232, 168, 0.13);
+            color: rgba(255, 242, 198, 0.94);
+            font-size: 13px;
+            box-shadow: inset 0 0 12px rgba(255, 255, 255, 0.08);
+        }
+
+        .value-grid,
+        .pay-grid,
+        .step-grid,
+        .trust-grid {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            gap: 14px;
+        }
+
+        .value-grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            margin: 26px 0 18px;
+        }
+
+        .value-card,
+        .pay-box,
+        .step-card,
+        .notice-strip,
+        .trust-card {
+            border: 1px solid rgba(199, 241, 255, 0.34);
+            background:
+                linear-gradient(145deg, rgba(232, 250, 255, 0.16), rgba(118, 203, 255, 0.08) 58%, rgba(191, 144, 255, 0.1)),
+                rgba(10, 35, 82, 0.5);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.14),
+                inset 0 0 20px rgba(255, 255, 255, 0.04),
+                0 14px 40px rgba(4, 17, 45, 0.18);
+            -webkit-backdrop-filter: blur(14px);
+            backdrop-filter: blur(14px);
+        }
+
+        .value-card {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 10px;
+            align-items: center;
+            min-height: 82px;
+            padding: 13px;
+            border-radius: 18px;
+            text-align: left;
+        }
+
+        .icon-orb,
+        .pay-mark,
+        .step-icon {
+            display: grid;
+            place-items: center;
+            flex: 0 0 auto;
+            border-radius: 18px;
+            background: radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.86), rgba(91, 217, 255, 0.28) 48%, rgba(174, 126, 255, 0.22));
+            color: #f6feff;
+            box-shadow: 0 0 18px rgba(100, 219, 255, 0.28), inset 0 0 14px rgba(255, 255, 255, 0.16);
+        }
+
+        .icon-orb {
+            width: 42px;
+            height: 42px;
+            font-size: 22px;
+        }
+
+        .value-card strong,
+        .pay-box h2,
+        .step-card strong,
+        .trust-card strong {
+            color: #f9fdff;
+            text-shadow: 0 0 10px rgba(107, 218, 255, 0.22);
+        }
+
+        .value-card strong {
+            display: block;
+            font-size: 15px;
+        }
+
+        .value-card span,
+        .step-card span,
+        .trust-card span {
+            display: block;
+            margin-top: 3px;
+            color: rgba(224, 244, 255, 0.74);
+            font-size: 12px;
+            line-height: 1.45;
         }
 
         .pay-grid {
-            display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 16px;
-            margin: 24px 0;
+            margin: 16px 0 24px;
         }
 
         .pay-box {
+            position: relative;
             display: grid;
-            gap: 12px;
-            padding: 16px;
-            border: 1px solid rgba(108, 229, 255, 0.3);
-            border-radius: 16px;
-            background: rgba(255, 255, 255, 0.07);
-            box-shadow: inset 0 0 16px rgba(108, 229, 255, 0.05);
+            gap: 13px;
+            padding: 18px;
+            border-radius: 24px;
+            overflow: hidden;
+        }
+
+        .pay-box::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background:
+                radial-gradient(circle at 12% 14%, rgba(255, 255, 255, 0.2), transparent 24%),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.24), transparent 32%, transparent 70%, rgba(197, 161, 255, 0.14));
+            pointer-events: none;
+        }
+
+        .pay-head {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .pay-mark {
+            width: 38px;
+            height: 38px;
+            border-radius: 13px;
+            font-size: 22px;
+            font-weight: 900;
+        }
+
+        .pay-mark.wechat {
+            background: linear-gradient(135deg, rgba(49, 211, 112, 0.9), rgba(175, 255, 215, 0.5));
+        }
+
+        .pay-mark.alipay {
+            background: linear-gradient(135deg, rgba(50, 146, 255, 0.92), rgba(147, 220, 255, 0.55));
         }
 
         .pay-box h2 {
             margin: 0;
-            color: #eafcff;
-            font-size: 17px;
-            letter-spacing: 0;
-            text-shadow: 0 0 12px rgba(108, 229, 255, 0.32);
+            font-size: 22px;
         }
 
         .qr-frame {
             position: relative;
+            z-index: 1;
             display: grid;
             place-items: center;
-            min-height: 220px;
-            border: 1px dashed rgba(158, 234, 255, 0.38);
-            border-radius: 14px;
-            background: rgba(1, 8, 20, 0.38);
-            overflow: hidden;
+            width: min(260px, 100%);
+            min-height: 248px;
+            margin: 0 auto;
+            padding: 14px;
+            border: 1px solid rgba(230, 249, 255, 0.7);
+            border-radius: 22px;
+            background: #ffffff;
+            box-shadow: 0 0 24px rgba(91, 218, 255, 0.3), inset 0 0 0 1px rgba(24, 61, 112, 0.08);
         }
 
         .qr-frame img {
             display: block;
-            width: min(210px, 100%);
-            max-height: 210px;
-            border-radius: 10px;
+            width: clamp(180px, 18vw, 220px);
+            max-width: 100%;
+            max-height: 220px;
+            border-radius: 8px;
             object-fit: contain;
-            box-shadow: 0 0 18px rgba(108, 229, 255, 0.18);
         }
 
         .qr-placeholder {
+            display: none;
             padding: 18px;
-            color: rgba(214, 246, 255, 0.74);
+            color: rgba(21, 54, 94, 0.74);
             font-size: 14px;
             line-height: 1.6;
         }
 
-        .unlock-button {
-            min-height: 42px;
-            padding: 0 22px;
-            border: 1px solid rgba(120, 229, 255, 0.68);
+        .pay-meta {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            gap: 5px;
+            color: rgba(234, 248, 255, 0.9);
+            font-size: 14px;
+            line-height: 1.45;
+        }
+
+        .pay-meta strong {
+            color: #ffffff;
+            font-size: 17px;
+        }
+
+        .pay-trust {
+            justify-self: center;
+            margin-top: 2px;
+            padding: 5px 10px;
+            border: 1px solid rgba(210, 246, 255, 0.4);
             border-radius: 999px;
-            background: linear-gradient(135deg, rgba(73, 214, 255, 0.24), rgba(255, 255, 255, 0.1));
-            color: #eafcff;
-            font-size: 15px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 0 18px rgba(0, 190, 255, 0.22), inset 0 0 12px rgba(255, 255, 255, 0.07);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            color: rgba(229, 249, 255, 0.86);
+            font-size: 12px;
+            background: rgba(221, 249, 255, 0.1);
         }
 
-        .unlock-button:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 0 22px rgba(0, 190, 255, 0.32), 0 0 12px rgba(255, 232, 163, 0.18);
+        .section-title {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin: 8px 0 14px;
+            color: #f5fcff;
+            font-size: 22px;
+            font-weight: 900;
+            letter-spacing: 0.05em;
+            text-shadow: 0 0 14px rgba(100, 218, 255, 0.3);
         }
 
-        .contact-info {
-            display: none;
-            width: min(420px, 100%);
-            margin: 22px auto 0;
-            padding: 18px;
-            border: 1px solid rgba(255, 232, 163, 0.46);
-            border-radius: 16px;
-            background: rgba(255, 255, 255, 0.08);
-            box-shadow: 0 0 20px rgba(255, 232, 163, 0.13), inset 0 0 14px rgba(255, 255, 255, 0.06);
+        .section-title::before,
+        .section-title::after {
+            content: "";
+            width: min(96px, 18vw);
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(226, 251, 255, 0.8));
+        }
+
+        .section-title::after {
+            transform: scaleX(-1);
+        }
+
+        .step-grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            margin-bottom: 14px;
+        }
+
+        .step-card {
+            position: relative;
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 10px;
+            align-items: center;
+            min-height: 82px;
+            padding: 13px;
+            border-radius: 18px;
             text-align: left;
         }
 
-        .contact-info.is-unlocked {
-            display: grid;
-            gap: 10px;
+        .step-card:not(:last-child)::after {
+            content: "→";
+            position: absolute;
+            right: -15px;
+            top: 50%;
+            color: rgba(231, 251, 255, 0.7);
+            transform: translateY(-50%);
+            text-shadow: 0 0 10px rgba(118, 225, 255, 0.4);
         }
 
-        .contact-info p {
-            margin: 0;
-            color: #f8fdff;
-            font-size: 16px;
-            line-height: 1.6;
-            text-shadow: 0 0 10px rgba(108, 229, 255, 0.2);
+        .step-icon {
+            width: 42px;
+            height: 42px;
+            font-size: 20px;
+        }
+
+        .notice-grid {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 12px;
+            margin: 14px 0 18px;
+        }
+
+        .notice-strip {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 52px;
+            padding: 12px 14px;
+            border-radius: 16px;
+            color: rgba(238, 250, 255, 0.9);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .notice-strip a {
+            color: #ffffff;
+            font-weight: 800;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.45);
+        }
+
+        .contact-actions {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 10px;
+        }
+
+        .unlock-button,
+        .back-home {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 54px;
+            border-radius: 999px;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+
+        .unlock-button {
+            min-width: min(420px, 100%);
+            padding: 0 30px;
+            border: 1px solid rgba(232, 251, 255, 0.88);
+            background: linear-gradient(135deg, #1fb8ff 0%, #4e78ff 46%, #e18bff 100%);
+            color: #ffffff;
+            font-size: 18px;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow:
+                0 0 28px rgba(81, 207, 255, 0.42),
+                0 0 24px rgba(206, 132, 255, 0.24),
+                inset 0 1px 0 rgba(255, 255, 255, 0.38);
+        }
+
+        .unlock-button:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                0 0 34px rgba(81, 207, 255, 0.55),
+                0 0 30px rgba(206, 132, 255, 0.34),
+                inset 0 1px 0 rgba(255, 255, 255, 0.44);
         }
 
         .back-home {
-            display: inline-block;
-            margin-top: 16px;
-            color: rgba(214, 246, 255, 0.78);
-            font-size: 13px;
-            text-decoration: none;
+            min-width: 128px;
+            padding: 0 20px;
+            border: 1px solid rgba(210, 246, 255, 0.36);
+            background: rgba(228, 248, 255, 0.1);
+            color: rgba(239, 251, 255, 0.84);
+            font-size: 14px;
+            box-shadow: inset 0 0 12px rgba(255, 255, 255, 0.06);
+        }
+
+        .trust-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            margin: 18px auto 0;
+            width: min(920px, 100%);
+        }
+
+        .trust-card {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 10px;
+            align-items: center;
+            min-height: 64px;
+            padding: 12px 14px;
+            border-radius: 16px;
+            text-align: left;
+        }
+
+        .trust-card b {
+            display: grid;
+            place-items: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 12px;
+            background: rgba(224, 249, 255, 0.16);
+            color: #f8fdff;
+            box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.1);
         }
 
         .cursor-light {
@@ -282,8 +751,15 @@
             display: none !important;
         }
 
-        html.performance-low .contact-card {
-            box-shadow: 0 0 12px rgba(0, 190, 255, 0.12), inset 0 0 10px rgba(255, 255, 255, 0.04);
+        html.performance-low .contact-topbar,
+        html.performance-low .contact-card,
+        html.performance-low .value-card,
+        html.performance-low .pay-box,
+        html.performance-low .step-card,
+        html.performance-low .notice-strip,
+        html.performance-low .trust-card {
+            box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.04);
+            -webkit-backdrop-filter: none;
             backdrop-filter: none;
         }
 
@@ -337,93 +813,127 @@
             }
         }
 
-        @media (max-width: 720px) {
+        @media (max-width: 960px) {
             .contact-page {
+                padding: 18px 14px 100px;
+            }
+
+            .contact-topbar {
                 align-items: flex-start;
-                padding-top: 70px;
+                border-radius: 18px;
             }
 
-            .contact-card {
-                padding: 22px;
+            .safe-pill {
+                font-size: 12px;
             }
 
-            .pay-grid {
+            .value-grid,
+            .step-grid,
+            .trust-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .pay-grid,
+            .notice-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .step-card:not(:last-child)::after {
+                display: none;
             }
         }
 
-        @media (max-width: 768px) {
-            html,
-            body {
-                width: 100%;
-                max-width: 100%;
-                overflow-x: hidden;
-            }
-
-            .cursor-light,
-            .ripple,
-            .meteor-layer,
-            .stars,
-            .stars2,
-            .stars3 {
-                display: none;
-            }
-
-            html.performance-high .cursor-light,
-            html.performance-high .ripple,
-            html.performance-high .meteor-layer,
-            html.performance-high .stars,
-            html.performance-high .stars2,
-            html.performance-high .stars3 {
-                display: block;
-            }
-
+        @media (max-width: 640px) {
             .contact-page {
-                align-items: flex-start;
-                min-height: 100svh;
-                padding: 72px 14px 112px;
+                padding: 14px 12px 104px;
+            }
+
+            .contact-shell,
+            .contact-card {
+                width: min(94vw, 100%);
+            }
+
+            .contact-topbar {
+                padding: 10px;
+            }
+
+            .brand-mark {
+                width: 36px;
+                height: 36px;
+                border-radius: 13px;
+                font-size: 20px;
+            }
+
+            .brand-title {
+                font-size: 16px;
+            }
+
+            .safe-pill {
+                padding: 0 10px;
+                min-height: 32px;
             }
 
             .contact-card {
-                width: min(100%, 760px);
-                padding: 18px;
-                border-radius: 16px;
-                backdrop-filter: blur(6px);
+                padding: 18px 14px;
+                border-radius: 24px;
+                -webkit-backdrop-filter: blur(10px);
+                backdrop-filter: blur(10px);
             }
 
             .contact-card h1 {
-                font-size: clamp(22px, 6vw, 29px);
+                font-size: clamp(30px, 10vw, 40px);
             }
 
+            .contact-copy,
             .contact-lead,
-            .contact-note {
-                font-size: 14px;
+            .support-pill {
+                font-size: 13px;
             }
 
-            .pay-grid {
+            .value-grid,
+            .step-grid,
+            .trust-grid {
                 grid-template-columns: 1fr;
-                gap: 12px;
-                margin: 18px 0;
+            }
+
+            .value-card,
+            .step-card,
+            .trust-card {
+                min-height: auto;
             }
 
             .pay-box {
-                padding: 12px;
+                padding: 14px;
+                border-radius: 20px;
             }
 
             .qr-frame {
-                min-height: 190px;
+                width: min(260px, 100%);
+                min-height: 214px;
+                padding: 12px;
             }
 
             .qr-frame img {
-                width: min(190px, 100%);
-                max-height: 190px;
+                width: clamp(180px, 60vw, 220px);
+                max-height: 220px;
             }
 
-            .unlock-button {
+            .contact-actions {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .unlock-button,
+            .back-home {
                 width: 100%;
-                min-height: 44px;
-                padding: 0 16px;
-                font-size: 15px;
+                min-height: 52px;
+            }
+
+            .live2d-load-control {
+                left: 10px !important;
+                bottom: calc(env(safe-area-inset-bottom) + 84px) !important;
+                transform: scale(0.9);
+                transform-origin: left bottom;
             }
         }
     </style>
@@ -437,32 +947,116 @@
 <div class="meteor-layer" aria-hidden="true"></div>
 
 <main class="contact-page">
-    <section class="contact-card" aria-labelledby="contact-title">
-        <h1 id="contact-title">付费解锁联系方式</h1>
-        <p class="contact-lead">支付 1 元即可查看联系方式。</p>
-        <p class="contact-note">请确认已完成 1 元支付后再查看联系方式，谢谢支持。</p>
-
-        <div class="pay-grid" aria-label="支付二维码">
-            <section class="pay-box" aria-labelledby="wechat-pay-title">
-                <h2 id="wechat-pay-title">微信支付</h2>
-                <div class="qr-frame">
-                    <div class="qr-placeholder" id="wechat-placeholder">请上传支付二维码图片。</div>
-                    <img src="assets/wechat-pay.jpg" alt="微信支付二维码" data-placeholder="wechat-placeholder">
+    <div class="contact-shell">
+        <header class="contact-topbar" aria-label="君雪联系服务台">
+            <div class="brand-lockup">
+                <span class="brand-mark" aria-hidden="true">✦</span>
+                <div>
+                    <p class="brand-title">君雪联系服务台</p>
+                    <div class="brand-subtitle">个人网站 · 温柔沟通</div>
                 </div>
-            </section>
-            <section class="pay-box" aria-labelledby="alipay-pay-title">
-                <h2 id="alipay-pay-title">支付宝支付</h2>
-                <div class="qr-frame">
-                    <div class="qr-placeholder" id="alipay-placeholder">请上传支付二维码图片。</div>
-                    <img src="assets/alipay-pay.jpg" alt="支付宝支付二维码" data-placeholder="alipay-placeholder">
-                </div>
-            </section>
-        </div>
+            </div>
+            <span class="safe-pill">🛡 安全加密保障中</span>
+        </header>
 
-        <button class="unlock-button" id="unlock-contact" type="button">我已付款，查看联系方式</button>
+        <section class="contact-card" aria-labelledby="contact-title">
+            <div class="hero-copy">
+                <span class="ice-kicker">❄ 君雪联系服务台 ❄</span>
+                <h1 id="contact-title">付费解锁联系方式</h1>
+                <p class="contact-lead">支付 1 元即可查看联系方式</p>
+                <p class="contact-copy">为保障沟通效率与服务质量，解锁后可用于下单咨询、档期确认、售后沟通等服务场景，感谢你的理解与支持。</p>
+                <span class="support-pill">请确认已完成 1 元支付后再查看联系方式，谢谢支持。</span>
+            </div>
 
-        <a class="back-home" href="index.html">返回首页</a>
-    </section>
+            <div class="value-grid" aria-label="解锁价值">
+                <article class="value-card">
+                    <span class="icon-orb" aria-hidden="true">🔒</span>
+                    <div><strong>联系方式解锁</strong><span>支付后即可查看</span></div>
+                </article>
+                <article class="value-card">
+                    <span class="icon-orb" aria-hidden="true">💬</span>
+                    <div><strong>下单咨询</strong><span>沟通需求，先一步</span></div>
+                </article>
+                <article class="value-card">
+                    <span class="icon-orb" aria-hidden="true">📅</span>
+                    <div><strong>档期确认</strong><span>确认时间，安排更稳</span></div>
+                </article>
+                <article class="value-card">
+                    <span class="icon-orb" aria-hidden="true">🛡</span>
+                    <div><strong>售后沟通</strong><span>贴心服务，有保障</span></div>
+                </article>
+            </div>
+
+            <div class="pay-grid" aria-label="支付二维码">
+                <section class="pay-box" aria-labelledby="wechat-pay-title">
+                    <div class="pay-head">
+                        <span class="pay-mark wechat" aria-hidden="true">✓</span>
+                        <h2 id="wechat-pay-title">微信支付</h2>
+                    </div>
+                    <div class="qr-frame">
+                        <div class="qr-placeholder" id="wechat-placeholder">请上传支付二维码图片。</div>
+                        <img src="assets/wechat-pay.jpg" alt="微信支付二维码" data-placeholder="wechat-placeholder">
+                    </div>
+                    <div class="pay-meta">
+                        <strong>支付金额：¥1.00</strong>
+                        <span>备注：网站解锁 / 联系方式</span>
+                        <span class="pay-trust">安全支付 · 官方保障</span>
+                    </div>
+                </section>
+                <section class="pay-box" aria-labelledby="alipay-pay-title">
+                    <div class="pay-head">
+                        <span class="pay-mark alipay" aria-hidden="true">支</span>
+                        <h2 id="alipay-pay-title">支付宝支付</h2>
+                    </div>
+                    <div class="qr-frame">
+                        <div class="qr-placeholder" id="alipay-placeholder">请上传支付二维码图片。</div>
+                        <img src="assets/alipay-pay.jpg" alt="支付宝支付二维码" data-placeholder="alipay-placeholder">
+                    </div>
+                    <div class="pay-meta">
+                        <strong>支付金额：¥1.00</strong>
+                        <span>备注：网站解锁 / 联系方式</span>
+                        <span class="pay-trust">安全支付 · 官方保障</span>
+                    </div>
+                </section>
+            </div>
+
+            <h2 class="section-title">解锁步骤</h2>
+            <div class="step-grid" aria-label="解锁步骤">
+                <article class="step-card">
+                    <span class="step-icon" aria-hidden="true">💳</span>
+                    <div><strong>选择支付方式</strong><span>微信 或 支付宝</span></div>
+                </article>
+                <article class="step-card">
+                    <span class="step-icon" aria-hidden="true">¥</span>
+                    <div><strong>支付 1 元</strong><span>完成支付金额 ¥1.00</span></div>
+                </article>
+                <article class="step-card">
+                    <span class="step-icon" aria-hidden="true">☝</span>
+                    <div><strong>点击按钮</strong><span>点击“我已付款，查看联系方式”</span></div>
+                </article>
+                <article class="step-card">
+                    <span class="step-icon" aria-hidden="true">👤</span>
+                    <div><strong>添加联系方式</strong><span>备注填写“网站解锁”</span></div>
+                </article>
+            </div>
+
+            <div class="notice-grid" aria-label="提示说明">
+                <div class="notice-strip">ℹ 当前页面不会自动验证支付，请确认完成 1 元支付后再查看联系方式。</div>
+                <div class="notice-strip">💙 如果只是想先了解价格，可以先回到 <a href="price.html">收费咨询页</a> 查看服务说明。</div>
+            </div>
+
+            <div class="contact-actions">
+                <button class="unlock-button" id="unlock-contact" type="button">🔒 我已付款，查看联系方式</button>
+                <a class="back-home" href="index.html">返回首页 →</a>
+            </div>
+
+            <div class="trust-grid" aria-label="服务信任说明">
+                <article class="trust-card"><b>盾</b><div><strong>安全可靠</strong><span>支付过程安全清晰</span></div></article>
+                <article class="trust-card"><b>心</b><div><strong>温柔陪伴</strong><span>用心交流，真诚相待</span></div></article>
+                <article class="trust-card"><b>问</b><div><strong>贴心服务</strong><span>有问题找君雪</span></div></article>
+            </div>
+        </section>
+    </div>
 </main>
 
 <script>

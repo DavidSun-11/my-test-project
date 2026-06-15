@@ -215,6 +215,13 @@
                 inset 0 0 16px rgba(255, 255, 255, 0.2);
         }
 
+        .contact-icon-sprite {
+            position: absolute;
+            width: 0;
+            height: 0;
+            overflow: hidden;
+        }
+
         .contact-icon-badge::before,
         .contact-icon-badge::after {
             content: "";
@@ -256,6 +263,12 @@
             border-radius: 15px;
         }
 
+        .contact-icon-badge--brand {
+            width: 42px;
+            height: 42px;
+            border-radius: 15px;
+        }
+
         .contact-icon--brand .contact-icon {
             width: 24px;
             height: 24px;
@@ -274,10 +287,38 @@
             clip-path: polygon(50% 0, 90% 23%, 90% 77%, 50% 100%, 10% 77%, 10% 23%);
         }
 
+        .contact-icon-badge--feature {
+            width: 62px;
+            height: 62px;
+            border-width: 2px;
+            border-radius: 22px;
+            clip-path: none;
+        }
+
+        .contact-icon-badge--feature .contact-icon {
+            width: 31px;
+            height: 31px;
+            opacity: 0.98;
+            stroke-width: 2.2;
+        }
+
+        .contact-icon-badge--feature::after {
+            inset: 10px;
+            border-radius: 14px;
+            clip-path: polygon(50% 0, 92% 25%, 92% 75%, 50% 100%, 8% 75%, 8% 25%);
+            border-color: rgba(238, 253, 255, 0.46);
+        }
+
         .contact-icon--payment {
             width: 38px;
             height: 38px;
             border-radius: 14px;
+        }
+
+        .contact-icon-badge--payment {
+            width: 50px;
+            height: 50px;
+            border-radius: 18px;
         }
 
         .contact-icon--payment .contact-icon {
@@ -285,7 +326,29 @@
             height: 22px;
         }
 
+        .contact-icon-badge--payment .contact-icon {
+            width: 28px;
+            height: 28px;
+            stroke-width: 2.25;
+        }
+
+        .contact-icon-badge--step {
+            width: 44px;
+            height: 44px;
+            clip-path: polygon(50% 0, 90% 23%, 90% 77%, 50% 100%, 10% 77%, 10% 23%);
+        }
+
+        .contact-icon-badge--step .contact-icon {
+            width: 23px;
+            height: 23px;
+        }
+
         .contact-icon--cta {
+            width: 20px;
+            height: 20px;
+        }
+
+        .contact-icon-badge--cta {
             width: 20px;
             height: 20px;
         }
@@ -1076,6 +1139,91 @@
     </style>
 </head>
 <body>
+<svg class="contact-icon-sprite" width="0" height="0" aria-hidden="true" focusable="false">
+    <symbol id="icon-ice-star" viewBox="0 0 24 24">
+        <path d="M12 2l2.2 7.8L22 12l-7.8 2.2L12 22l-2.2-7.8L2 12l7.8-2.2L12 2z"/>
+        <path d="M12 5v14"/>
+        <path d="M5 12h14"/>
+        <path d="M7.8 7.8l8.4 8.4"/>
+        <path d="M16.2 7.8l-8.4 8.4"/>
+    </symbol>
+    <symbol id="icon-lock" viewBox="0 0 24 24">
+        <rect x="6" y="10" width="12" height="10" rx="2"/>
+        <path d="M8 10V8a4 4 0 0 1 8 0v2"/>
+        <path d="M12 14v3"/>
+    </symbol>
+    <symbol id="icon-chat" viewBox="0 0 24 24">
+        <path d="M5 6h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-7l-5 4v-4H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"/>
+        <path d="M8 11h8"/>
+        <path d="M8 14h5"/>
+    </symbol>
+    <symbol id="icon-calendar-check" viewBox="0 0 24 24">
+        <rect x="4" y="5" width="16" height="15" rx="2"/>
+        <path d="M8 3v4"/>
+        <path d="M16 3v4"/>
+        <path d="M4 10h16"/>
+        <path d="M8 14h3"/>
+        <path d="M13.5 17l1.2 1.2 2.8-3.2"/>
+    </symbol>
+    <symbol id="icon-headset" viewBox="0 0 24 24">
+        <path d="M5 12a7 7 0 0 1 14 0"/>
+        <path d="M5 12v4a2 2 0 0 0 2 2h1v-6H5z"/>
+        <path d="M19 12v4a2 2 0 0 1-2 2h-1v-6h3z"/>
+        <path d="M12 20h3"/>
+    </symbol>
+    <symbol id="icon-shield" viewBox="0 0 24 24">
+        <path d="M12 3l7 3v5c0 4.6-2.9 8.4-7 10-4.1-1.6-7-5.4-7-10V6l7-3z"/>
+        <path d="M9 12l2 2 4-5"/>
+    </symbol>
+    <symbol id="icon-wallet" viewBox="0 0 24 24">
+        <path d="M4 7h15a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h12"/>
+        <path d="M16 13h5"/>
+        <path d="M17.5 13h.1"/>
+    </symbol>
+    <symbol id="icon-coin-yuan" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="8"/>
+        <path d="M8 7l4 5 4-5"/>
+        <path d="M12 12v6"/>
+        <path d="M9 13h6"/>
+        <path d="M9 16h6"/>
+    </symbol>
+    <symbol id="icon-click" viewBox="0 0 24 24">
+        <path d="M9 11V5a2 2 0 1 1 4 0v6"/>
+        <path d="M13 10l1-1a2 2 0 0 1 3 1.7V13"/>
+        <path d="M9 11l-1.5-1a2 2 0 0 0-3 1.7V13l3.5 6h7.5l2.5-6"/>
+    </symbol>
+    <symbol id="icon-user-plus" viewBox="0 0 24 24">
+        <circle cx="10" cy="8" r="4"/>
+        <path d="M3 21a7 7 0 0 1 14 0"/>
+        <path d="M18 8v6"/>
+        <path d="M15 11h6"/>
+    </symbol>
+    <symbol id="icon-wechat-chat" viewBox="0 0 24 24">
+        <path d="M7.5 8.5A5.5 4.4 0 0 0 3 12.7c0 1.4.8 2.7 2.1 3.5l-.5 2 2.3-1a7.4 7.4 0 0 0 2.1.3"/>
+        <path d="M12.5 6.5c4.4 0 8 2.7 8 6 0 1.8-1.1 3.4-2.8 4.5l.6 2.5-2.9-1.3a9.7 9.7 0 0 1-2.9.4c-4.4 0-8-2.7-8-6s3.6-6.1 8-6.1z"/>
+        <path d="M10 12h.1"/>
+        <path d="M15 12h.1"/>
+    </symbol>
+    <symbol id="icon-alipay-card" viewBox="0 0 24 24">
+        <rect x="5" y="5" width="14" height="14" rx="3"/>
+        <path d="M8 9h8"/>
+        <path d="M12 6v8"/>
+        <path d="M8 16c2.6-.5 5.8-2.2 8-5"/>
+        <path d="M7 13c3.4 3.5 6.8 4.6 10 5"/>
+    </symbol>
+    <symbol id="icon-home" viewBox="0 0 24 24">
+        <path d="M3 11l9-8 9 8"/>
+        <path d="M5 10v10h14V10"/>
+        <path d="M9 20v-6h6v6"/>
+    </symbol>
+    <symbol id="icon-check-lock" viewBox="0 0 24 24">
+        <path d="M12 3l7 3v5c0 4.6-2.9 8.4-7 10-4.1-1.6-7-5.4-7-10V6l7-3z"/>
+        <path d="M9 12l2 2 4-5"/>
+    </symbol>
+    <symbol id="icon-heart" viewBox="0 0 24 24">
+        <path d="M20.8 8.6c0 5-8.8 10.4-8.8 10.4S3.2 13.6 3.2 8.6A4.7 4.7 0 0 1 12 6.3a4.7 4.7 0 0 1 8.8 2.3z"/>
+    </symbol>
+</svg>
 <div class="contact-bg-overlay" aria-hidden="true"></div>
 <div class="cursor-light"></div>
 <div class="stars"></div>
@@ -1087,15 +1235,15 @@
     <div class="contact-shell">
         <header class="contact-topbar" aria-label="君雪联系服务台">
             <div class="brand-lockup">
-                <span class="brand-mark contact-icon-badge contact-icon--brand" aria-hidden="true">
-                    <svg class="contact-icon" viewBox="0 0 24 24"><path d="M12 2l2.2 7.8L22 12l-7.8 2.2L12 22l-2.2-7.8L2 12l7.8-2.2L12 2z"/></svg>
+                <span class="brand-mark contact-icon-badge contact-icon-badge--brand contact-icon--brand" aria-hidden="true">
+                    <svg class="contact-icon" viewBox="0 0 24 24"><use href="#icon-ice-star"></use></svg>
                 </span>
                 <div>
                     <p class="brand-title">君雪联系服务台</p>
                     <div class="brand-subtitle">个人网站 · 温柔沟通</div>
                 </div>
             </div>
-            <span class="safe-pill"><svg class="contact-icon contact-icon--safe" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 4.6-2.9 8.4-7 10-4.1-1.6-7-5.4-7-10V6l7-3z"/><path d="M9 12l2 2 4-5"/></svg>安全加密保障中</span>
+            <span class="safe-pill"><svg class="contact-icon contact-icon--safe" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-shield"></use></svg>安全加密保障中</span>
         </header>
 
         <section class="contact-card" aria-labelledby="contact-title">
@@ -1109,19 +1257,19 @@
 
             <div class="value-grid" aria-label="解锁价值">
                 <article class="value-card">
-                    <span class="icon-orb contact-icon-badge contact-icon--value" aria-hidden="true"><svg class="contact-icon" viewBox="0 0 24 24"><rect x="6" y="10" width="12" height="10" rx="2"/><path d="M8 10V8a4 4 0 0 1 8 0v2"/><path d="M12 14v3"/></svg></span>
+                    <span class="icon-orb contact-icon-badge contact-icon-badge--feature contact-icon--value" aria-hidden="true"><svg class="contact-icon" viewBox="0 0 24 24"><use href="#icon-lock"></use></svg></span>
                     <div><strong>联系方式解锁</strong><span>支付后即可查看</span></div>
                 </article>
                 <article class="value-card">
-                    <span class="icon-orb contact-icon-badge contact-icon--value" aria-hidden="true"><svg class="contact-icon" viewBox="0 0 24 24"><path d="M5 6h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-7l-5 4v-4H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"/><path d="M8 11h8"/><path d="M8 14h5"/></svg></span>
+                    <span class="icon-orb contact-icon-badge contact-icon-badge--feature contact-icon--value" aria-hidden="true"><svg class="contact-icon" viewBox="0 0 24 24"><use href="#icon-chat"></use></svg></span>
                     <div><strong>下单咨询</strong><span>沟通需求，先一步</span></div>
                 </article>
                 <article class="value-card">
-                    <span class="icon-orb contact-icon-badge contact-icon--value" aria-hidden="true"><svg class="contact-icon" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4"/><path d="M16 3v4"/><path d="M4 10h16"/><path d="M8 14h3"/><path d="M14 14h2"/><path d="M13.5 17l1.2 1.2 2.6-3"/></svg></span>
+                    <span class="icon-orb contact-icon-badge contact-icon-badge--feature contact-icon--value" aria-hidden="true"><svg class="contact-icon" viewBox="0 0 24 24"><use href="#icon-calendar-check"></use></svg></span>
                     <div><strong>档期确认</strong><span>确认时间，安排更稳</span></div>
                 </article>
                 <article class="value-card">
-                    <span class="icon-orb contact-icon-badge contact-icon--value" aria-hidden="true"><svg class="contact-icon" viewBox="0 0 24 24"><path d="M5 12a7 7 0 0 1 14 0"/><path d="M5 12v4a2 2 0 0 0 2 2h1v-6H5z"/><path d="M19 12v4a2 2 0 0 1-2 2h-1v-6h3z"/><path d="M12 20h3"/></svg></span>
+                    <span class="icon-orb contact-icon-badge contact-icon-badge--feature contact-icon--value" aria-hidden="true"><svg class="contact-icon" viewBox="0 0 24 24"><use href="#icon-headset"></use></svg></span>
                     <div><strong>售后沟通</strong><span>贴心服务，有保障</span></div>
                 </article>
             </div>
@@ -1129,7 +1277,7 @@
             <div class="pay-grid" aria-label="支付二维码">
                 <section class="pay-box is-wechat" aria-labelledby="wechat-pay-title">
                     <div class="pay-head">
-                        <span class="pay-mark wechat contact-icon-badge contact-icon--payment" aria-hidden="true"><svg class="contact-icon" viewBox="0 0 24 24"><path d="M7.5 8.5A5.5 4.4 0 0 0 3 12.7c0 1.4.8 2.7 2.1 3.5l-.5 2 2.3-1a7.4 7.4 0 0 0 2.1.3"/><path d="M12.5 6.5c4.4 0 8 2.7 8 6 0 1.8-1.1 3.4-2.8 4.5l.6 2.5-2.9-1.3a9.7 9.7 0 0 1-2.9.4c-4.4 0-8-2.7-8-6s3.6-6.1 8-6.1z"/><path d="M10 12h.1"/><path d="M15 12h.1"/></svg></span>
+                        <span class="pay-mark wechat contact-icon-badge contact-icon-badge--payment contact-icon--payment" aria-hidden="true"><svg class="contact-icon" viewBox="0 0 24 24"><use href="#icon-wechat-chat"></use></svg></span>
                         <h2 id="wechat-pay-title">微信支付</h2>
                     </div>
                     <div class="qr-frame">
@@ -1144,7 +1292,7 @@
                 </section>
                 <section class="pay-box is-alipay" aria-labelledby="alipay-pay-title">
                     <div class="pay-head">
-                        <span class="pay-mark alipay contact-icon-badge contact-icon--payment" aria-hidden="true"><svg class="contact-icon" viewBox="0 0 24 24"><path d="M5 5h14v14H5z"/><path d="M8 9h8"/><path d="M12 6v8"/><path d="M8 16c2.6-.5 5.8-2.2 8-5"/><path d="M7 13c3.4 3.5 6.8 4.6 10 5"/></svg></span>
+                        <span class="pay-mark alipay contact-icon-badge contact-icon-badge--payment contact-icon--payment" aria-hidden="true"><svg class="contact-icon" viewBox="0 0 24 24"><use href="#icon-alipay-card"></use></svg></span>
                         <h2 id="alipay-pay-title">支付宝支付</h2>
                     </div>
                     <div class="qr-frame">
@@ -1162,19 +1310,19 @@
             <h2 class="section-title">解锁步骤</h2>
             <div class="step-grid" aria-label="解锁步骤">
                 <article class="step-card">
-                    <span class="step-icon contact-icon-badge contact-icon--step" aria-hidden="true"><svg class="contact-icon" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/><path d="M7 15h4"/></svg></span>
+                    <span class="step-icon contact-icon-badge contact-icon-badge--step contact-icon--step" aria-hidden="true"><svg class="contact-icon" viewBox="0 0 24 24"><use href="#icon-wallet"></use></svg></span>
                     <div><strong>选择支付方式</strong><span>微信 或 支付宝</span></div>
                 </article>
                 <article class="step-card">
-                    <span class="step-icon contact-icon-badge contact-icon--step" aria-hidden="true"><svg class="contact-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M8 7l4 5 4-5"/><path d="M12 12v6"/><path d="M9 13h6"/><path d="M9 16h6"/></svg></span>
+                    <span class="step-icon contact-icon-badge contact-icon-badge--step contact-icon--step" aria-hidden="true"><svg class="contact-icon" viewBox="0 0 24 24"><use href="#icon-coin-yuan"></use></svg></span>
                     <div><strong>支付 1 元</strong><span>完成支付金额 ¥1.00</span></div>
                 </article>
                 <article class="step-card">
-                    <span class="step-icon contact-icon-badge contact-icon--step" aria-hidden="true"><svg class="contact-icon" viewBox="0 0 24 24"><path d="M9 11V5a2 2 0 1 1 4 0v6"/><path d="M13 10l1-1a2 2 0 0 1 3 1.7V13"/><path d="M9 11l-1.5-1a2 2 0 0 0-3 1.7V13l3.5 6h7.5l2.5-6"/></svg></span>
+                    <span class="step-icon contact-icon-badge contact-icon-badge--step contact-icon--step" aria-hidden="true"><svg class="contact-icon" viewBox="0 0 24 24"><use href="#icon-click"></use></svg></span>
                     <div><strong>点击按钮</strong><span>点击“我已付款，查看联系方式”</span></div>
                 </article>
                 <article class="step-card">
-                    <span class="step-icon contact-icon-badge contact-icon--step" aria-hidden="true"><svg class="contact-icon" viewBox="0 0 24 24"><circle cx="10" cy="8" r="4"/><path d="M3 21a7 7 0 0 1 14 0"/><path d="M18 8v6"/><path d="M15 11h6"/></svg></span>
+                    <span class="step-icon contact-icon-badge contact-icon-badge--step contact-icon--step" aria-hidden="true"><svg class="contact-icon" viewBox="0 0 24 24"><use href="#icon-user-plus"></use></svg></span>
                     <div><strong>添加联系方式</strong><span>备注填写“网站解锁”</span></div>
                 </article>
             </div>
@@ -1185,14 +1333,14 @@
             </div>
 
             <div class="contact-actions">
-                <button class="unlock-button" id="unlock-contact" type="button"><svg class="contact-icon contact-icon--cta" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 4.6-2.9 8.4-7 10-4.1-1.6-7-5.4-7-10V6l7-3z"/><path d="M9 12l2 2 4-5"/></svg>我已付款，查看联系方式</button>
-                <a class="back-home" href="index.html"><svg class="contact-icon contact-icon--home" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg>返回首页 →</a>
+                <button class="unlock-button" id="unlock-contact" type="button"><svg class="contact-icon contact-icon--cta" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-check-lock"></use></svg>我已付款，查看联系方式</button>
+                <a class="back-home" href="index.html"><svg class="contact-icon contact-icon--home" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-home"></use></svg>返回首页 →</a>
             </div>
 
             <div class="trust-grid" aria-label="服务信任说明">
-                <article class="trust-card"><b class="contact-icon-badge contact-icon--trust"><svg class="contact-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 4.6-2.9 8.4-7 10-4.1-1.6-7-5.4-7-10V6l7-3z"/></svg></b><div><strong>安全可靠</strong><span>支付过程清晰</span></div></article>
-                <article class="trust-card"><b class="contact-icon-badge contact-icon--trust"><svg class="contact-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 8.6c0 5-8.8 10.4-8.8 10.4S3.2 13.6 3.2 8.6A4.7 4.7 0 0 1 12 6.3a4.7 4.7 0 0 1 8.8 2.3z"/></svg></b><div><strong>温柔陪伴</strong><span>用心交流，真诚相待</span></div></article>
-                <article class="trust-card"><b class="contact-icon-badge contact-icon--trust"><svg class="contact-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-7l-5 4v-4H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"/><path d="M9 10h6"/><path d="M9 14h4"/></svg></b><div><strong>贴心服务</strong><span>有问题找君雪</span></div></article>
+                <article class="trust-card"><b class="contact-icon-badge contact-icon--trust"><svg class="contact-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-shield"></use></svg></b><div><strong>安全可靠</strong><span>支付过程清晰</span></div></article>
+                <article class="trust-card"><b class="contact-icon-badge contact-icon--trust"><svg class="contact-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-heart"></use></svg></b><div><strong>温柔陪伴</strong><span>用心交流，真诚相待</span></div></article>
+                <article class="trust-card"><b class="contact-icon-badge contact-icon--trust"><svg class="contact-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chat"></use></svg></b><div><strong>贴心服务</strong><span>有问题找君雪</span></div></article>
             </div>
         </section>
     </div>

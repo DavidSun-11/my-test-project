@@ -1040,6 +1040,33 @@ if (backgroundVideo) {
     }
 }
 
+window.JunxueHomeEffects = Object.assign(window.JunxueHomeEffects || {}, {
+    pauseMobileVideoForLive2D() {
+        if (!isMobileViewport || !backgroundVideo) {
+            return false;
+        }
+
+        const videoSource = backgroundVideo.querySelector("source");
+        const hadVideoSource = backgroundVideo.getAttribute("src") ||
+            (videoSource && videoSource.getAttribute("src"));
+
+        backgroundVideo.pause();
+        backgroundVideo.removeAttribute("autoplay");
+        backgroundVideo.removeAttribute("loop");
+        backgroundVideo.removeAttribute("src");
+        if (videoSource) {
+            videoSource.removeAttribute("src");
+        }
+        if (hadVideoSource) {
+            backgroundVideo.load();
+        }
+
+        window.JunxueLive2DRenderInfo = window.JunxueLive2DRenderInfo || {};
+        window.JunxueLive2DRenderInfo.videoPausedForLive2D = !!hadVideoSource;
+        return !!hadVideoSource;
+    }
+});
+
 if (!isLowPerformance && !isMobileViewport && light) {
     document.addEventListener("pointermove", (e) => {
         light.style.left = e.clientX + "px";
@@ -1135,6 +1162,6 @@ document.addEventListener("click", (e) => {
         window.JunxuePerformanceMode.applyLive2DConfig(window.Live2DWidgetConfig);
     }
 </script>
-<script src="assets/live2d-loader.js?v=20260613-6" data-live2d-autoload="home"></script>
+<script src="assets/live2d-loader.js?v=20260615-mobile-static1" data-live2d-autoload="home"></script>
 </body>
 </html>

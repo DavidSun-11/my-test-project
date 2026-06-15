@@ -201,18 +201,24 @@
 
         .contact-icon-badge {
             position: relative;
-            display: grid;
-            place-items: center;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             flex: 0 0 auto;
-            border: 1px solid rgba(221, 250, 255, 0.76);
+            isolation: isolate;
+            overflow: hidden;
+            border: 1px solid rgba(225, 251, 255, 0.86);
             background:
-                radial-gradient(circle at 34% 25%, rgba(255, 255, 255, 0.78), rgba(99, 220, 255, 0.25) 42%, rgba(167, 121, 255, 0.24)),
-                linear-gradient(145deg, rgba(229, 252, 255, 0.2), rgba(74, 176, 255, 0.12));
+                radial-gradient(circle at 46% 42%, rgba(246, 254, 255, 0.9) 0 16%, rgba(125, 227, 255, 0.56) 36%, rgba(173, 136, 255, 0.36) 63%, rgba(12, 50, 104, 0.3) 100%),
+                linear-gradient(145deg, rgba(255, 255, 255, 0.36), rgba(88, 198, 255, 0.16) 48%, rgba(176, 121, 255, 0.2));
             color: #eaffff;
             box-shadow:
-                0 0 20px rgba(100, 219, 255, 0.36),
-                0 0 14px rgba(188, 132, 255, 0.18),
-                inset 0 0 16px rgba(255, 255, 255, 0.2);
+                0 0 0 1px rgba(116, 224, 255, 0.18),
+                0 10px 26px rgba(20, 98, 178, 0.24),
+                0 0 28px rgba(103, 222, 255, 0.34),
+                0 0 18px rgba(190, 138, 255, 0.22),
+                inset 0 1px 0 rgba(255, 255, 255, 0.72),
+                inset 0 -12px 24px rgba(16, 68, 132, 0.18);
         }
 
         .contact-icon-sprite {
@@ -226,27 +232,38 @@
         .contact-icon-badge::after {
             content: "";
             position: absolute;
-            inset: 7px;
-            border-radius: inherit;
             pointer-events: none;
-            opacity: 0.58;
+            z-index: 0;
         }
 
         .contact-icon-badge::before {
+            inset: 2px;
+            border-radius: inherit;
             background:
-                linear-gradient(90deg, transparent 47%, rgba(235, 253, 255, 0.42) 48% 52%, transparent 53%),
-                linear-gradient(0deg, transparent 47%, rgba(235, 253, 255, 0.42) 48% 52%, transparent 53%);
-            transform: rotate(45deg);
+                radial-gradient(circle at 26% 20%, rgba(255, 255, 255, 0.84), transparent 24%),
+                linear-gradient(135deg, rgba(255, 255, 255, 0.46), transparent 38%, rgba(31, 83, 151, 0.22) 78%, rgba(4, 21, 56, 0.26));
+            opacity: 0.86;
         }
 
         .contact-icon-badge::after {
-            border: 1px solid rgba(236, 253, 255, 0.24);
-            box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.1);
+            inset: 10px;
+            border: 1.5px solid rgba(240, 254, 255, 0.5);
+            border-radius: 13px;
+            background:
+                linear-gradient(90deg, transparent 47%, rgba(238, 253, 255, 0.3) 48% 52%, transparent 53%),
+                linear-gradient(0deg, transparent 47%, rgba(238, 253, 255, 0.28) 48% 52%, transparent 53%),
+                radial-gradient(circle, rgba(255, 255, 255, 0.12), transparent 58%);
+            clip-path: polygon(50% 0, 92% 24%, 92% 76%, 50% 100%, 8% 76%, 8% 24%);
+            opacity: 0.68;
+            box-shadow:
+                inset 0 0 12px rgba(255, 255, 255, 0.24),
+                0 0 10px rgba(128, 226, 255, 0.2);
         }
 
         .contact-icon {
+            display: block;
             position: relative;
-            z-index: 1;
+            z-index: 2;
             width: 1.25em;
             height: 1.25em;
             fill: none;
@@ -254,7 +271,10 @@
             stroke-width: 2;
             stroke-linecap: round;
             stroke-linejoin: round;
-            filter: drop-shadow(0 0 5px rgba(226, 252, 255, 0.42));
+            opacity: 0.98;
+            filter:
+                drop-shadow(0 1px 1px rgba(7, 31, 74, 0.38))
+                drop-shadow(0 0 7px rgba(226, 252, 255, 0.58));
         }
 
         .contact-icon--brand {
@@ -264,14 +284,14 @@
         }
 
         .contact-icon-badge--brand {
-            width: 42px;
-            height: 42px;
-            border-radius: 15px;
+            width: 66px;
+            height: 66px;
+            border-radius: 22px;
         }
 
         .contact-icon--brand .contact-icon {
-            width: 24px;
-            height: 24px;
+            width: 32px;
+            height: 32px;
             stroke-width: 1.8;
         }
 
@@ -296,10 +316,10 @@
         }
 
         .contact-icon-badge--feature .contact-icon {
-            width: 31px;
-            height: 31px;
+            width: 30px;
+            height: 30px;
             opacity: 0.98;
-            stroke-width: 2.2;
+            stroke-width: 2.3;
         }
 
         .contact-icon-badge--feature::after {
@@ -335,7 +355,8 @@
         .contact-icon-badge--step {
             width: 44px;
             height: 44px;
-            clip-path: polygon(50% 0, 90% 23%, 90% 77%, 50% 100%, 10% 77%, 10% 23%);
+            border-radius: 16px;
+            clip-path: none;
         }
 
         .contact-icon-badge--step .contact-icon {
@@ -367,6 +388,16 @@
         .contact-icon--trust .contact-icon {
             width: 18px;
             height: 18px;
+        }
+
+        .contact-icon-badge:hover {
+            box-shadow:
+                0 0 0 1px rgba(166, 238, 255, 0.28),
+                0 12px 30px rgba(26, 116, 204, 0.3),
+                0 0 34px rgba(118, 228, 255, 0.44),
+                0 0 22px rgba(199, 151, 255, 0.28),
+                inset 0 1px 0 rgba(255, 255, 255, 0.78),
+                inset 0 -12px 24px rgba(16, 68, 132, 0.16);
         }
 
         .brand-title {
@@ -605,19 +636,19 @@
         }
 
         .pay-box.is-wechat {
-            border-color: rgba(135, 255, 190, 0.42);
+            border-color: rgba(151, 255, 211, 0.58);
             background:
-                radial-gradient(circle at 14% 22%, rgba(87, 232, 151, 0.2), transparent 34%),
-                linear-gradient(145deg, rgba(231, 255, 247, 0.16), rgba(107, 210, 255, 0.1) 58%, rgba(158, 126, 255, 0.1)),
-                rgba(10, 38, 82, 0.52);
+                radial-gradient(circle at 14% 22%, rgba(95, 255, 176, 0.26), transparent 36%),
+                linear-gradient(145deg, rgba(235, 255, 250, 0.22), rgba(96, 222, 242, 0.15) 54%, rgba(173, 137, 255, 0.12)),
+                rgba(12, 48, 92, 0.54);
         }
 
         .pay-box.is-alipay {
-            border-color: rgba(128, 204, 255, 0.5);
+            border-color: rgba(145, 215, 255, 0.62);
             background:
-                radial-gradient(circle at 14% 22%, rgba(67, 151, 255, 0.24), transparent 35%),
-                linear-gradient(145deg, rgba(232, 250, 255, 0.16), rgba(84, 172, 255, 0.12) 58%, rgba(191, 144, 255, 0.12)),
-                rgba(10, 38, 82, 0.52);
+                radial-gradient(circle at 14% 22%, rgba(81, 164, 255, 0.3), transparent 36%),
+                linear-gradient(145deg, rgba(233, 250, 255, 0.22), rgba(93, 184, 255, 0.16) 54%, rgba(201, 151, 255, 0.15)),
+                rgba(12, 48, 92, 0.54);
         }
 
         .pay-box::before {
@@ -663,11 +694,17 @@
         }
 
         .pay-mark.wechat {
-            background: linear-gradient(135deg, rgba(49, 211, 112, 0.9), rgba(175, 255, 215, 0.5));
+            background:
+                radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.86), rgba(95, 255, 178, 0.4) 39%, rgba(39, 214, 128, 0.32) 67%, rgba(42, 123, 192, 0.24)),
+                linear-gradient(135deg, rgba(49, 224, 128, 0.95), rgba(178, 255, 221, 0.62));
+            color: #f4fff9;
         }
 
         .pay-mark.alipay {
-            background: linear-gradient(135deg, rgba(50, 146, 255, 0.92), rgba(147, 220, 255, 0.55));
+            background:
+                radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.88), rgba(109, 200, 255, 0.46) 40%, rgba(66, 142, 255, 0.34) 69%, rgba(171, 122, 255, 0.26)),
+                linear-gradient(135deg, rgba(50, 146, 255, 0.96), rgba(160, 226, 255, 0.66));
+            color: #f5fbff;
         }
 
         .pay-box h2 {
@@ -941,10 +978,15 @@
         html.performance-low .pay-box,
         html.performance-low .step-card,
         html.performance-low .notice-strip,
-        html.performance-low .trust-card {
+        html.performance-low .trust-card,
+        html.performance-low .contact-icon-badge {
             box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.04);
             -webkit-backdrop-filter: none;
             backdrop-filter: none;
+        }
+
+        html.performance-low .contact-icon {
+            filter: drop-shadow(0 0 3px rgba(226, 252, 255, 0.35));
         }
 
         @keyframes driftStars {
@@ -1042,26 +1084,62 @@
             }
 
             .brand-mark {
-                width: 36px;
-                height: 36px;
+                width: 42px;
+                height: 42px;
                 border-radius: 13px;
                 font-size: 20px;
             }
 
+            .contact-icon-badge--brand,
             .contact-icon--brand {
-                width: 36px;
-                height: 36px;
+                width: 42px;
+                height: 42px;
+                border-radius: 15px;
             }
 
-            .contact-icon--value,
+            .contact-icon-badge--brand .contact-icon {
+                width: 23px;
+                height: 23px;
+            }
+
+            .contact-icon-badge--feature,
+            .contact-icon--value {
+                width: 54px;
+                height: 54px;
+                border-radius: 19px;
+            }
+
+            .contact-icon-badge--feature .contact-icon {
+                width: 27px;
+                height: 27px;
+            }
+
+            .contact-icon-badge--step,
             .contact-icon--step {
-                width: 38px;
-                height: 38px;
+                width: 40px;
+                height: 40px;
+                border-radius: 14px;
             }
 
+            .contact-icon-badge--step .contact-icon {
+                width: 21px;
+                height: 21px;
+            }
+
+            .contact-icon-badge--payment,
             .contact-icon--payment {
-                width: 36px;
-                height: 36px;
+                width: 44px;
+                height: 44px;
+                border-radius: 16px;
+            }
+
+            .contact-icon-badge--payment .contact-icon {
+                width: 25px;
+                height: 25px;
+            }
+
+            .contact-icon-badge::after {
+                inset: 8px;
             }
 
             .brand-title {

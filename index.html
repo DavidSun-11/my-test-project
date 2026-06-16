@@ -1048,7 +1048,9 @@ console.info("[JunxuePerformance]", {
     performanceMode: pagePerformance ? pagePerformance.resolvedMode : "unknown",
     isMobile: isMobileViewport,
     shouldLoadVideo: shouldLoadBackgroundVideo,
-    live2dAutoload: "home"
+    live2dAutoload: "home",
+    staticGanyuFallback: isMobileViewport,
+    dynamicLive2DInitialAttempt: false
 });
 
 if (backgroundVideo) {
@@ -1063,10 +1065,10 @@ if (backgroundVideo) {
             backgroundVideo.load();
         }
         backgroundVideo.addEventListener("error", () => {
-            showHomeVideoStatus("手机网络有点慢，星空背景暂时没有加载出来。");
+            showHomeVideoStatus("星空背景加载失败，已为你保留静态背景。");
         }, { once: true });
         backgroundVideo.play().catch(() => {
-            showHomeVideoStatus("手机网络有点慢，星空背景暂时没有加载出来。");
+            showHomeVideoStatus("星空背景加载失败，已为你保留静态背景。");
         });
     } else {
         const hadVideoSource = backgroundVideo.getAttribute("src") ||

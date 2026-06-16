@@ -14,7 +14,9 @@
         window.enableGanyuIdleTalk = true;
     }
 
-    const SUPABASE_CDN = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
+    const SUPABASE_LOCAL_SDK = "assets/vendor/supabase-js-2.min.js?v=20260616-1";
+    const SUPABASE_CDN = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.108.2/dist/umd/supabase.min.js";
+    const SUPABASE_SDK_LOAD_ERROR_TEXT = "老板评价功能加载失败，可能是网络暂时不稳定，请稍后再试。";
 
     const quizBank = [
         {
@@ -1235,6 +1237,28 @@
             });
         }
 
+        async function loadSupabaseSdk() {
+            if (window.supabase && typeof window.supabase.createClient === "function") {
+                return;
+            }
+
+            try {
+                await loadExternalScript(SUPABASE_LOCAL_SDK);
+            } catch (localError) {
+                console.warn("[JunxueBossReviews] local Supabase SDK load failed, falling back to jsdelivr.", localError);
+                try {
+                    await loadExternalScript(SUPABASE_CDN);
+                } catch (cdnError) {
+                    console.error("[JunxueBossReviews] Supabase SDK load failed.", cdnError);
+                    throw new Error(SUPABASE_SDK_LOAD_ERROR_TEXT);
+                }
+            }
+
+            if (!window.supabase || typeof window.supabase.createClient !== "function") {
+                throw new Error(SUPABASE_SDK_LOAD_ERROR_TEXT);
+            }
+        }
+
         async function ensureBossRegisterClient() {
             await loadExternalScript("assets/supabase-config.js?v=20260611-1").catch(function () {});
 
@@ -1242,7 +1266,7 @@
                 throw new Error("老板账号注册暂未配置，请稍后再试。");
             }
 
-            await loadExternalScript(SUPABASE_CDN);
+            await loadSupabaseSdk();
             return window.supabase.createClient(
                 getSupabaseConfigValue("SUPABASE_URL"),
                 getSupabaseConfigValue("SUPABASE_ANON_KEY")
@@ -1337,7 +1361,7 @@
 
         async function ensureBossReviewsApi() {
             await loadExternalScript("assets/supabase-config.js?v=20260611-1").catch(function () {});
-            await loadExternalScript("assets/price-reviews.js?v=20260612-4");
+            await loadExternalScript("assets/price-reviews.js?v=20260616-1");
 
             if (!window.JunxueBossReviews) {
                 throw new Error("老板评价系统暂未配置，请稍后再来～");
@@ -2289,7 +2313,7 @@
             meta.textContent = "咨询 · 听歌";
             question.innerHTML = '<span class="live2d-music-title">♪ 听歌</span><span class="live2d-music-subtitle">甘雨想和你分享一些音乐呢～</span>';
             renderMusicPlayerContent();
-            result.textContent = lastSongTitle ? "上次听到的是《" + lastSongTitle + "》，还想继续吗？" : "需要你点播放，甘雨才会开始放歌。";
+            result.textContent = lastSongTitle ? "上次听到的是《" + lastSongTitle + "》，还想继续吗？歌曲文件较大，首次播放可能需要等待几秒。" : "需要你点播放，甘雨才会开始放歌。歌曲文件较大，首次播放可能需要等待几秒。";
             result.className = "live2d-quiz__result is-neutral";
             showDialog();
         }

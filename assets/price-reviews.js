@@ -2,7 +2,9 @@
     const CONFIG_MISSING_TEXT = "老板评价系统暂未配置，请稍后再来～";
     const REVIEW_EMPTY_TEXT = "这里还没有老板留下评价哦～";
     const INTERACTION_LOAD_ERROR_TEXT = "暂时加载失败";
-    const SUPABASE_CDN = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
+    const SUPABASE_LOCAL_SDK = "assets/vendor/supabase-js-2.min.js?v=20260616-1";
+    const SUPABASE_CDN = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.108.2/dist/umd/supabase.min.js";
+    const SUPABASE_SDK_LOAD_ERROR_TEXT = "老板评价功能加载失败，可能是网络暂时不稳定，请稍后再试。";
     const VALID_SERVICE_TYPES = ["王者荣耀", "永劫无间", "语音聊天", "其它"];
 
     const reviewStatus = document.getElementById("price-review-status");
@@ -57,6 +59,10 @@
 
     function isConfigMissingError(error) {
         return !!error && error.message === CONFIG_MISSING_TEXT;
+    }
+
+    function isSdkLoadError(error) {
+        return !!error && error.message === SUPABASE_SDK_LOAD_ERROR_TEXT;
     }
 
     function escapeHtml(value) {
@@ -130,6 +136,28 @@
         });
     }
 
+    async function loadSupabaseSdk() {
+        if (window.supabase && typeof window.supabase.createClient === "function") {
+            return;
+        }
+
+        try {
+            await loadScript(SUPABASE_LOCAL_SDK);
+        } catch (localError) {
+            console.warn("[JunxueBossReviews] local Supabase SDK load failed, falling back to jsdelivr.", localError);
+            try {
+                await loadScript(SUPABASE_CDN);
+            } catch (cdnError) {
+                console.error("[JunxueBossReviews] Supabase SDK load failed.", cdnError);
+                throw new Error(SUPABASE_SDK_LOAD_ERROR_TEXT);
+            }
+        }
+
+        if (!window.supabase || typeof window.supabase.createClient !== "function") {
+            throw new Error(SUPABASE_SDK_LOAD_ERROR_TEXT);
+        }
+    }
+
     async function ensureClient() {
         await loadScript("assets/supabase-config.js?v=20260611-1").catch(function () {});
 
@@ -138,7 +166,7 @@
         }
 
         if (!client) {
-            await loadScript(SUPABASE_CDN);
+            await loadSupabaseSdk();
             client = window.supabase.createClient(getConfigValue("SUPABASE_URL"), getConfigValue("SUPABASE_ANON_KEY"));
             client.auth.onAuthStateChange(function (event, session) {
                 currentUser = session ? session.user : null;
@@ -522,7 +550,7 @@
                     reviewList.innerHTML = '<div class="price-empty">' + CONFIG_MISSING_TEXT + '</div>';
                 } else {
                     logSupabaseError("boss_reviews load failed", error);
-                    const message = "老板评价加载失败：" + (error.message || "请稍后再试");
+                    const message = isSdkLoadError(error) ? SUPABASE_SDK_LOAD_ERROR_TEXT : "老板评价加载失败：" + (error.message || "请稍后再试");
 
                     setStatus(reviewStatus, message, "warning");
                     reviewList.innerHTML = '<div class="price-empty">' + escapeHtml(message) + '</div>';

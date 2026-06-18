@@ -12,6 +12,10 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --price-anchor-offset: 110px;
+        }
+
         html {
             overflow-x: hidden;
         }
@@ -244,6 +248,7 @@
         }
 
         .price-topbar-nav a:hover,
+        .price-topbar-nav a.is-active,
         .price-topbar-home:hover {
             background: rgba(255, 255, 255, 0.38);
             color: #1551a5;
@@ -270,6 +275,10 @@
                 inset 0 -28px 58px rgba(94, 183, 255, 0.12);
             -webkit-backdrop-filter: blur(18px) saturate(142%);
             backdrop-filter: blur(18px) saturate(142%);
+        }
+
+        .price-anchor-target {
+            scroll-margin-top: var(--price-anchor-offset);
         }
 
         .price-hero {
@@ -1313,6 +1322,10 @@
         }
 
         @media (max-width: 768px) {
+            :root {
+                --price-anchor-offset: 86px;
+            }
+
             .cursor-light,
             .ripple,
             .meteor-layer,
@@ -1352,15 +1365,29 @@
             .price-topbar-nav {
                 grid-column: 1 / -1;
                 order: 3;
+                display: flex;
+                flex-wrap: nowrap;
                 justify-content: flex-start;
                 gap: 4px 6px;
+                min-width: 0;
+                max-width: 100%;
+                overflow-x: auto;
+                overflow-y: hidden;
+                padding: 2px 2px 4px;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+            }
+
+            .price-topbar-nav::-webkit-scrollbar {
+                display: none;
             }
 
             .price-topbar-nav a,
             .price-topbar-home {
-                min-height: 28px;
-                padding: 0 9px;
+                min-height: 40px;
+                padding: 0 12px;
                 font-size: 12px;
+                flex: 0 0 auto;
             }
 
             .price-hero {
@@ -1542,7 +1569,7 @@
             }
 
             .price-topbar-nav {
-                display: none;
+                display: flex;
             }
 
             .price-hero-character {
@@ -1559,7 +1586,7 @@
 <div class="stars stars3"></div>
 <div class="meteor-layer" aria-hidden="true"></div>
 
-<main class="price-page" id="top">
+<main class="price-page price-anchor-target" id="top">
     <nav class="price-topbar" aria-label="收费咨询导航">
         <div class="price-topbar-brand">君雪陪玩服务台</div>
         <div class="price-topbar-nav">
@@ -1607,7 +1634,7 @@
         </div>
     </section>
 
-    <section class="price-grid price-service-grid" id="service-prices" aria-label="陪玩收费内容">
+    <section class="price-grid price-service-grid price-anchor-target" id="service-prices" aria-label="陪玩收费内容">
         <article class="price-card is-service">
             <div class="price-section-head">
                 <div class="price-section-kicker">普通陪玩 / 包赢补星 / 复盘服务</div>
@@ -1684,7 +1711,7 @@
         </article>
     </section>
 
-    <section class="price-card is-review" id="boss-reviews" aria-labelledby="review-title">
+    <section class="price-card is-review price-anchor-target" id="boss-reviews" aria-labelledby="review-title">
         <div class="price-review-heading">
             <div>
                 <h2 id="review-title">老板评价墙</h2>
@@ -1794,6 +1821,45 @@ document.addEventListener("click", function (event) {
     }
 
     scheduleNextMeteor();
+})();
+</script>
+<script>
+(function initPriceAnchorNav() {
+    const nav = document.querySelector(".price-topbar-nav");
+
+    if (!nav) {
+        return;
+    }
+
+    const links = Array.prototype.slice.call(nav.querySelectorAll('a[href^="#"]'));
+
+    function setActiveLink(activeLink) {
+        links.forEach(function (link) {
+            link.classList.toggle("is-active", link === activeLink);
+        });
+    }
+
+    links.forEach(function (link) {
+        link.addEventListener("click", function (event) {
+            const hash = link.getAttribute("href");
+            const target = hash && hash.length > 1 ? document.querySelector(hash) : null;
+
+            if (!target) {
+                return;
+            }
+
+            event.preventDefault();
+            setActiveLink(link);
+            target.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+
+            if (window.history && typeof window.history.replaceState === "function") {
+                window.history.replaceState(null, "", hash);
+            }
+        });
+    });
 })();
 </script>
 <script>

@@ -513,7 +513,34 @@
             ".score-guess-actions .score-guess-action--primary{border-color:rgba(191,243,255,.82);background:linear-gradient(135deg,rgba(75,202,255,.78),rgba(160,112,255,.72));box-shadow:0 0 18px rgba(98,210,255,.28);}",
             ".score-guess-actions .score-guess-action--danger{border-color:rgba(255,198,216,.82);background:linear-gradient(135deg,rgba(245,105,156,.68),rgba(132,94,220,.68));}",
             ".score-guess-actions .score-guess-action--soft{background:rgba(32,65,104,.58);}",
-            "@media (max-width:768px){.live2d-quiz.is-main-menu .live2d-quiz__menu,.score-guess-grid,.score-guess-status,.score-guess-actions{grid-template-columns:1fr;}.live2d-menu-title,.score-guess-title{font-size:18px;}.live2d-menu-user,.score-guess-account,.score-guess-pill{font-size:11px;}.score-guess-option{min-height:70px;padding-left:44px!important;}.score-guess-option::before{left:13px;top:15px;width:20px;height:20px;}}",
+            ".live2d-quiz.is-score-guess{background:radial-gradient(circle at 18% 0%,rgba(129,224,255,.34),transparent 34%),radial-gradient(circle at 94% 8%,rgba(209,160,255,.24),transparent 34%),linear-gradient(150deg,rgba(14,35,67,.94),rgba(27,61,101,.86) 48%,rgba(39,44,92,.88));box-shadow:0 20px 56px rgba(1,14,38,.58),0 0 40px rgba(94,207,255,.28),0 0 26px rgba(169,117,255,.18),inset 0 1px 0 rgba(255,255,255,.28),inset 0 -24px 44px rgba(93,74,184,.16);}",
+            ".live2d-quiz.is-score-guess::after{content:\"\";position:absolute;right:20px;bottom:18px;width:86px;height:86px;border-radius:28px;background:linear-gradient(135deg,rgba(206,246,255,.12),rgba(168,129,255,.08));box-shadow:inset 0 0 0 1px rgba(215,247,255,.2);transform:rotate(12deg);pointer-events:none;}",
+            ".score-guess-panel{display:grid!important;grid-template-columns:1fr!important;gap:12px!important;}",
+            ".score-guess-panel__header{position:relative;display:grid;grid-template-columns:1fr auto;gap:8px 12px;align-items:start;padding:14px 16px;border:1px solid rgba(172,232,255,.42);border-radius:18px;background:linear-gradient(145deg,rgba(255,255,255,.1),rgba(108,196,255,.1));box-shadow:inset 0 1px 0 rgba(255,255,255,.22);}",
+            ".score-guess-panel__header::before{content:\"\";position:absolute;left:18px;right:18px;top:0;height:1px;background:linear-gradient(90deg,transparent,rgba(224,250,255,.8),transparent);}",
+            ".score-guess-panel__heading{display:grid;gap:7px;min-width:0;}",
+            ".score-guess-panel__badge{width:max-content;padding:4px 10px;border-radius:999px;border:1px solid rgba(181,236,255,.6);background:rgba(92,201,255,.17);color:rgba(211,243,255,.96);font-size:12px;font-weight:750;}",
+            ".score-guess-panel__state{justify-self:end;align-self:start;white-space:nowrap;padding:6px 11px;border-radius:999px;border:1px solid rgba(196,236,255,.58);background:linear-gradient(90deg,rgba(78,192,255,.24),rgba(184,139,255,.2));color:rgba(238,252,255,.96);font-size:12px;font-weight:850;box-shadow:0 0 16px rgba(100,211,255,.16);}",
+            ".score-guess-panel__title{font-size:22px;font-weight:900;color:rgba(244,252,255,.98);text-shadow:0 0 18px rgba(111,218,255,.32);line-height:1.12;}",
+            ".score-guess-panel__subtitle{color:rgba(214,237,255,.88);font-size:13px;line-height:1.55;}",
+            ".score-guess-panel__meta{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;padding:11px;border:1px solid rgba(158,222,255,.42);border-radius:17px;background:linear-gradient(145deg,rgba(8,30,58,.38),rgba(96,174,232,.12));}",
+            ".score-guess-panel__meta-item{min-width:0;padding:10px 11px;border-radius:13px;background:rgba(255,255,255,.075);box-shadow:inset 0 1px 0 rgba(255,255,255,.14);}",
+            ".score-guess-panel__meta-label{display:block;margin-bottom:4px;color:rgba(179,222,242,.82);font-size:11px;}",
+            ".score-guess-panel__meta-value{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:rgba(242,252,255,.98);font-size:13px;font-weight:850;}",
+            ".score-guess-panel__options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;}",
+            ".score-guess-panel__options .score-guess-option--wide{grid-column:1/-1;}",
+            ".score-guess-option{min-height:92px;padding:15px 14px 13px 54px!important;background:radial-gradient(circle at 95% 18%,rgba(255,255,255,.12),transparent 34%),linear-gradient(145deg,rgba(255,255,255,.1),rgba(70,135,190,.12))!important;border:1px solid rgba(165,228,255,.46)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 12px 22px rgba(0,12,38,.18)!important;}",
+            ".score-guess-option::before{left:16px;top:17px;width:26px;height:26px;}",
+            ".score-guess-option .score-guess-option__name{font-size:17px;line-height:1.2;}",
+            ".score-guess-option .score-guess-option__count{margin-top:7px;font-size:12px;}",
+            ".score-guess-option .score-guess-option__mark{position:absolute;right:12px;top:11px;margin:0;}",
+            ".score-guess-option:hover:not(:disabled){border-color:rgba(221,250,255,.88)!important;box-shadow:0 0 22px rgba(105,217,255,.25),inset 0 1px 0 rgba(255,255,255,.25)!important;}",
+            ".score-guess-option:disabled{cursor:default;}",
+            ".score-guess-panel__actions{display:flex;flex-wrap:wrap;gap:9px;justify-content:flex-end;padding:11px;border:1px solid rgba(154,217,255,.34);border-radius:16px;background:linear-gradient(145deg,rgba(255,255,255,.07),rgba(90,165,224,.1));}",
+            ".score-guess-panel__actions .live2d-quiz__option{width:auto;min-width:132px;min-height:42px;padding:10px 14px;border-radius:999px;}",
+            ".score-guess-panel__actions .score-guess-action--soft:last-child{opacity:.82;}",
+            ".score-guess-panel__footer-note{padding:10px 12px;border:1px solid rgba(169,226,255,.34);border-radius:14px;background:rgba(11,31,59,.36);color:rgba(220,240,255,.88);font-size:12px;line-height:1.5;}",
+            "@media (max-width:768px){.live2d-quiz.is-main-menu .live2d-quiz__menu,.score-guess-grid,.score-guess-status,.score-guess-actions{grid-template-columns:1fr;}.live2d-menu-title,.score-guess-title{font-size:18px;}.live2d-menu-user,.score-guess-account,.score-guess-pill{font-size:11px;}.score-guess-option{min-height:70px;padding-left:44px!important;}.score-guess-option::before{left:13px;top:15px;width:20px;height:20px;}.score-guess-panel__header{grid-template-columns:1fr;}.score-guess-panel__state{justify-self:start;}.score-guess-panel__meta{grid-template-columns:1fr;}.score-guess-panel__options{grid-template-columns:1fr;}.score-guess-panel__actions{display:grid;grid-template-columns:1fr;}.score-guess-panel__actions .live2d-quiz__option{width:100%;min-width:0;}.score-guess-panel__title{font-size:20px;}}",
             "html.performance-low .live2d-quiz.is-main-menu,html.performance-low .live2d-quiz.is-score-guess{box-shadow:0 12px 28px rgba(3,18,42,.38),inset 0 1px 0 rgba(255,255,255,.18);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);}",
             "@media (max-width:768px){.live2d-opening-bubble,.live2d-quiz-exit-bubble,.live2d-idle-bubble{width:min(92vw,320px);max-width:calc(100vw - 24px);font-size:13px;box-sizing:border-box;}body.keyboard-open .live2d-opening-bubble,body.keyboard-open .live2d-quiz-exit-bubble,body.keyboard-open .live2d-idle-bubble{left:50%!important;right:auto!important;top:max(12px,env(safe-area-inset-top))!important;bottom:auto!important;width:min(92vw,320px)!important;max-width:calc(100vw - 24px)!important;max-height:min(54vh,320px);overflow:auto;transform:translateX(-50%)!important;}}"
         ].join("");
@@ -959,7 +986,7 @@
             } else if (dialog.classList.contains("is-boss-auth")) {
                 width = 660;
             } else if (dialog.classList.contains("is-score-guess")) {
-                width = 520;
+                width = 620;
             } else if (dialog.classList.contains("is-fortune") || dialog.classList.contains("is-memory")) {
                 width = 440;
             }
@@ -1725,27 +1752,38 @@
 
             meta.textContent = "直播互动";
             question.innerHTML = [
-                '<div class="score-guess-header">',
-                    '<div class="score-guess-kicker">直播互动</div>',
-                    '<div class="score-guess-title">评分竞猜</div>',
-                    '<div class="score-guess-subtitle">猜猜这局最后会是什么评分？</div>',
-                    '<div class="score-guess-pill">' + escapeHtml(statusLabel) + '</div>',
-                    '<div class="score-guess-account">当前账号：' + escapeHtml(accountLabel) + '</div>',
+                '<div class="score-guess-panel__header">',
+                    '<div class="score-guess-panel__heading">',
+                        '<div class="score-guess-panel__badge">直播互动</div>',
+                        '<div class="score-guess-panel__title">评分竞猜</div>',
+                        '<div class="score-guess-panel__subtitle">猜猜这局最后会是什么评分？</div>',
+                    '</div>',
+                    '<div class="score-guess-panel__state">' + escapeHtml(statusLabel) + '</div>',
                 '</div>'
             ].join("");
 
             options.className = "live2d-quiz__options score-guess-panel";
             options.innerHTML = [
-                '<div class="score-guess-status">',
-                    '<div class="score-guess-status__item">当前状态：' + escapeHtml(statusText) + '</div>',
-                    '<div class="score-guess-status__item">你当前选择：' + escapeHtml(choiceLabel) + '</div>',
+                '<div class="score-guess-panel__meta">',
+                    '<div class="score-guess-panel__meta-item">',
+                        '<span class="score-guess-panel__meta-label">当前账号</span>',
+                        '<span class="score-guess-panel__meta-value">' + escapeHtml(accountLabel) + '</span>',
+                    '</div>',
+                    '<div class="score-guess-panel__meta-item">',
+                        '<span class="score-guess-panel__meta-label">当前状态</span>',
+                        '<span class="score-guess-panel__meta-value">' + escapeHtml(statusText) + '</span>',
+                    '</div>',
+                    '<div class="score-guess-panel__meta-item">',
+                        '<span class="score-guess-panel__meta-label">你当前选择</span>',
+                        '<span class="score-guess-panel__meta-value">' + escapeHtml(choiceLabel) + '</span>',
+                    '</div>',
                 '</div>',
-                '<div class="score-guess-grid">'
+                '<div class="score-guess-panel__options">'
             ].join("") + SCORE_GUESS_CHOICES.map(function (choice) {
                 const selected = userChoice === choice;
                 const tone = getScoreGuessChoiceTone(choice);
                 return [
-                    '<button class="live2d-consult-card live2d-score-guess-choice score-guess-option score-guess-option--' + tone + (selected ? ' is-selected' : '') + '" type="button" data-score-choice="' + escapeHtml(choice) + '"' + (canVote ? "" : " disabled") + '>',
+                    '<button class="live2d-consult-card live2d-score-guess-choice score-guess-option score-guess-option--' + tone + (choice === "无" ? ' score-guess-option--wide' : '') + (selected ? ' is-selected' : '') + '" type="button" data-score-choice="' + escapeHtml(choice) + '"' + (canVote ? "" : " disabled") + '>',
                         '<span class="score-guess-option__name">' + escapeHtml(choice) + '</span>',
                         '<span class="score-guess-option__count">' + counts[choice] + ' 人选择</span>',
                         selected ? '<span class="score-guess-option__mark">已选择</span>' : '',
@@ -1754,13 +1792,14 @@
             }).join("") + '</div>';
 
             options.innerHTML += [
-                '<div class="live2d-weather-actions live2d-score-guess-actions score-guess-actions">',
+                '<div class="live2d-weather-actions live2d-score-guess-actions score-guess-actions score-guess-panel__actions">',
                     !currentUserId ? '<button class="live2d-quiz__option score-guess-action score-guess-action--primary" type="button" data-score-action="login">登录 / 注册老板账号</button>' : '',
                     state.isAdmin && !isOpen ? '<button class="live2d-quiz__option score-guess-action score-guess-action--primary" type="button" data-score-action="start">开启评分竞猜</button>' : '',
                     state.isAdmin && isOpen ? '<button class="live2d-quiz__option score-guess-action score-guess-action--danger" type="button" data-score-action="end">结束竞猜</button>' : '',
                     '<button class="live2d-quiz__option score-guess-action score-guess-action--soft" type="button" data-score-action="refresh">刷新结果</button>',
                     '<button class="live2d-quiz__option score-guess-action score-guess-action--soft" type="button" data-score-action="back">返回直播互动</button>',
-                '</div>'
+                '</div>',
+                '<div class="score-guess-panel__footer-note">投票结果会同步给所有观众；竞猜结束后只展示结果，不能再修改选择。</div>'
             ].join("");
 
             if (message) {
@@ -1851,12 +1890,13 @@
             dialog.classList.add("is-score-guess");
             meta.textContent = "评分竞猜";
             question.innerHTML = [
-                '<div class="score-guess-header">',
-                    '<div class="score-guess-kicker">直播互动</div>',
-                    '<div class="score-guess-title">评分竞猜</div>',
-                    '<div class="score-guess-subtitle">猜猜这局最后会是什么评分？</div>',
-                    '<div class="score-guess-pill">正在读取</div>',
-                    '<div class="score-guess-account">当前账号：未登录</div>',
+                '<div class="score-guess-panel__header">',
+                    '<div class="score-guess-panel__heading">',
+                        '<div class="score-guess-panel__badge">直播互动</div>',
+                        '<div class="score-guess-panel__title">评分竞猜</div>',
+                        '<div class="score-guess-panel__subtitle">猜猜这局最后会是什么评分？</div>',
+                    '</div>',
+                    '<div class="score-guess-panel__state">正在读取</div>',
                 '</div>'
             ].join("");
             options.innerHTML = '<div class="live2d-quiz__loading">正在读取评分竞猜…</div>';

@@ -377,6 +377,25 @@
         });
     }
 
+    function getDisplayNameFromAuthUser(user) {
+        if (!user) {
+            return "未登录";
+        }
+
+        const metadata = user.user_metadata || {};
+        const name = metadata.nickname || metadata.display_name || metadata.full_name || metadata.name;
+
+        if (typeof name === "string" && name.trim()) {
+            return name.trim();
+        }
+
+        if (typeof user.email === "string" && user.email.indexOf("@") > 0) {
+            return user.email.split("@")[0] || "已登录";
+        }
+
+        return "已登录";
+    }
+
     function formatTemperature(value) {
         return Number.isFinite(value) ? Math.round(value) + "°C" : "--";
     }
@@ -459,6 +478,43 @@
             ".live2d-idle-bubble{position:fixed;left:252px;top:160px;z-index:62;width:min(318px,calc(100vw - 32px));padding:12px 14px;border:1px solid rgba(213,244,255,.78);border-radius:16px;background:linear-gradient(145deg,rgba(255,182,220,.72),rgba(132,221,255,.58));box-shadow:0 0 20px rgba(126,219,255,.26),0 0 16px rgba(255,142,196,.22),inset 0 0 14px rgba(255,255,255,.14);backdrop-filter:blur(10px);color:rgba(48,32,72,.96);font-size:14px;line-height:1.55;letter-spacing:0;pointer-events:none;opacity:0;transform:translateY(8px);transition:opacity .35s ease,transform .35s ease;}",
             ".live2d-idle-bubble.is-open{opacity:1;transform:translateY(0);}",
             ".live2d-idle-bubble.is-fading{opacity:0;transform:translateY(-6px);}",
+            ".live2d-quiz.is-main-menu,.live2d-quiz.is-score-guess{border:1px solid rgba(173,234,255,.72);border-radius:22px;background:radial-gradient(circle at 18% 0%,rgba(128,221,255,.26),transparent 38%),radial-gradient(circle at 88% 14%,rgba(213,170,255,.18),transparent 36%),linear-gradient(145deg,rgba(16,39,68,.9),rgba(24,57,90,.78) 52%,rgba(31,42,84,.82));box-shadow:0 18px 46px rgba(3,18,42,.48),0 0 30px rgba(93,204,255,.24),inset 0 1px 0 rgba(255,255,255,.24),inset 0 -18px 34px rgba(123,94,220,.14);-webkit-backdrop-filter:blur(18px) saturate(1.18);backdrop-filter:blur(18px) saturate(1.18);}",
+            ".live2d-quiz.is-main-menu::before,.live2d-quiz.is-score-guess::before{content:\"\";position:absolute;left:18px;right:52px;top:10px;height:1px;background:linear-gradient(90deg,transparent,rgba(202,246,255,.78),rgba(213,178,255,.46),transparent);pointer-events:none;}",
+            ".live2d-quiz.is-main-menu .live2d-quiz__close,.live2d-quiz.is-score-guess .live2d-quiz__close{width:30px;height:30px;border-radius:999px;border:1px solid rgba(207,242,255,.72);background:rgba(9,28,54,.56);box-shadow:0 0 16px rgba(109,218,255,.22),inset 0 0 10px rgba(255,255,255,.12);color:rgba(235,250,255,.98);}",
+            ".live2d-quiz.is-main-menu .live2d-quiz__close:hover,.live2d-quiz.is-score-guess .live2d-quiz__close:hover{background:rgba(72,160,218,.5);box-shadow:0 0 22px rgba(121,223,255,.36);}",
+            ".live2d-menu-header,.score-guess-header{display:grid;gap:8px;}",
+            ".live2d-menu-title,.score-guess-title{font-size:20px;font-weight:800;color:rgba(237,250,255,.98);text-shadow:0 0 16px rgba(102,213,255,.32);letter-spacing:0;}",
+            ".live2d-menu-user,.score-guess-account{display:inline-flex;align-items:center;width:max-content;max-width:100%;padding:5px 10px;border:1px solid rgba(179,234,255,.52);border-radius:999px;background:linear-gradient(90deg,rgba(87,185,230,.18),rgba(184,145,255,.16));color:rgba(218,244,255,.92);font-size:12px;line-height:1.35;}",
+            ".live2d-quiz.is-main-menu .live2d-quiz__menu{grid-template-columns:1fr 1fr;gap:10px;}",
+            ".live2d-quiz.is-main-menu .live2d-quiz__option{position:relative;min-height:50px;justify-content:flex-start;padding:12px 14px 12px 40px;border:1px solid rgba(171,232,255,.55);border-radius:16px;background:linear-gradient(145deg,rgba(33,77,116,.66),rgba(28,48,92,.55));box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 8px 20px rgba(0,16,44,.2);font-weight:750;color:rgba(235,250,255,.98);}",
+            ".live2d-quiz.is-main-menu .live2d-quiz__option::before{content:attr(data-menu-icon);position:absolute;left:13px;top:50%;transform:translateY(-50%);width:18px;height:18px;display:grid;place-items:center;border-radius:50%;background:radial-gradient(circle,rgba(206,250,255,.72),rgba(103,199,255,.28));box-shadow:0 0 14px rgba(133,221,255,.34);font-size:12px;color:#fff;}",
+            ".live2d-quiz.is-main-menu .live2d-quiz__option:hover:not(:disabled){border-color:rgba(220,249,255,.88);background:linear-gradient(145deg,rgba(54,111,156,.78),rgba(55,68,130,.7));box-shadow:0 0 22px rgba(102,213,255,.26),inset 0 1px 0 rgba(255,255,255,.3);}",
+            ".score-guess-header{padding:2px 0 4px;}",
+            ".score-guess-kicker{width:max-content;padding:4px 10px;border:1px solid rgba(180,235,255,.56);border-radius:999px;background:rgba(103,202,255,.16);color:rgba(199,239,255,.96);font-size:12px;font-weight:700;}",
+            ".score-guess-subtitle{color:rgba(218,237,255,.86);font-size:13px;line-height:1.55;}",
+            ".score-guess-pill{display:inline-flex;width:max-content;padding:5px 10px;border-radius:999px;border:1px solid rgba(185,231,255,.52);background:linear-gradient(90deg,rgba(78,192,255,.22),rgba(184,139,255,.18));color:rgba(235,250,255,.94);font-size:12px;font-weight:750;}",
+            ".score-guess-status{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:2px;}",
+            ".score-guess-status__item{padding:9px 10px;border:1px solid rgba(164,223,255,.42);border-radius:14px;background:linear-gradient(145deg,rgba(255,255,255,.09),rgba(91,173,233,.12));color:rgba(224,244,255,.92);font-size:12px;line-height:1.45;}",
+            ".score-guess-grid{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}",
+            ".score-guess-option{position:relative;min-height:78px;text-align:left;overflow:hidden;border-radius:17px!important;padding:13px 13px 12px 48px!important;}",
+            ".score-guess-option::before{content:\"\";position:absolute;left:14px;top:16px;width:22px;height:22px;border-radius:999px;background:var(--score-dot,rgba(170,216,255,.62));box-shadow:0 0 18px var(--score-glow,rgba(139,218,255,.38));}",
+            ".score-guess-option::after{content:\"\";position:absolute;right:-18px;bottom:-22px;width:72px;height:72px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.16),transparent 64%);pointer-events:none;}",
+            ".score-guess-option--bronze{--score-dot:linear-gradient(135deg,#ffe0ae,#b87835);--score-glow:rgba(225,147,65,.42);}",
+            ".score-guess-option--silver{--score-dot:linear-gradient(135deg,#ffffff,#9fc2da);--score-glow:rgba(212,239,255,.46);}",
+            ".score-guess-option--gold{--score-dot:linear-gradient(135deg,#fff7a8,#f0b332);--score-glow:rgba(255,210,68,.5);}",
+            ".score-guess-option--top{--score-dot:radial-gradient(circle,#fff,#b891ff 45%,#64d6ff);--score-glow:rgba(188,137,255,.5);}",
+            ".score-guess-option--none{--score-dot:linear-gradient(135deg,#c8d4e8,#6681a9);--score-glow:rgba(132,161,204,.36);}",
+            ".score-guess-option .score-guess-option__name{display:block;color:rgba(245,252,255,.98);font-size:16px;font-weight:850;}",
+            ".score-guess-option .score-guess-option__count{display:block;margin-top:5px;color:rgba(202,229,245,.86);font-size:12px;}",
+            ".score-guess-option .score-guess-option__mark{display:inline-flex;margin-top:8px;padding:3px 8px;border-radius:999px;background:rgba(125,229,255,.18);border:1px solid rgba(181,243,255,.62);color:rgba(234,252,255,.98);font-size:11px;font-weight:800;}",
+            ".score-guess-option.is-selected{border-color:rgba(224,250,255,.94)!important;background:linear-gradient(145deg,rgba(74,151,204,.82),rgba(95,70,158,.72))!important;box-shadow:0 0 26px rgba(112,221,255,.36),inset 0 0 18px rgba(255,255,255,.13)!important;}",
+            ".score-guess-actions{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:2px;}",
+            ".score-guess-actions .live2d-quiz__option{min-height:42px;border-radius:13px;}",
+            ".score-guess-actions .score-guess-action--primary{border-color:rgba(191,243,255,.82);background:linear-gradient(135deg,rgba(75,202,255,.78),rgba(160,112,255,.72));box-shadow:0 0 18px rgba(98,210,255,.28);}",
+            ".score-guess-actions .score-guess-action--danger{border-color:rgba(255,198,216,.82);background:linear-gradient(135deg,rgba(245,105,156,.68),rgba(132,94,220,.68));}",
+            ".score-guess-actions .score-guess-action--soft{background:rgba(32,65,104,.58);}",
+            "@media (max-width:768px){.live2d-quiz.is-main-menu .live2d-quiz__menu,.score-guess-grid,.score-guess-status,.score-guess-actions{grid-template-columns:1fr;}.live2d-menu-title,.score-guess-title{font-size:18px;}.live2d-menu-user,.score-guess-account,.score-guess-pill{font-size:11px;}.score-guess-option{min-height:70px;padding-left:44px!important;}.score-guess-option::before{left:13px;top:15px;width:20px;height:20px;}}",
+            "html.performance-low .live2d-quiz.is-main-menu,html.performance-low .live2d-quiz.is-score-guess{box-shadow:0 12px 28px rgba(3,18,42,.38),inset 0 1px 0 rgba(255,255,255,.18);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);}",
             "@media (max-width:768px){.live2d-opening-bubble,.live2d-quiz-exit-bubble,.live2d-idle-bubble{width:min(92vw,320px);max-width:calc(100vw - 24px);font-size:13px;box-sizing:border-box;}body.keyboard-open .live2d-opening-bubble,body.keyboard-open .live2d-quiz-exit-bubble,body.keyboard-open .live2d-idle-bubble{left:50%!important;right:auto!important;top:max(12px,env(safe-area-inset-top))!important;bottom:auto!important;width:min(92vw,320px)!important;max-width:calc(100vw - 24px)!important;max-height:min(54vh,320px);overflow:auto;transform:translateX(-50%)!important;}}"
         ].join("");
         document.head.appendChild(style);
@@ -860,7 +916,7 @@
             clearSpinTimers();
             window.clearTimeout(fortuneProcessTimer);
             fortuneProcessTimer = null;
-            dialog.classList.remove("is-opening", "is-wheel", "is-weather", "is-music", "is-fortune", "is-memory", "is-boss-auth", "is-boss-review", "is-score-guess");
+            dialog.classList.remove("is-opening", "is-wheel", "is-weather", "is-music", "is-fortune", "is-memory", "is-boss-auth", "is-boss-review", "is-score-guess", "is-main-menu");
             meta.textContent = "";
             question.textContent = "";
             options.innerHTML = "";
@@ -1149,16 +1205,24 @@
 
             clearDialog();
             setDialogMode("menu");
-            question.textContent = "想和君雪做什么？";
+            dialog.classList.add("is-main-menu");
+            meta.textContent = "甘雨菜单";
+            question.innerHTML = [
+                '<div class="live2d-menu-header">',
+                    '<div class="live2d-menu-title">想和甘雨做什么？</div>',
+                    '<div class="live2d-menu-user">当前登录：未登录</div>',
+                '</div>'
+            ].join("");
             options.classList.add("live2d-quiz__menu");
-            addOption("日常娱乐", showEntertainmentPanel);
-            addOption("直播互动", showLiveInteractionPanel);
-            addOption("咨询", showConsultPanel);
-            addOption("认识君雪", showKnowJunxuePanel);
+            addOption("日常娱乐", showEntertainmentPanel).setAttribute("data-menu-icon", "乐");
+            addOption("直播互动", showLiveInteractionPanel).setAttribute("data-menu-icon", "播");
+            addOption("咨询", showConsultPanel).setAttribute("data-menu-icon", "询");
+            addOption("认识君雪", showKnowJunxuePanel).setAttribute("data-menu-icon", "雪");
             addOption("意见箱", function () {
                 recordGanyuFeature("意见箱");
                 window.location.href = "suggest.html";
-            });
+            }).setAttribute("data-menu-icon", "信");
+            updateAccountLine(".live2d-menu-user", "当前登录：");
             showDialog();
         }
 
@@ -1417,6 +1481,45 @@
             );
         }
 
+        async function getCurrentAuthDisplayName() {
+            try {
+                const client = await ensureScoreGuessClient();
+                const response = await client.auth.getSession();
+
+                if (response.error || !response.data || !response.data.session) {
+                    return "未登录";
+                }
+
+                return getDisplayNameFromAuthUser(response.data.session.user);
+            } catch (error) {
+                return "未登录";
+            }
+        }
+
+        function updateAccountLine(selector, prefix) {
+            const line = dialog.querySelector(selector);
+
+            if (!line) {
+                return;
+            }
+
+            getCurrentAuthDisplayName().then(function (name) {
+                if (dialog.contains(line)) {
+                    line.textContent = prefix + name;
+                }
+            });
+        }
+
+        function getScoreGuessChoiceTone(choice) {
+            return ({
+                "铜牌": "bronze",
+                "银牌": "silver",
+                "金牌": "gold",
+                "顶级": "top",
+                "无": "none"
+            })[choice] || "none";
+        }
+
         function createEmptyScoreGuessCounts() {
             return SCORE_GUESS_CHOICES.reduce(function (counts, choice) {
                 counts[choice] = 0;
@@ -1615,25 +1718,48 @@
             const isOpen = activeSession && activeSession.status === "open";
             const isClosed = activeSession && activeSession.status === "closed";
             const canVote = !!(isOpen && currentUserId);
+            const statusLabel = activeSession ? (isOpen ? "竞猜进行中" : "竞猜已结束") : "暂未开启";
+            const statusText = activeSession ? (isOpen ? "进行中" : "已结束") : "暂未开启";
+            const accountLabel = getDisplayNameFromAuthUser(state.authSession && state.authSession.user);
+            const choiceLabel = userChoice ? userChoice : "你还没有选择";
 
-            options.className = "live2d-quiz__options live2d-consult-grid live2d-score-guess-panel";
-            options.innerHTML = SCORE_GUESS_CHOICES.map(function (choice) {
+            meta.textContent = "直播互动";
+            question.innerHTML = [
+                '<div class="score-guess-header">',
+                    '<div class="score-guess-kicker">直播互动</div>',
+                    '<div class="score-guess-title">评分竞猜</div>',
+                    '<div class="score-guess-subtitle">猜猜这局最后会是什么评分？</div>',
+                    '<div class="score-guess-pill">' + escapeHtml(statusLabel) + '</div>',
+                    '<div class="score-guess-account">当前账号：' + escapeHtml(accountLabel) + '</div>',
+                '</div>'
+            ].join("");
+
+            options.className = "live2d-quiz__options score-guess-panel";
+            options.innerHTML = [
+                '<div class="score-guess-status">',
+                    '<div class="score-guess-status__item">当前状态：' + escapeHtml(statusText) + '</div>',
+                    '<div class="score-guess-status__item">你当前选择：' + escapeHtml(choiceLabel) + '</div>',
+                '</div>',
+                '<div class="score-guess-grid">'
+            ].join("") + SCORE_GUESS_CHOICES.map(function (choice) {
                 const selected = userChoice === choice;
+                const tone = getScoreGuessChoiceTone(choice);
                 return [
-                    '<button class="live2d-consult-card live2d-score-guess-choice' + (selected ? ' is-selected' : '') + '" type="button" data-score-choice="' + escapeHtml(choice) + '"' + (canVote ? "" : " disabled") + '>',
-                        '<span class="live2d-consult-card__title">' + escapeHtml(choice) + (selected ? ' · 已选择' : '') + '</span>',
-                        '<span class="live2d-consult-card__desc">' + counts[choice] + ' 人选择</span>',
+                    '<button class="live2d-consult-card live2d-score-guess-choice score-guess-option score-guess-option--' + tone + (selected ? ' is-selected' : '') + '" type="button" data-score-choice="' + escapeHtml(choice) + '"' + (canVote ? "" : " disabled") + '>',
+                        '<span class="score-guess-option__name">' + escapeHtml(choice) + '</span>',
+                        '<span class="score-guess-option__count">' + counts[choice] + ' 人选择</span>',
+                        selected ? '<span class="score-guess-option__mark">已选择</span>' : '',
                     '</button>'
                 ].join("");
-            }).join("");
+            }).join("") + '</div>';
 
             options.innerHTML += [
-                '<div class="live2d-weather-actions live2d-score-guess-actions">',
-                    !currentUserId ? '<button class="live2d-quiz__option" type="button" data-score-action="login">登录 / 注册老板账号</button>' : '',
-                    state.isAdmin && !isOpen ? '<button class="live2d-quiz__option" type="button" data-score-action="start">开启评分竞猜</button>' : '',
-                    state.isAdmin && isOpen ? '<button class="live2d-quiz__option" type="button" data-score-action="end">结束竞猜</button>' : '',
-                    '<button class="live2d-quiz__option" type="button" data-score-action="refresh">刷新结果</button>',
-                    '<button class="live2d-quiz__option" type="button" data-score-action="back">返回直播互动</button>',
+                '<div class="live2d-weather-actions live2d-score-guess-actions score-guess-actions">',
+                    !currentUserId ? '<button class="live2d-quiz__option score-guess-action score-guess-action--primary" type="button" data-score-action="login">登录 / 注册老板账号</button>' : '',
+                    state.isAdmin && !isOpen ? '<button class="live2d-quiz__option score-guess-action score-guess-action--primary" type="button" data-score-action="start">开启评分竞猜</button>' : '',
+                    state.isAdmin && isOpen ? '<button class="live2d-quiz__option score-guess-action score-guess-action--danger" type="button" data-score-action="end">结束竞猜</button>' : '',
+                    '<button class="live2d-quiz__option score-guess-action score-guess-action--soft" type="button" data-score-action="refresh">刷新结果</button>',
+                    '<button class="live2d-quiz__option score-guess-action score-guess-action--soft" type="button" data-score-action="back">返回直播互动</button>',
                 '</div>'
             ].join("");
 
@@ -1724,7 +1850,15 @@
             clearDialog();
             dialog.classList.add("is-score-guess");
             meta.textContent = "评分竞猜";
-            question.textContent = "猜猜这局最后是什么评分？";
+            question.innerHTML = [
+                '<div class="score-guess-header">',
+                    '<div class="score-guess-kicker">直播互动</div>',
+                    '<div class="score-guess-title">评分竞猜</div>',
+                    '<div class="score-guess-subtitle">猜猜这局最后会是什么评分？</div>',
+                    '<div class="score-guess-pill">正在读取</div>',
+                    '<div class="score-guess-account">当前账号：未登录</div>',
+                '</div>'
+            ].join("");
             options.innerHTML = '<div class="live2d-quiz__loading">正在读取评分竞猜…</div>';
             result.textContent = "";
             result.className = "live2d-quiz__result is-neutral";

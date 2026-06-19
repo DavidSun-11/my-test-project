@@ -220,3 +220,170 @@ using (auth.uid() = user_id);
 ```
 
 The first page version only supports reading, liking/unliking, and posting comments. Update/delete policies are kept for future expansion, but the page does not show edit/delete buttons.
+
+## 8. 直播互动：评分竞猜
+
+Run this SQL in Supabase SQL Editor to enable the shared `直播互动 -> 评分竞猜` feature.
+
+This feature uses Supabase Auth + Database shared data. It does not use localStorage for public vote results. The SQL is repeatable: tables and indexes use `if not exists`, and policies are dropped before being recreated.
+
+```sql
+create table if not exists public.live_interaction_admins (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.live_score_guess_sessions (
+  id uuid primary key default gen_random_uuid(),
+  title text not null default '评分竞猜',
+  status text not null check (status in ('open','closed')) default 'open',
+  created_by uuid not null references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  ended_at timestamptz
+);
+
+create unique index if not exists one_open_live_score_guess
+on public.live_score_guess_sessions(status)
+where status = 'open';
+
+create table if not exists public.live_score_guess_votes (
+  session_id uuid not null references public.live_score_guess_sessions(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  choice text not null check (choice in ('铜牌','银牌','金牌','顶级','无')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  primary key (session_id, user_id)
+);
+
+create index if not exists live_score_guess_votes_session_id_idx
+on public.live_score_guess_votes (session_id);
+
+create index if not exists live_score_guess_votes_choice_idx
+on public.live_score_guess_votes (choice);
+
+create or replace function public.set_live_score_guess_vote_updated_at()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
+drop trigger if exists set_live_score_guess_vote_updated_at on public.live_score_guess_votes;
+create trigger set_live_score_guess_vote_updated_at
+before update on public.live_score_guess_votes
+for each row
+execute function public.set_live_score_guess_vote_updated_at();
+
+alter table public.live_interaction_admins enable row level security;
+alter table public.live_score_guess_sessions enable row level security;
+alter table public.live_score_guess_votes enable row level security;
+
+drop policy if exists "Users can read own live interaction admin row" on public.live_interaction_admins;
+create policy "Users can read own live interaction admin row"
+on public.live_interaction_admins
+for select
+to authenticated
+using (user_id = auth.uid());
+
+drop policy if exists "Anyone can read live score guess sessions" on public.live_score_guess_sessions;
+create policy "Anyone can read live score guess sessions"
+on public.live_score_guess_sessions
+for select
+using (true);
+
+drop policy if exists "Only live interaction admins can create score guess sessions" on public.live_score_guess_sessions;
+create policy "Only live interaction admins can create score guess sessions"
+on public.live_score_guess_sessions
+for insert
+to authenticated
+with check (
+  created_by = auth.uid()
+  and exists (
+    select 1
+    from public.live_interaction_admins
+    where user_id = auth.uid()
+  )
+);
+
+drop policy if exists "Only live interaction admins can close score guess sessions" on public.live_score_guess_sessions;
+create policy "Only live interaction admins can close score guess sessions"
+on public.live_score_guess_sessions
+for update
+to authenticated
+using (
+  status = 'open'
+  and exists (
+    select 1
+    from public.live_interaction_admins
+    where user_id = auth.uid()
+  )
+)
+with check (
+  status = 'closed'
+  and exists (
+    select 1
+    from public.live_interaction_admins
+    where user_id = auth.uid()
+  )
+);
+
+drop policy if exists "Anyone can read live score guess votes" on public.live_score_guess_votes;
+create policy "Anyone can read live score guess votes"
+on public.live_score_guess_votes
+for select
+using (true);
+
+drop policy if exists "Authenticated users can insert own open score guess votes" on public.live_score_guess_votes;
+create policy "Authenticated users can insert own open score guess votes"
+on public.live_score_guess_votes
+for insert
+to authenticated
+with check (
+  user_id = auth.uid()
+  and exists (
+    select 1
+    from public.live_score_guess_sessions
+    where id = session_id
+      and status = 'open'
+  )
+);
+
+drop policy if exists "Authenticated users can update own open score guess votes" on public.live_score_guess_votes;
+create policy "Authenticated users can update own open score guess votes"
+on public.live_score_guess_votes
+for update
+to authenticated
+using (
+  user_id = auth.uid()
+  and exists (
+    select 1
+    from public.live_score_guess_sessions
+    where id = session_id
+      and status = 'open'
+  )
+)
+with check (
+  user_id = auth.uid()
+  and exists (
+    select 1
+    from public.live_score_guess_sessions
+    where id = session_id
+      and status = 'open'
+  )
+);
+
+insert into public.live_interaction_admins (user_id)
+select id from auth.users
+where email = 'davidsun@ulsee.ai'
+on conflict do nothing;
+```
+
+Notes:
+
+- You must run this SQL manually in Supabase SQL Editor.
+- Do not put a Supabase secret key or service role key into frontend files.
+- Row level security (RLS) is required. The frontend hides admin controls for normal users, but RLS is the real permission boundary.
+- Realtime should be enabled for `live_score_guess_sessions` and `live_score_guess_votes` if you want live updates across viewers.

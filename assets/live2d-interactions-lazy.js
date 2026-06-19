@@ -17,6 +17,18 @@
     const SUPABASE_LOCAL_SDK = "assets/vendor/supabase-js-2.min.js?v=20260616-1";
     const SUPABASE_CDN = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.108.2/dist/umd/supabase.min.js";
     const SUPABASE_SDK_LOAD_ERROR_TEXT = "老板评价功能加载失败，可能是网络暂时不稳定，请稍后再试。";
+    const SCORE_GUESS_CHOICES = ["铜牌", "银牌", "金牌", "顶级", "无"];
+    const SCORE_GUESS_LOAD_ERROR_TEXT = "评分竞猜暂时加载失败，可能是网络不稳定，请稍后再试。";
+    let scoreGuessRealtimeChannels = [];
+    let scoreGuessRealtimeWarningShown = false;
+    let scoreGuessState = {
+        client: null,
+        session: null,
+        authSession: null,
+        votes: [],
+        isAdmin: false,
+        realtimeWarning: false
+    };
 
     const quizBank = [
         {
@@ -841,10 +853,14 @@
         }
 
         function clearDialog() {
+            if (dialog.classList.contains("is-score-guess")) {
+                cleanupScoreGuessRealtime();
+            }
+
             clearSpinTimers();
             window.clearTimeout(fortuneProcessTimer);
             fortuneProcessTimer = null;
-            dialog.classList.remove("is-opening", "is-wheel", "is-weather", "is-music", "is-fortune", "is-memory", "is-boss-auth", "is-boss-review");
+            dialog.classList.remove("is-opening", "is-wheel", "is-weather", "is-music", "is-fortune", "is-memory", "is-boss-auth", "is-boss-review", "is-score-guess");
             meta.textContent = "";
             question.textContent = "";
             options.innerHTML = "";
@@ -886,6 +902,8 @@
                 width = 720;
             } else if (dialog.classList.contains("is-boss-auth")) {
                 width = 660;
+            } else if (dialog.classList.contains("is-score-guess")) {
+                width = 520;
             } else if (dialog.classList.contains("is-fortune") || dialog.classList.contains("is-memory")) {
                 width = 440;
             }
@@ -1021,6 +1039,9 @@
 
         function closeDialog() {
             clearSpinTimers();
+            if (dialog.classList.contains("is-score-guess")) {
+                cleanupScoreGuessRealtime();
+            }
             dialog.classList.remove("is-open", "is-opening");
             window.clearTimeout(showDialog.closeTimer);
             notifyDialogClosed();
@@ -1166,11 +1187,7 @@
             question.textContent = "直播时可以一起玩的内容都放在这里。";
             options.classList.add("live2d-consult-grid");
             addConsultCard("英雄池转盘", "今天玩谁？", false, showHeroWheel);
-            addConsultCard("直播抽签", "敬请期待", false, function () {
-                recordGanyuFeature("直播抽签");
-                result.textContent = "直播抽签还在准备中，等直播的时候再一起玩吧～";
-                result.className = "live2d-quiz__result is-neutral";
-            });
+            addConsultCard("评分竞猜", "猜猜这局评分", false, showScoreGuessPanel);
             addConsultCard("直播惩罚", "敬请期待", false, function () {
                 recordGanyuFeature("直播惩罚");
                 result.textContent = "直播惩罚玩法还在设计中，先欠着你一局～";
@@ -1386,6 +1403,439 @@
             return window.JunxueBossReviews;
         }
 
+        async function ensureScoreGuessClient() {
+            await loadExternalScript("assets/supabase-config.js?v=20260611-1").catch(function () {});
+
+            if (!hasBossRegisterConfig()) {
+                throw new Error("评分竞猜暂时还没有配置好，请稍后再试。");
+            }
+
+            await loadSupabaseSdk();
+            return window.supabase.createClient(
+                getSupabaseConfigValue("SUPABASE_URL"),
+                getSupabaseConfigValue("SUPABASE_ANON_KEY")
+            );
+        }
+
+        function createEmptyScoreGuessCounts() {
+            return SCORE_GUESS_CHOICES.reduce(function (counts, choice) {
+                counts[choice] = 0;
+                return counts;
+            }, {});
+        }
+
+        function getScoreGuessCounts(votes) {
+            const counts = createEmptyScoreGuessCounts();
+
+            (votes || []).forEach(function (vote) {
+                if (Object.prototype.hasOwnProperty.call(counts, vote.choice)) {
+                    counts[vote.choice] += 1;
+                }
+            });
+
+            return counts;
+        }
+
+        function getScoreGuessUserChoice(votes, userId) {
+            if (!userId) {
+                return "";
+            }
+
+            const vote = (votes || []).find(function (item) {
+                return item.user_id === userId;
+            });
+
+            return vote ? vote.choice : "";
+        }
+
+        async function getScoreGuessAuthSession(client) {
+            const response = await client.auth.getSession();
+
+            if (response.error) {
+                throw response.error;
+            }
+
+            return response.data ? response.data.session : null;
+        }
+
+        async function loadActiveScoreGuessSession(client) {
+            let response = await client
+                .from("live_score_guess_sessions")
+                .select("*")
+                .eq("status", "open")
+                .order("created_at", { ascending: false })
+                .limit(1);
+
+            if (response.error) {
+                throw response.error;
+            }
+
+            if (response.data && response.data.length) {
+                return response.data[0];
+            }
+
+            response = await client
+                .from("live_score_guess_sessions")
+                .select("*")
+                .eq("status", "closed")
+                .order("created_at", { ascending: false })
+                .limit(1);
+
+            if (response.error) {
+                throw response.error;
+            }
+
+            return response.data && response.data.length ? response.data[0] : null;
+        }
+
+        async function loadScoreGuessVotes(client, sessionId) {
+            if (!sessionId) {
+                return [];
+            }
+
+            const response = await client
+                .from("live_score_guess_votes")
+                .select("session_id,user_id,choice,updated_at")
+                .eq("session_id", sessionId);
+
+            if (response.error) {
+                throw response.error;
+            }
+
+            return response.data || [];
+        }
+
+        async function checkScoreGuessAdmin(client, userId) {
+            if (!userId) {
+                return false;
+            }
+
+            const response = await client
+                .from("live_interaction_admins")
+                .select("user_id")
+                .eq("user_id", userId)
+                .maybeSingle();
+
+            if (response.error) {
+                console.warn("[JunxueScoreGuess] admin check failed.", response.error);
+                return false;
+            }
+
+            return !!response.data;
+        }
+
+        async function loadScoreGuessData() {
+            const client = await ensureScoreGuessClient();
+            const authSession = await getScoreGuessAuthSession(client);
+            const session = await loadActiveScoreGuessSession(client);
+            const votes = await loadScoreGuessVotes(client, session && session.id);
+            const isAdmin = await checkScoreGuessAdmin(client, authSession && authSession.user && authSession.user.id);
+
+            scoreGuessState = {
+                client: client,
+                session: session,
+                authSession: authSession,
+                votes: votes,
+                isAdmin: isAdmin,
+                realtimeWarning: scoreGuessState.realtimeWarning
+            };
+
+            return scoreGuessState;
+        }
+
+        function cleanupScoreGuessRealtime() {
+            if (!scoreGuessRealtimeChannels.length) {
+                return;
+            }
+
+            scoreGuessRealtimeChannels.forEach(function (channel) {
+                if (scoreGuessState.client && typeof scoreGuessState.client.removeChannel === "function") {
+                    scoreGuessState.client.removeChannel(channel);
+                }
+            });
+            scoreGuessRealtimeChannels = [];
+        }
+
+        function handleScoreGuessRealtimeProblem() {
+            if (scoreGuessRealtimeWarningShown) {
+                return;
+            }
+
+            scoreGuessRealtimeWarningShown = true;
+            scoreGuessState.realtimeWarning = true;
+
+            if (dialog.classList.contains("is-score-guess")) {
+                result.textContent = "实时同步暂时不可用，数据会在操作后刷新。";
+                result.className = "live2d-quiz__result is-warning";
+            }
+        }
+
+        function subscribeScoreGuessRealtime(client) {
+            if (!client || typeof client.channel !== "function" || scoreGuessRealtimeChannels.length) {
+                return;
+            }
+
+            const refresh = function () {
+                if (dialog.classList.contains("is-score-guess")) {
+                    refreshScoreGuessPanel();
+                }
+            };
+            const statusHandler = function (status) {
+                if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+                    handleScoreGuessRealtimeProblem();
+                }
+            };
+            const sessionChannel = client
+                .channel("junxue-live-score-guess-sessions")
+                .on("postgres_changes", { event: "*", schema: "public", table: "live_score_guess_sessions" }, refresh)
+                .subscribe(statusHandler);
+            const voteChannel = client
+                .channel("junxue-live-score-guess-votes")
+                .on("postgres_changes", { event: "*", schema: "public", table: "live_score_guess_votes" }, refresh)
+                .subscribe(statusHandler);
+
+            scoreGuessRealtimeChannels = [sessionChannel, voteChannel];
+        }
+
+        function getScoreGuessActionMessage(error, fallback) {
+            const message = error && error.message ? error.message : "";
+
+            if (/permission|policy|rls|denied|not allowed|violates/i.test(message)) {
+                return "只有君雪可以开启或结束竞猜哦～";
+            }
+
+            return fallback || SCORE_GUESS_LOAD_ERROR_TEXT;
+        }
+
+        function renderScoreGuessResults(state, message, type) {
+            const activeSession = state.session || null;
+            const currentUserId = state.authSession && state.authSession.user ? state.authSession.user.id : "";
+            const userChoice = getScoreGuessUserChoice(state.votes, currentUserId);
+            const counts = getScoreGuessCounts(state.votes);
+            const isOpen = activeSession && activeSession.status === "open";
+            const isClosed = activeSession && activeSession.status === "closed";
+            const canVote = !!(isOpen && currentUserId);
+
+            options.className = "live2d-quiz__options live2d-consult-grid live2d-score-guess-panel";
+            options.innerHTML = SCORE_GUESS_CHOICES.map(function (choice) {
+                const selected = userChoice === choice;
+                return [
+                    '<button class="live2d-consult-card live2d-score-guess-choice' + (selected ? ' is-selected' : '') + '" type="button" data-score-choice="' + escapeHtml(choice) + '"' + (canVote ? "" : " disabled") + '>',
+                        '<span class="live2d-consult-card__title">' + escapeHtml(choice) + (selected ? ' · 已选择' : '') + '</span>',
+                        '<span class="live2d-consult-card__desc">' + counts[choice] + ' 人选择</span>',
+                    '</button>'
+                ].join("");
+            }).join("");
+
+            options.innerHTML += [
+                '<div class="live2d-weather-actions live2d-score-guess-actions">',
+                    !currentUserId ? '<button class="live2d-quiz__option" type="button" data-score-action="login">登录 / 注册老板账号</button>' : '',
+                    state.isAdmin && !isOpen ? '<button class="live2d-quiz__option" type="button" data-score-action="start">开启评分竞猜</button>' : '',
+                    state.isAdmin && isOpen ? '<button class="live2d-quiz__option" type="button" data-score-action="end">结束竞猜</button>' : '',
+                    '<button class="live2d-quiz__option" type="button" data-score-action="refresh">刷新结果</button>',
+                    '<button class="live2d-quiz__option" type="button" data-score-action="back">返回直播互动</button>',
+                '</div>'
+            ].join("");
+
+            if (message) {
+                result.textContent = message;
+                result.className = "live2d-quiz__result " + (type || "is-neutral");
+            } else if (!activeSession) {
+                result.textContent = state.isAdmin ? "当前没有开启中的竞猜，可以开启一场新的评分竞猜。" : "当前没有开启中的竞猜。";
+                result.className = "live2d-quiz__result is-neutral";
+            } else if (!currentUserId) {
+                result.textContent = "登录后才能参与评分竞猜哦～";
+                result.className = "live2d-quiz__result is-warning";
+            } else if (isClosed) {
+                result.textContent = "竞猜已结束，看看大家猜得怎么样吧～";
+                result.className = "live2d-quiz__result is-neutral";
+            } else if (userChoice) {
+                result.textContent = "你当前选择了：" + userChoice + "。竞猜结束前还可以改选。";
+                result.className = "live2d-quiz__result is-good";
+            } else {
+                result.textContent = "猜猜这局最后是什么评分？";
+                result.className = "live2d-quiz__result is-neutral";
+            }
+
+            Array.prototype.forEach.call(options.querySelectorAll("[data-score-choice]"), function (button) {
+                button.addEventListener("click", function (event) {
+                    event.stopPropagation();
+                    submitScoreGuessVote(button.getAttribute("data-score-choice"));
+                });
+            });
+
+            Array.prototype.forEach.call(options.querySelectorAll("[data-score-action]"), function (button) {
+                button.addEventListener("click", function (event) {
+                    event.stopPropagation();
+                    const action = button.getAttribute("data-score-action");
+
+                    if (action === "login") {
+                        showBossReviewAuthPanel("login", { returnTo: "scoreGuess" });
+                    } else if (action === "start") {
+                        startScoreGuessSession();
+                    } else if (action === "end") {
+                        endScoreGuessSession();
+                    } else if (action === "refresh") {
+                        refreshScoreGuessPanel("评分竞猜结果刷新好了。", "is-good");
+                    } else if (action === "back") {
+                        showLiveInteractionPanel();
+                    }
+                });
+            });
+
+            refreshDialogPosition();
+        }
+
+        async function refreshScoreGuessPanel(message, type) {
+            if (!dialog.classList.contains("is-score-guess")) {
+                return;
+            }
+
+            try {
+                const state = await loadScoreGuessData();
+                renderScoreGuessResults(state, message, type);
+                subscribeScoreGuessRealtime(state.client);
+            } catch (error) {
+                console.error("[JunxueScoreGuess] load failed.", error);
+                options.innerHTML = [
+                    '<div class="live2d-weather-actions">',
+                        '<button class="live2d-quiz__option" type="button" data-score-action="retry">再试一次</button>',
+                        '<button class="live2d-quiz__option" type="button" data-score-action="back">返回直播互动</button>',
+                    '</div>'
+                ].join("");
+                result.textContent = /^评分竞猜/.test(error.message || "") ? error.message : SCORE_GUESS_LOAD_ERROR_TEXT;
+                result.className = "live2d-quiz__result is-warning";
+                Array.prototype.forEach.call(options.querySelectorAll("[data-score-action]"), function (button) {
+                    button.addEventListener("click", function (event) {
+                        event.stopPropagation();
+                        if (button.getAttribute("data-score-action") === "retry") {
+                            refreshScoreGuessPanel();
+                        } else {
+                            showLiveInteractionPanel();
+                        }
+                    });
+                });
+            }
+        }
+
+        function showScoreGuessPanel() {
+            setDialogMode("panel");
+            recordGanyuFeature("评分竞猜");
+            clearDialog();
+            dialog.classList.add("is-score-guess");
+            meta.textContent = "评分竞猜";
+            question.textContent = "猜猜这局最后是什么评分？";
+            options.innerHTML = '<div class="live2d-quiz__loading">正在读取评分竞猜…</div>';
+            result.textContent = "";
+            result.className = "live2d-quiz__result is-neutral";
+            showDialog();
+            refreshScoreGuessPanel();
+        }
+
+        async function startScoreGuessSession() {
+            if (!scoreGuessState.authSession || !scoreGuessState.authSession.user || !scoreGuessState.isAdmin) {
+                result.textContent = "只有君雪可以开启或结束竞猜哦～";
+                result.className = "live2d-quiz__result is-warning";
+                return;
+            }
+
+            try {
+                const response = await scoreGuessState.client
+                    .from("live_score_guess_sessions")
+                    .insert({
+                        title: "评分竞猜",
+                        status: "open",
+                        created_by: scoreGuessState.authSession.user.id
+                    })
+                    .select()
+                    .single();
+
+                if (response.error) {
+                    throw response.error;
+                }
+
+                await refreshScoreGuessPanel("评分竞猜已经开启啦。", "is-good");
+            } catch (error) {
+                console.error("[JunxueScoreGuess] start failed.", error);
+                result.textContent = getScoreGuessActionMessage(error, "评分竞猜暂时没能开启，请稍后再试。");
+                result.className = "live2d-quiz__result is-warning";
+            }
+        }
+
+        async function endScoreGuessSession() {
+            if (!scoreGuessState.authSession || !scoreGuessState.authSession.user || !scoreGuessState.isAdmin) {
+                result.textContent = "只有君雪可以开启或结束竞猜哦～";
+                result.className = "live2d-quiz__result is-warning";
+                return;
+            }
+
+            if (!scoreGuessState.session || scoreGuessState.session.status !== "open") {
+                result.textContent = "当前没有开启中的竞猜。";
+                result.className = "live2d-quiz__result is-neutral";
+                return;
+            }
+
+            try {
+                const response = await scoreGuessState.client
+                    .from("live_score_guess_sessions")
+                    .update({ status: "closed", ended_at: new Date().toISOString() })
+                    .eq("id", scoreGuessState.session.id)
+                    .eq("status", "open");
+
+                if (response.error) {
+                    throw response.error;
+                }
+
+                await refreshScoreGuessPanel("竞猜已结束，看看大家猜得怎么样吧～", "is-good");
+            } catch (error) {
+                console.error("[JunxueScoreGuess] end failed.", error);
+                result.textContent = getScoreGuessActionMessage(error, "竞猜暂时没能结束，请稍后再试。");
+                result.className = "live2d-quiz__result is-warning";
+            }
+        }
+
+        async function submitScoreGuessVote(choice) {
+            if (!scoreGuessState.authSession || !scoreGuessState.authSession.user) {
+                result.textContent = "登录后才能参与竞猜。";
+                result.className = "live2d-quiz__result is-warning";
+                return;
+            }
+
+            if (!scoreGuessState.session || scoreGuessState.session.status !== "open") {
+                result.textContent = "竞猜已经结束，不能再修改选择啦～";
+                result.className = "live2d-quiz__result is-warning";
+                return;
+            }
+
+            if (SCORE_GUESS_CHOICES.indexOf(choice) === -1) {
+                return;
+            }
+
+            try {
+                const response = await scoreGuessState.client
+                    .from("live_score_guess_votes")
+                    .upsert({
+                        session_id: scoreGuessState.session.id,
+                        user_id: scoreGuessState.authSession.user.id,
+                        choice: choice,
+                        updated_at: new Date().toISOString()
+                    }, { onConflict: "session_id,user_id" });
+
+                if (response.error) {
+                    throw response.error;
+                }
+
+                await refreshScoreGuessPanel("你选择了：" + choice + "。", "is-good");
+            } catch (error) {
+                console.error("[JunxueScoreGuess] vote failed.", error);
+                const message = /closed|status/i.test(error.message || "") ?
+                    "竞猜已经结束，不能再修改选择啦～" :
+                    "评分竞猜暂时加载失败，可能是网络不稳定，请稍后再试。";
+                result.textContent = message;
+                result.className = "live2d-quiz__result is-warning";
+            }
+        }
+
         function isPricePage() {
             return /(^|\/)price\.html$/i.test(window.location.pathname) || window.location.pathname === "/price.html";
         }
@@ -1437,7 +1887,8 @@
             showDialog();
         }
 
-        function showBossReviewAuthPanel(mode) {
+        function showBossReviewAuthPanel(mode, authOptions) {
+            const returnToScoreGuess = authOptions && authOptions.returnTo === "scoreGuess";
             clearDialog();
             setDialogMode("panel");
             dialog.classList.add("is-weather", "is-boss-auth");
@@ -1469,11 +1920,15 @@
 
             toggleButton.addEventListener("click", function (event) {
                 event.stopPropagation();
-                showBossReviewAuthPanel(mode === "register" ? "login" : "register");
+                showBossReviewAuthPanel(mode === "register" ? "login" : "register", authOptions);
             });
 
             backButton.addEventListener("click", function (event) {
                 event.stopPropagation();
+                if (returnToScoreGuess) {
+                    showScoreGuessPanel();
+                    return;
+                }
                 showBossReviewsPanel();
             });
 
@@ -1512,6 +1967,9 @@
                         "注册成功，请先去邮箱确认账号，再回来登录。" :
                         "欢迎回来，" + getBossReviewEmail(session) + "。";
                     result.className = "live2d-quiz__result is-good";
+                    if (returnToScoreGuess && session && session.user) {
+                        window.setTimeout(showScoreGuessPanel, 650);
+                    }
                 } catch (error) {
                     result.textContent = error.message || "老板评价系统暂时不可用，请稍后再试。";
                     result.className = "live2d-quiz__result is-warning";

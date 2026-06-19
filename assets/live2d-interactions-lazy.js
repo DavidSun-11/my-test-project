@@ -1130,12 +1130,10 @@
             setDialogMode("menu");
             question.textContent = "想和君雪做什么？";
             options.classList.add("live2d-quiz__menu");
-            addOption("娱乐一下", showEntertainmentPanel);
+            addOption("日常娱乐", showEntertainmentPanel);
+            addOption("直播互动", showLiveInteractionPanel);
             addOption("咨询", showConsultPanel);
             addOption("认识君雪", showKnowJunxuePanel);
-            addOption("老板评价", function () {
-                showBossReviewsPanel();
-            });
             addOption("意见箱", function () {
                 recordGanyuFeature("意见箱");
                 window.location.href = "suggest.html";
@@ -1146,25 +1144,47 @@
         function showEntertainmentPanel() {
             clearDialog();
             setDialogMode("menu");
-            meta.textContent = "娱乐一下";
-            question.textContent = "今天想和甘雨玩点什么呢？";
+            meta.textContent = "日常娱乐";
+            question.textContent = "今天想和甘雨轻松一下吗？";
             options.classList.add("live2d-consult-grid");
             addConsultCard("无奖竞答", "题目挑战", false, startQuiz);
+            addConsultCard("查看天气", "天气查询", false, showWeatherInput);
+            addConsultCard("占卜", "今日运势", false, showFortunePanel);
+            addConsultCard("听歌", "甘雨歌单", false, showMusicPlayer);
+            addConsultCard("返回", "回到主菜单", false, function () {
+                showMenu();
+            });
+            result.textContent = "选一个日常小功能吧。";
+            result.className = "live2d-quiz__result is-neutral";
+            showDialog();
+        }
+
+        function showLiveInteractionPanel() {
+            clearDialog();
+            setDialogMode("menu");
+            meta.textContent = "直播互动";
+            question.textContent = "直播时可以一起玩的内容都放在这里。";
+            options.classList.add("live2d-consult-grid");
             addConsultCard("英雄池转盘", "今天玩谁？", false, showHeroWheel);
-            addConsultCard("直播抽签", "即将开放", false, function () {
+            addConsultCard("直播抽签", "敬请期待", false, function () {
                 recordGanyuFeature("直播抽签");
-                result.textContent = "这个节目还在准备中，等直播的时候再一起玩吧～";
+                result.textContent = "直播抽签还在准备中，等直播的时候再一起玩吧～";
                 result.className = "live2d-quiz__result is-neutral";
             });
-            addConsultCard("更多玩法", "敬请期待", false, function () {
-                recordGanyuFeature("更多玩法");
-                result.textContent = "甘雨还在想新的玩法，要再等一等哦～";
+            addConsultCard("直播惩罚", "敬请期待", false, function () {
+                recordGanyuFeature("直播惩罚");
+                result.textContent = "直播惩罚玩法还在设计中，先欠着你一局～";
+                result.className = "live2d-quiz__result is-neutral";
+            });
+            addConsultCard("更多互动", "敬请期待", false, function () {
+                recordGanyuFeature("更多互动");
+                result.textContent = "更多直播互动还在慢慢准备中，之后会补上～";
                 result.className = "live2d-quiz__result is-neutral";
             });
             addConsultCard("返回", "回到主菜单", false, function () {
                 showMenu();
             });
-            result.textContent = "选一个小游戏吧。";
+            result.textContent = "直播互动入口先放在这里啦。";
             result.className = "live2d-quiz__result is-neutral";
             showDialog();
         }
@@ -1175,7 +1195,7 @@
             meta.textContent = "认识君雪";
             question.textContent = "这些事情，甘雨都替君雪记着呢。";
             options.classList.add("live2d-consult-grid");
-            addConsultCard("认识一下", "告诉甘雨该怎么称呼你", false, function () {
+            addConsultCard("认识一下", "关于君雪", false, function () {
                 recordGanyuFeature("认识一下");
                 closeDialog();
                 const memory = getGanyuMemory();
@@ -1186,10 +1206,6 @@
             });
             addConsultCard("甘雨记得你", "看看甘雨记住的小事", false, function () {
                 showMemoryPanel();
-            });
-            addConsultCard("老板账号注册", "注册后可发布老板评价", false, function () {
-                recordGanyuFeature("老板账号注册");
-                showBossRegisterPanel();
             });
             addConsultCard("返回", "回到主菜单", false, function () {
                 showMenu();
@@ -1813,12 +1829,21 @@
             meta.textContent = "咨询";
             question.textContent = "君雪可以帮你看看这些事情。";
             options.classList.add("live2d-consult-grid");
-            addConsultCard("查看天气", "查询近三天天气", false, showWeatherInput);
-            addConsultCard("听歌", "播放本地歌曲", false, showMusicPlayer);
-            addConsultCard("占卜", "看看今日运势", false, showFortunePanel);
-            addConsultCard("收费咨询", "价格、下单和老板评价", false, function () {
+            addConsultCard("收费咨询", "价目与服务", false, function () {
                 recordGanyuFeature("收费咨询");
                 window.location.href = "price.html";
+            });
+            addConsultCard("老板号注册", "注册老板账号", false, function () {
+                recordGanyuFeature("老板号注册");
+                showBossRegisterPanel();
+            });
+            addConsultCard("老板评价", "查看与发布", false, function () {
+                showBossReviewsPanel();
+            });
+            addConsultCard("敬请期待", "更多咨询", false, function () {
+                recordGanyuFeature("更多咨询");
+                result.textContent = "这个咨询入口还在准备中，之后会慢慢补上～";
+                result.className = "live2d-quiz__result is-neutral";
             });
             addConsultCard("返回", "回到主菜单", false, function () {
                 showMenu();
@@ -1942,7 +1967,7 @@
             clearDialog();
             dialog.classList.add("is-fortune");
             options.classList.add("live2d-fortune-panel");
-            meta.textContent = "咨询 · 占卜";
+            meta.textContent = "日常娱乐 · 占卜";
             question.textContent = "🌙 甘雨占卜屋";
         }
 
@@ -1987,7 +2012,7 @@
                 '<div class="live2d-weather-actions">',
                     '<button class="live2d-wheel__small" type="button" data-fortune-action="again">再占一次</button>',
                     '<button class="live2d-wheel__small" type="button" data-fortune-action="save">保存今日占卜</button>',
-                    '<button class="live2d-wheel__small" type="button" data-fortune-action="back">返回咨询</button>',
+                    '<button class="live2d-wheel__small" type="button" data-fortune-action="back">返回日常娱乐</button>',
                 '</div>'
             ].join("");
 
@@ -2004,7 +2029,7 @@
             });
             options.querySelector('[data-fortune-action="back"]').addEventListener("click", function (event) {
                 event.stopPropagation();
-                showConsultPanel();
+                showEntertainmentPanel();
             });
 
             result.textContent = "";
@@ -2062,7 +2087,7 @@
                 '<div class="live2d-weather-actions">',
                     '<button class="live2d-wheel__small" type="button" data-fortune-action="view">查看今日结果</button>',
                     '<button class="live2d-wheel__small" type="button" data-fortune-action="restart">重新占卜</button>',
-                    '<button class="live2d-wheel__small" type="button" data-fortune-action="back">返回咨询</button>',
+                    '<button class="live2d-wheel__small" type="button" data-fortune-action="back">返回日常娱乐</button>',
                 '</div>'
             ].join("");
 
@@ -2079,7 +2104,7 @@
             });
             options.querySelector('[data-fortune-action="back"]').addEventListener("click", function (event) {
                 event.stopPropagation();
-                showConsultPanel();
+                showEntertainmentPanel();
             });
 
             result.textContent = "";
@@ -2096,7 +2121,7 @@
                 '</div>',
                 '<div class="live2d-weather-actions">',
                     '<button class="live2d-wheel__small" type="button" data-fortune-action="start">开始占卜</button>',
-                    '<button class="live2d-wheel__small" type="button" data-fortune-action="back">返回咨询</button>',
+                    '<button class="live2d-wheel__small" type="button" data-fortune-action="back">返回日常娱乐</button>',
                 '</div>'
             ].join("");
 
@@ -2106,7 +2131,7 @@
             });
             options.querySelector('[data-fortune-action="back"]').addEventListener("click", function (event) {
                 event.stopPropagation();
-                showConsultPanel();
+                showEntertainmentPanel();
             });
 
             result.textContent = "";
@@ -2190,7 +2215,7 @@
                         '<button class="live2d-wheel__small" type="button" data-music-action="next">下一首</button>',
                     '</div>',
                     '<div class="live2d-music-actions">',
-                        '<button class="live2d-wheel__small" type="button" data-music-action="back">返回咨询</button>',
+                        '<button class="live2d-wheel__small" type="button" data-music-action="back">返回日常娱乐</button>',
                         '<button class="live2d-wheel__small" type="button" data-music-action="menu">回到菜单</button>',
                         '<button class="live2d-wheel__small" type="button" data-music-action="close">关闭歌曲</button>',
                     '</div>',
@@ -2291,7 +2316,7 @@
                     }
 
                     if (action === "back") {
-                        showConsultPanel();
+                        showEntertainmentPanel();
                         return;
                     }
 
@@ -2310,7 +2335,7 @@
             clearDialog();
             dialog.classList.add("is-music");
             options.classList.add("live2d-music-panel");
-            meta.textContent = "咨询 · 听歌";
+            meta.textContent = "日常娱乐 · 听歌";
             question.innerHTML = '<span class="live2d-music-title">♪ 听歌</span><span class="live2d-music-subtitle">甘雨想和你分享一些音乐呢～</span>';
             renderMusicPlayerContent();
             result.textContent = lastSongTitle ? "上次听到的是《" + lastSongTitle + "》，还想继续吗？歌曲文件较大，首次播放可能需要等待几秒。" : "需要你点播放，甘雨才会开始放歌。歌曲文件较大，首次播放可能需要等待几秒。";
@@ -2326,7 +2351,7 @@
             clearDialog();
             dialog.classList.add("is-weather");
             options.classList.add("live2d-weather-panel");
-            meta.textContent = "咨询 · 查看天气";
+            meta.textContent = "日常娱乐 · 查看天气";
             question.textContent = "请输入你想查询天气的城市";
             options.innerHTML = [
                 '<form class="live2d-weather-form">',
@@ -2334,7 +2359,7 @@
                     '<button class="live2d-weather-submit" type="submit">查询</button>',
                 '</form>',
                 '<div class="live2d-weather-actions">',
-                    '<button class="live2d-wheel__small" type="button" data-weather-action="back">返回咨询</button>',
+                    '<button class="live2d-wheel__small" type="button" data-weather-action="back">返回日常娱乐</button>',
                     '<button class="live2d-wheel__small" type="button" data-weather-action="menu">回到菜单</button>',
                 '</div>'
             ].join("");
@@ -2362,7 +2387,7 @@
             });
             backButton.addEventListener("click", function (event) {
                 event.stopPropagation();
-                showConsultPanel();
+                showEntertainmentPanel();
             });
             menuButton.addEventListener("click", function (event) {
                 event.stopPropagation();
@@ -2508,7 +2533,7 @@
                 if (backButton) {
                     backButton.addEventListener("click", function (event) {
                         event.stopPropagation();
-                        showConsultPanel();
+                        showEntertainmentPanel();
                     });
                 }
 
@@ -2543,7 +2568,7 @@
             }
 
             function renderForecastPage() {
-                meta.textContent = "咨询 · 查看天气";
+                meta.textContent = "日常娱乐 · 查看天气";
                 question.textContent = cityTitle;
                 options.innerHTML = [
                     '<section class="live2d-weather-page" aria-label="三天天气预报">',
@@ -2554,7 +2579,7 @@
                     '</section>',
                     '<div class="live2d-weather-actions">',
                         '<button class="live2d-wheel__small" type="button" data-weather-action="again">换个城市</button>',
-                        '<button class="live2d-wheel__small" type="button" data-weather-action="back">返回咨询</button>',
+                        '<button class="live2d-wheel__small" type="button" data-weather-action="back">返回日常娱乐</button>',
                     '</div>'
                 ].join("");
                 bindWeatherActions();
@@ -2563,7 +2588,7 @@
             function renderCalendarPage() {
                 const calendar = getCalendarInfo();
 
-                meta.textContent = "咨询 · 甘雨日历";
+                meta.textContent = "日常娱乐 · 甘雨日历";
                 question.textContent = "甘雨日历";
                 options.innerHTML = [
                     '<section class="live2d-weather-page" aria-label="甘雨日历">',
@@ -2579,7 +2604,7 @@
                     '</section>',
                     '<div class="live2d-weather-actions">',
                         '<button class="live2d-wheel__small" type="button" data-weather-action="again">换个城市</button>',
-                        '<button class="live2d-wheel__small" type="button" data-weather-action="back">返回咨询</button>',
+                        '<button class="live2d-wheel__small" type="button" data-weather-action="back">返回日常娱乐</button>',
                     '</div>'
                 ].join("");
                 bindWeatherActions();

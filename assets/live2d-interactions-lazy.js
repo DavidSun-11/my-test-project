@@ -535,6 +535,7 @@
             ".score-guess-option .score-guess-option__count{margin-top:7px;font-size:12px;}",
             ".score-guess-option .score-guess-option__mark{position:absolute;right:12px;top:11px;margin:0;}",
             ".score-guess-option:hover:not(:disabled){border-color:rgba(221,250,255,.88)!important;box-shadow:0 0 22px rgba(105,217,255,.25),inset 0 1px 0 rgba(255,255,255,.25)!important;}",
+            ".score-guess-option.score-guess-option--selected{border-color:rgba(224,250,255,.94)!important;background:linear-gradient(145deg,rgba(74,151,204,.82),rgba(95,70,158,.72))!important;box-shadow:0 0 26px rgba(112,221,255,.36),inset 0 0 18px rgba(255,255,255,.13)!important;}",
             ".score-guess-option:disabled{cursor:default;}",
             ".score-guess-panel__actions{display:flex;flex-wrap:wrap;gap:9px;justify-content:flex-end;padding:11px;border:1px solid rgba(154,217,255,.34);border-radius:16px;background:linear-gradient(145deg,rgba(255,255,255,.07),rgba(90,165,224,.1));}",
             ".score-guess-panel__actions .live2d-quiz__option{width:auto;min-width:132px;min-height:42px;padding:10px 14px;border-radius:999px;}",
@@ -944,12 +945,14 @@
             window.clearTimeout(fortuneProcessTimer);
             fortuneProcessTimer = null;
             dialog.classList.remove("is-opening", "is-wheel", "is-weather", "is-music", "is-fortune", "is-memory", "is-boss-auth", "is-boss-review", "is-score-guess", "is-main-menu");
+            dialog.removeAttribute("data-score-guess-ui-version");
             meta.textContent = "";
             question.textContent = "";
             options.innerHTML = "";
             result.textContent = "";
             result.className = "live2d-quiz__result";
             options.className = "live2d-quiz__options";
+            options.removeAttribute("data-score-guess-ui-version");
         }
 
         function safeText(value, fallback) {
@@ -1763,6 +1766,8 @@
             ].join("");
 
             options.className = "live2d-quiz__options score-guess-panel";
+            dialog.setAttribute("data-score-guess-ui-version", "20260620-score-guess-ui4");
+            options.setAttribute("data-score-guess-ui-version", "20260620-score-guess-ui4");
             options.innerHTML = [
                 '<div class="score-guess-panel__meta">',
                     '<div class="score-guess-panel__meta-item">',
@@ -1783,7 +1788,7 @@
                 const selected = userChoice === choice;
                 const tone = getScoreGuessChoiceTone(choice);
                 return [
-                    '<button class="live2d-consult-card live2d-score-guess-choice score-guess-option score-guess-option--' + tone + (choice === "无" ? ' score-guess-option--wide' : '') + (selected ? ' is-selected' : '') + '" type="button" data-score-choice="' + escapeHtml(choice) + '"' + (canVote ? "" : " disabled") + '>',
+                    '<button class="live2d-consult-card live2d-score-guess-choice score-guess-option score-guess-option--' + tone + (choice === "无" ? ' score-guess-option--wide' : '') + (selected ? ' is-selected score-guess-option--selected' : '') + '" type="button" data-score-choice="' + escapeHtml(choice) + '"' + (canVote ? "" : " disabled") + '>',
                         '<span class="score-guess-option__name">' + escapeHtml(choice) + '</span>',
                         '<span class="score-guess-option__count">' + counts[choice] + ' 人选择</span>',
                         selected ? '<span class="score-guess-option__mark">已选择</span>' : '',

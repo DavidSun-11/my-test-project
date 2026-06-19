@@ -1,7 +1,7 @@
 /* Lightweight Live2D loader: desktop keeps dynamic Ganyu, mobile uses a stable static fallback first. */
 (function () {
     const WIDGET_SCRIPT = "live2d/live2d-widget.js?v=20260613-5";
-    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260614-music1";
+    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260620-score-guess-ui4";
     const DRAG_SCRIPT = "assets/live2d-drag.js?v=20260613-2";
     const FRAME_HOST_SRC = "live2d/ganyu-host.html?v=20260613-iframe1";
     const STATIC_WEBP = "assets/images/price-ganyu-showcase.webp";

@@ -587,6 +587,48 @@
             ".score-guess-panel--v6 .score-guess-panel__footer-note{display:flex!important;align-items:center;justify-content:space-between;gap:12px;padding:11px 13px!important;border:1px solid rgba(169,226,255,.34)!important;border-radius:15px!important;background:rgba(11,31,59,.36)!important;color:rgba(220,240,255,.9)!important;font-size:12px!important;line-height:1.5!important;}",
             ".score-guess-panel--v6 .score-guess-panel__version{flex:0 0 auto;color:rgba(211,237,255,.5);font-size:10px;font-weight:800;letter-spacing:.04em;}",
             "@media (max-width:768px){.live2d-quiz.is-score-guess{width:min(92vw,calc(100vw - 24px));max-height:calc(100vh - 72px);padding:16px!important;}.score-guess-panel--v6[data-score-guess-ui-version=\"20260620-score-guess-ui6\"]{gap:13px!important;padding:15px!important;}.score-guess-panel--v6 .score-guess-panel__header,.score-guess-panel--v6 .score-guess-panel__meta,.score-guess-panel--v6 .score-guess-panel__options{grid-template-columns:1fr!important;}.score-guess-panel--v6 .score-guess-panel__status-pill{justify-self:start;}.score-guess-panel--v6 .score-guess-option{grid-template-columns:38px 1fr auto;min-height:78px!important;padding:12px!important;}.score-guess-panel--v6 .score-guess-option__badge{width:38px;height:38px;border-radius:13px;}.score-guess-panel--v6 .score-guess-panel__actions{display:grid!important;grid-template-columns:1fr!important;}.score-guess-panel--v6 .score-guess-panel__actions .live2d-quiz__option{width:100%!important;min-width:0!important;}.score-guess-panel--v6 .score-guess-panel__footer-note{align-items:flex-start;flex-direction:column;}}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"]{position:relative;display:flex!important;flex-direction:column!important;gap:16px!important;width:100%!important;box-sizing:border-box;padding:24px!important;border:1px solid rgba(178,237,255,.72);border-radius:26px;background:radial-gradient(circle at 50% -12%,rgba(126,218,255,.28),transparent 34%),radial-gradient(circle at 92% 18%,rgba(178,124,255,.2),transparent 32%),linear-gradient(150deg,rgba(6,22,48,.82),rgba(18,52,91,.64) 52%,rgba(25,35,78,.68));box-shadow:0 24px 58px rgba(0,10,34,.36),0 0 34px rgba(91,204,255,.26),inset 0 1px 0 rgba(255,255,255,.24),inset 0 -26px 54px rgba(74,84,184,.16);overflow:hidden;color:rgba(238,250,255,.96);}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"]::before{content:\"\";position:absolute;left:32px;right:32px;top:0;height:2px;background:linear-gradient(90deg,transparent,rgba(225,252,255,.92),rgba(167,217,255,.82),transparent);box-shadow:0 0 16px rgba(117,218,255,.58);pointer-events:none;}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"]::after{content:\"\";position:absolute;right:-34px;top:120px;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,rgba(121,211,255,.14),transparent 62%);pointer-events:none;}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-panel__header{display:grid!important;grid-template-columns:1fr auto!important;gap:10px 16px!important;align-items:start!important;padding:0 0 2px!important;border:0!important;background:transparent!important;box-shadow:none!important;}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-panel__heading{display:grid!important;gap:8px!important;min-width:0;}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-panel__eyebrow{display:inline-flex;width:max-content;align-items:center;gap:6px;padding:5px 11px;border:1px solid rgba(179,235,255,.62);border-radius:999px;background:linear-gradient(90deg,rgba(85,202,255,.2),rgba(190,143,255,.14));color:rgba(209,244,255,.98);font-size:12px;font-weight:850;box-shadow:0 0 16px rgba(99,211,255,.18);}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-panel__title-row{display:flex;align-items:center;flex-wrap:wrap;gap:12px;}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-panel__title{margin:0;font-size:32px;font-weight:940;line-height:1.05;letter-spacing:.01em;color:rgba(246,253,255,.99);text-shadow:0 0 18px rgba(112,217,255,.34),0 2px 0 rgba(12,34,62,.22);}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-panel__status-pill{align-self:start;white-space:nowrap;padding:8px 14px;border-radius:999px;border:1px solid rgba(194,241,255,.72);background:linear-gradient(90deg,rgba(79,191,255,.28),rgba(184,139,255,.22));box-shadow:0 0 18px rgba(100,211,255,.2),inset 0 1px 0 rgba(255,255,255,.22);color:rgba(241,253,255,.98);font-size:13px;font-weight:880;}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-panel__question{color:rgba(242,252,255,.98);font-size:17px;font-weight:850;line-height:1.38;}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-panel__desc{max-width:620px;color:rgba(201,229,247,.82);font-size:13px;line-height:1.65;}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-panel__meta{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:12px!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important;}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-panel__meta-item{position:relative;display:grid!important;grid-template-columns:42px 1fr;align-items:center;gap:11px;min-width:0;padding:13px 14px!important;border:1px solid rgba(155,222,255,.45);border-radius:16px;background:linear-gradient(145deg,rgba(255,255,255,.1),rgba(84,162,224,.1));box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 10px 22px rgba(0,13,39,.16);}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-panel__meta-icon{display:grid;place-items:center;width:42px;height:42px;border-radius:999px;border:1px solid rgba(194,242,255,.66);background:radial-gradient(circle at 35% 24%,rgba(255,255,255,.9),rgba(91,203,255,.72) 38%,rgba(58,96,222,.72));box-shadow:0 0 20px rgba(104,211,255,.35),inset 0 1px 0 rgba(255,255,255,.38);color:#fff;font-size:18px;font-weight:900;text-shadow:0 1px 6px rgba(0,18,42,.42);}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-panel__meta-label{display:block;margin:0 0 4px;color:rgba(181,224,244,.82);font-size:12px;font-weight:720;}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-panel__meta-value{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:rgba(246,253,255,.99);font-size:16px;font-weight:900;}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-panel__options{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:13px!important;width:100%!important;}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-option{position:relative;display:grid!important;grid-template-columns:58px 1fr auto;align-items:center;gap:14px;width:100%!important;min-height:92px!important;padding:16px!important;border:1px solid var(--score-border,rgba(169,230,255,.52))!important;border-radius:18px!important;background:radial-gradient(circle at 92% 18%,var(--score-soft,rgba(255,255,255,.13)),transparent 36%),linear-gradient(145deg,rgba(255,255,255,.1),rgba(52,113,178,.14))!important;box-shadow:0 13px 24px rgba(0,11,38,.2),0 0 20px var(--score-glow,rgba(110,210,255,.16)),inset 0 1px 0 rgba(255,255,255,.2)!important;color:rgba(242,252,255,.98)!important;text-align:left!important;box-sizing:border-box!important;opacity:1!important;filter:none!important;overflow:hidden;}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-option::before,.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-option::after{content:none!important;display:none!important;}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-option:hover:not(:disabled){transform:translateY(-1px);border-color:rgba(232,253,255,.94)!important;box-shadow:0 0 28px var(--score-glow,rgba(110,210,255,.3)),inset 0 1px 0 rgba(255,255,255,.3)!important;}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-option:disabled{opacity:1!important;cursor:default!important;color:inherit!important;filter:none!important;}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-option--selected{border-color:rgba(234,253,255,.98)!important;background:radial-gradient(circle at 88% 18%,var(--score-soft,rgba(255,255,255,.2)),transparent 38%),linear-gradient(145deg,rgba(74,151,204,.88),rgba(94,72,160,.78))!important;box-shadow:0 0 30px var(--score-glow,rgba(112,221,255,.4)),inset 0 0 18px rgba(255,255,255,.16)!important;}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-option--wide{grid-column:1/-1!important;}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-option__badge{display:grid;place-items:center;width:58px;height:58px;border-radius:18px;border:1px solid rgba(232,251,255,.64);background:var(--score-badge,linear-gradient(135deg,#dff8ff,#83d8ff));box-shadow:0 0 22px var(--score-glow,rgba(121,219,255,.3)),inset 0 1px 0 rgba(255,255,255,.44),inset 0 -10px 18px rgba(0,23,52,.16);color:#fff;font-size:19px;font-weight:950;text-shadow:0 1px 6px rgba(0,20,45,.45);}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-option__body{display:grid;gap:7px;min-width:0;}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-option__name{display:block;color:rgba(248,253,255,.99);font-size:20px;font-weight:920;line-height:1.08;}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-option__count{display:block;color:rgba(208,233,248,.92);font-size:13px;font-weight:720;}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-option__mark{align-self:start;justify-self:end;min-width:max-content;padding:5px 9px;border-radius:999px;border:1px solid rgba(190,244,255,.68);background:rgba(125,229,255,.2);color:rgba(238,253,255,.99);font-size:11px;font-weight:880;}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-option__mark[aria-hidden=\"true\"]{visibility:hidden;}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-option--bronze{--score-badge:linear-gradient(135deg,#ffe1b0,#d58b48 54%,#8f4d2e);--score-border:rgba(255,170,107,.7);--score-glow:rgba(231,137,65,.36);--score-soft:rgba(231,137,65,.2);}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-option--silver{--score-badge:linear-gradient(135deg,#ffffff,#c9e7f8 50%,#7fa8c4);--score-border:rgba(207,237,255,.72);--score-glow:rgba(207,237,255,.36);--score-soft:rgba(207,237,255,.18);}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-option--gold{--score-badge:linear-gradient(135deg,#fff8b2,#f0bf3d 52%,#b66f20);--score-border:rgba(255,218,92,.72);--score-glow:rgba(255,204,66,.36);--score-soft:rgba(255,204,66,.18);}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-option--top{--score-badge:radial-gradient(circle at 35% 25%,#fff,#c79aff 45%,#5ddcff 78%);--score-border:rgba(186,139,255,.72);--score-glow:rgba(177,116,255,.4);--score-soft:rgba(177,116,255,.22);}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-option--none{--score-badge:linear-gradient(135deg,#d8e6f5,#8099bd 52%,#506686);--score-border:rgba(151,178,214,.66);--score-glow:rgba(132,161,204,.26);--score-soft:rgba(132,161,204,.16);}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-panel__actions{display:flex!important;flex-wrap:wrap!important;align-items:center!important;justify-content:flex-start!important;gap:11px!important;width:100%!important;padding:13px!important;border:1px solid rgba(154,217,255,.38)!important;border-radius:18px!important;background:linear-gradient(145deg,rgba(255,255,255,.08),rgba(88,162,224,.11))!important;box-sizing:border-box!important;}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-action{display:inline-flex;align-items:center;justify-content:center;min-width:136px;min-height:44px;padding:10px 16px;border-radius:999px;border:1px solid rgba(175,230,255,.62);background:rgba(32,65,104,.58);box-shadow:inset 0 1px 0 rgba(255,255,255,.18);color:rgba(240,252,255,.98);font-size:14px;font-weight:850;line-height:1.2;cursor:pointer;white-space:nowrap;transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease;}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-action:hover{transform:translateY(-1px);border-color:rgba(224,250,255,.88);box-shadow:0 0 18px rgba(101,211,255,.22),inset 0 1px 0 rgba(255,255,255,.24);}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-action--primary{border-color:rgba(191,243,255,.86);background:linear-gradient(135deg,rgba(76,202,255,.86),rgba(160,112,255,.76));box-shadow:0 0 20px rgba(98,210,255,.3),inset 0 1px 0 rgba(255,255,255,.26);}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-action--danger{border-color:rgba(255,198,216,.86);background:linear-gradient(135deg,rgba(245,105,156,.72),rgba(132,94,220,.72));}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-action--soft{opacity:.9;}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-panel__footer-note{padding:11px 13px!important;border:1px solid rgba(169,226,255,.36)!important;border-radius:15px!important;background:rgba(11,31,59,.4)!important;color:rgba(220,240,255,.9)!important;font-size:13px!important;line-height:1.55!important;}",
+            "@media (max-width:768px){.live2d-quiz.is-score-guess{width:min(92vw,calc(100vw - 24px));max-height:calc(100vh - 72px);padding:14px!important;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"]{gap:13px!important;padding:15px!important;border-radius:22px;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-panel__header,.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-panel__meta,.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-panel__options{grid-template-columns:1fr!important;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-panel__status-pill{justify-self:start;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-panel__title{font-size:25px;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-option{grid-template-columns:48px 1fr auto;min-height:82px!important;padding:13px!important;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-option__badge{width:48px;height:48px;border-radius:16px;font-size:17px;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-option__name{font-size:18px;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-panel__actions{display:grid!important;grid-template-columns:1fr!important;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui7\"] .score-guess-action{width:100%;min-width:0;}}",
             "@media (max-width:768px){.live2d-opening-bubble,.live2d-quiz-exit-bubble,.live2d-idle-bubble{width:min(92vw,320px);max-width:calc(100vw - 24px);font-size:13px;box-sizing:border-box;}body.keyboard-open .live2d-opening-bubble,body.keyboard-open .live2d-quiz-exit-bubble,body.keyboard-open .live2d-idle-bubble{left:50%!important;right:auto!important;top:max(12px,env(safe-area-inset-top))!important;bottom:auto!important;width:min(92vw,320px)!important;max-width:calc(100vw - 24px)!important;max-height:min(54vh,320px);overflow:auto;transform:translateX(-50%)!important;}}"
         ].join("");
         document.head.appendChild(style);
@@ -1806,33 +1848,42 @@
             question.innerHTML = "";
 
             options.className = "score-guess-shell";
-            dialog.setAttribute("data-score-guess-ui-version", "20260620-score-guess-ui6");
-            options.setAttribute("data-score-guess-ui-version", "20260620-score-guess-ui6");
+            dialog.setAttribute("data-score-guess-ui-version", "20260620-score-guess-ui7");
+            options.setAttribute("data-score-guess-ui-version", "20260620-score-guess-ui7");
             options.innerHTML = [
-                '<div class="score-guess-panel score-guess-panel--v6" data-score-guess-ui-version="20260620-score-guess-ui6">',
+                '<div class="score-guess-panel" data-score-guess-ui-version="20260620-score-guess-ui7">',
                 '<div class="score-guess-panel__header">',
-                    '<div>',
+                    '<div class="score-guess-panel__heading">',
                         '<div class="score-guess-panel__eyebrow">直播互动</div>',
-                        '<h3 class="score-guess-panel__title">评分竞猜</h3>',
+                        '<div class="score-guess-panel__title-row">',
+                            '<h3 class="score-guess-panel__title">评分竞猜</h3>',
+                            '<span class="score-guess-panel__status-pill">' + escapeHtml(statusLabel) + '</span>',
+                        '</div>',
+                        '<div class="score-guess-panel__question">猜猜这局最后会是什么评分？</div>',
+                        '<div class="score-guess-panel__desc">投票结果会同步给所有观众；竞猜结束后只展示结果，不能再修改选择。</div>',
                     '</div>',
-                    '<span class="score-guess-panel__status-pill">' + escapeHtml(statusLabel) + '</span>',
-                '</div>',
-                '<div class="score-guess-panel__intro">',
-                    '<div class="score-guess-panel__intro-title">猜猜这局最后会是什么评分？</div>',
-                    '<div class="score-guess-panel__intro-text">投票结果会同步给所有观众；竞猜结束后只展示结果，不能再修改选择。</div>',
                 '</div>',
                 '<div class="score-guess-panel__meta">',
                     '<div class="score-guess-panel__meta-item">',
-                        '<span class="score-guess-panel__meta-label">当前账号</span>',
-                        '<span class="score-guess-panel__meta-value">' + escapeHtml(accountLabel) + '</span>',
+                        '<span class="score-guess-panel__meta-icon">●</span>',
+                        '<span>',
+                            '<span class="score-guess-panel__meta-label">当前账号</span>',
+                            '<strong class="score-guess-panel__meta-value">' + escapeHtml(accountLabel) + '</strong>',
+                        '</span>',
                     '</div>',
                     '<div class="score-guess-panel__meta-item">',
-                        '<span class="score-guess-panel__meta-label">当前状态</span>',
-                        '<span class="score-guess-panel__meta-value">' + escapeHtml(statusText) + '</span>',
+                        '<span class="score-guess-panel__meta-icon">⏱</span>',
+                        '<span>',
+                            '<span class="score-guess-panel__meta-label">当前状态</span>',
+                            '<strong class="score-guess-panel__meta-value">' + escapeHtml(statusText) + '</strong>',
+                        '</span>',
                     '</div>',
                     '<div class="score-guess-panel__meta-item">',
-                        '<span class="score-guess-panel__meta-label">你的选择</span>',
-                        '<span class="score-guess-panel__meta-value">' + escapeHtml(choiceLabel) + '</span>',
+                        '<span class="score-guess-panel__meta-icon">?</span>',
+                        '<span>',
+                            '<span class="score-guess-panel__meta-label">你的选择</span>',
+                            '<strong class="score-guess-panel__meta-value">' + escapeHtml(choiceLabel) + '</strong>',
+                        '</span>',
                     '</div>',
                 '</div>',
                 '<div class="score-guess-panel__options">'
@@ -1842,27 +1893,26 @@
                 const badge = choice.charAt(0);
                 return [
                     '<button class="score-guess-option score-guess-option--' + tone + (choice === "无" ? ' score-guess-option--wide' : '') + (selected ? ' is-selected score-guess-option--selected' : '') + '" type="button" data-score-choice="' + escapeHtml(choice) + '"' + (canVote ? "" : " disabled") + '>',
-                        '<span class="score-guess-option__badge">' + escapeHtml(badge) + '</span>',
-                        '<span class="score-guess-option__content">',
+                        '<span class="score-guess-option__badge">' + escapeHtml(choice === "无" ? "—" : badge) + '</span>',
+                        '<span class="score-guess-option__body">',
                             '<strong class="score-guess-option__name">' + escapeHtml(choice) + '</strong>',
                             '<span class="score-guess-option__count">' + counts[choice] + ' 人选择</span>',
                         '</span>',
-                        selected ? '<span class="score-guess-option__check">已选择</span>' : '<span class="score-guess-option__check" aria-hidden="true"></span>',
+                        selected ? '<span class="score-guess-option__mark">已选择</span>' : '<span class="score-guess-option__mark" aria-hidden="true"></span>',
                     '</button>'
                 ].join("");
             }).join("") + '</div>';
 
             options.innerHTML += [
                 '<div class="score-guess-panel__actions">',
-                    !currentUserId ? '<button class="live2d-quiz__option score-guess-action score-guess-action--primary" type="button" data-score-action="login">登录 / 注册老板账号</button>' : '',
-                    state.isAdmin && !isOpen ? '<button class="live2d-quiz__option score-guess-action score-guess-action--primary" type="button" data-score-action="start">开启评分竞猜</button>' : '',
-                    state.isAdmin && isOpen ? '<button class="live2d-quiz__option score-guess-action score-guess-action--danger" type="button" data-score-action="end">结束竞猜</button>' : '',
-                    '<button class="live2d-quiz__option score-guess-action score-guess-action--soft" type="button" data-score-action="refresh">刷新结果</button>',
-                    '<button class="live2d-quiz__option score-guess-action score-guess-action--soft" type="button" data-score-action="back">返回直播互动</button>',
+                    !currentUserId ? '<button class="score-guess-action score-guess-action--primary" type="button" data-score-action="login">登录 / 注册老板账号</button>' : '',
+                    state.isAdmin && !isOpen ? '<button class="score-guess-action score-guess-action--primary" type="button" data-score-action="start">开启评分竞猜</button>' : '',
+                    state.isAdmin && isOpen ? '<button class="score-guess-action score-guess-action--danger" type="button" data-score-action="end">结束竞猜</button>' : '',
+                    '<button class="score-guess-action score-guess-action--soft" type="button" data-score-action="refresh">刷新结果</button>',
+                    '<button class="score-guess-action score-guess-action--soft" type="button" data-score-action="back">返回直播互动</button>',
                 '</div>',
                 '<div class="score-guess-panel__footer-note">',
                     '<span>' + escapeHtml(footerNote) + '</span>',
-                    '<span class="score-guess-panel__version">UI v6</span>',
                 '</div>',
                 '</div>'
             ].join("");
@@ -1929,24 +1979,27 @@
                 console.error("[JunxueScoreGuess] load failed.", error);
                 question.innerHTML = "";
                 options.className = "score-guess-shell";
-                dialog.setAttribute("data-score-guess-ui-version", "20260620-score-guess-ui6");
-                options.setAttribute("data-score-guess-ui-version", "20260620-score-guess-ui6");
+                dialog.setAttribute("data-score-guess-ui-version", "20260620-score-guess-ui7");
+                options.setAttribute("data-score-guess-ui-version", "20260620-score-guess-ui7");
                 options.innerHTML = [
-                    '<div class="score-guess-panel score-guess-panel--v6" data-score-guess-ui-version="20260620-score-guess-ui6">',
+                    '<div class="score-guess-panel" data-score-guess-ui-version="20260620-score-guess-ui7">',
                     '<div class="score-guess-panel__header">',
-                        '<div>',
+                        '<div class="score-guess-panel__heading">',
                             '<div class="score-guess-panel__eyebrow">直播互动</div>',
-                            '<h3 class="score-guess-panel__title">评分竞猜</h3>',
+                            '<div class="score-guess-panel__title-row">',
+                                '<h3 class="score-guess-panel__title">评分竞猜</h3>',
+                                '<span class="score-guess-panel__status-pill">加载失败</span>',
+                            '</div>',
+                            '<div class="score-guess-panel__question">猜猜这局最后会是什么评分？</div>',
+                            '<div class="score-guess-panel__desc">投票结果会同步给所有观众；竞猜结束后只展示结果，不能再修改选择。</div>',
                         '</div>',
-                        '<span class="score-guess-panel__status-pill">加载失败</span>',
                     '</div>',
                     '<div class="score-guess-panel__actions">',
-                        '<button class="live2d-quiz__option" type="button" data-score-action="retry">再试一次</button>',
-                        '<button class="live2d-quiz__option" type="button" data-score-action="back">返回直播互动</button>',
+                        '<button class="score-guess-action score-guess-action--primary" type="button" data-score-action="retry">再试一次</button>',
+                        '<button class="score-guess-action score-guess-action--soft" type="button" data-score-action="back">返回直播互动</button>',
                     '</div>',
                     '<div class="score-guess-panel__footer-note">',
                         '<span>评分竞猜暂时加载失败，可能是网络不稳定，请稍后再试。</span>',
-                        '<span class="score-guess-panel__version">UI v6</span>',
                     '</div>',
                     '</div>'
                 ].join("");
@@ -1973,21 +2026,24 @@
             meta.textContent = "评分竞猜";
             question.innerHTML = "";
             options.className = "score-guess-shell";
-            dialog.setAttribute("data-score-guess-ui-version", "20260620-score-guess-ui6");
-            options.setAttribute("data-score-guess-ui-version", "20260620-score-guess-ui6");
+            dialog.setAttribute("data-score-guess-ui-version", "20260620-score-guess-ui7");
+            options.setAttribute("data-score-guess-ui-version", "20260620-score-guess-ui7");
             options.innerHTML = [
-                '<div class="score-guess-panel score-guess-panel--v6" data-score-guess-ui-version="20260620-score-guess-ui6">',
+                '<div class="score-guess-panel" data-score-guess-ui-version="20260620-score-guess-ui7">',
                 '<div class="score-guess-panel__header">',
-                    '<div>',
+                    '<div class="score-guess-panel__heading">',
                         '<div class="score-guess-panel__eyebrow">直播互动</div>',
-                        '<h3 class="score-guess-panel__title">评分竞猜</h3>',
+                        '<div class="score-guess-panel__title-row">',
+                            '<h3 class="score-guess-panel__title">评分竞猜</h3>',
+                            '<span class="score-guess-panel__status-pill">正在读取</span>',
+                        '</div>',
+                        '<div class="score-guess-panel__question">猜猜这局最后会是什么评分？</div>',
+                        '<div class="score-guess-panel__desc">投票结果会同步给所有观众；竞猜结束后只展示结果，不能再修改选择。</div>',
                     '</div>',
-                    '<span class="score-guess-panel__status-pill">正在读取</span>',
                 '</div>',
                 '<div class="live2d-quiz__loading">正在读取评分竞猜…</div>',
                 '<div class="score-guess-panel__footer-note">',
                     '<span>正在同步直播互动数据，请稍等一下。</span>',
-                    '<span class="score-guess-panel__version">UI v6</span>',
                 '</div>',
                 '</div>'
             ].join("");

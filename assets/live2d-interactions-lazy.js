@@ -541,8 +541,20 @@
             ".score-guess-panel__actions .live2d-quiz__option{width:auto;min-width:132px;min-height:42px;padding:10px 14px;border-radius:999px;}",
             ".score-guess-panel__actions .score-guess-action--soft:last-child{opacity:.82;}",
             ".score-guess-panel__footer-note{padding:10px 12px;border:1px solid rgba(169,226,255,.34);border-radius:14px;background:rgba(11,31,59,.36);color:rgba(220,240,255,.88);font-size:12px;line-height:1.5;}",
+            ".score-guess-panel__version{justify-self:end;margin-top:-2px;color:rgba(211,237,255,.42);font-size:10px;font-weight:700;letter-spacing:.04em;}",
             "@media (max-width:768px){.live2d-quiz.is-main-menu .live2d-quiz__menu,.score-guess-grid,.score-guess-status,.score-guess-actions{grid-template-columns:1fr;}.live2d-menu-title,.score-guess-title{font-size:18px;}.live2d-menu-user,.score-guess-account,.score-guess-pill{font-size:11px;}.score-guess-option{min-height:70px;padding-left:44px!important;}.score-guess-option::before{left:13px;top:15px;width:20px;height:20px;}.score-guess-panel__header{grid-template-columns:1fr;}.score-guess-panel__state{justify-self:start;}.score-guess-panel__meta{grid-template-columns:1fr;}.score-guess-panel__options{grid-template-columns:1fr;}.score-guess-panel__actions{display:grid;grid-template-columns:1fr;}.score-guess-panel__actions .live2d-quiz__option{width:100%;min-width:0;}.score-guess-panel__title{font-size:20px;}}",
             "html.performance-low .live2d-quiz.is-main-menu,html.performance-low .live2d-quiz.is-score-guess{box-shadow:0 12px 28px rgba(3,18,42,.38),inset 0 1px 0 rgba(255,255,255,.18);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);}",
+            ".live2d-quiz.is-score-guess .live2d-quiz__question:empty{display:none;}",
+            ".live2d-quiz.is-score-guess .live2d-quiz__options.score-guess-shell{display:block!important;width:100%!important;}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui5\"]{display:flex!important;flex-direction:column!important;gap:16px!important;width:100%!important;box-sizing:border-box;padding:14px;border:1px solid rgba(185,235,255,.5);border-radius:20px;background:radial-gradient(circle at 18% 0%,rgba(114,219,255,.2),transparent 34%),radial-gradient(circle at 92% 12%,rgba(197,147,255,.18),transparent 32%),linear-gradient(145deg,rgba(10,30,58,.5),rgba(28,62,98,.34));box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 14px 28px rgba(1,12,34,.16);}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui5\"] .score-guess-panel__header{display:grid!important;grid-template-columns:1fr auto!important;gap:8px 12px!important;width:100%!important;box-sizing:border-box;}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui5\"] .score-guess-panel__meta{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important;width:100%!important;box-sizing:border-box;}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui5\"] .score-guess-panel__options{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important;width:100%!important;box-sizing:border-box;}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui5\"] .score-guess-option{display:block!important;width:100%!important;min-height:92px!important;text-align:left!important;box-sizing:border-box!important;border-radius:17px!important;}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui5\"] .score-guess-option--wide{grid-column:1/-1!important;}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui5\"] .score-guess-panel__actions{display:flex!important;flex-wrap:wrap!important;align-items:center!important;justify-content:flex-end!important;gap:10px!important;width:100%!important;box-sizing:border-box;}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui5\"] .score-guess-panel__actions .live2d-quiz__option{width:auto!important;min-width:132px!important;}",
+            "@media (max-width:768px){.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui5\"]{gap:12px!important;padding:11px!important;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui5\"] .score-guess-panel__header,.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui5\"] .score-guess-panel__meta,.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui5\"] .score-guess-panel__options{grid-template-columns:1fr!important;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui5\"] .score-guess-panel__state{justify-self:start!important;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui5\"] .score-guess-panel__actions{display:grid!important;grid-template-columns:1fr!important;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-ui5\"] .score-guess-panel__actions .live2d-quiz__option{width:100%!important;min-width:0!important;}}",
             "@media (max-width:768px){.live2d-opening-bubble,.live2d-quiz-exit-bubble,.live2d-idle-bubble{width:min(92vw,320px);max-width:calc(100vw - 24px);font-size:13px;box-sizing:border-box;}body.keyboard-open .live2d-opening-bubble,body.keyboard-open .live2d-quiz-exit-bubble,body.keyboard-open .live2d-idle-bubble{left:50%!important;right:auto!important;top:max(12px,env(safe-area-inset-top))!important;bottom:auto!important;width:min(92vw,320px)!important;max-width:calc(100vw - 24px)!important;max-height:min(54vh,320px);overflow:auto;transform:translateX(-50%)!important;}}"
         ].join("");
         document.head.appendChild(style);
@@ -1754,7 +1766,13 @@
             const choiceLabel = userChoice ? userChoice : "你还没有选择";
 
             meta.textContent = "直播互动";
-            question.innerHTML = [
+            question.innerHTML = "";
+
+            options.className = "live2d-quiz__options score-guess-shell";
+            dialog.setAttribute("data-score-guess-ui-version", "20260620-score-guess-ui5");
+            options.setAttribute("data-score-guess-ui-version", "20260620-score-guess-ui5");
+            options.innerHTML = [
+                '<div class="score-guess-panel" data-score-guess-ui-version="20260620-score-guess-ui5">',
                 '<div class="score-guess-panel__header">',
                     '<div class="score-guess-panel__heading">',
                         '<div class="score-guess-panel__badge">直播互动</div>',
@@ -1762,13 +1780,7 @@
                         '<div class="score-guess-panel__subtitle">猜猜这局最后会是什么评分？</div>',
                     '</div>',
                     '<div class="score-guess-panel__state">' + escapeHtml(statusLabel) + '</div>',
-                '</div>'
-            ].join("");
-
-            options.className = "live2d-quiz__options score-guess-panel";
-            dialog.setAttribute("data-score-guess-ui-version", "20260620-score-guess-ui4");
-            options.setAttribute("data-score-guess-ui-version", "20260620-score-guess-ui4");
-            options.innerHTML = [
+                '</div>',
                 '<div class="score-guess-panel__meta">',
                     '<div class="score-guess-panel__meta-item">',
                         '<span class="score-guess-panel__meta-label">当前账号</span>',
@@ -1788,7 +1800,7 @@
                 const selected = userChoice === choice;
                 const tone = getScoreGuessChoiceTone(choice);
                 return [
-                    '<button class="live2d-consult-card live2d-score-guess-choice score-guess-option score-guess-option--' + tone + (choice === "无" ? ' score-guess-option--wide' : '') + (selected ? ' is-selected score-guess-option--selected' : '') + '" type="button" data-score-choice="' + escapeHtml(choice) + '"' + (canVote ? "" : " disabled") + '>',
+                    '<button class="score-guess-option score-guess-option--' + tone + (choice === "无" ? ' score-guess-option--wide' : '') + (selected ? ' is-selected score-guess-option--selected' : '') + '" type="button" data-score-choice="' + escapeHtml(choice) + '"' + (canVote ? "" : " disabled") + '>',
                         '<span class="score-guess-option__name">' + escapeHtml(choice) + '</span>',
                         '<span class="score-guess-option__count">' + counts[choice] + ' 人选择</span>',
                         selected ? '<span class="score-guess-option__mark">已选择</span>' : '',
@@ -1797,14 +1809,16 @@
             }).join("") + '</div>';
 
             options.innerHTML += [
-                '<div class="live2d-weather-actions live2d-score-guess-actions score-guess-actions score-guess-panel__actions">',
+                '<div class="score-guess-panel__actions">',
                     !currentUserId ? '<button class="live2d-quiz__option score-guess-action score-guess-action--primary" type="button" data-score-action="login">登录 / 注册老板账号</button>' : '',
                     state.isAdmin && !isOpen ? '<button class="live2d-quiz__option score-guess-action score-guess-action--primary" type="button" data-score-action="start">开启评分竞猜</button>' : '',
                     state.isAdmin && isOpen ? '<button class="live2d-quiz__option score-guess-action score-guess-action--danger" type="button" data-score-action="end">结束竞猜</button>' : '',
                     '<button class="live2d-quiz__option score-guess-action score-guess-action--soft" type="button" data-score-action="refresh">刷新结果</button>',
                     '<button class="live2d-quiz__option score-guess-action score-guess-action--soft" type="button" data-score-action="back">返回直播互动</button>',
                 '</div>',
-                '<div class="score-guess-panel__footer-note">投票结果会同步给所有观众；竞猜结束后只展示结果，不能再修改选择。</div>'
+                '<div class="score-guess-panel__footer-note">投票结果会同步给所有观众；竞猜结束后只展示结果，不能再修改选择。</div>',
+                '<div class="score-guess-panel__version">UI v5</div>',
+                '</div>'
             ].join("");
 
             if (message) {
@@ -1867,10 +1881,26 @@
                 subscribeScoreGuessRealtime(state.client);
             } catch (error) {
                 console.error("[JunxueScoreGuess] load failed.", error);
+                question.innerHTML = "";
+                options.className = "live2d-quiz__options score-guess-shell";
+                dialog.setAttribute("data-score-guess-ui-version", "20260620-score-guess-ui5");
+                options.setAttribute("data-score-guess-ui-version", "20260620-score-guess-ui5");
                 options.innerHTML = [
-                    '<div class="live2d-weather-actions">',
+                    '<div class="score-guess-panel" data-score-guess-ui-version="20260620-score-guess-ui5">',
+                    '<div class="score-guess-panel__header">',
+                        '<div class="score-guess-panel__heading">',
+                            '<div class="score-guess-panel__badge">直播互动</div>',
+                            '<div class="score-guess-panel__title">评分竞猜</div>',
+                            '<div class="score-guess-panel__subtitle">猜猜这局最后会是什么评分？</div>',
+                        '</div>',
+                        '<div class="score-guess-panel__state">加载失败</div>',
+                    '</div>',
+                    '<div class="score-guess-panel__actions">',
                         '<button class="live2d-quiz__option" type="button" data-score-action="retry">再试一次</button>',
                         '<button class="live2d-quiz__option" type="button" data-score-action="back">返回直播互动</button>',
+                    '</div>',
+                    '<div class="score-guess-panel__footer-note">评分竞猜暂时加载失败，可能是网络不稳定，请稍后再试。</div>',
+                    '<div class="score-guess-panel__version">UI v5</div>',
                     '</div>'
                 ].join("");
                 result.textContent = /^评分竞猜/.test(error.message || "") ? error.message : SCORE_GUESS_LOAD_ERROR_TEXT;
@@ -1894,7 +1924,12 @@
             clearDialog();
             dialog.classList.add("is-score-guess");
             meta.textContent = "评分竞猜";
-            question.innerHTML = [
+            question.innerHTML = "";
+            options.className = "live2d-quiz__options score-guess-shell";
+            dialog.setAttribute("data-score-guess-ui-version", "20260620-score-guess-ui5");
+            options.setAttribute("data-score-guess-ui-version", "20260620-score-guess-ui5");
+            options.innerHTML = [
+                '<div class="score-guess-panel" data-score-guess-ui-version="20260620-score-guess-ui5">',
                 '<div class="score-guess-panel__header">',
                     '<div class="score-guess-panel__heading">',
                         '<div class="score-guess-panel__badge">直播互动</div>',
@@ -1902,9 +1937,11 @@
                         '<div class="score-guess-panel__subtitle">猜猜这局最后会是什么评分？</div>',
                     '</div>',
                     '<div class="score-guess-panel__state">正在读取</div>',
+                '</div>',
+                '<div class="live2d-quiz__loading">正在读取评分竞猜…</div>',
+                '<div class="score-guess-panel__version">UI v5</div>',
                 '</div>'
             ].join("");
-            options.innerHTML = '<div class="live2d-quiz__loading">正在读取评分竞猜…</div>';
             result.textContent = "";
             result.className = "live2d-quiz__result is-neutral";
             showDialog();

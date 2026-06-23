@@ -18,13 +18,46 @@
             overflow-x: hidden;
             color: #4d3f74;
             font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
-            background:
-                url("assets/ui/junxue-pearl-star-dust.svg") center/220px 150px repeat,
+            background-image:
+                linear-gradient(90deg, rgba(255,255,255,.16), rgba(244,232,255,.32) 44%, rgba(164,142,218,.22)),
+                url("assets/images/boss-register-scene-bg.webp"),
+                url("assets/images/boss-register-scene-bg.webp.png"),
+                url("assets/ui/junxue-pearl-star-dust.svg"),
                 radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.92), transparent 27%),
                 radial-gradient(circle at 78% 18%, rgba(214, 190, 255, 0.58), transparent 34%),
                 radial-gradient(ellipse at 22% 86%, rgba(165, 226, 255, 0.28), transparent 38%),
                 radial-gradient(ellipse at 50% 112%, rgba(82, 121, 189, .28), transparent 50%),
                 linear-gradient(135deg, #fbf6ff 0%, #efe4ff 30%, #d8c7ff 58%, #9f8cdb 100%);
+            background-size:
+                auto,
+                cover,
+                cover,
+                220px 150px,
+                auto,
+                auto,
+                auto,
+                auto,
+                auto;
+            background-position:
+                center,
+                center,
+                center,
+                center,
+                center,
+                center,
+                center,
+                center,
+                center;
+            background-repeat:
+                no-repeat,
+                no-repeat,
+                no-repeat,
+                repeat,
+                no-repeat,
+                no-repeat,
+                no-repeat,
+                no-repeat,
+                no-repeat;
         }
 
         .boss-register-page::before,
@@ -167,14 +200,11 @@
             border-radius: 38px;
             overflow: hidden;
             background:
-                radial-gradient(circle at 30% 18%, rgba(255,255,255,.84), transparent 25%),
-                radial-gradient(ellipse at 36% 42%, rgba(195, 164, 255, .38), transparent 44%),
-                radial-gradient(ellipse at 58% 102%, rgba(142, 221, 255, .16), transparent 46%),
-                linear-gradient(160deg, rgba(255,255,255,.34), rgba(160, 132, 227, .2));
-            border: 1px solid rgba(255,255,255,.42);
-            box-shadow: 0 28px 78px rgba(112, 82, 180, .2), inset 0 1px 0 rgba(255,255,255,.72);
-            -webkit-backdrop-filter: blur(18px) saturate(1.2);
-            backdrop-filter: blur(18px) saturate(1.2);
+                radial-gradient(circle at 28% 16%, rgba(255,255,255,.58), transparent 24%),
+                radial-gradient(ellipse at 35% 58%, rgba(180, 143, 255, .26), transparent 46%),
+                radial-gradient(ellipse at 46% 106%, rgba(255,255,255,.38), transparent 44%);
+            border: 0;
+            box-shadow: none;
         }
 
         .boss-register-companion::before {
@@ -207,10 +237,10 @@
         .boss-register-character {
             position: absolute;
             z-index: 1;
-            left: -18%;
-            right: -4%;
-            bottom: -4%;
-            height: min(800px, 102%);
+            left: -22%;
+            right: -6%;
+            bottom: -6%;
+            height: min(860px, 108%);
             display: grid;
             place-items: end center;
             pointer-events: none;
@@ -218,13 +248,13 @@
 
         .boss-register-character img {
             display: block;
-            width: min(134%, 700px);
+            width: min(150%, 780px);
             max-width: none;
             height: 100%;
             object-fit: contain;
             object-position: left bottom;
-            filter: drop-shadow(0 28px 42px rgba(92, 64, 160, .24)) drop-shadow(0 0 26px rgba(255, 255, 255, .44));
-            transform: translateX(-2%);
+            filter: drop-shadow(0 30px 46px rgba(66, 48, 132, .28)) drop-shadow(0 0 34px rgba(255, 255, 255, .48));
+            transform: translateX(-1%);
         }
 
         .boss-register-companion-card {
@@ -240,6 +270,19 @@
             text-shadow: 0 1px 16px rgba(87, 68, 148, .32);
             -webkit-backdrop-filter: blur(16px);
             backdrop-filter: blur(16px);
+        }
+
+        .boss-register-companion-card::before {
+            content: "";
+            position: absolute;
+            left: -26px;
+            right: -26px;
+            bottom: -34px;
+            height: 86px;
+            border-radius: 50%;
+            background: radial-gradient(ellipse at center, rgba(255,255,255,.68), rgba(214,194,255,.24) 45%, transparent 72%);
+            filter: blur(12px);
+            z-index: -1;
         }
 
         .boss-register-companion-card strong {
@@ -565,7 +608,7 @@
 
             .boss-register-companion {
                 order: 2;
-                min-height: 320px;
+                min-height: 330px;
                 padding: 16px;
                 border-radius: 26px;
             }
@@ -585,15 +628,15 @@
             }
 
             .boss-register-character {
-                left: 0;
-                right: 0;
-                bottom: -22px;
-                height: 320px;
+                left: -4%;
+                right: -4%;
+                bottom: -28px;
+                height: 340px;
                 place-items: end center;
             }
 
             .boss-register-character img {
-                width: min(96vw, 390px);
+                width: min(104vw, 430px);
                 height: 100%;
                 object-position: center bottom;
                 transform: none;
@@ -651,7 +694,7 @@
     <main class="boss-register-layout" aria-labelledby="boss-register-title">
         <section class="boss-register-companion" aria-label="君雪互动星湖">
             <figure class="boss-register-character" aria-hidden="true">
-                <img src="assets/images/甘雨形象图2.png?v=20260623-boss-register-crystal-polish3" alt="">
+                <img src="assets/images/boss-register-ganyu-cutout.png?v=20260623-boss-register-scene-polish1" alt="">
             </figure>
             <div class="boss-register-companion-card">
                 <strong>感谢你的到来</strong>
@@ -695,7 +738,7 @@
     </main>
 
     <script src="assets/supabase-config.js?v=20260611-1"></script>
-    <script src="assets/price-reviews.js?v=20260623-boss-register-crystal-polish3"></script>
-    <script src="assets/boss-register.js?v=20260623-boss-register-crystal-polish3"></script>
+    <script src="assets/price-reviews.js?v=20260623-boss-register-scene-polish1"></script>
+    <script src="assets/boss-register.js?v=20260623-boss-register-scene-polish1"></script>
 </body>
 </html>

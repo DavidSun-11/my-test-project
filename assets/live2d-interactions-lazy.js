@@ -489,6 +489,49 @@
             ".live2d-quiz.is-main-menu .live2d-quiz__option{position:relative;min-height:50px;justify-content:flex-start;padding:12px 14px 12px 40px;border:1px solid rgba(171,232,255,.55);border-radius:16px;background:linear-gradient(145deg,rgba(33,77,116,.66),rgba(28,48,92,.55));box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 8px 20px rgba(0,16,44,.2);font-weight:750;color:rgba(235,250,255,.98);}",
             ".live2d-quiz.is-main-menu .live2d-quiz__option::before{content:attr(data-menu-icon);position:absolute;left:13px;top:50%;transform:translateY(-50%);width:18px;height:18px;display:grid;place-items:center;border-radius:50%;background:radial-gradient(circle,rgba(206,250,255,.72),rgba(103,199,255,.28));box-shadow:0 0 14px rgba(133,221,255,.34);font-size:12px;color:#fff;}",
             ".live2d-quiz.is-main-menu .live2d-quiz__option:hover:not(:disabled){border-color:rgba(220,249,255,.88);background:linear-gradient(145deg,rgba(54,111,156,.78),rgba(55,68,130,.7));box-shadow:0 0 22px rgba(102,213,255,.26),inset 0 1px 0 rgba(255,255,255,.3);}",
+            ".live2d-quiz.is-boss-auth{width:min(860px,calc(100vw - 32px))!important;max-width:calc(100vw - 32px)!important;max-height:calc(100vh - 72px)!important;overflow:auto!important;padding:18px!important;border:1px solid rgba(174,232,255,.34)!important;border-radius:28px!important;background:url(\"assets/ui/star-dust.svg\") center/190px 130px repeat,radial-gradient(circle at 18% 5%,rgba(155,228,255,.22),transparent 34%),radial-gradient(ellipse at 92% 16%,rgba(199,145,255,.2),transparent 38%),radial-gradient(ellipse at 52% 105%,rgba(86,206,255,.16),transparent 48%),linear-gradient(150deg,rgba(7,20,47,.82),rgba(8,13,34,.9))!important;box-shadow:0 26px 74px rgba(2,10,30,.5),0 0 42px rgba(96,205,255,.17),0 0 34px rgba(187,132,255,.12),inset 0 1px 0 rgba(255,255,255,.16),inset 0 -28px 56px rgba(81,76,178,.12)!important;-webkit-backdrop-filter:blur(18px) saturate(1.18);backdrop-filter:blur(18px) saturate(1.18);box-sizing:border-box!important;}",
+            ".live2d-quiz.is-boss-auth::before{content:\"\";position:absolute;left:22px;right:58px;top:12px;height:1px;background:linear-gradient(90deg,transparent,rgba(235,253,255,.78),rgba(197,157,255,.35),transparent);box-shadow:0 0 18px rgba(122,222,255,.3);pointer-events:none;}",
+            ".live2d-quiz.is-boss-auth::after{content:\"\";position:absolute;right:20px;bottom:18px;width:116px;height:116px;border-radius:30px;background:url(\"assets/ui/frost-corner.svg\") center/100% 100% no-repeat;opacity:.2;pointer-events:none;transform:rotate(180deg);}",
+            ".live2d-quiz.is-boss-auth .live2d-quiz__close{width:32px;height:32px;border-radius:999px;border:1px solid rgba(205,243,255,.62);background:rgba(9,28,58,.62);box-shadow:0 0 18px rgba(112,219,255,.22),inset 0 1px 0 rgba(255,255,255,.16);color:rgba(238,252,255,.96);}",
+            ".live2d-quiz.is-boss-auth .live2d-quiz__meta{display:inline-flex;width:max-content;max-width:100%;margin:0 auto 6px;padding:5px 12px;border:1px solid rgba(184,236,255,.46);border-radius:999px;background:linear-gradient(90deg,rgba(88,203,255,.16),rgba(190,145,255,.12));box-shadow:0 0 16px rgba(100,211,255,.12),inset 0 1px 0 rgba(255,255,255,.14);color:rgba(206,240,255,.9);font-size:12px;font-weight:820;}",
+            ".live2d-quiz.is-boss-auth .live2d-quiz__question{max-width:720px;margin:0 auto 12px;color:rgba(220,239,252,.82);font-size:14px;line-height:1.7;text-align:center;}",
+            ".live2d-quiz.is-boss-auth .live2d-quiz__options{width:100%;box-sizing:border-box;}",
+            ".live2d-boss-auth-shell{position:relative;display:grid;grid-template-columns:minmax(210px,.82fr) minmax(320px,1.18fr);gap:18px;align-items:stretch;width:100%;box-sizing:border-box;}",
+            ".live2d-boss-auth-shell::before{content:\"\";position:absolute;inset:8px 10px auto 10px;height:120px;background:url(\"assets/ui/aurora-streak.svg\") center top/92% 110px no-repeat;opacity:.58;pointer-events:none;}",
+            ".live2d-boss-auth-ambient,.live2d-boss-auth-card{position:relative;z-index:1;min-width:0;border:1px solid rgba(168,229,255,.28);border-radius:24px;background:radial-gradient(circle at 16% 12%,rgba(188,243,255,.18),transparent 34%),linear-gradient(145deg,rgba(255,255,255,.075),rgba(65,138,208,.09));box-shadow:0 14px 32px rgba(0,12,40,.18),inset 0 1px 0 rgba(255,255,255,.15),inset 0 -18px 34px rgba(80,91,190,.08);box-sizing:border-box;overflow:hidden;}",
+            ".live2d-boss-auth-ambient{display:flex;flex-direction:column;justify-content:space-between;gap:18px;padding:24px 22px;color:rgba(231,247,255,.92);}",
+            ".live2d-boss-auth-ambient::before{content:\"\";position:absolute;left:-26px;top:-24px;width:128px;height:128px;background:url(\"assets/ui/frost-corner.svg\") left top/128px 128px no-repeat;opacity:.3;pointer-events:none;}",
+            ".live2d-boss-auth-kicker{display:inline-flex;width:max-content;max-width:100%;padding:5px 11px;border:1px solid rgba(188,238,255,.38);border-radius:999px;background:rgba(91,203,255,.12);color:rgba(206,241,255,.9);font-size:12px;font-weight:820;}",
+            ".live2d-boss-auth-title{margin:12px 0 0;color:rgba(248,253,255,.98);font-size:30px;font-weight:940;line-height:1.08;text-shadow:0 0 20px rgba(117,219,255,.28);}",
+            ".live2d-boss-auth-copy{margin:12px 0 0;color:rgba(207,231,248,.82);font-size:13px;line-height:1.75;}",
+            ".live2d-boss-auth-notes{display:grid;gap:8px;margin:0;padding:0;list-style:none;}",
+            ".live2d-boss-auth-notes li{position:relative;padding:8px 10px 8px 30px;border:1px solid rgba(172,229,255,.18);border-radius:14px;background:rgba(9,31,64,.24);color:rgba(221,241,253,.84);font-size:12px;line-height:1.45;}",
+            ".live2d-boss-auth-notes li::before{content:\"\";position:absolute;left:11px;top:13px;width:8px;height:8px;border-radius:50%;background:radial-gradient(circle,#fff,rgba(115,220,255,.9) 45%,rgba(177,136,255,.4));box-shadow:0 0 12px rgba(118,221,255,.4);}",
+            ".live2d-boss-auth-card{display:grid;gap:14px;padding:24px;}",
+            ".live2d-boss-auth-heading{display:grid;gap:8px;text-align:left;}",
+            ".live2d-boss-auth-heading__eyebrow{color:rgba(184,225,245,.78);font-size:12px;font-weight:780;}",
+            ".live2d-boss-auth-heading__title{color:rgba(248,253,255,.98);font-size:24px;font-weight:920;line-height:1.16;text-shadow:0 0 18px rgba(117,219,255,.22);}",
+            ".live2d-boss-auth-heading__desc{color:rgba(200,226,246,.78);font-size:13px;line-height:1.65;}",
+            ".live2d-boss-auth-fields{display:grid;gap:12px;}",
+            ".live2d-boss-auth-field{display:grid;gap:7px;min-width:0;}",
+            ".live2d-boss-auth-label{color:rgba(202,232,248,.82);font-size:12px;font-weight:780;}",
+            ".live2d-quiz.is-boss-auth .live2d-boss-auth-input{appearance:none;-webkit-appearance:none;width:100%;min-height:48px;padding:12px 14px 12px 42px;border:1px solid rgba(171,231,255,.34);border-radius:16px;background:radial-gradient(circle at 12% 16%,rgba(173,235,255,.14),transparent 34%),linear-gradient(145deg,rgba(11,35,71,.64),rgba(14,25,59,.58));box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 10px 20px rgba(0,12,38,.12);color:rgba(241,251,255,.96);font:inherit;font-size:14px;box-sizing:border-box;outline:none;transition:border-color .16s ease,box-shadow .16s ease,background .16s ease;}",
+            ".live2d-quiz.is-boss-auth .live2d-boss-auth-input::placeholder{color:rgba(175,210,232,.54);}",
+            ".live2d-quiz.is-boss-auth .live2d-boss-auth-input:hover{border-color:rgba(201,244,255,.54);box-shadow:0 0 18px rgba(105,213,255,.12),inset 0 1px 0 rgba(255,255,255,.18);}",
+            ".live2d-quiz.is-boss-auth .live2d-boss-auth-input:focus{border-color:rgba(223,250,255,.78);box-shadow:0 0 22px rgba(111,220,255,.22),0 0 18px rgba(190,142,255,.12),inset 0 1px 0 rgba(255,255,255,.22);background:linear-gradient(145deg,rgba(17,48,88,.72),rgba(16,28,68,.64));}",
+            ".live2d-boss-auth-field{position:relative;}",
+            ".live2d-boss-auth-field::before{content:attr(data-icon);position:absolute;left:14px;bottom:14px;z-index:1;color:rgba(196,238,255,.78);font-size:15px;text-shadow:0 0 10px rgba(111,220,255,.24);pointer-events:none;}",
+            ".live2d-boss-auth-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:2px;}",
+            ".live2d-quiz.is-boss-auth .live2d-boss-auth-action{appearance:none;-webkit-appearance:none;display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:128px;padding:10px 16px;border-radius:999px;border:1px solid rgba(175,230,255,.42);background:linear-gradient(135deg,rgba(40,96,154,.52),rgba(27,50,102,.56));box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 0 14px rgba(96,204,255,.1);color:rgba(240,252,255,.96);font:inherit;font-size:14px;font-weight:850;white-space:nowrap;cursor:pointer;transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease,background .16s ease;}",
+            ".live2d-quiz.is-boss-auth .live2d-boss-auth-action:hover:not(:disabled){transform:translateY(-1px);border-color:rgba(224,249,255,.72);box-shadow:0 0 20px rgba(101,211,255,.2),inset 0 1px 0 rgba(255,255,255,.22);}",
+            ".live2d-quiz.is-boss-auth .live2d-boss-auth-action:active:not(:disabled){transform:translateY(0);box-shadow:inset 0 1px 8px rgba(0,14,42,.24);}",
+            ".live2d-quiz.is-boss-auth .live2d-boss-auth-action:disabled{opacity:1;filter:none;color:rgba(224,244,255,.68);background:linear-gradient(135deg,rgba(42,82,126,.38),rgba(24,45,82,.44));cursor:default;}",
+            ".live2d-quiz.is-boss-auth .live2d-boss-auth-primary{flex:1 1 190px;border-color:rgba(195,243,255,.72);background:linear-gradient(135deg,rgba(92,210,255,.82),rgba(176,123,255,.7));box-shadow:0 0 24px rgba(103,213,255,.28),inset 0 1px 0 rgba(255,255,255,.28);}",
+            ".live2d-quiz.is-boss-auth .live2d-boss-auth-secondary{background:linear-gradient(135deg,rgba(35,82,136,.48),rgba(35,45,100,.5));}",
+            ".live2d-quiz.is-boss-auth .live2d-boss-auth-ghost{min-width:96px;border-color:rgba(164,213,244,.26);background:rgba(13,31,64,.32);color:rgba(212,235,250,.82);}",
+            ".live2d-boss-auth-hint{margin:0;padding:10px 12px;border:1px solid rgba(168,226,255,.18);border-radius:15px;background:linear-gradient(90deg,transparent,rgba(95,184,240,.08),transparent);color:rgba(190,224,244,.78);font-size:12px;line-height:1.55;text-align:center;}",
+            ".live2d-quiz.is-boss-auth .live2d-boss-auth-note{margin-top:12px;border-color:rgba(170,226,255,.22);background:linear-gradient(90deg,rgba(33,84,132,.22),rgba(108,88,184,.18));color:rgba(216,239,252,.88);}",
+            "@media (max-width:720px){.live2d-quiz.is-boss-auth{width:min(92vw,520px)!important;max-width:calc(100vw - 24px)!important;max-height:calc(100vh - 88px)!important;padding:12px!important;border-radius:22px!important;}.live2d-boss-auth-shell{grid-template-columns:1fr!important;gap:12px;}.live2d-boss-auth-ambient{padding:18px;}.live2d-boss-auth-title{font-size:24px;}.live2d-boss-auth-card{padding:18px;}.live2d-boss-auth-actions{display:grid;grid-template-columns:1fr;}.live2d-quiz.is-boss-auth .live2d-boss-auth-action{width:100%;min-width:0;}.live2d-quiz.is-boss-auth::after{opacity:.12;width:92px;height:92px;}}",
             ".score-guess-header{padding:2px 0 4px;}",
             ".score-guess-kicker{width:max-content;padding:4px 10px;border:1px solid rgba(180,235,255,.56);border-radius:999px;background:rgba(103,202,255,.16);color:rgba(199,239,255,.96);font-size:12px;font-weight:700;}",
             ".score-guess-subtitle{color:rgba(218,237,255,.86);font-size:13px;line-height:1.55;}",
@@ -1133,7 +1176,7 @@
             clearSpinTimers();
             window.clearTimeout(fortuneProcessTimer);
             fortuneProcessTimer = null;
-            dialog.classList.remove("is-opening", "is-wheel", "is-weather", "is-music", "is-fortune", "is-memory", "is-boss-auth", "is-boss-review", "is-score-guess", "is-main-menu", "live2d-popup--score-guess", "live2d-menu-dialog--score-guess");
+            dialog.classList.remove("is-opening", "is-wheel", "is-weather", "is-music", "is-fortune", "is-memory", "is-boss-auth", "is-boss-auth-register", "is-boss-auth-login", "is-boss-register", "is-boss-review", "is-score-guess", "is-main-menu", "live2d-popup--score-guess", "live2d-menu-dialog--score-guess");
             dialog.removeAttribute("data-score-guess-ui-version");
             meta.textContent = "";
             question.textContent = "";
@@ -1176,7 +1219,7 @@
             if (dialog.classList.contains("is-boss-review")) {
                 width = 720;
             } else if (dialog.classList.contains("is-boss-auth")) {
-                width = 660;
+                width = 840;
             } else if (dialog.classList.contains("is-score-guess")) {
                 width = 860;
             } else if (dialog.classList.contains("is-fortune") || dialog.classList.contains("is-memory")) {
@@ -1185,11 +1228,11 @@
 
             return {
                 width: width,
-                height: dialog.classList.contains("is-score-guess") ? 620 : 220,
+                height: dialog.classList.contains("is-score-guess") ? 620 : (dialog.classList.contains("is-boss-auth") ? 520 : 220),
                 preferredRatio: 0.22,
                 gap: 20,
                 margin: dialog.classList.contains("is-score-guess") ? 16 : 8,
-                mobileMaxWidthRatio: dialog.classList.contains("is-score-guess") ? 0.92 : 0.72
+                mobileMaxWidthRatio: (dialog.classList.contains("is-score-guess") || dialog.classList.contains("is-boss-auth")) ? 0.92 : 0.72
             };
         }
 
@@ -1621,37 +1664,69 @@
         function showBossRegisterPanel() {
             clearDialog();
             setDialogMode("panel");
-            meta.textContent = "老板账号注册";
-            question.textContent = "这是 Supabase 老板账号，不会覆盖甘雨本地记忆里的称呼。";
+            dialog.classList.add("is-boss-auth", "is-boss-register", "is-boss-auth-register");
+            meta.textContent = "老板账号";
+            question.textContent = "这是您在本站参与互动、评价和投票使用的专属账号，不会覆盖甘雨本地记忆中的昵称。";
             options.innerHTML = [
-                '<form class="live2d-weather-form live2d-boss-register-form">',
-                    '<input class="live2d-weather-input" name="email" type="email" autocomplete="email" placeholder="邮箱">',
-                    '<input class="live2d-weather-input" name="password" type="password" autocomplete="new-password" placeholder="密码">',
-                    '<input class="live2d-weather-input" name="confirmPassword" type="password" autocomplete="new-password" placeholder="确认密码">',
-                    '<div class="live2d-weather-actions">',
-                        '<button class="live2d-quiz__option" type="submit">注册老板账号</button>',
-                        '<button class="live2d-quiz__option" type="button" data-action="price-login" hidden>去收费咨询页登录</button>',
-                        '<button class="live2d-quiz__option" type="button" data-action="back">返回</button>',
+                '<div class="live2d-boss-auth-shell">',
+                    '<div class="live2d-boss-auth-ambient" aria-hidden="true">',
+                        '<div>',
+                            '<span class="live2d-boss-auth-kicker">冰湖访客凭证</span>',
+                            '<div class="live2d-boss-auth-title">欢迎来到君雪的小小互动星湖</div>',
+                            '<p class="live2d-boss-auth-copy">注册后可参与投票、发布评价，并使用更多专属互动功能。甘雨会记得本地昵称，账号只用于登录与同步互动记录。</p>',
+                        '</div>',
+                        '<ul class="live2d-boss-auth-notes">',
+                            '<li>专属账号用于本站互动，不会覆盖本地记忆昵称。</li>',
+                            '<li>邮箱只用于登录与 Supabase Auth 验证。</li>',
+                            '<li>注册后可回到登录入口继续参与评价与投票。</li>',
+                        '</ul>',
                     '</div>',
-                '</form>'
+                    '<form class="live2d-boss-auth-card live2d-boss-register-form">',
+                        '<div class="live2d-boss-auth-heading">',
+                            '<span class="live2d-boss-auth-heading__eyebrow">Boss Account</span>',
+                            '<strong class="live2d-boss-auth-heading__title">注册老板账号</strong>',
+                            '<span class="live2d-boss-auth-heading__desc">填写邮箱和密码后，就可以在本站留下评价、参与投票与更多互动。</span>',
+                        '</div>',
+                        '<div class="live2d-boss-auth-fields">',
+                            '<label class="live2d-boss-auth-field" data-icon="✦">',
+                                '<span class="live2d-boss-auth-label">邮箱</span>',
+                                '<input class="live2d-weather-input live2d-boss-auth-input" name="email" type="email" autocomplete="email" placeholder="用于登录的邮箱">',
+                            '</label>',
+                            '<label class="live2d-boss-auth-field" data-icon="◇">',
+                                '<span class="live2d-boss-auth-label">密码</span>',
+                                '<input class="live2d-weather-input live2d-boss-auth-input" name="password" type="password" autocomplete="new-password" placeholder="设置登录密码">',
+                            '</label>',
+                            '<label class="live2d-boss-auth-field" data-icon="✧">',
+                                '<span class="live2d-boss-auth-label">确认密码</span>',
+                                '<input class="live2d-weather-input live2d-boss-auth-input" name="confirmPassword" type="password" autocomplete="new-password" placeholder="再输入一次密码">',
+                            '</label>',
+                        '</div>',
+                        '<div class="live2d-boss-auth-actions">',
+                            '<button class="live2d-boss-auth-action live2d-boss-auth-primary" type="submit">注册老板账号</button>',
+                            '<button class="live2d-boss-auth-action live2d-boss-auth-secondary" type="button" data-action="login">返回登录</button>',
+                            '<button class="live2d-boss-auth-action live2d-boss-auth-ghost" type="button" data-action="back">返回菜单</button>',
+                        '</div>',
+                        '<p class="live2d-boss-auth-hint">注册后可参与互动、发布评价，并使用更多专属功能。</p>',
+                    '</form>',
+                '</div>'
             ].join("");
-            result.textContent = "注册后，请到收费咨询页登录并留下老板评价。";
-            result.className = "live2d-quiz__result is-neutral";
+            result.textContent = "账号仅用于本站互动与评价，不会影响甘雨本地记住的称呼。";
+            result.className = "live2d-quiz__result live2d-boss-auth-note is-neutral";
             showDialog();
 
             const form = options.querySelector(".live2d-boss-register-form");
             const submitButton = form.querySelector('button[type="submit"]');
-            const loginButton = form.querySelector('[data-action="price-login"]');
+            const loginButton = form.querySelector('[data-action="login"]');
             const backButton = form.querySelector('[data-action="back"]');
 
             loginButton.addEventListener("click", function (event) {
                 event.stopPropagation();
-                window.location.href = "price.html";
+                showBossReviewAuthPanel("login");
             });
 
             backButton.addEventListener("click", function (event) {
                 event.stopPropagation();
-                showKnowJunxuePanel();
+                showConsultPanel();
             });
 
             form.addEventListener("submit", async function (event) {
@@ -1675,7 +1750,7 @@
                 }
 
                 submitButton.disabled = true;
-                result.textContent = "正在帮你注册老板账号……";
+                result.textContent = "正在为你点亮老板账号……";
                 result.className = "live2d-quiz__result is-neutral";
 
                 try {
@@ -1683,15 +1758,14 @@
                     const response = await client.auth.signUp({ email: email, password: password });
 
                     if (response.error) {
-                        result.textContent = response.error.message + " 这个邮箱可能已经注册过了，可以去收费咨询页直接登录试试。";
+                        result.textContent = response.error.message + " 这个邮箱可能已经注册过了，可以返回登录试试。";
                         result.className = "live2d-quiz__result is-warning";
                         return;
                     }
 
                     form.reset();
-                    loginButton.hidden = false;
                     result.textContent = response.data && response.data.session ?
-                        "注册成功啦～现在可以去收费咨询页登录并留下老板评价。" :
+                        "注册成功啦～现在可以返回登录，继续参与评价、投票和互动。" :
                         "注册成功，请先去邮箱确认账号，再回来登录。";
                     result.className = "live2d-quiz__result is-good";
                 } catch (error) {
@@ -2476,25 +2550,54 @@
             const returnToScoreGuess = authOptions && authOptions.returnTo === "scoreGuess";
             clearDialog();
             setDialogMode("panel");
-            dialog.classList.add("is-weather", "is-boss-auth");
-            meta.textContent = "老板评价账号";
-            question.textContent = "登录后可以发布老板评价、点赞和评论。";
+            dialog.classList.add("is-weather", "is-boss-auth", mode === "register" ? "is-boss-auth-register" : "is-boss-auth-login");
+            meta.textContent = mode === "register" ? "老板账号注册" : "老板账号登录";
+            question.textContent = mode === "register" ?
+                "这是您在本站参与互动、评价和投票使用的专属账号，不会覆盖甘雨本地记忆中的昵称。" :
+                "登录后可以继续参与投票、发布评价，也能使用更多专属互动。";
             options.innerHTML = [
-                '<form class="live2d-boss-auth-card live2d-boss-auth-form">',
-                    '<div class="live2d-boss-auth-heading">' + (mode === "register" ? "还没有老板账号的话，可以先注册。" : "已有老板账号的话，可以先登录。") + '</div>',
-                    '<div class="live2d-boss-auth-fields">',
-                        '<input class="live2d-weather-input live2d-boss-auth-input" name="email" type="email" autocomplete="email" placeholder="邮箱">',
-                        '<input class="live2d-weather-input live2d-boss-auth-input" name="password" type="password" autocomplete="' + (mode === "register" ? "new-password" : "current-password") + '" placeholder="密码">',
+                '<div class="live2d-boss-auth-shell">',
+                    '<div class="live2d-boss-auth-ambient" aria-hidden="true">',
+                        '<div>',
+                            '<span class="live2d-boss-auth-kicker">' + (mode === "register" ? "冰湖访客凭证" : "星湖通行记录") + '</span>',
+                            '<div class="live2d-boss-auth-title">' + (mode === "register" ? "把这份专属互动身份交给甘雨保管" : "欢迎回来，继续和君雪互动") + '</div>',
+                            '<p class="live2d-boss-auth-copy">' + (mode === "register" ? "注册后可参与投票、发布评价，并使用更多专属互动功能。账号只用于本站登录，不会覆盖本地记忆中的昵称。" : "登录后可以继续查看互动记录、参与评分竞猜，也可以在评价墙留下想说的话。") + '</p>',
+                        '</div>',
+                        '<ul class="live2d-boss-auth-notes">',
+                            '<li>账号用于互动、评价与投票，不影响本地昵称记忆。</li>',
+                            '<li>界面信息会同步到 Supabase Auth，前端不保存密码。</li>',
+                            '<li>' + (mode === "register" ? "如果已经注册过，可以直接返回登录。" : "还没有账号时，可以切换到注册。") + '</li>',
+                        '</ul>',
                     '</div>',
-                    '<div class="live2d-boss-auth-actions">',
-                        '<button class="live2d-quiz__option live2d-boss-auth-primary" type="submit">' + (mode === "register" ? "注册" : "登录") + '</button>',
-                        '<button class="live2d-quiz__option" type="button" data-action="toggle">' + (mode === "register" ? "去登录" : "去注册") + '</button>',
-                        '<button class="live2d-quiz__option" type="button" data-action="back">返回</button>',
-                    '</div>',
-                    '<p class="live2d-boss-auth-hint">还没有老板账号？点击“去注册”，甘雨会带你完成注册。</p>',
-                '</form>'
+                    '<form class="live2d-boss-auth-card live2d-boss-auth-form">',
+                        '<div class="live2d-boss-auth-heading">',
+                            '<span class="live2d-boss-auth-heading__eyebrow">Boss Account</span>',
+                            '<strong class="live2d-boss-auth-heading__title">' + (mode === "register" ? "注册老板账号" : "登录老板账号") + '</strong>',
+                            '<span class="live2d-boss-auth-heading__desc">' + (mode === "register" ? "填写邮箱和密码后，就可以参与本站互动、评价与投票。" : "使用注册邮箱登录，回到你在本站的互动身份。") + '</span>',
+                        '</div>',
+                        '<div class="live2d-boss-auth-fields">',
+                            '<label class="live2d-boss-auth-field" data-icon="✦">',
+                                '<span class="live2d-boss-auth-label">邮箱</span>',
+                                '<input class="live2d-weather-input live2d-boss-auth-input" name="email" type="email" autocomplete="email" placeholder="用于登录的邮箱">',
+                            '</label>',
+                            '<label class="live2d-boss-auth-field" data-icon="◇">',
+                                '<span class="live2d-boss-auth-label">密码</span>',
+                                '<input class="live2d-weather-input live2d-boss-auth-input" name="password" type="password" autocomplete="' + (mode === "register" ? "new-password" : "current-password") + '" placeholder="' + (mode === "register" ? "设置登录密码" : "输入登录密码") + '">',
+                            '</label>',
+                            mode === "register" ? '<label class="live2d-boss-auth-field" data-icon="✧"><span class="live2d-boss-auth-label">确认密码</span><input class="live2d-weather-input live2d-boss-auth-input" name="confirmPassword" type="password" autocomplete="new-password" placeholder="再输入一次密码"></label>' : '',
+                        '</div>',
+                        '<div class="live2d-boss-auth-actions">',
+                            '<button class="live2d-boss-auth-action live2d-boss-auth-primary" type="submit">' + (mode === "register" ? "注册老板账号" : "登录老板账号") + '</button>',
+                            '<button class="live2d-boss-auth-action live2d-boss-auth-secondary" type="button" data-action="toggle">' + (mode === "register" ? "返回登录" : "去注册") + '</button>',
+                            '<button class="live2d-boss-auth-action live2d-boss-auth-ghost" type="button" data-action="back">返回</button>',
+                        '</div>',
+                        '<p class="live2d-boss-auth-hint">' + (mode === "register" ? "注册后可参与互动、发布评价，并使用更多专属功能。" : "还没有老板账号？切换到注册，甘雨会带你完成账号创建。") + '</p>',
+                    '</form>',
+                '</div>'
             ].join("");
-            result.textContent = "老板账号使用 Supabase Auth，不会覆盖甘雨本地记忆里的称呼。";
+            result.textContent = mode === "register" ?
+                "账号只用于本站互动与评价，不会影响甘雨本地记住的称呼。" :
+                "老板账号使用 Supabase Auth，不会覆盖甘雨本地记忆里的称呼。";
             result.className = "live2d-quiz__result live2d-boss-auth-note is-neutral";
             showDialog();
 
@@ -2523,15 +2626,22 @@
 
                 const email = form.elements.email.value.trim();
                 const password = form.elements.password.value;
+                const confirmPassword = mode === "register" && form.elements.confirmPassword ? form.elements.confirmPassword.value : "";
 
-                if (!email || !password) {
-                    result.textContent = "请先填好邮箱和密码哦。";
+                if (!email || !password || (mode === "register" && !confirmPassword)) {
+                    result.textContent = mode === "register" ? "请先把邮箱、密码和确认密码都填好哦。" : "请先填好邮箱和密码哦。";
+                    result.className = "live2d-quiz__result is-warning";
+                    return;
+                }
+
+                if (mode === "register" && password !== confirmPassword) {
+                    result.textContent = "两次密码不一致，请再轻轻检查一下。";
                     result.className = "live2d-quiz__result is-warning";
                     return;
                 }
 
                 submitButton.disabled = true;
-                result.textContent = mode === "register" ? "正在注册老板账号……" : "正在登录老板账号……";
+                result.textContent = mode === "register" ? "正在为你点亮老板账号……" : "正在确认老板账号……";
                 result.className = "live2d-quiz__result is-neutral";
 
                 try {

@@ -397,7 +397,7 @@ The function is intentionally narrow: it only returns `choice`, `voter_name`, an
 ```sql
 drop function if exists public.get_live_score_guess_voters(uuid);
 
-create or replace function public.get_live_score_guess_voters(session_id uuid)
+create or replace function public.get_live_score_guess_voters(p_session_id uuid)
 returns table (
   choice text,
   voter_name text,
@@ -422,7 +422,7 @@ begin
     '用户后四位 ' || right(vote.user_id::text, 4) as voter_name,
     vote.created_at
   from public.live_score_guess_votes vote
-  where vote.session_id = $1
+  where vote.session_id = p_session_id
   order by
     case vote.choice
       when '铜牌' then 1

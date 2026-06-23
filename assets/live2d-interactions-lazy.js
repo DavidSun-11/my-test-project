@@ -1842,7 +1842,7 @@
             }
 
             try {
-                const response = await client.rpc("get_live_score_guess_voters", { session_id: sessionId });
+                const response = await client.rpc("get_live_score_guess_voters", { p_session_id: sessionId });
 
                 if (response.error) {
                     throw response.error;

@@ -387,3 +387,55 @@ Notes:
 - Do not put a Supabase secret key or service role key into frontend files.
 - Row level security (RLS) is required. The frontend hides admin controls for normal users, but RLS is the real permission boundary.
 - Realtime should be enabled for `live_score_guess_sessions` and `live_score_guess_votes` if you want live updates across viewers.
+
+## 9. 直播互动：评分竞猜管理员投票名单升级 SQL
+
+Run this SQL in Supabase SQL Editor after section 8 if you want the admin-only voter list shown after a score guess session ends.
+
+The function is intentionally narrow: it only returns `choice`, `voter_name`, and `created_at`; it does not expose full email, `user_id`, or full UUID values, and it does not query `auth.users`.
+
+```sql
+drop function if exists public.get_live_score_guess_voters(uuid);
+
+create or replace function public.get_live_score_guess_voters(session_id uuid)
+returns table (
+  choice text,
+  voter_name text,
+  created_at timestamptz
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if auth.uid() is null or not exists (
+    select 1
+    from public.live_interaction_admins admin
+    where admin.user_id = auth.uid()
+  ) then
+    raise exception 'not allowed';
+  end if;
+
+  return query
+  select
+    vote.choice,
+    '用户后四位 ' || right(vote.user_id::text, 4) as voter_name,
+    vote.created_at
+  from public.live_score_guess_votes vote
+  where vote.session_id = $1
+  order by
+    case vote.choice
+      when '铜牌' then 1
+      when '银牌' then 2
+      when '金牌' then 3
+      when '顶级' then 4
+      when '无' then 5
+      else 6
+    end,
+    vote.created_at asc;
+end;
+$$;
+
+revoke all on function public.get_live_score_guess_voters(uuid) from public;
+grant execute on function public.get_live_score_guess_voters(uuid) to authenticated;
+```

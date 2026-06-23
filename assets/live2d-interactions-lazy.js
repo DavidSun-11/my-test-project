@@ -702,7 +702,25 @@
             ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-option--none{--score-badge-a:#dce9f7;--score-badge-b:#829bbe;--score-badge-image:url(\"assets/ui/score-none.svg\");--score-border:rgba(150,179,215,.52);--score-glow:rgba(132,161,204,.22);--score-soft:rgba(132,161,204,.12);}",
             ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-option__badge{position:relative!important;z-index:1!important;display:grid!important;place-items:center!important;width:50px!important;height:50px!important;border-radius:17px!important;border:1px solid rgba(240,253,255,.58)!important;background-image:var(--score-badge-image),radial-gradient(circle at 35% 24%,var(--score-badge-a),var(--score-badge-b) 56%,rgba(26,42,86,.8))!important;background-position:center!important;background-size:92% 92%,100% 100%!important;background-repeat:no-repeat!important;box-shadow:0 0 20px var(--score-glow),inset 0 1px 0 rgba(255,255,255,.5),inset 0 -10px 16px rgba(0,19,48,.18)!important;color:rgba(255,255,255,.92)!important;font-size:15px!important;font-weight:950!important;text-shadow:0 1px 6px rgba(0,20,45,.72)!important;}",
             ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-option__body,.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-option__mark{position:relative!important;z-index:1!important;}",
+            ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"]{border-radius:30px 24px 30px 24px!important;border-color:rgba(178,238,255,.38)!important;background-image:url(\"assets/ui/star-dust.svg\"),radial-gradient(circle at 10% 8%,rgba(190,243,255,.32),transparent 25%),radial-gradient(ellipse at 92% 12%,rgba(185,132,255,.24),transparent 32%),radial-gradient(ellipse at 50% 104%,rgba(82,205,255,.2),transparent 46%),linear-gradient(145deg,rgba(10,24,50,.84),rgba(5,12,30,.96))!important;box-shadow:0 26px 76px rgba(2,10,26,.56),0 0 42px rgba(92,197,255,.18),0 0 34px rgba(176,132,255,.13),inset 0 1px 0 rgba(255,255,255,.18),inset 0 -1px 0 rgba(100,180,255,.13),inset 0 0 0 1px rgba(231,252,255,.055),inset 0 -36px 70px rgba(65,90,185,.13)!important;}",
+            ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__meta-item{position:relative!important;overflow:hidden!important;clip-path:polygon(10px 0,calc(100% - 10px) 0,100% 10px,100% calc(100% - 10px),calc(100% - 10px) 100%,10px 100%,0 calc(100% - 10px),0 10px)!important;border-color:rgba(168,230,255,.3)!important;background:radial-gradient(circle at 16% 18%,rgba(190,244,255,.16),transparent 40%),linear-gradient(135deg,rgba(255,255,255,.08),rgba(70,150,218,.08) 52%,rgba(112,97,205,.07))!important;box-shadow:0 12px 24px rgba(0,12,40,.14),inset 0 1px 0 rgba(255,255,255,.18),inset 0 -14px 24px rgba(26,80,150,.08)!important;}",
+            ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__meta-item::after{content:\"\"!important;position:absolute!important;inset:1px!important;clip-path:inherit!important;background:linear-gradient(115deg,rgba(255,255,255,.16),transparent 28%,transparent 68%,rgba(146,218,255,.12))!important;opacity:.58!important;pointer-events:none!important;}",
+            ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-option{clip-path:polygon(14px 0,calc(100% - 18px) 0,100% 16px,100% calc(100% - 14px),calc(100% - 14px) 100%,18px 100%,0 calc(100% - 16px),0 14px)!important;border-color:var(--score-border)!important;background:radial-gradient(circle at 92% 13%,var(--score-soft),transparent 34%),radial-gradient(circle at 18% 0%,rgba(185,238,255,.13),transparent 38%),linear-gradient(145deg,rgba(18,45,84,.7),rgba(9,21,54,.72) 64%,rgba(31,32,79,.62))!important;box-shadow:0 13px 28px rgba(0,10,38,.22),0 0 22px var(--score-glow),inset 0 1px 0 rgba(255,255,255,.22),inset 0 -16px 28px rgba(0,20,60,.14)!important;}",
+            ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-option__badge{border-radius:16px 10px 16px 10px!important;clip-path:polygon(10px 0,calc(100% - 10px) 0,100% 10px,100% calc(100% - 10px),calc(100% - 10px) 100%,10px 100%,0 calc(100% - 10px),0 10px)!important;box-shadow:0 0 22px var(--score-glow),inset 0 1px 0 rgba(255,255,255,.52),inset 0 -10px 16px rgba(0,19,48,.2),0 7px 14px rgba(0,10,34,.18)!important;}",
+            ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__voters{position:relative!important;display:grid!important;gap:10px!important;padding:13px!important;border:1px solid rgba(167,228,255,.28)!important;border-radius:20px!important;clip-path:polygon(16px 0,calc(100% - 16px) 0,100% 16px,100% calc(100% - 16px),calc(100% - 16px) 100%,16px 100%,0 calc(100% - 16px),0 16px)!important;background:url(\"assets/ui/star-dust.svg\") center/190px 130px repeat,radial-gradient(circle at 12% 8%,rgba(183,238,255,.13),transparent 34%),linear-gradient(145deg,rgba(12,34,66,.58),rgba(11,23,54,.62))!important;box-shadow:0 14px 28px rgba(0,10,34,.18),inset 0 1px 0 rgba(255,255,255,.14),inset 0 -16px 26px rgba(70,98,190,.1)!important;}",
+            ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__voters::before{content:\"\"!important;position:absolute!important;left:18px!important;right:18px!important;top:0!important;height:1px!important;background:linear-gradient(90deg,transparent,rgba(236,253,255,.76),rgba(164,224,255,.2),transparent)!important;pointer-events:none!important;}",
+            ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-voters__header{display:flex!important;align-items:center!important;justify-content:center!important;gap:9px!important;flex-wrap:wrap!important;text-align:center!important;}",
+            ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-voters__eyebrow{padding:4px 10px!important;border:1px solid rgba(185,236,255,.4)!important;border-radius:999px!important;background:linear-gradient(90deg,rgba(87,199,255,.13),rgba(184,139,255,.1))!important;color:rgba(202,236,250,.86)!important;font-size:11px!important;font-weight:780!important;}",
+            ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-voters__title{color:rgba(244,253,255,.96)!important;font-size:15px!important;font-weight:900!important;text-shadow:0 0 14px rgba(111,218,255,.18)!important;}",
+            ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-voters__status{text-align:center!important;color:rgba(193,226,245,.78)!important;font-size:12px!important;line-height:1.5!important;}",
+            ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-voters__grid{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:8px!important;}",
+            ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-voters__group{--voter-border:rgba(178,231,255,.3);--voter-glow:rgba(101,211,255,.12);min-width:0!important;padding:9px!important;border:1px solid var(--voter-border)!important;border-radius:14px!important;clip-path:polygon(9px 0,calc(100% - 9px) 0,100% 9px,100% calc(100% - 9px),calc(100% - 9px) 100%,9px 100%,0 calc(100% - 9px),0 9px)!important;background:linear-gradient(145deg,rgba(255,255,255,.06),rgba(45,106,170,.08))!important;box-shadow:0 0 14px var(--voter-glow),inset 0 1px 0 rgba(255,255,255,.14)!important;}",
+            ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-voters__group--bronze{--voter-border:rgba(226,145,89,.42);--voter-glow:rgba(226,137,72,.12);} .score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-voters__group--silver{--voter-border:rgba(205,237,255,.46);--voter-glow:rgba(205,237,255,.12);} .score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-voters__group--gold{--voter-border:rgba(235,197,82,.42);--voter-glow:rgba(243,198,67,.12);} .score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-voters__group--top{--voter-border:rgba(183,139,255,.44);--voter-glow:rgba(169,114,255,.14);} .score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-voters__group--none{--voter-border:rgba(150,179,215,.38);--voter-glow:rgba(132,161,204,.1);}",
+            ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-voters__group-title{display:flex!important;justify-content:space-between!important;gap:6px!important;align-items:center!important;color:rgba(242,252,255,.94)!important;font-size:12px!important;font-weight:860!important;} .score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-voters__group-title em{font-style:normal!important;color:rgba(188,224,244,.78)!important;font-size:11px!important;font-weight:740!important;}",
+            ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-voters__names{display:flex!important;flex-wrap:wrap!important;gap:5px!important;margin-top:8px!important;min-height:22px!important;} .score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-voters__name,.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-voters__empty{display:inline-flex!important;max-width:100%!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;padding:3px 7px!important;border-radius:999px!important;border:1px solid rgba(180,232,255,.22)!important;background:rgba(12,34,66,.42)!important;color:rgba(221,241,252,.86)!important;font-size:11px!important;line-height:1.25!important;}",
+            ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-voters__empty{color:rgba(174,209,229,.62)!important;}",
             ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__actions{position:sticky!important;bottom:0!important;z-index:3!important;display:flex!important;flex-wrap:wrap!important;align-items:center!important;justify-content:center!important;gap:10px!important;width:100%!important;margin-top:2px!important;padding:12px!important;border:1px solid rgba(154,217,255,.22)!important;border-radius:18px!important;background:linear-gradient(180deg,rgba(12,34,66,.82),rgba(16,42,78,.78))!important;box-shadow:0 -12px 26px rgba(1,10,30,.18),inset 0 1px 0 rgba(255,255,255,.12)!important;-webkit-backdrop-filter:blur(12px) saturate(1.14);backdrop-filter:blur(12px) saturate(1.14);box-sizing:border-box!important;}",
+            ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__actions{clip-path:polygon(14px 0,calc(100% - 14px) 0,100% 14px,100% calc(100% - 14px),calc(100% - 14px) 100%,14px 100%,0 calc(100% - 14px),0 14px)!important;border-color:rgba(174,229,255,.2)!important;background:linear-gradient(180deg,rgba(13,36,70,.84),rgba(13,30,62,.82))!important;box-shadow:0 -12px 26px rgba(1,10,30,.18),0 0 22px rgba(101,211,255,.08),inset 0 1px 0 rgba(255,255,255,.13)!important;}",
             ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-action{appearance: none!important;-webkit-appearance: none!important;font:inherit!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;min-width:134px!important;min-height:44px!important;padding:10px 15px!important;border-radius:999px!important;border:1px solid rgba(175,230,255,.46)!important;background:linear-gradient(135deg,rgba(44,101,155,.52),rgba(23,50,96,.56))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 0 14px rgba(96,204,255,.1)!important;color:rgba(240,252,255,.98)!important;font-size:14px!important;font-weight:850!important;white-space:nowrap!important;cursor:pointer!important;transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease,background .16s ease!important;}",
             ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-action:hover{transform:translateY(-1px)!important;border-color:rgba(218,248,255,.68)!important;box-shadow:0 0 18px rgba(101,211,255,.2),inset 0 1px 0 rgba(255,255,255,.22)!important;}",
             ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-action:active{transform:translateY(0)!important;box-shadow:inset 0 1px 8px rgba(0,14,42,.24)!important;}",
@@ -711,6 +729,8 @@
             ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-action--danger{border-color:rgba(255,197,220,.62)!important;background:linear-gradient(135deg,rgba(232,104,154,.56),rgba(139,101,220,.58))!important;box-shadow:0 0 20px rgba(245,116,166,.18),inset 0 1px 0 rgba(255,255,255,.2)!important;}",
             ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-action--soft:last-child{border-color:rgba(170,219,246,.3)!important;background:linear-gradient(135deg,rgba(31,70,116,.42),rgba(18,38,76,.46))!important;color:rgba(218,239,252,.88)!important;}",
             ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__footer-note{text-align:center!important;padding:9px 12px!important;border:1px solid rgba(169,226,255,.18)!important;border-radius:15px!important;background:linear-gradient(90deg,transparent,rgba(98,183,240,.08),transparent)!important;color:rgba(188,222,244,.78)!important;font-size:12px!important;line-height:1.5!important;}",
+            "@media (max-width:860px){.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-voters__grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;}.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-voters__group--none{grid-column:1/-1!important;}}",
+            "@media (max-width:720px){.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-voters__grid{grid-template-columns:1fr!important;}.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__voters{padding:11px!important;clip-path:polygon(12px 0,calc(100% - 12px) 0,100% 12px,100% calc(100% - 12px),calc(100% - 12px) 100%,12px 100%,0 calc(100% - 12px),0 12px)!important;}}",
             "@media (max-width:720px){.live2d-quiz.is-score-guess.live2d-popup--score-guess{width:min(92vw,520px)!important;max-width:calc(100vw - 24px)!important;max-height:calc(100vh - 88px)!important;padding:10px!important;}.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"]{width:100%!important;max-width:100%!important;max-height:calc(100vh - 108px)!important;padding:18px!important;gap:12px!important;border-radius:22px!important;}.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__header{padding:0 34px 2px!important;text-align:left!important;align-items:flex-start!important;}.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__meta,.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__options{grid-template-columns:1fr!important;}.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-option{grid-template-columns:46px minmax(0,1fr) auto!important;min-height:72px!important;padding:11px!important;}.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-option__badge{width:46px!important;height:46px!important;border-radius:15px!important;font-size:17px!important;}.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__actions{display:grid!important;grid-template-columns:1fr!important;position:sticky!important;bottom:0!important;}.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-action{width:100%!important;min-width:0!important;}}"
         ].join("");
         document.head.appendChild(style);
@@ -1779,6 +1799,68 @@
             return vote ? vote.choice : "";
         }
 
+        function createEmptyScoreGuessVoterGroups() {
+            return SCORE_GUESS_CHOICES.reduce(function (groups, choice) {
+                groups[choice] = [];
+                return groups;
+            }, {});
+        }
+
+        function getSafeScoreGuessVoterName(value) {
+            const text = String(value || "").trim();
+
+            if (!text || /@/.test(text) || /^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(text)) {
+                return "匿名老板";
+            }
+
+            return text.length > 18 ? text.slice(0, 18) + "..." : text;
+        }
+
+        function groupScoreGuessVoters(rows) {
+            const groups = createEmptyScoreGuessVoterGroups();
+
+            (rows || []).forEach(function (row) {
+                if (!row || !Object.prototype.hasOwnProperty.call(groups, row.choice)) {
+                    return;
+                }
+
+                groups[row.choice].push({
+                    name: getSafeScoreGuessVoterName(row.voter_name),
+                    createdAt: row.created_at || ""
+                });
+            });
+
+            return groups;
+        }
+
+        async function loadScoreGuessVoters(client, sessionId, isAdmin) {
+            if (!client || !sessionId || !isAdmin || typeof client.rpc !== "function") {
+                return {
+                    votersByChoice: createEmptyScoreGuessVoterGroups(),
+                    votersLoadStatus: ""
+                };
+            }
+
+            try {
+                const response = await client.rpc("get_live_score_guess_voters", { session_id: sessionId });
+
+                if (response.error) {
+                    throw response.error;
+                }
+
+                return {
+                    votersByChoice: groupScoreGuessVoters(response.data || []),
+                    votersLoadStatus: "仅管理员可见。名单只显示昵称或用户后四位，不展示邮箱和完整用户 ID。"
+                };
+            } catch (error) {
+                console.warn("[JunxueScoreGuess] voter list failed.", error);
+                return {
+                    votersByChoice: createEmptyScoreGuessVoterGroups(),
+                    votersLoadStatus: "管理员投票名单功能还需要执行数据库升级 SQL。"
+                };
+            }
+        }
+
         async function getScoreGuessAuthSession(client) {
             const response = await client.auth.getSession();
 
@@ -1861,6 +1943,7 @@
             const session = await loadActiveScoreGuessSession(client);
             const votes = await loadScoreGuessVotes(client, session && session.id);
             const isAdmin = await checkScoreGuessAdmin(client, authSession && authSession.user && authSession.user.id);
+            const voterState = await loadScoreGuessVoters(client, session && session.status === "closed" ? session.id : "", isAdmin);
 
             scoreGuessState = {
                 client: client,
@@ -1868,6 +1951,8 @@
                 authSession: authSession,
                 votes: votes,
                 isAdmin: isAdmin,
+                votersByChoice: voterState.votersByChoice,
+                votersLoadStatus: voterState.votersLoadStatus,
                 realtimeWarning: scoreGuessState.realtimeWarning
             };
 
@@ -1936,6 +2021,43 @@
             }
 
             return fallback || SCORE_GUESS_LOAD_ERROR_TEXT;
+        }
+
+        function renderScoreGuessVoters(state, isClosed) {
+            if (!state.isAdmin || !isClosed) {
+                return "";
+            }
+
+            const votersByChoice = state.votersByChoice || createEmptyScoreGuessVoterGroups();
+            const votersLoadStatus = state.votersLoadStatus || "仅管理员可见。";
+
+            return [
+                '<div class="score-guess-panel__voters" aria-label="管理员投票名单">',
+                    '<div class="score-guess-voters__header">',
+                        '<span class="score-guess-voters__eyebrow">管理员可见</span>',
+                        '<strong class="score-guess-voters__title">投票名单</strong>',
+                    '</div>',
+                    '<div class="score-guess-voters__status">' + escapeHtml(votersLoadStatus) + '</div>',
+                    '<div class="score-guess-voters__grid">',
+                        SCORE_GUESS_CHOICES.map(function (choice) {
+                            const voters = votersByChoice[choice] || [];
+                            return [
+                                '<section class="score-guess-voters__group score-guess-voters__group--' + getScoreGuessChoiceTone(choice) + '">',
+                                    '<div class="score-guess-voters__group-title">',
+                                        '<span>' + escapeHtml(choice) + '</span>',
+                                        '<em>' + voters.length + ' 人</em>',
+                                    '</div>',
+                                    '<div class="score-guess-voters__names">',
+                                        voters.length ? voters.map(function (voter) {
+                                            return '<span class="score-guess-voters__name">' + escapeHtml(voter.name) + '</span>';
+                                        }).join("") : '<span class="score-guess-voters__empty">暂无</span>',
+                                    '</div>',
+                                '</section>'
+                            ].join("");
+                        }).join(""),
+                    '</div>',
+                '</div>'
+            ].join("");
         }
 
         function renderScoreGuessResults(state, message, type) {
@@ -2015,7 +2137,7 @@
                         selected ? '<span class="score-guess-option__mark">已选择</span>' : '<span class="score-guess-option__mark" aria-hidden="true"></span>',
                     '</button>'
                 ].join("");
-            }).join("") + '</div>';
+            }).join("") + '</div>' + renderScoreGuessVoters(state, isClosed);
 
             options.innerHTML += [
                 '<div class="score-guess-panel__actions">',

@@ -23,7 +23,8 @@
                 radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.92), transparent 27%),
                 radial-gradient(circle at 78% 18%, rgba(214, 190, 255, 0.58), transparent 34%),
                 radial-gradient(ellipse at 22% 86%, rgba(165, 226, 255, 0.28), transparent 38%),
-                linear-gradient(135deg, #f9f3ff 0%, #eee4ff 32%, #d8c7ff 61%, #bba6ef 100%);
+                radial-gradient(ellipse at 50% 112%, rgba(82, 121, 189, .28), transparent 50%),
+                linear-gradient(135deg, #fbf6ff 0%, #efe4ff 30%, #d8c7ff 58%, #9f8cdb 100%);
         }
 
         .boss-register-page::before,
@@ -37,24 +38,116 @@
         .boss-register-page::before {
             z-index: -2;
             background:
-                linear-gradient(110deg, rgba(255,255,255,.82) 0 16%, rgba(255,255,255,.16) 28%, transparent 43%),
-                linear-gradient(74deg, transparent 12%, rgba(186, 154, 255, .2) 36%, rgba(255,255,255,.34) 48%, transparent 68%),
+                radial-gradient(ellipse at 20% 6%, rgba(255, 255, 255, .98), transparent 28%),
+                linear-gradient(112deg, rgba(255,255,255,.9) 0 13%, rgba(255,255,255,.32) 24%, transparent 43%),
+                linear-gradient(74deg, transparent 10%, rgba(186, 154, 255, .24) 34%, rgba(255,255,255,.44) 48%, transparent 70%),
                 radial-gradient(circle at 8% 36%, rgba(255, 250, 255, .76), transparent 28%),
                 radial-gradient(circle at 92% 76%, rgba(240, 230, 255, .55), transparent 32%);
-            opacity: .96;
+            opacity: .98;
         }
 
         .boss-register-page::after {
             z-index: -1;
             background:
-                linear-gradient(180deg, rgba(255,255,255,.4), transparent 34%, rgba(145, 119, 216, .2)),
-                repeating-linear-gradient(90deg, transparent 0 78px, rgba(255,255,255,.1) 79px 80px),
-                radial-gradient(ellipse at 52% 96%, rgba(255,255,255,.54), transparent 38%);
-            opacity: .74;
+                radial-gradient(ellipse at 50% 95%, rgba(255,255,255,.54), transparent 38%),
+                linear-gradient(180deg, rgba(255,255,255,.52), transparent 34%, rgba(111, 91, 178, .22)),
+                repeating-linear-gradient(90deg, transparent 0 78px, rgba(255,255,255,.12) 79px 80px),
+                repeating-linear-gradient(0deg, rgba(255,255,255,.08) 0 1px, transparent 1px 18px);
+            opacity: .78;
+        }
+
+        .boss-register-scene,
+        .boss-register-scene::before,
+        .boss-register-scene::after {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+        }
+
+        .boss-register-scene {
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .boss-register-scene::before {
+            content: "";
+            background:
+                radial-gradient(circle at 17% 11%, rgba(255,255,255,.92), rgba(255,255,255,.4) 15%, transparent 34%),
+                radial-gradient(circle at 43% 4%, rgba(241,229,255,.74), transparent 28%),
+                linear-gradient(180deg, rgba(255,255,255,.35), transparent 42%);
+            filter: blur(.2px);
+            opacity: .86;
+        }
+
+        .boss-register-scene::after {
+            content: "";
+            background:
+                linear-gradient(110deg, rgba(255,255,255,.62) 0 3%, rgba(238,222,255,.34) 9%, transparent 19%),
+                linear-gradient(252deg, rgba(255,255,255,.5) 0 4%, rgba(216,190,255,.24) 12%, transparent 24%),
+                radial-gradient(ellipse at 16% 100%, rgba(255,255,255,.36), transparent 34%),
+                radial-gradient(ellipse at 92% 100%, rgba(205,188,255,.26), transparent 38%);
+            opacity: .84;
+        }
+
+        .boss-register-curtain {
+            position: fixed;
+            inset: -2% -4% auto -4%;
+            height: min(46vh, 420px);
+            z-index: 1;
+            pointer-events: none;
+            background:
+                linear-gradient(100deg, rgba(255,255,255,.66) 0 7%, rgba(237,222,255,.35) 14%, transparent 25%),
+                linear-gradient(80deg, transparent 20%, rgba(255,255,255,.38) 33%, rgba(226,205,255,.2) 44%, transparent 60%),
+                repeating-linear-gradient(92deg, rgba(255,255,255,.18) 0 2px, transparent 2px 34px),
+                linear-gradient(180deg, rgba(255,255,255,.68), rgba(235,218,255,.18) 58%, transparent);
+            clip-path: polygon(0 0, 100% 0, 100% 62%, 88% 52%, 75% 66%, 62% 50%, 48% 67%, 34% 51%, 20% 64%, 8% 50%, 0 62%);
+            filter: blur(.1px);
+            opacity: .82;
+        }
+
+        .boss-register-hangers {
+            position: fixed;
+            inset: 0;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .boss-register-hanger {
+            position: absolute;
+            top: 0;
+            width: 1px;
+            height: var(--hanger-height, 150px);
+            left: var(--hanger-left, 12%);
+            background: linear-gradient(180deg, rgba(255,255,255,.82), rgba(207,185,255,.35), transparent);
+            opacity: var(--hanger-opacity, .7);
+        }
+
+        .boss-register-hanger::before,
+        .boss-register-hanger::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%) rotate(45deg);
+            border: 1px solid rgba(255,255,255,.68);
+            background: linear-gradient(135deg, rgba(255,255,255,.78), rgba(205,182,255,.32));
+            box-shadow: 0 0 18px rgba(255,255,255,.44), 0 0 16px rgba(174,144,235,.22);
+        }
+
+        .boss-register-hanger::before {
+            bottom: 24px;
+            width: 10px;
+            height: 10px;
+        }
+
+        .boss-register-hanger::after {
+            bottom: -4px;
+            width: 18px;
+            height: 18px;
         }
 
         .boss-register-layout {
             position: relative;
+            z-index: 3;
             width: min(1220px, calc(100vw - 40px));
             min-height: 100vh;
             margin: 0 auto;
@@ -67,15 +160,16 @@
 
         .boss-register-companion {
             position: relative;
-            min-height: 680px;
+            min-height: 720px;
             display: grid;
             align-content: end;
             padding: 24px;
             border-radius: 38px;
             overflow: hidden;
             background:
-                radial-gradient(circle at 48% 22%, rgba(255,255,255,.76), transparent 24%),
-                radial-gradient(ellipse at 34% 42%, rgba(195, 164, 255, .34), transparent 42%),
+                radial-gradient(circle at 30% 18%, rgba(255,255,255,.84), transparent 25%),
+                radial-gradient(ellipse at 36% 42%, rgba(195, 164, 255, .38), transparent 44%),
+                radial-gradient(ellipse at 58% 102%, rgba(142, 221, 255, .16), transparent 46%),
                 linear-gradient(160deg, rgba(255,255,255,.34), rgba(160, 132, 227, .2));
             border: 1px solid rgba(255,255,255,.42);
             box-shadow: 0 28px 78px rgba(112, 82, 180, .2), inset 0 1px 0 rgba(255,255,255,.72);
@@ -113,10 +207,10 @@
         .boss-register-character {
             position: absolute;
             z-index: 1;
-            left: -8%;
-            right: -2%;
-            bottom: -2%;
-            height: min(700px, 92%);
+            left: -18%;
+            right: -4%;
+            bottom: -4%;
+            height: min(800px, 102%);
             display: grid;
             place-items: end center;
             pointer-events: none;
@@ -124,13 +218,13 @@
 
         .boss-register-character img {
             display: block;
-            width: min(112%, 560px);
+            width: min(134%, 700px);
             max-width: none;
             height: 100%;
             object-fit: contain;
             object-position: left bottom;
             filter: drop-shadow(0 28px 42px rgba(92, 64, 160, .24)) drop-shadow(0 0 26px rgba(255, 255, 255, .44));
-            transform: translateX(-3%);
+            transform: translateX(-2%);
         }
 
         .boss-register-companion-card {
@@ -445,6 +539,16 @@
         }
 
         @media (max-width: 820px) {
+            .boss-register-curtain {
+                height: 210px;
+                opacity: .56;
+            }
+
+            .boss-register-hanger {
+                height: calc(var(--hanger-height, 150px) * .62);
+                opacity: .42;
+            }
+
             .boss-register-layout {
                 width: min(100%, calc(100vw - 28px));
                 min-height: auto;
@@ -461,7 +565,7 @@
 
             .boss-register-companion {
                 order: 2;
-                min-height: 260px;
+                min-height: 320px;
                 padding: 16px;
                 border-radius: 26px;
             }
@@ -481,15 +585,15 @@
             }
 
             .boss-register-character {
-                left: 2%;
-                right: 2%;
-                bottom: -18px;
-                height: 250px;
+                left: 0;
+                right: 0;
+                bottom: -22px;
+                height: 320px;
                 place-items: end center;
             }
 
             .boss-register-character img {
-                width: min(92vw, 320px);
+                width: min(96vw, 390px);
                 height: 100%;
                 object-position: center bottom;
                 transform: none;
@@ -536,10 +640,18 @@
     </style>
 </head>
 <body class="boss-register-page">
+    <div class="boss-register-scene" aria-hidden="true"></div>
+    <div class="boss-register-curtain" aria-hidden="true"></div>
+    <div class="boss-register-hangers" aria-hidden="true">
+        <span class="boss-register-hanger" style="--hanger-left:10%;--hanger-height:168px;--hanger-opacity:.74"></span>
+        <span class="boss-register-hanger" style="--hanger-left:17%;--hanger-height:118px;--hanger-opacity:.58"></span>
+        <span class="boss-register-hanger" style="--hanger-left:83%;--hanger-height:138px;--hanger-opacity:.5"></span>
+        <span class="boss-register-hanger" style="--hanger-left:91%;--hanger-height:190px;--hanger-opacity:.64"></span>
+    </div>
     <main class="boss-register-layout" aria-labelledby="boss-register-title">
         <section class="boss-register-companion" aria-label="君雪互动星湖">
             <figure class="boss-register-character" aria-hidden="true">
-                <img src="assets/images/甘雨形象图.png?v=20260623-boss-register-crystal-polish2" alt="">
+                <img src="assets/images/甘雨形象图2.png?v=20260623-boss-register-crystal-polish3" alt="">
             </figure>
             <div class="boss-register-companion-card">
                 <strong>感谢你的到来</strong>
@@ -583,7 +695,7 @@
     </main>
 
     <script src="assets/supabase-config.js?v=20260611-1"></script>
-    <script src="assets/price-reviews.js?v=20260623-boss-register-crystal-polish2"></script>
-    <script src="assets/boss-register.js?v=20260623-boss-register-crystal-polish2"></script>
+    <script src="assets/price-reviews.js?v=20260623-boss-register-crystal-polish3"></script>
+    <script src="assets/boss-register.js?v=20260623-boss-register-crystal-polish3"></script>
 </body>
 </html>

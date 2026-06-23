@@ -1,0 +1,27 @@
+<svg xmlns="http:&#47;&#47;www.w3.org&#47;2000&#47;svg" viewBox="0 0 128 128" role="img" aria-label="flower crystal">
+  <defs>
+    <radialGradient id="g" cx="50%" cy="42%" r="62%">
+      <stop offset="0" stop-color="#fff7ff" stop-opacity=".98"/>
+      <stop offset=".42" stop-color="#eadcff" stop-opacity=".82"/>
+      <stop offset=".75" stop-color="#b99cff" stop-opacity=".5"/>
+      <stop offset="1" stop-color="#8fdcff" stop-opacity=".18"/>
+    </radialGradient>
+    <linearGradient id="s" x1="18" y1="8" x2="108" y2="120">
+      <stop stop-color="#fff"/>
+      <stop offset=".5" stop-color="#d8c5ff"/>
+      <stop offset="1" stop-color="#86ddff"/>
+    </linearGradient>
+  </defs>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M64 10c10 19 9 32 0 48-9-16-10-29 0-48Z" fill="url(#g)" stroke="url(#s)" stroke-opacity=".72"/>
+    <path d="M64 118c-10-19-9-32 0-48 9 16 10 29 0 48Z" fill="url(#g)" stroke="url(#s)" stroke-opacity=".58"/>
+    <path d="M10 64c19-10 32-9 48 0-16 9-29 10-48 0Z" fill="url(#g)" stroke="url(#s)" stroke-opacity=".58"/>
+    <path d="M118 64c-19 10-32 9-48 0 16-9 29-10 48 0Z" fill="url(#g)" stroke="url(#s)" stroke-opacity=".58"/>
+    <path d="M26 26c20 5 30 14 36 31-17-6-26-16-36-31Z" fill="url(#g)" stroke="url(#s)" stroke-opacity=".46"/>
+    <path d="M102 102c-20-5-30-14-36-31 17 6 26 16 36 31Z" fill="url(#g)" stroke="url(#s)" stroke-opacity=".46"/>
+    <path d="M102 26c-5 20-14 30-31 36 6-17 16-26 31-36Z" fill="url(#g)" stroke="url(#s)" stroke-opacity=".46"/>
+    <path d="M26 102c5-20 14-30 31-36-6 17-16 26-31 36Z" fill="url(#g)" stroke="url(#s)" stroke-opacity=".46"/>
+    <circle cx="64" cy="64" r="14" fill="#fff7ff" fill-opacity=".72" stroke="#d7c5ff" stroke-opacity=".78"/>
+    <path d="M64 42v44M42 64h44M49 49l30 30M79 49 49 79" stroke="#fff" stroke-opacity=".72"/>
+  </g>
+</svg>

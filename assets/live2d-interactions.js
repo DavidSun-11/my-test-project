@@ -6,7 +6,7 @@
 
     window.__JUNXUE_LIVE2D_INTERACTIONS_INSTALLED__ = true;
 
-    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260623-boss-auth-polish1";
+    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260623-boss-register-page1";
     if (typeof window.enableGanyuMemory !== "boolean") {
         window.enableGanyuMemory = true;
     }
@@ -1289,6 +1289,15 @@
         return lazyLoadPromise;
     }
 
+    function shouldOpenBossLoginFromQuery() {
+        try {
+            const params = new URLSearchParams(window.location.search);
+            return params.get("bossLogin") === "1";
+        } catch (error) {
+            return false;
+        }
+    }
+
     function openLazyMenu(event) {
         if (window.JunxueLive2DDrag && typeof window.JunxueLive2DDrag.shouldIgnoreMenuEvent === "function" && window.JunxueLive2DDrag.shouldIgnoreMenuEvent(event)) {
             return;
@@ -1395,6 +1404,13 @@
                 });
             }
         };
+        if (shouldOpenBossLoginFromQuery()) {
+            loadLazyInteractions().then(function (menu) {
+                if (menu && typeof menu.openBossLogin === "function") {
+                    menu.openBossLogin();
+                }
+            }).catch(function () {});
+        }
         window.addEventListener("live2d-stage-drag-started", function () {
             animateLive2DStage("is-ganyu-drag-startled", 560);
             tryTriggerLive2DGesture("start");

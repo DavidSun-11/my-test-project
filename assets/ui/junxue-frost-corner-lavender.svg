@@ -1,0 +1,20 @@
+<svg xmlns="http:&#47;&#47;www.w3.org&#47;2000&#47;svg" viewBox="0 0 180 180" role="img" aria-label="lavender frost corner">
+  <defs>
+    <linearGradient id="a" x1="0" y1="0" x2="180" y2="180">
+      <stop stop-color="#fffaff" stop-opacity=".95"/>
+      <stop offset=".45" stop-color="#d7c4ff" stop-opacity=".68"/>
+      <stop offset="1" stop-color="#97e4ff" stop-opacity=".2"/>
+    </linearGradient>
+  </defs>
+  <g fill="none" stroke="url(#a)" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M16 164V48c0-18 14-32 32-32h116" stroke-width="2.2"/>
+    <path d="M28 152V55c0-15 12-27 27-27h97" stroke-width="1.15" opacity=".7"/>
+    <path d="M42 138V64c0-12 10-22 22-22h74" stroke-width=".9" opacity=".55"/>
+    <path d="M38 32c14 10 23 21 29 38-17-6-28-15-38-29 0 0 5-5 9-9Z" fill="#efe6ff" fill-opacity=".28"/>
+    <path d="M83 23c-7 17-17 27-34 35 7-17 17-28 34-35Z" fill="#fffaff" fill-opacity=".22"/>
+    <path d="M20 83c17-7 28-17 35-34-17 7-27 17-35 34Z" fill="#d5c1ff" fill-opacity=".18"/>
+    <path d="M58 58h42M58 58V16M76 58l24-24M58 76l-24 24" stroke-width=".9" opacity=".7"/>
+    <circle cx="58" cy="58" r="5" fill="#fffaff" fill-opacity=".72"/>
+    <path d="M126 18l6 12 13 3-12 7-1 14-9-10-14 3 7-12-7-12 14 3 10-8Z" fill="#efe5ff" fill-opacity=".3"/>
+  </g>
+</svg>

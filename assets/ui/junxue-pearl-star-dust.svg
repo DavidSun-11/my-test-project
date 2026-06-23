@@ -1,0 +1,23 @@
+<svg xmlns="http:&#47;&#47;www.w3.org&#47;2000&#47;svg" viewBox="0 0 220 150" role="img" aria-label="pearl star dust">
+  <g fill="#fff8ff">
+    <circle cx="18" cy="24" r="1.2" opacity=".72"/>
+    <circle cx="72" cy="18" r=".8" opacity=".46"/>
+    <circle cx="138" cy="36" r="1" opacity=".58"/>
+    <circle cx="198" cy="22" r="1.4" opacity=".5"/>
+    <circle cx="42" cy="92" r=".9" opacity=".42"/>
+    <circle cx="112" cy="116" r="1.3" opacity=".62"/>
+    <circle cx="184" cy="108" r=".8" opacity=".46"/>
+    <circle cx="210" cy="72" r="1" opacity=".36"/>
+  </g>
+  <g fill="none" stroke="#f7eeff" stroke-linecap="round" opacity=".78">
+    <path d="M34 48v10M29 53h10"/>
+    <path d="M158 88v12M152 94h12"/>
+    <path d="M94 60v8M90 64h8"/>
+    <path d="M188 134v9M184 138h9"/>
+  </g>
+  <g fill="#d9c5ff" opacity=".45">
+    <path d="M124 12l2 5 5 2-5 2-2 5-2-5-5-2 5-2Z"/>
+    <path d="M22 122l2 4 4 2-4 2-2 4-2-4-4-2 4-2Z"/>
+    <path d="M202 54l2 4 4 2-4 2-2 4-2-4-4-2 4-2Z"/>
+  </g>
+</svg>

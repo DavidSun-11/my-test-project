@@ -1661,7 +1661,14 @@
             );
         }
 
+        function openBossRegisterPage() {
+            window.location.href = "boss-register.html";
+        }
+
         function showBossRegisterPanel() {
+            openBossRegisterPage();
+            return;
+
             clearDialog();
             setDialogMode("panel");
             dialog.classList.add("is-boss-auth", "is-boss-register", "is-boss-auth-register");
@@ -2548,6 +2555,12 @@
 
         function showBossReviewAuthPanel(mode, authOptions) {
             const returnToScoreGuess = authOptions && authOptions.returnTo === "scoreGuess";
+
+            if (mode === "register") {
+                openBossRegisterPage();
+                return;
+            }
+
             clearDialog();
             setDialogMode("panel");
             dialog.classList.add("is-weather", "is-boss-auth", mode === "register" ? "is-boss-auth-register" : "is-boss-auth-login");
@@ -2608,7 +2621,11 @@
 
             toggleButton.addEventListener("click", function (event) {
                 event.stopPropagation();
-                showBossReviewAuthPanel(mode === "register" ? "login" : "register", authOptions);
+                if (mode === "register") {
+                    showBossReviewAuthPanel("login", authOptions);
+                    return;
+                }
+                openBossRegisterPage();
             });
 
             backButton.addEventListener("click", function (event) {
@@ -2672,6 +2689,42 @@
                     submitButton.disabled = false;
                 }
             });
+        }
+
+        function clearBossLoginQuery() {
+            if (!window.history || typeof window.history.replaceState !== "function") {
+                return;
+            }
+
+            try {
+                const url = new URL(window.location.href);
+                if (!url.searchParams.has("bossLogin")) {
+                    return;
+                }
+
+                url.searchParams.delete("bossLogin");
+                const nextSearch = url.searchParams.toString();
+                window.history.replaceState(null, "", url.pathname + (nextSearch ? "?" + nextSearch : "") + url.hash);
+            } catch (error) {}
+        }
+
+        function openBossLoginFromQuery() {
+            if (window.__JUNXUE_BOSS_LOGIN_QUERY_HANDLED__) {
+                return;
+            }
+
+            window.__JUNXUE_BOSS_LOGIN_QUERY_HANDLED__ = true;
+            clearBossLoginQuery();
+            showBossReviewAuthPanel("login");
+        }
+
+        function handleBossLoginQuery() {
+            try {
+                const params = new URLSearchParams(window.location.search);
+                if (params.get("bossLogin") === "1") {
+                    window.setTimeout(openBossLoginFromQuery, 0);
+                }
+            } catch (error) {}
         }
 
         async function showBossReviewSubmitPanel() {
@@ -3935,8 +3988,10 @@
             ready: true,
             open: showMenu,
             openBossReviews: showBossReviewsPanel,
+            openBossLogin: openBossLoginFromQuery,
             sync: syncLive2DPopupPositions
         };
+        handleBossLoginQuery();
     }
 
     if (document.readyState === "loading") {

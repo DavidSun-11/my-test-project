@@ -170,6 +170,21 @@
             artist: "姜铭杨",
             src: "assets/audio/nianjiu.mp3",
             lrc: "assets/lyrics/nianjiu.lrc"
+        },
+        {
+            title: "变天",
+            artist: "张紫豪",
+            src: "assets/audio/张紫豪 - 变天.mp3"
+        },
+        {
+            title: "我总想问问你",
+            artist: "杨树人",
+            src: "assets/audio/杨树人 - 我总想问问你.mp3"
+        },
+        {
+            title: "我好像在哪见过你",
+            artist: "薛之谦",
+            src: "assets/audio/薛之谦 - 我好像在哪见过你.mp3"
         }
     ];
     const musicList = LOCAL_MUSIC_TRACKS;

@@ -2168,6 +2168,606 @@
                 bottom: 10px !important;
             }
         }
+        /* contact unlock final deployment: 20260624-contact-unlock-reference-deploy1 */
+        :root {
+            --contact-unlock-final-version: "20260624-contact-unlock-reference-deploy1";
+            --letter-ink: #5c4f76;
+            --letter-muted: rgba(82, 72, 104, 0.72);
+            --letter-lavender: #9170b8;
+            --letter-ice: #d8f4ff;
+        }
+
+        html,
+        body {
+            min-height: 100%;
+            overflow-x: hidden;
+        }
+
+        body {
+            color: var(--letter-ink);
+            background:
+                linear-gradient(180deg, rgba(252, 249, 255, 0.5), rgba(231, 223, 251, 0.2) 42%, rgba(215, 235, 248, 0.24)),
+                radial-gradient(circle at 50% 8%, rgba(255, 255, 255, 0.55), transparent 28%),
+                radial-gradient(circle at 50% 100%, rgba(216, 245, 255, 0.24), transparent 46%),
+                url("assets/images/纯背景框.png") center center / cover no-repeat fixed,
+                #f1ebfb;
+        }
+
+        body::before {
+            background:
+                linear-gradient(90deg, rgba(255, 255, 255, 0.22), transparent 18%, transparent 82%, rgba(237, 222, 255, 0.16)),
+                radial-gradient(circle at 18% 16%, rgba(255, 255, 255, 0.24), transparent 20%),
+                radial-gradient(circle at 82% 18%, rgba(207, 235, 255, 0.16), transparent 24%);
+            opacity: 0.62;
+        }
+
+        body::after {
+            background:
+                linear-gradient(180deg, transparent 62%, rgba(255, 255, 255, 0.2)),
+                radial-gradient(circle at 50% 78%, rgba(214, 240, 255, 0.24), transparent 42%);
+            opacity: 0.7;
+        }
+
+        .contact-bg-overlay {
+            opacity: 0.55;
+            background:
+                radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.11), transparent 34%),
+                linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(235, 220, 255, 0.08));
+        }
+
+        .stars,
+        .stars2,
+        .stars3,
+        .meteor-layer {
+            opacity: 0.16;
+        }
+
+        .contact-page {
+            min-height: 100vh;
+            padding: clamp(12px, 1.7vw, 22px) clamp(12px, 2vw, 28px) clamp(18px, 2.4vw, 30px);
+            display: flex;
+            align-items: stretch;
+        }
+
+        .contact-shell {
+            width: min(1120px, calc(100vw - 28px));
+            min-height: calc(100vh - clamp(30px, 4.1vw, 52px));
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .contact-topbar {
+            width: 100%;
+            min-height: 46px;
+            margin: 0 0 clamp(12px, 1.8vw, 20px);
+            padding: 8px 14px;
+            border: 1px solid rgba(255, 255, 255, 0.62);
+            border-radius: 999px;
+            background:
+                linear-gradient(135deg, rgba(255, 255, 255, 0.56), rgba(230, 216, 252, 0.32)),
+                rgba(255, 255, 255, 0.25);
+            box-shadow:
+                0 14px 34px rgba(90, 74, 116, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.74);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+
+        .brand-mark,
+        .contact-icon-badge--brand,
+        .contact-icon--brand {
+            width: 38px;
+            height: 38px;
+            border-radius: 15px;
+        }
+
+        .brand-title {
+            color: #654f83;
+            font-size: 16px;
+            letter-spacing: 0.12em;
+        }
+
+        .brand-subtitle {
+            color: rgba(94, 78, 119, 0.58);
+            font-size: 12px;
+        }
+
+        .safe-pill {
+            min-height: 32px;
+            padding: 0 12px;
+            color: rgba(95, 77, 119, 0.68);
+            font-size: 12px;
+        }
+
+        .contact-card {
+            flex: 1;
+            width: min(1040px, 100%);
+            margin: 0 auto;
+            display: grid;
+            grid-template-rows: auto auto auto auto;
+            justify-items: center;
+            align-content: center;
+            gap: clamp(10px, 1.4vw, 16px);
+            padding: 0;
+            background: transparent;
+            border: 0;
+            box-shadow: none;
+        }
+
+        .payment-heading {
+            width: min(760px, 100%);
+            margin: 0 auto;
+            padding: 0;
+            text-align: center;
+        }
+
+        .payment-heading::before,
+        .payment-heading::after {
+            width: min(310px, 62%);
+            opacity: 0.72;
+        }
+
+        .payment-heading::after {
+            margin-top: 10px;
+        }
+
+        .payment-heading .payment-kicker {
+            min-height: 28px;
+            margin-top: 10px;
+            padding: 0 16px;
+            border: 1px solid rgba(153, 125, 191, 0.22);
+            background: rgba(255, 255, 255, 0.42);
+            color: rgba(114, 91, 146, 0.8);
+            font-size: 12px;
+            letter-spacing: 0.12em;
+        }
+
+        .payment-heading h1 {
+            margin: 9px 0 5px;
+            color: #715293;
+            font-family: "Songti SC", "STSong", "SimSun", "Noto Serif CJK SC", serif;
+            font-size: clamp(34px, 4.2vw, 50px);
+            font-weight: 600;
+            line-height: 1.08;
+            letter-spacing: 0.12em;
+            text-shadow:
+                0 1px 0 rgba(255, 255, 255, 0.92),
+                0 0 18px rgba(192, 158, 230, 0.25);
+        }
+
+        .payment-heading > p:not(.payment-description) {
+            margin: 0;
+            color: rgba(83, 68, 106, 0.82);
+            font-size: clamp(14px, 1.55vw, 17px);
+            font-weight: 700;
+            letter-spacing: 0.04em;
+        }
+
+        .payment-description {
+            max-width: 660px;
+            margin: 8px auto 0 !important;
+            color: var(--letter-muted) !important;
+            font-size: clamp(12px, 1.22vw, 14px) !important;
+            font-weight: 500 !important;
+            line-height: 1.62;
+        }
+
+        .pay-grid {
+            width: min(900px, 100%);
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(300px, 390px));
+            justify-content: center;
+            gap: clamp(22px, 3vw, 34px);
+        }
+
+        .pay-box,
+        .pay-box.is-wechat,
+        .pay-box.is-alipay {
+            width: 100%;
+            min-height: 286px;
+            padding: 22px 24px 20px;
+            display: grid;
+            grid-template-rows: auto auto auto;
+            gap: 10px;
+            border: 1px solid rgba(188, 217, 235, 0.64);
+            border-radius: 22px;
+            background:
+                linear-gradient(135deg, rgba(255, 255, 255, 0.54), rgba(237, 228, 255, 0.24) 55%, rgba(220, 247, 255, 0.22)),
+                rgba(255, 255, 255, 0.22);
+            box-shadow:
+                0 16px 34px rgba(83, 74, 111, 0.12),
+                0 0 22px rgba(208, 232, 255, 0.24),
+                inset 0 1px 0 rgba(255, 255, 255, 0.82);
+            backdrop-filter: blur(15px) saturate(1.08);
+            -webkit-backdrop-filter: blur(15px) saturate(1.08);
+            overflow: hidden;
+        }
+
+        .pay-box::before {
+            display: block;
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            background:
+                linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.28), transparent),
+                radial-gradient(circle at 16% 10%, rgba(255, 255, 255, 0.4), transparent 24%);
+            opacity: 0.55;
+        }
+
+        .pay-box::after {
+            display: block;
+            content: "";
+            position: absolute;
+            inset: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.34);
+            border-radius: 17px;
+            pointer-events: none;
+        }
+
+        .pay-head {
+            min-height: 38px;
+            justify-content: center;
+            gap: 9px;
+        }
+
+        .contact-icon-badge--payment,
+        .contact-icon--payment,
+        .pay-mark {
+            width: 36px;
+            height: 36px;
+            border-radius: 14px;
+        }
+
+        .contact-icon-badge--payment .contact-icon,
+        .contact-icon--payment .contact-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .pay-box h2 {
+            color: #5d4a76;
+            font-family: "Songti SC", "STSong", "SimSun", "Noto Serif CJK SC", serif;
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.86);
+        }
+
+        .qr-frame {
+            width: min(166px, 55vw);
+            aspect-ratio: 1 / 1;
+            min-height: 0;
+            justify-self: center;
+            padding: 10px;
+            border: 1px solid rgba(168, 185, 205, 0.32);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.96);
+            box-shadow:
+                0 8px 18px rgba(82, 72, 104, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .qr-frame img {
+            width: 100%;
+            height: 100%;
+            max-width: 100%;
+            max-height: 100%;
+            display: block;
+            object-fit: contain;
+            border-radius: 10px;
+        }
+
+        .pay-meta {
+            z-index: 1;
+            display: grid;
+            justify-items: center;
+            gap: 4px;
+            text-align: center;
+        }
+
+        .pay-meta strong {
+            min-height: 28px;
+            padding: 0 13px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.46);
+            color: #62497a;
+            font-size: 16px;
+            letter-spacing: 0.03em;
+            white-space: nowrap;
+        }
+
+        .pay-meta span {
+            color: rgba(82, 70, 102, 0.68);
+            font-size: 12px;
+            line-height: 1.35;
+        }
+
+        .pay-trust {
+            display: none !important;
+        }
+
+        .section-title {
+            width: min(860px, 100%);
+            margin: 0 auto -2px;
+            color: #69517f;
+            font-family: "Songti SC", "STSong", "SimSun", "Noto Serif CJK SC", serif;
+            font-size: clamp(18px, 2vw, 24px);
+            font-weight: 600;
+            letter-spacing: 0.13em;
+            text-align: center;
+        }
+
+        .step-grid {
+            width: min(900px, 100%);
+            margin: 0 auto;
+            padding: 6px 8px 4px;
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 0;
+            position: relative;
+            background: transparent;
+        }
+
+        .step-grid::before {
+            content: "";
+            position: absolute;
+            left: 8%;
+            right: 8%;
+            top: 31px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(137, 116, 170, 0.28), rgba(216, 245, 255, 0.54), rgba(137, 116, 170, 0.28), transparent);
+        }
+
+        .step-card {
+            min-height: 78px;
+            padding: 0 8px;
+            display: grid;
+            justify-items: center;
+            align-content: start;
+            gap: 5px;
+            border: 0;
+            background: transparent;
+            box-shadow: none;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+        }
+
+        .step-icon,
+        .contact-icon-badge--step,
+        .contact-icon--step {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            z-index: 1;
+            background:
+                radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.94), transparent 34%),
+                linear-gradient(145deg, rgba(224, 248, 255, 0.9), rgba(223, 202, 255, 0.74));
+            box-shadow:
+                0 0 0 1px rgba(255, 255, 255, 0.75),
+                0 8px 16px rgba(116, 88, 145, 0.13);
+        }
+
+        .step-card strong {
+            color: #5d4b74;
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 0.03em;
+            line-height: 1.25;
+            text-align: center;
+        }
+
+        .step-card span {
+            max-width: 150px;
+            margin: 0;
+            color: rgba(78, 68, 98, 0.64);
+            font-size: 11px;
+            line-height: 1.32;
+            text-align: center;
+        }
+
+        .contact-actions {
+            width: min(690px, 100%);
+            margin: 2px auto 0;
+            display: grid;
+            grid-template-columns: minmax(300px, 1fr) minmax(150px, 190px);
+            gap: 13px;
+        }
+
+        .unlock-button,
+        .back-home {
+            width: 100%;
+            min-width: 0;
+            min-height: 48px;
+            border-radius: 999px;
+            appearance: none;
+            -webkit-appearance: none;
+            font-size: 14px;
+            letter-spacing: 0.05em;
+        }
+
+        .unlock-button {
+            border: 1px solid rgba(255, 255, 255, 0.74);
+            background:
+                radial-gradient(circle at 24% 18%, rgba(255, 255, 255, 0.54), transparent 28%),
+                linear-gradient(135deg, #d7b7ff, #b88eed 48%, #a9dff4);
+            color: #ffffff;
+            box-shadow:
+                0 14px 28px rgba(126, 91, 166, 0.22),
+                0 0 20px rgba(204, 232, 255, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.75);
+        }
+
+        .back-home {
+            border: 1px solid rgba(153, 128, 184, 0.26);
+            background:
+                linear-gradient(135deg, rgba(255, 255, 255, 0.6), rgba(230, 218, 249, 0.36));
+            color: #6d5687;
+            box-shadow:
+                0 10px 22px rgba(96, 76, 120, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.82);
+        }
+
+        .live2d-load-control {
+            left: 16px !important;
+            bottom: 14px !important;
+            right: auto !important;
+            transform: none !important;
+        }
+
+        .live2d-load-control__button,
+        .live2d-load-control button {
+            min-height: 38px !important;
+            padding: 0 14px !important;
+            border-radius: 999px !important;
+            border: 1px solid rgba(178, 148, 208, 0.34) !important;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.58), rgba(228, 212, 249, 0.38)) !important;
+            color: #6e5688 !important;
+            font-weight: 800 !important;
+            box-shadow:
+                0 10px 24px rgba(88, 70, 111, 0.13),
+                inset 0 1px 0 rgba(255, 255, 255, 0.84) !important;
+        }
+
+        @media (min-width: 901px) and (max-height: 760px) {
+            .contact-page {
+                padding-top: 10px;
+                padding-bottom: 14px;
+            }
+
+            .contact-topbar {
+                min-height: 42px;
+                margin-bottom: 10px;
+            }
+
+            .payment-heading h1 {
+                font-size: clamp(31px, 3.7vw, 42px);
+            }
+
+            .payment-description {
+                display: none;
+            }
+
+            .pay-box,
+            .pay-box.is-wechat,
+            .pay-box.is-alipay {
+                min-height: 258px;
+                padding-top: 18px;
+                padding-bottom: 16px;
+            }
+
+            .qr-frame {
+                width: 148px;
+            }
+
+            .step-card {
+                min-height: 66px;
+            }
+
+            .step-card span {
+                display: none;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .contact-page {
+                min-height: 100vh;
+                display: block;
+                padding: 12px 10px 34px;
+            }
+
+            .contact-shell {
+                width: min(100%, calc(100vw - 20px));
+                min-height: auto;
+            }
+
+            .contact-card {
+                width: 100%;
+                gap: 16px;
+                align-content: start;
+            }
+
+            .contact-topbar {
+                border-radius: 22px;
+                margin-bottom: 18px;
+            }
+
+            .payment-heading h1 {
+                font-size: clamp(31px, 9vw, 44px);
+            }
+
+            .payment-description {
+                font-size: 13px !important;
+            }
+
+            .pay-grid {
+                width: min(430px, 100%);
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .pay-box,
+            .pay-box.is-wechat,
+            .pay-box.is-alipay {
+                min-height: 0;
+                padding: 22px 18px 20px;
+            }
+
+            .qr-frame {
+                width: min(190px, 70vw);
+            }
+
+            .step-grid {
+                width: min(560px, 100%);
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                row-gap: 14px;
+            }
+
+            .step-grid::before {
+                display: none;
+            }
+
+            .step-card {
+                min-height: 90px;
+            }
+
+            .contact-actions {
+                width: min(430px, 100%);
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 430px) {
+            .contact-page {
+                padding-left: 8px;
+                padding-right: 8px;
+            }
+
+            .contact-shell {
+                width: min(100%, calc(100vw - 16px));
+            }
+
+            .payment-heading .payment-kicker {
+                font-size: 11px;
+            }
+
+            .payment-heading h1 {
+                letter-spacing: 0.08em;
+            }
+
+            .step-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .step-card {
+                min-height: 74px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -2319,8 +2919,8 @@
                 </section>
             </div>
 
-            <h2 class="section-title">解锁步骤</h2>
-            <div class="step-grid" aria-label="解锁步骤">
+            <h2 class="section-title">解锁流程</h2>
+            <div class="step-grid" aria-label="解锁流程">
                 <article class="step-card">
                     <span class="step-icon contact-icon-badge contact-icon-badge--step contact-icon--step" aria-hidden="true"><svg class="contact-icon" viewBox="0 0 24 24"><use href="#icon-wallet"></use></svg></span>
                     <div><strong>选择支付方式</strong><span>微信 或 支付宝</span></div>

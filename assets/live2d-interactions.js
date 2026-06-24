@@ -6,7 +6,7 @@
 
     window.__JUNXUE_LIVE2D_INTERACTIONS_INSTALLED__ = true;
 
-    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260623-boss-register-page1";
+    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260624-boss-profile-display1";
     if (typeof window.enableGanyuMemory !== "boolean") {
         window.enableGanyuMemory = true;
     }

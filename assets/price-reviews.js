@@ -199,16 +199,92 @@
         return response.data;
     }
 
-    async function register(email, password) {
+    function normalizeBossDisplayName(displayName) {
+        return String(displayName || "").trim().slice(0, 20);
+    }
+
+    function isMissingBossProfilesError(error) {
+        const message = error && error.message ? error.message : "";
+        const code = error && error.code ? error.code : "";
+
+        return code === "42P01" || /boss_profiles|relation .* does not exist|schema cache/i.test(message);
+    }
+
+    async function saveBossProfile(activeClient, userId, displayName) {
+        const safeDisplayName = normalizeBossDisplayName(displayName);
+
+        if (!activeClient || !userId || !safeDisplayName) {
+            return { saved: false, warning: "" };
+        }
+
+        const response = await activeClient
+            .from("boss_profiles")
+            .upsert({
+                user_id: userId,
+                display_name: safeDisplayName,
+                updated_at: new Date().toISOString()
+            }, { onConflict: "user_id" })
+            .select("user_id")
+            .single();
+
+        if (response.error) {
+            if (isMissingBossProfilesError(response.error)) {
+                return {
+                    saved: false,
+                    warning: "老板昵称功能还需要执行数据库升级 SQL。"
+                };
+            }
+
+            return {
+                saved: false,
+                warning: "老板账号已创建，但昵称暂时没有保存成功。稍后登录后可以再试。"
+            };
+        }
+
+        return { saved: true, warning: "" };
+    }
+
+    async function register(email, password, displayName) {
         const activeClient = await ensureClient();
-        const response = await activeClient.auth.signUp({ email: email, password: password });
+        const safeDisplayName = normalizeBossDisplayName(displayName);
+        const response = await activeClient.auth.signUp({
+            email: email,
+            password: password,
+            options: safeDisplayName ? {
+                data: {
+                    display_name: safeDisplayName,
+                    nickname: safeDisplayName
+                }
+            } : undefined
+        });
 
         if (response.error) {
             throw response.error;
         }
 
-        currentUser = response.data && response.data.session ? response.data.session.user : currentUser;
-        return response.data;
+        const responseData = response.data || {};
+
+        currentUser = responseData.session ? responseData.session.user : currentUser;
+        responseData.profileWarning = "";
+        responseData.profileSaved = false;
+
+        if (safeDisplayName && responseData.session) {
+            const userId = responseData.user ? responseData.user.id : "";
+
+            try {
+                const profileResult = await saveBossProfile(activeClient, userId, safeDisplayName);
+
+                responseData.profileWarning = profileResult.warning || "";
+                responseData.profileSaved = !!profileResult.saved;
+            } catch (error) {
+                logError("save boss profile failed", error);
+                responseData.profileWarning = isMissingBossProfilesError(error) ?
+                    "老板昵称功能还需要执行数据库升级 SQL。" :
+                    "老板账号已创建，但昵称暂时没有保存成功。稍后登录后可以再试。";
+            }
+        }
+
+        return responseData;
     }
 
     async function logout() {

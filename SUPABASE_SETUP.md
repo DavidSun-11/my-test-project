@@ -419,9 +419,176 @@ begin
   return query
   select
     vote.choice,
-    '用户后四位 ' || right(vote.user_id::text, 4) as voter_name,
+    '老板用户' as voter_name,
     vote.created_at
   from public.live_score_guess_votes vote
+  where vote.session_id = p_session_id
+  order by
+    case vote.choice
+      when '铜牌' then 1
+      when '银牌' then 2
+      when '金牌' then 3
+      when '顶级' then 4
+      when '无' then 5
+      else 6
+    end,
+    vote.created_at asc;
+end;
+$$;
+
+revoke all on function public.get_live_score_guess_voters(uuid) from public;
+grant execute on function public.get_live_score_guess_voters(uuid) to authenticated;
+```
+
+## 10. 老板账号昵称与评分竞猜投票名单显示昵称升级 SQL
+
+Run this SQL manually in Supabase SQL Editor after sections 8 and 9.
+
+This upgrade stores a safe boss display name in `public.boss_profiles` and updates the admin-only score guess voter RPC to return that nickname. The RPC still returns only `choice`, `voter_name`, and `created_at`; it does not return email, `user_id`, or full UUID values, and the frontend must not query `auth.users`.
+
+```sql
+create table if not exists public.boss_profiles (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  display_name text not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.boss_profiles
+  add column if not exists display_name text;
+
+alter table public.boss_profiles
+  add column if not exists created_at timestamptz not null default now();
+
+alter table public.boss_profiles
+  add column if not exists updated_at timestamptz not null default now();
+
+update public.boss_profiles
+set display_name = '老板用户'
+where display_name is null
+   or trim(display_name) = '';
+
+alter table public.boss_profiles
+  alter column display_name set not null;
+
+alter table public.boss_profiles
+  drop constraint if exists boss_profiles_display_name_length;
+
+alter table public.boss_profiles
+  add constraint boss_profiles_display_name_length
+  check (char_length(trim(display_name)) between 1 and 20);
+
+alter table public.boss_profiles enable row level security;
+
+revoke all on public.boss_profiles from anon;
+grant select, insert, update on public.boss_profiles to authenticated;
+
+drop policy if exists "Boss profiles can select own row" on public.boss_profiles;
+create policy "Boss profiles can select own row"
+on public.boss_profiles
+for select
+to authenticated
+using (user_id = auth.uid());
+
+drop policy if exists "Boss profiles can insert own row" on public.boss_profiles;
+create policy "Boss profiles can insert own row"
+on public.boss_profiles
+for insert
+to authenticated
+with check (user_id = auth.uid());
+
+drop policy if exists "Boss profiles can update own row" on public.boss_profiles;
+create policy "Boss profiles can update own row"
+on public.boss_profiles
+for update
+to authenticated
+using (user_id = auth.uid())
+with check (user_id = auth.uid());
+
+create or replace function public.set_boss_profiles_updated_at()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
+drop trigger if exists set_boss_profiles_updated_at on public.boss_profiles;
+create trigger set_boss_profiles_updated_at
+before update on public.boss_profiles
+for each row
+execute function public.set_boss_profiles_updated_at();
+
+create or replace function public.sync_boss_profile_from_auth_metadata()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  safe_display_name text;
+begin
+  safe_display_name := left(trim(coalesce(
+    new.raw_user_meta_data ->> 'display_name',
+    new.raw_user_meta_data ->> 'nickname',
+    ''
+  )), 20);
+
+  if safe_display_name is null or safe_display_name = '' then
+    return new;
+  end if;
+
+  insert into public.boss_profiles (user_id, display_name)
+  values (new.id, safe_display_name)
+  on conflict (user_id) do update
+  set
+    display_name = excluded.display_name,
+    updated_at = now()
+  where public.boss_profiles.display_name is null
+     or trim(public.boss_profiles.display_name) = '';
+
+  return new;
+end;
+$$;
+
+drop trigger if exists sync_boss_profile_from_auth_metadata on auth.users;
+create trigger sync_boss_profile_from_auth_metadata
+after insert or update of raw_user_meta_data on auth.users
+for each row
+execute function public.sync_boss_profile_from_auth_metadata();
+
+drop function if exists public.get_live_score_guess_voters(uuid);
+
+create or replace function public.get_live_score_guess_voters(p_session_id uuid)
+returns table (
+  choice text,
+  voter_name text,
+  created_at timestamptz
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if auth.uid() is null or not exists (
+    select 1
+    from public.live_interaction_admins admin
+    where admin.user_id = auth.uid()
+  ) then
+    raise exception 'not allowed';
+  end if;
+
+  return query
+  select
+    vote.choice,
+    coalesce(nullif(trim(profile.display_name), ''), '老板用户') as voter_name,
+    vote.created_at
+  from public.live_score_guess_votes vote
+  left join public.boss_profiles profile
+    on profile.user_id = vote.user_id
   where vote.session_id = p_session_id
   order by
     case vote.choice

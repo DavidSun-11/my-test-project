@@ -52,11 +52,17 @@
         event.preventDefault();
 
         const email = form.elements.email ? form.elements.email.value.trim() : "";
+        const displayName = form.elements.displayName ? form.elements.displayName.value.trim() : "";
         const password = form.elements.password ? form.elements.password.value : "";
         const confirmPassword = form.elements.confirmPassword ? form.elements.confirmPassword.value : "";
 
-        if (!email || !password || !confirmPassword) {
-            setStatus("请先把邮箱、密码和确认密码都填好。", "warning");
+        if (!displayName || !email || !password || !confirmPassword) {
+            setStatus("请先把老板昵称、邮箱、密码和确认密码都填好。", "warning");
+            return;
+        }
+
+        if (displayName.length > 20) {
+            setStatus("老板昵称最多 20 个字符，请稍微收短一点。", "warning");
             return;
         }
 
@@ -70,9 +76,14 @@
 
         try {
             const api = getBossReviewsApi();
-            const response = await api.register(email, password);
+            const response = await api.register(email, password, displayName);
 
             form.reset();
+            if (response && response.profileWarning) {
+                setStatus(response.profileWarning + " 老板账号已创建，可以继续返回登录。", "warning");
+                return;
+            }
+
             if (response && response.session) {
                 setStatus("注册成功啦。现在可以返回登录，继续参与互动、评价与投票。", "good");
             } else {

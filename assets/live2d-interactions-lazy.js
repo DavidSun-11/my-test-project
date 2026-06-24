@@ -1787,7 +1787,7 @@
 
         async function ensureBossReviewsApi() {
             await loadExternalScript("assets/supabase-config.js?v=20260611-1").catch(function () {});
-            await loadExternalScript("assets/price-reviews.js?v=20260616-1");
+            await loadExternalScript("assets/price-reviews.js?v=20260624-boss-profile-display1");
 
             if (!window.JunxueBossReviews) {
                 throw new Error("老板评价系统暂未配置，请稍后再来～");
@@ -1890,7 +1890,7 @@
         function getSafeScoreGuessVoterName(value) {
             const text = String(value || "").trim();
 
-            if (!text || /@/.test(text) || /^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(text)) {
+            if (!text || /@/.test(text) || /^用户后四位\s+[0-9a-f]{4}$/i.test(text) || /^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(text)) {
                 return "匿名老板";
             }
 
@@ -1931,7 +1931,7 @@
 
                 return {
                     votersByChoice: groupScoreGuessVoters(response.data || []),
-                    votersLoadStatus: "仅管理员可见。名单只显示昵称或用户后四位，不展示邮箱和完整用户 ID。"
+                    votersLoadStatus: "仅管理员可见。名单只显示老板昵称，不展示邮箱和完整用户 ID。"
                 };
             } catch (error) {
                 console.warn("[JunxueScoreGuess] voter list failed.", error);

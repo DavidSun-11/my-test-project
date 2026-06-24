@@ -16,6 +16,7 @@
     let currentUser = null;
     let currentReviews = [];
     let lastReviews = [];
+    let currentBossDisplayName = "";
     const reviewInteractions = new Map();
 
     function getConfigValue(name) {
@@ -244,6 +245,134 @@
         return { saved: true, warning: "" };
     }
 
+    async function loadBossProfile() {
+        const activeClient = await ensureClient();
+        const session = await getSession();
+
+        if (!session || !session.user) {
+            currentBossDisplayName = "";
+            return { displayName: "", warning: "" };
+        }
+
+        let response = null;
+
+        try {
+            response = await activeClient
+                .from("boss_profiles")
+                .select("display_name")
+                .eq("user_id", session.user.id)
+                .maybeSingle();
+        } catch (error) {
+            response = { error: error };
+        }
+
+        if (response.error) {
+            if (isMissingBossProfilesError(response.error)) {
+                return {
+                    displayName: "",
+                    warning: "老板昵称功能还需要执行数据库升级 SQL。"
+                };
+            }
+
+            return {
+                displayName: "",
+                warning: "老板昵称暂时读取失败，请稍后再试。"
+            };
+        }
+
+        currentBossDisplayName = normalizeBossDisplayName(response.data && response.data.display_name);
+        return { displayName: currentBossDisplayName, warning: "" };
+    }
+
+    async function syncOwnReviewNicknames(displayName) {
+        const safeDisplayName = normalizeBossDisplayName(displayName);
+
+        if (!client || !currentUser || !safeDisplayName) {
+            return { synced: false, warning: "" };
+        }
+
+        const response = await client
+            .from("boss_reviews")
+            .update({ nickname: safeDisplayName })
+            .eq("user_id", currentUser.id);
+
+        if (response.error) {
+            logSupabaseError("boss_reviews nickname sync failed", response.error);
+            return {
+                synced: false,
+                warning: "昵称已保存，部分旧评价昵称可能稍后再同步。"
+            };
+        }
+
+        return { synced: true, warning: "" };
+    }
+
+    async function updateBossDisplayName(displayName) {
+        const activeClient = await ensureClient();
+        const session = await getSession();
+        const safeDisplayName = normalizeBossDisplayName(displayName);
+
+        if (!session || !session.user) {
+            throw new Error("请先登录老板账号后再修改昵称哦。");
+        }
+
+        if (!safeDisplayName) {
+            throw new Error("老板昵称不能为空哦");
+        }
+
+        if (String(displayName || "").trim().length > 20) {
+            throw new Error("老板昵称最多 20 个字");
+        }
+
+        const profileResult = await saveBossProfile(activeClient, session.user.id, safeDisplayName);
+
+        if (!profileResult.saved) {
+            throw new Error(profileResult.warning || "老板昵称暂时保存失败，请稍后再试。");
+        }
+
+        currentBossDisplayName = safeDisplayName;
+        const syncResult = await syncOwnReviewNicknames(safeDisplayName);
+
+        return {
+            displayName: safeDisplayName,
+            warning: syncResult.warning || ""
+        };
+    }
+
+    async function getPreferredBossNickname(fallbackName) {
+        const fallback = normalizeBossDisplayName(fallbackName) || getEmailNickname() || "老板";
+        const profile = await loadBossProfile();
+
+        if (profile.displayName) {
+            return {
+                displayName: profile.displayName,
+                warning: profile.warning || ""
+            };
+        }
+
+        if (fallback && currentUser && !profile.warning) {
+            try {
+                const result = await saveBossProfile(client, currentUser.id, fallback);
+                return {
+                    displayName: fallback,
+                    warning: result.warning || ""
+                };
+            } catch (error) {
+                return {
+                    displayName: fallback,
+                    warning: isMissingBossProfilesError(error) ?
+                        "老板昵称功能还需要执行数据库升级 SQL。" :
+                        ""
+                };
+            }
+        }
+
+        return {
+            displayName: fallback,
+            warning: profile.warning || ""
+        };
+    }
+
     async function register(email, password, displayName) {
         const activeClient = await ensureClient();
         const safeDisplayName = normalizeBossDisplayName(displayName);
@@ -396,7 +525,8 @@
             throw new Error("请先登录后再发布评价哦～");
         }
 
-        const nickname = String(payload.nickname || "").trim().slice(0, 20);
+        const preferredNickname = await getPreferredBossNickname(payload.nickname);
+        const nickname = normalizeBossDisplayName(preferredNickname.displayName);
         const serviceType = String(payload.serviceType || "").trim();
         const rating = Number(payload.rating);
         const message = String(payload.message || "").trim().slice(0, 300);
@@ -421,7 +551,11 @@
             throw response.error;
         }
 
-        return true;
+        return {
+            ok: true,
+            nickname: nickname,
+            warning: preferredNickname.warning || ""
+        };
     }
 
     function calculateStats(reviews) {
@@ -829,6 +963,8 @@
         getSession: getSession,
         login: login,
         register: register,
+        loadBossProfile: loadBossProfile,
+        updateBossDisplayName: updateBossDisplayName,
         logout: logout,
         loadReviews: loadReviews,
         submitReview: submitReview,

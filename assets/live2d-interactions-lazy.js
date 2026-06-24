@@ -1802,13 +1802,161 @@
 
         async function ensureBossReviewsApi() {
             await loadExternalScript("assets/supabase-config.js?v=20260611-1").catch(function () {});
-            await loadExternalScript("assets/price-reviews.js?v=20260624-boss-profile-display1");
+            await loadExternalScript("assets/price-reviews.js?v=20260624-boss-nickname-manage1");
 
             if (!window.JunxueBossReviews) {
                 throw new Error("老板评价系统暂未配置，请稍后再来～");
             }
 
             return window.JunxueBossReviews;
+        }
+
+        function normalizeBossDisplayNameInput(value) {
+            return String(value || "").trim();
+        }
+
+        async function showBossProfilePanel(message) {
+            clearDialog();
+            setDialogMode("panel");
+            dialog.classList.add("is-weather", "is-boss-auth", "is-boss-auth-login");
+            meta.textContent = "老板资料";
+            question.textContent = "可以在这里查看并修改老板昵称。这个昵称会用于老板评价和评分竞猜管理员投票名单。";
+            options.innerHTML = '<div class="live2d-quiz__loading">正在读取老板资料……</div>';
+            result.textContent = safeText(message, "老板昵称只用于本站互动展示，不会覆盖甘雨本地记忆里的称呼。");
+            result.className = "live2d-quiz__result is-neutral";
+            showDialog();
+
+            let api = null;
+            let session = null;
+
+            try {
+                api = await ensureBossReviewsApi();
+                session = await api.getSession();
+            } catch (error) {
+                options.innerHTML = '<div class="live2d-quiz__loading">老板资料暂时不可用。</div>';
+                result.textContent = error.message || "老板资料暂时不可用，请稍后再试。";
+                result.className = "live2d-quiz__result is-warning";
+                return;
+            }
+
+            if (!session || !session.user) {
+                options.innerHTML = [
+                    '<div class="boss-modal-panel">',
+                        '<div class="boss-form-heading"><span class="boss-form-badge">Boss Profile</span><span>请先登录老板账号</span></div>',
+                        '<p class="live2d-boss-auth-hint">登录后可以查看当前老板昵称，也可以随时修改。</p>',
+                        '<div class="boss-modal-actions">',
+                            '<button class="live2d-quiz__option boss-modal-primary" type="button" data-action="login">登录老板账号</button>',
+                            '<button class="live2d-quiz__option" type="button" data-action="back">返回</button>',
+                        '</div>',
+                    '</div>'
+                ].join("");
+                result.textContent = "老板昵称需要登录后才能管理。";
+                result.className = "live2d-quiz__result is-warning";
+                refreshDialogPosition();
+                options.querySelector('[data-action="login"]').addEventListener("click", function (event) {
+                    event.stopPropagation();
+                    showBossReviewAuthPanel("login");
+                });
+                options.querySelector('[data-action="back"]').addEventListener("click", function (event) {
+                    event.stopPropagation();
+                    showConsultPanel();
+                });
+                return;
+            }
+
+            let profile = { displayName: "", warning: "" };
+
+            if (typeof api.loadBossProfile === "function") {
+                try {
+                    profile = await api.loadBossProfile();
+                } catch (error) {
+                    profile.warning = error.message || "老板昵称暂时读取失败，请稍后再试。";
+                }
+            }
+
+            const currentName = normalizeBossDisplayNameInput(profile.displayName) ||
+                getDisplayNameFromAuthUser(session.user) ||
+                (getBossReviewEmail(session).split("@")[0] || "老板").slice(0, 20);
+            const safeWarning = profile.warning ? '<p class="live2d-boss-auth-hint is-warning">' + escapeHtml(profile.warning) + '</p>' : '';
+
+            options.innerHTML = [
+                '<form class="boss-modal-panel live2d-boss-profile-form">',
+                    '<div class="boss-form-heading"><span class="boss-form-badge">Boss Profile</span><span>老板昵称管理</span></div>',
+                    '<div class="boss-form-grid">',
+                        '<div class="boss-info-strip">当前老板昵称：<strong data-boss-profile-current>' + escapeHtml(currentName) + '</strong></div>',
+                        '<label class="live2d-boss-auth-field" data-icon="✧">',
+                            '<span class="live2d-boss-auth-label">修改老板昵称</span>',
+                            '<input class="live2d-weather-input boss-form-control" name="displayName" maxlength="20" autocomplete="nickname" value="' + escapeHtml(currentName) + '" placeholder="请输入 1-20 字昵称">',
+                        '</label>',
+                    '</div>',
+                    safeWarning,
+                    '<div class="boss-modal-actions">',
+                        '<button class="live2d-quiz__option boss-modal-primary" type="submit">保存昵称</button>',
+                        '<button class="live2d-quiz__option" type="button" data-action="back">返回</button>',
+                    '</div>',
+                '</form>'
+            ].join("");
+            result.textContent = profile.warning || "老板昵称会用于老板评价和评分竞猜投票名单。";
+            result.className = "live2d-quiz__result " + (profile.warning ? "is-warning" : "is-neutral");
+            refreshDialogPosition();
+
+            const form = options.querySelector(".live2d-boss-profile-form");
+            const submitButton = form.querySelector('button[type="submit"]');
+            const backButton = form.querySelector('[data-action="back"]');
+            const currentNode = form.querySelector("[data-boss-profile-current]");
+
+            backButton.addEventListener("click", function (event) {
+                event.stopPropagation();
+                showConsultPanel();
+            });
+
+            form.addEventListener("submit", async function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                const nextName = normalizeBossDisplayNameInput(form.elements.displayName.value);
+
+                if (!nextName) {
+                    result.textContent = "老板昵称不能为空哦";
+                    result.className = "live2d-quiz__result is-warning";
+                    return;
+                }
+
+                if (nextName.length > 20) {
+                    result.textContent = "老板昵称最多 20 个字";
+                    result.className = "live2d-quiz__result is-warning";
+                    return;
+                }
+
+                if (!api || typeof api.updateBossDisplayName !== "function") {
+                    result.textContent = "老板昵称功能还需要执行数据库升级 SQL。";
+                    result.className = "live2d-quiz__result is-warning";
+                    return;
+                }
+
+                submitButton.disabled = true;
+                result.textContent = "正在保存老板昵称……";
+                result.className = "live2d-quiz__result is-neutral";
+
+                try {
+                    const response = await api.updateBossDisplayName(nextName);
+
+                    if (currentNode) {
+                        currentNode.textContent = response.displayName || nextName;
+                    }
+                    form.elements.displayName.value = response.displayName || nextName;
+                    result.textContent = response.warning || "老板昵称已保存。之后评价和投票名单都会优先使用这个昵称。";
+                    result.className = "live2d-quiz__result " + (response.warning ? "is-warning" : "is-good");
+                    if (typeof api.refreshReviewWall === "function") {
+                        api.refreshReviewWall().catch(function () {});
+                    }
+                } catch (error) {
+                    result.textContent = error.message || "老板昵称暂时保存失败，请稍后再试。";
+                    result.className = "live2d-quiz__result is-warning";
+                } finally {
+                    submitButton.disabled = false;
+                }
+            });
         }
 
         async function ensureScoreGuessClient() {
@@ -2696,6 +2844,10 @@
                     result.className = "live2d-quiz__result is-good";
                     if (returnToScoreGuess && session && session.user) {
                         window.setTimeout(showScoreGuessPanel, 650);
+                    } else if (session && session.user) {
+                        window.setTimeout(function () {
+                            showBossProfilePanel("欢迎回来，可以在这里确认或修改老板昵称。");
+                        }, 650);
                     }
                 } catch (error) {
                     result.textContent = error.message || "老板评价系统暂时不可用，请稍后再试。";
@@ -2782,11 +2934,25 @@
                 return;
             }
 
+            let profile = { displayName: "", warning: "" };
+
+            if (typeof api.loadBossProfile === "function") {
+                try {
+                    profile = await api.loadBossProfile();
+                } catch (error) {
+                    profile.warning = error.message || "";
+                }
+            }
+
+            const reviewNickname = normalizeBossDisplayNameInput(profile.displayName) ||
+                getDisplayNameFromAuthUser(session.user) ||
+                (getBossReviewEmail(session).split("@")[0] || "老板").slice(0, 20);
+
             options.innerHTML = [
                 '<form class="boss-modal-panel live2d-boss-review-form">',
                     '<div class="boss-form-heading"><span class="boss-form-badge">★ 老板评价</span><span>把这次体验写下来吧。</span></div>',
                     '<div class="boss-form-grid">',
-                        '<input class="live2d-weather-input boss-form-control" name="nickname" maxlength="20" placeholder="昵称（最多 20 字）">',
+                        '<input class="live2d-weather-input boss-form-control" name="nickname" maxlength="20" placeholder="昵称（最多 20 字）" value="' + escapeHtml(reviewNickname) + '">',
                         '<select class="live2d-weather-input boss-form-control" name="serviceType">',
                             '<option>王者荣耀</option>',
                             '<option>永劫无间</option>',
@@ -2809,8 +2975,8 @@
                     '</div>',
                 '</form>'
             ].join("");
-            result.textContent = "当前账号：" + getBossReviewEmail(session);
-            result.className = "live2d-quiz__result boss-info-strip is-neutral";
+            result.textContent = profile.warning || ("当前老板昵称：" + reviewNickname);
+            result.className = "live2d-quiz__result boss-info-strip " + (profile.warning ? "is-warning" : "is-neutral");
             refreshDialogPosition();
 
             const form = options.querySelector(".live2d-boss-review-form");
@@ -2840,7 +3006,7 @@
 
                 try {
                     const response = await api.submitReview({
-                        nickname: form.elements.nickname.value.trim() || getBossReviewEmail(session).split("@")[0].slice(0, 20) || "老板",
+                        nickname: form.elements.nickname.value.trim() || reviewNickname,
                         serviceType: form.elements.serviceType.value,
                         rating: form.elements.rating.value,
                         message: message
@@ -2859,7 +3025,7 @@
                     if (window.JunxueGanyuTalk && typeof window.JunxueGanyuTalk.say === "function") {
                         window.JunxueGanyuTalk.say("谢谢你的评价，我会认真收好的。", { duration: 4200 });
                     }
-                    showBossReviewsPanel("谢谢你的评价，我会认真收好的。", "is-good");
+                    showBossReviewsPanel(response && response.warning ? response.warning : "谢谢你的评价，我会认真收好的。", response && response.warning ? "is-warning" : "is-good");
                 } catch (error) {
                     result.textContent = error.message || "评价发布失败，请稍后再试。";
                     result.className = "live2d-quiz__result is-warning";
@@ -3057,6 +3223,10 @@
             addConsultCard("老板号注册", "注册老板账号", false, function () {
                 recordGanyuFeature("老板号注册");
                 showBossRegisterPanel();
+            });
+            addConsultCard("老板资料", "修改老板昵称", false, function () {
+                recordGanyuFeature("老板资料");
+                showBossProfilePanel();
             });
             addConsultCard("老板评价", "查看与发布", false, function () {
                 showBossReviewsPanel();

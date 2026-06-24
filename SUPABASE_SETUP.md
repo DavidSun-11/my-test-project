@@ -606,3 +606,143 @@ $$;
 revoke all on function public.get_live_score_guess_voters(uuid) from public;
 grant execute on function public.get_live_score_guess_voters(uuid) to authenticated;
 ```
+
+## 11. 老板昵称管理升级 SQL
+
+Run this SQL manually in Supabase SQL Editor if you want bosses to edit their own display name after registration. It is safe to run repeatedly after sections 3, 8, 9, and 10.
+
+This upgrade keeps the permission boundary in RLS: each logged-in user can only read and update their own `boss_profiles` row, and the frontend still must not query `auth.users`. It also confirms that users can update only their own `boss_reviews` rows, which lets the nickname manager softly sync old review nicknames after a display name change.
+
+```sql
+create table if not exists public.boss_profiles (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  display_name text not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.boss_profiles
+  add column if not exists display_name text;
+
+alter table public.boss_profiles
+  add column if not exists created_at timestamptz not null default now();
+
+alter table public.boss_profiles
+  add column if not exists updated_at timestamptz not null default now();
+
+update public.boss_profiles
+set display_name = '老板用户'
+where display_name is null
+   or trim(display_name) = '';
+
+alter table public.boss_profiles
+  alter column display_name set not null;
+
+alter table public.boss_profiles
+  drop constraint if exists boss_profiles_display_name_length;
+
+alter table public.boss_profiles
+  add constraint boss_profiles_display_name_length
+  check (char_length(trim(display_name)) between 1 and 20);
+
+alter table public.boss_profiles enable row level security;
+
+revoke all on public.boss_profiles from anon;
+grant select, insert, update on public.boss_profiles to authenticated;
+
+drop policy if exists "Boss profiles can select own row" on public.boss_profiles;
+create policy "Boss profiles can select own row"
+on public.boss_profiles
+for select
+to authenticated
+using (user_id = auth.uid());
+
+drop policy if exists "Boss profiles can insert own row" on public.boss_profiles;
+create policy "Boss profiles can insert own row"
+on public.boss_profiles
+for insert
+to authenticated
+with check (user_id = auth.uid());
+
+drop policy if exists "Boss profiles can update own row" on public.boss_profiles;
+create policy "Boss profiles can update own row"
+on public.boss_profiles
+for update
+to authenticated
+using (user_id = auth.uid())
+with check (user_id = auth.uid());
+
+create or replace function public.set_boss_profiles_updated_at()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
+drop trigger if exists set_boss_profiles_updated_at on public.boss_profiles;
+create trigger set_boss_profiles_updated_at
+before update on public.boss_profiles
+for each row
+execute function public.set_boss_profiles_updated_at();
+
+alter table public.boss_reviews enable row level security;
+grant update on public.boss_reviews to authenticated;
+
+drop policy if exists "Users can update own reviews" on public.boss_reviews;
+create policy "Users can update own reviews"
+on public.boss_reviews
+for update
+to authenticated
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
+
+drop function if exists public.get_live_score_guess_voters(uuid);
+
+create or replace function public.get_live_score_guess_voters(p_session_id uuid)
+returns table (
+  choice text,
+  voter_name text,
+  created_at timestamptz
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if auth.uid() is null or not exists (
+    select 1
+    from public.live_interaction_admins admin
+    where admin.user_id = auth.uid()
+  ) then
+    raise exception 'not allowed';
+  end if;
+
+  return query
+  select
+    vote.choice,
+    coalesce(nullif(trim(profile.display_name), ''), '老板用户') as voter_name,
+    vote.created_at
+  from public.live_score_guess_votes vote
+  left join public.boss_profiles profile
+    on profile.user_id = vote.user_id
+  where vote.session_id = p_session_id
+  order by
+    case vote.choice
+      when '铜牌' then 1
+      when '银牌' then 2
+      when '金牌' then 3
+      when '顶级' then 4
+      when '无' then 5
+      else 6
+    end,
+    vote.created_at asc;
+end;
+$$;
+
+revoke all on function public.get_live_score_guess_voters(uuid) from public;
+grant execute on function public.get_live_score_guess_voters(uuid) to authenticated;
+```

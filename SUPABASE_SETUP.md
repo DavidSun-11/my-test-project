@@ -1,4 +1,4 @@
-# Supabase 在线老板评价配置说明
+﻿# Supabase 在线老板评价配置说明
 
 本项目部署在 GitHub Pages，不需要自建 Node 后端。老板评价使用 Supabase Auth + Supabase Database。
 
@@ -745,4 +745,412 @@ $$;
 
 revoke all on function public.get_live_score_guess_voters(uuid) from public;
 grant execute on function public.get_live_score_guess_voters(uuid) to authenticated;
+```
+
+## 12. Live2D 每日签到与老板积分升级 SQL
+
+Run this SQL manually in Supabase SQL Editor if you want to enable the Live2D star lake check-in feature. It is safe to run repeatedly after the boss account SQL sections.
+
+This upgrade stores check-in points without exposing email, `user_id`, or full UUID values to the frontend. Users can only read their own rows. Check-in writes and point changes must go through the RPC functions.
+
+Rules:
+
+- Normal check-in: 10 points.
+- Current streak day 7 only: 20 points. Day 14, 21, and 28 do not trigger this rule.
+- Current Asia/Shanghai natural month day 30: 50 points. This is not historical total day 30 or streak day 30.
+- Priority: monthly day 30, then streak day 7, then normal.
+
+```sql
+create table if not exists public.boss_points (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  points integer not null default 0,
+  total_checkins integer not null default 0,
+  current_streak integer not null default 0,
+  longest_streak integer not null default 0,
+  last_checkin_date date,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint boss_points_points_nonnegative check (points >= 0),
+  constraint boss_points_total_checkins_nonnegative check (total_checkins >= 0),
+  constraint boss_points_current_streak_nonnegative check (current_streak >= 0),
+  constraint boss_points_longest_streak_nonnegative check (longest_streak >= 0)
+);
+
+alter table public.boss_points
+  add column if not exists current_streak integer not null default 0;
+
+alter table public.boss_points
+  add column if not exists longest_streak integer not null default 0;
+
+alter table public.boss_points
+  add column if not exists last_checkin_date date;
+
+alter table public.boss_points
+  add column if not exists created_at timestamptz not null default now();
+
+alter table public.boss_points
+  add column if not exists updated_at timestamptz not null default now();
+
+alter table public.boss_points
+  drop constraint if exists boss_points_points_nonnegative;
+alter table public.boss_points
+  add constraint boss_points_points_nonnegative check (points >= 0);
+
+alter table public.boss_points
+  drop constraint if exists boss_points_total_checkins_nonnegative;
+alter table public.boss_points
+  add constraint boss_points_total_checkins_nonnegative check (total_checkins >= 0);
+
+alter table public.boss_points
+  drop constraint if exists boss_points_current_streak_nonnegative;
+alter table public.boss_points
+  add constraint boss_points_current_streak_nonnegative check (current_streak >= 0);
+
+alter table public.boss_points
+  drop constraint if exists boss_points_longest_streak_nonnegative;
+alter table public.boss_points
+  add constraint boss_points_longest_streak_nonnegative check (longest_streak >= 0);
+
+create table if not exists public.boss_daily_checkins (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  sign_date date not null,
+  reward_points integer not null,
+  streak_after integer not null,
+  monthly_checkins_after integer not null,
+  total_checkins_after integer not null,
+  created_at timestamptz not null default now(),
+  constraint boss_daily_checkins_reward_positive check (reward_points > 0),
+  constraint boss_daily_checkins_streak_positive check (streak_after > 0),
+  constraint boss_daily_checkins_monthly_positive check (monthly_checkins_after > 0),
+  constraint boss_daily_checkins_total_positive check (total_checkins_after > 0),
+  constraint boss_daily_checkins_user_date_unique unique (user_id, sign_date)
+);
+
+alter table public.boss_daily_checkins
+  add column if not exists reward_points integer;
+
+alter table public.boss_daily_checkins
+  add column if not exists streak_after integer;
+
+alter table public.boss_daily_checkins
+  add column if not exists monthly_checkins_after integer;
+
+alter table public.boss_daily_checkins
+  add column if not exists total_checkins_after integer;
+
+alter table public.boss_daily_checkins
+  alter column reward_points set not null;
+
+alter table public.boss_daily_checkins
+  alter column streak_after set not null;
+
+alter table public.boss_daily_checkins
+  alter column monthly_checkins_after set not null;
+
+alter table public.boss_daily_checkins
+  alter column total_checkins_after set not null;
+
+alter table public.boss_daily_checkins
+  drop constraint if exists boss_daily_checkins_reward_positive;
+alter table public.boss_daily_checkins
+  add constraint boss_daily_checkins_reward_positive check (reward_points > 0);
+
+alter table public.boss_daily_checkins
+  drop constraint if exists boss_daily_checkins_streak_positive;
+alter table public.boss_daily_checkins
+  add constraint boss_daily_checkins_streak_positive check (streak_after > 0);
+
+alter table public.boss_daily_checkins
+  drop constraint if exists boss_daily_checkins_monthly_positive;
+alter table public.boss_daily_checkins
+  add constraint boss_daily_checkins_monthly_positive check (monthly_checkins_after > 0);
+
+alter table public.boss_daily_checkins
+  drop constraint if exists boss_daily_checkins_total_positive;
+alter table public.boss_daily_checkins
+  add constraint boss_daily_checkins_total_positive check (total_checkins_after > 0);
+
+alter table public.boss_daily_checkins
+  drop constraint if exists boss_daily_checkins_user_date_unique;
+alter table public.boss_daily_checkins
+  add constraint boss_daily_checkins_user_date_unique unique (user_id, sign_date);
+
+create index if not exists boss_daily_checkins_user_sign_date_idx
+on public.boss_daily_checkins (user_id, sign_date);
+
+create index if not exists boss_daily_checkins_sign_date_idx
+on public.boss_daily_checkins (sign_date);
+
+alter table public.boss_points enable row level security;
+alter table public.boss_daily_checkins enable row level security;
+
+revoke all on public.boss_points from anon, authenticated;
+revoke all on public.boss_daily_checkins from anon, authenticated;
+
+grant select on public.boss_points to authenticated;
+grant select on public.boss_daily_checkins to authenticated;
+
+drop policy if exists "Boss points can select own row" on public.boss_points;
+create policy "Boss points can select own row"
+on public.boss_points
+for select
+to authenticated
+using (user_id = auth.uid());
+
+drop policy if exists "Boss daily checkins can select own rows" on public.boss_daily_checkins;
+create policy "Boss daily checkins can select own rows"
+on public.boss_daily_checkins
+for select
+to authenticated
+using (user_id = auth.uid());
+
+create or replace function public.set_boss_points_updated_at()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
+drop trigger if exists set_boss_points_updated_at on public.boss_points;
+create trigger set_boss_points_updated_at
+before update on public.boss_points
+for each row
+execute function public.set_boss_points_updated_at();
+
+drop function if exists public.get_boss_checkin_status(date);
+
+create or replace function public.get_boss_checkin_status(p_month date default null)
+returns table (
+  today_signed boolean,
+  today_date date,
+  month_start date,
+  total_points integer,
+  total_checkins integer,
+  current_streak integer,
+  monthly_checkins integer,
+  signed_dates date[]
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_user_id uuid := auth.uid();
+  v_today date := (now() at time zone 'Asia/Shanghai')::date;
+  v_month_start date := date_trunc('month', coalesce(p_month, (now() at time zone 'Asia/Shanghai')::date))::date;
+  v_month_end date := (date_trunc('month', coalesce(p_month, (now() at time zone 'Asia/Shanghai')::date)) + interval '1 month')::date;
+begin
+  if v_user_id is null then
+    raise exception 'not authenticated';
+  end if;
+
+  return query
+  select
+    exists (
+      select 1
+      from public.boss_daily_checkins checkin
+      where checkin.user_id = v_user_id
+        and checkin.sign_date = v_today
+    ) as today_signed,
+    v_today as today_date,
+    v_month_start as month_start,
+    coalesce(points.points, 0) as total_points,
+    coalesce(points.total_checkins, 0) as total_checkins,
+    coalesce(points.current_streak, 0) as current_streak,
+    (
+      select count(*)::integer
+      from public.boss_daily_checkins checkin
+      where checkin.user_id = v_user_id
+        and checkin.sign_date >= v_month_start
+        and checkin.sign_date < v_month_end
+    ) as monthly_checkins,
+    coalesce((
+      select array_agg(checkin.sign_date order by checkin.sign_date)
+      from public.boss_daily_checkins checkin
+      where checkin.user_id = v_user_id
+        and checkin.sign_date >= v_month_start
+        and checkin.sign_date < v_month_end
+    ), array[]::date[]) as signed_dates
+  from (select 1) seed
+  left join public.boss_points points
+    on points.user_id = v_user_id;
+end;
+$$;
+
+drop function if exists public.claim_boss_daily_checkin();
+
+create or replace function public.claim_boss_daily_checkin()
+returns table (
+  signed_today boolean,
+  already_signed boolean,
+  sign_date date,
+  reward_points integer,
+  total_points integer,
+  total_checkins integer,
+  current_streak integer,
+  monthly_checkins integer,
+  message text
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_user_id uuid := auth.uid();
+  v_today date := (now() at time zone 'Asia/Shanghai')::date;
+  v_month_start date := date_trunc('month', (now() at time zone 'Asia/Shanghai')::date)::date;
+  v_month_end date := (date_trunc('month', (now() at time zone 'Asia/Shanghai')::date) + interval '1 month')::date;
+  v_points public.boss_points%rowtype;
+  v_current_streak_after integer;
+  v_monthly_checkins_after integer;
+  v_total_checkins_after integer;
+  v_reward_points integer;
+begin
+  if v_user_id is null then
+    raise exception 'not authenticated';
+  end if;
+
+  insert into public.boss_points (user_id, points, total_checkins, current_streak, longest_streak, last_checkin_date)
+  values (v_user_id, 0, 0, 0, 0, null)
+  on conflict (user_id) do nothing;
+
+  select *
+  into v_points
+  from public.boss_points
+  where user_id = v_user_id
+  for update;
+
+  if exists (
+    select 1
+    from public.boss_daily_checkins checkin
+    where checkin.user_id = v_user_id
+      and checkin.sign_date = v_today
+  ) then
+    return query
+    select
+      false as signed_today,
+      true as already_signed,
+      v_today as sign_date,
+      0 as reward_points,
+      v_points.points as total_points,
+      v_points.total_checkins as total_checkins,
+      v_points.current_streak as current_streak,
+      (
+        select count(*)::integer
+        from public.boss_daily_checkins checkin
+        where checkin.user_id = v_user_id
+          and checkin.sign_date >= v_month_start
+          and checkin.sign_date < v_month_end
+      ) as monthly_checkins,
+      '今天已经签到过啦，明天再来见甘雨吧。' as message;
+    return;
+  end if;
+
+  if v_points.last_checkin_date = v_today - 1 then
+    v_current_streak_after := v_points.current_streak + 1;
+  else
+    v_current_streak_after := 1;
+  end if;
+
+  select count(*)::integer + 1
+  into v_monthly_checkins_after
+  from public.boss_daily_checkins checkin
+  where checkin.user_id = v_user_id
+    and checkin.sign_date >= v_month_start
+    and checkin.sign_date < v_month_end;
+
+  v_total_checkins_after := v_points.total_checkins + 1;
+
+  if v_monthly_checkins_after = 30 then
+    v_reward_points := 50;
+  elsif v_current_streak_after = 7 then
+    v_reward_points := 20;
+  else
+    v_reward_points := 10;
+  end if;
+
+  begin
+    insert into public.boss_daily_checkins (
+      user_id,
+      sign_date,
+      reward_points,
+      streak_after,
+      monthly_checkins_after,
+      total_checkins_after
+    )
+    values (
+      v_user_id,
+      v_today,
+      v_reward_points,
+      v_current_streak_after,
+      v_monthly_checkins_after,
+      v_total_checkins_after
+    );
+  exception
+    when unique_violation then
+      select *
+      into v_points
+      from public.boss_points
+      where user_id = v_user_id
+      for update;
+
+      return query
+      select
+        false as signed_today,
+        true as already_signed,
+        v_today as sign_date,
+        0 as reward_points,
+        v_points.points as total_points,
+        v_points.total_checkins as total_checkins,
+        v_points.current_streak as current_streak,
+        (
+          select count(*)::integer
+          from public.boss_daily_checkins checkin
+          where checkin.user_id = v_user_id
+            and checkin.sign_date >= v_month_start
+            and checkin.sign_date < v_month_end
+        ) as monthly_checkins,
+        '今天已经签到过啦，明天再来见甘雨吧。' as message;
+      return;
+  end;
+
+  update public.boss_points
+  set
+    points = points + v_reward_points,
+    total_checkins = v_total_checkins_after,
+    current_streak = v_current_streak_after,
+    longest_streak = greatest(longest_streak, v_current_streak_after),
+    last_checkin_date = v_today,
+    updated_at = now()
+  where user_id = v_user_id
+  returning *
+  into v_points;
+
+  return query
+  select
+    true as signed_today,
+    false as already_signed,
+    v_today as sign_date,
+    v_reward_points as reward_points,
+    v_points.points as total_points,
+    v_points.total_checkins as total_checkins,
+    v_points.current_streak as current_streak,
+    v_monthly_checkins_after as monthly_checkins,
+    case
+      when v_monthly_checkins_after = 30 then '本月累计签到 30 天达成，今日获得 50 积分。'
+      when v_current_streak_after = 7 then '连续签到 7 天达成，今日获得 20 积分。'
+      else '签到成功，今日获得 10 积分。'
+    end as message;
+end;
+$$;
+
+revoke all on function public.get_boss_checkin_status(date) from public;
+revoke all on function public.claim_boss_daily_checkin() from public;
+grant execute on function public.get_boss_checkin_status(date) to authenticated;
+grant execute on function public.claim_boss_daily_checkin() to authenticated;
 ```

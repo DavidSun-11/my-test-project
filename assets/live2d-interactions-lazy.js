@@ -480,13 +480,18 @@
     }
 
     function ensureOpeningBubbleStyles() {
-        if (document.getElementById("live2d-opening-bubble-style")) {
-            return;
+        const existingStyle = document.getElementById("live2d-opening-bubble-style");
+        if (existingStyle) {
+            if (existingStyle.textContent && existingStyle.textContent.indexOf("20260625-live2d-checkin-calendar2") !== -1) {
+                return;
+            }
+            existingStyle.remove();
         }
 
         const style = document.createElement("style");
         style.id = "live2d-opening-bubble-style";
         style.textContent = [
+            "/* 20260625-live2d-checkin-calendar2 */",
             ".live2d-opening-bubble{position:fixed;left:252px;top:160px;z-index:61;width:min(328px,calc(100vw - 32px));padding:12px 14px;border:1px solid rgba(255,236,245,.88);border-radius:16px;background:rgba(255,178,211,.76);box-shadow:0 0 22px rgba(255,142,196,.38),inset 0 0 14px rgba(255,255,255,.16);backdrop-filter:blur(10px);color:rgba(92,28,58,.96);font-size:14px;line-height:1.55;letter-spacing:0;pointer-events:none;opacity:0;transform:translateY(8px);transition:opacity .35s ease,transform .35s ease;}",
             ".live2d-opening-bubble.is-open{opacity:1;transform:translateY(0);}",
             ".live2d-opening-bubble.is-fading{opacity:0;transform:translateY(-6px);}",
@@ -551,9 +556,9 @@
             ".live2d-quiz.is-boss-auth .live2d-boss-auth-note{margin-top:12px;border-color:rgba(170,226,255,.22);background:linear-gradient(90deg,rgba(33,84,132,.22),rgba(108,88,184,.18));color:rgba(216,239,252,.88);}",
             "@media (max-width:720px){.live2d-quiz.is-boss-auth{width:min(92vw,520px)!important;max-width:calc(100vw - 24px)!important;max-height:calc(100vh - 88px)!important;padding:12px!important;border-radius:22px!important;}.live2d-boss-auth-shell{grid-template-columns:1fr!important;gap:12px;}.live2d-boss-auth-ambient{padding:18px;}.live2d-boss-auth-title{font-size:24px;}.live2d-boss-auth-card{padding:18px;}.live2d-boss-auth-actions{display:grid;grid-template-columns:1fr;}.live2d-quiz.is-boss-auth .live2d-boss-auth-action{width:100%;min-width:0;}.live2d-quiz.is-boss-auth::after{opacity:.12;width:92px;height:92px;}}",
             ".live2d-quiz.is-checkin{width:min(880px,calc(100vw - 32px))!important;max-width:calc(100vw - 32px)!important;max-height:calc(100vh - 72px)!important;overflow:auto!important;padding:18px!important;border:1px solid rgba(174,232,255,.38)!important;border-radius:28px!important;background:url(\"assets/ui/star-dust.svg\") center/190px 130px repeat,radial-gradient(circle at 18% 5%,rgba(155,228,255,.22),transparent 34%),radial-gradient(ellipse at 92% 16%,rgba(199,145,255,.2),transparent 38%),linear-gradient(150deg,rgba(7,20,47,.84),rgba(8,13,34,.92))!important;box-shadow:0 26px 74px rgba(2,10,30,.5),0 0 42px rgba(96,205,255,.17),inset 0 1px 0 rgba(255,255,255,.16)!important;box-sizing:border-box!important;}",
-            ".live2d-checkin-panel{display:grid;gap:14px;width:100%;box-sizing:border-box;}",
-            ".live2d-checkin-main{display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,360px);gap:18px;align-items:start;width:100%;box-sizing:border-box;}",
-            ".live2d-checkin-left{display:grid;gap:12px;min-width:0;}",
+            ".live2d-checkin-panel,.live2d-checkin-shell{display:grid;gap:14px;width:100%;box-sizing:border-box;}",
+            ".live2d-checkin-main,.live2d-checkin-layout{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(320px,360px)!important;gap:18px;align-items:start;width:100%;box-sizing:border-box;}",
+            ".live2d-checkin-left,.live2d-checkin-info{display:grid;gap:12px;min-width:0;}",
             ".live2d-checkin-hero{position:relative;display:grid;gap:7px;padding:15px 16px;border:1px solid rgba(172,229,255,.26);border-radius:22px;background:radial-gradient(circle at 12% 10%,rgba(178,239,255,.18),transparent 34%),linear-gradient(145deg,rgba(255,255,255,.08),rgba(78,145,218,.1));box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 14px 28px rgba(0,12,42,.16);overflow:hidden;}",
             ".live2d-checkin-hero::after{content:\"\";position:absolute;right:-26px;top:-30px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(202,246,255,.22),transparent 62%);pointer-events:none;}",
             ".live2d-checkin-kicker{display:inline-flex;width:max-content;max-width:100%;padding:4px 10px;border:1px solid rgba(188,238,255,.36);border-radius:999px;background:rgba(91,203,255,.1);color:rgba(190,226,244,.76);font-size:11px;font-weight:780;}",
@@ -567,10 +572,10 @@
             ".live2d-checkin-rules li{position:relative;min-width:0;padding:9px 10px 9px 28px;border:1px solid rgba(172,229,255,.2);border-radius:14px;background:rgba(9,31,64,.25);color:rgba(221,241,253,.86);font-size:12px;line-height:1.45;}",
             ".live2d-checkin-rules li::before{content:\"\";position:absolute;left:11px;top:14px;width:7px;height:7px;border-radius:50%;background:radial-gradient(circle,#fff,rgba(115,220,255,.9) 45%,rgba(177,136,255,.4));box-shadow:0 0 12px rgba(118,221,255,.42);}",
             ".live2d-checkin-message{padding:10px 12px;border:1px solid rgba(168,226,255,.2);border-radius:15px;background:linear-gradient(90deg,rgba(47,112,166,.14),rgba(102,88,184,.1));color:rgba(212,238,252,.9);font-size:12px;line-height:1.55;text-align:center;}",
-            ".live2d-checkin-calendar{display:grid;gap:10px;width:100%;max-width:360px;justify-self:end;padding:14px;border:1px solid rgba(168,226,255,.26);border-radius:20px;background:radial-gradient(circle at 16% 8%,rgba(180,240,255,.14),transparent 34%),linear-gradient(145deg,rgba(12,34,66,.52),rgba(21,31,70,.42));box-shadow:0 16px 32px rgba(0,12,40,.18),inset 0 1px 0 rgba(255,255,255,.14);box-sizing:border-box;}",
+            ".live2d-checkin-calendar,.live2d-checkin-calendar-card{display:grid;gap:10px;width:100%;max-width:360px;justify-self:end;padding:14px;border:1px solid rgba(168,226,255,.26);border-radius:20px;background:radial-gradient(circle at 16% 8%,rgba(180,240,255,.14),transparent 34%),linear-gradient(145deg,rgba(12,34,66,.52),rgba(21,31,70,.42));box-shadow:0 16px 32px rgba(0,12,40,.18),inset 0 1px 0 rgba(255,255,255,.14);box-sizing:border-box;}",
             ".live2d-checkin-calendar__head{display:flex;align-items:center;justify-content:space-between;gap:12px;color:rgba(233,249,255,.96);font-size:14px;font-weight:860;}",
             ".live2d-checkin-calendar__status{padding:4px 9px;border:1px solid rgba(185,235,255,.4);border-radius:999px;background:rgba(98,198,255,.12);color:rgba(203,238,255,.92);font-size:12px;font-weight:780;}",
-            ".live2d-checkin-weekdays,.live2d-checkin-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;width:100%;}",
+            ".live2d-checkin-weekdays,.live2d-checkin-days,.live2d-checkin-calendar-grid{display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr))!important;gap:6px;width:100%;}",
             ".live2d-checkin-weekdays span{display:grid;place-items:center;min-width:0;color:rgba(178,211,232,.72);font-size:11px;text-align:center;line-height:1;}",
             ".live2d-checkin-day{position:relative;display:grid;grid-template-rows:auto 10px;place-items:center;gap:2px;min-width:0;aspect-ratio:1/1;border:1px solid rgba(160,220,255,.16);border-radius:11px;background:rgba(7,23,52,.28);color:rgba(220,239,252,.84);font-size:12px;font-weight:780;line-height:1;box-sizing:border-box;overflow:hidden;}",
             ".live2d-checkin-day.is-empty{visibility:hidden;pointer-events:none;}",
@@ -581,10 +586,10 @@
             ".live2d-checkin-day.is-signed .live2d-checkin-day__mark{opacity:1;}",
             ".live2d-checkin-day.is-today .live2d-checkin-day__mark{background:rgba(255,232,158,.96);box-shadow:0 0 10px rgba(255,224,130,.64);opacity:1;}",
             ".live2d-checkin-actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-start;}",
-            ".live2d-quiz.is-checkin .live2d-checkin-action{appearance:none;-webkit-appearance:none;display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:128px;padding:10px 16px;border:1px solid rgba(175,230,255,.44);border-radius:999px;background:linear-gradient(135deg,rgba(40,96,154,.52),rgba(27,50,102,.56));box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 0 14px rgba(96,204,255,.1);color:rgba(240,252,255,.96);font:inherit;font-size:14px;font-weight:850;white-space:nowrap;cursor:pointer;}",
-            ".live2d-quiz.is-checkin .live2d-checkin-action--primary{flex:1 1 190px;max-width:280px;border-color:rgba(195,243,255,.72);background:linear-gradient(135deg,rgba(92,210,255,.82),rgba(176,123,255,.72));box-shadow:0 0 24px rgba(103,213,255,.28),inset 0 1px 0 rgba(255,255,255,.28);}",
-            ".live2d-quiz.is-checkin .live2d-checkin-action:disabled{opacity:1;filter:none;color:rgba(224,244,255,.68);background:linear-gradient(135deg,rgba(42,82,126,.38),rgba(24,45,82,.44));cursor:default;}",
-            "@media (max-width:720px){.live2d-quiz.is-checkin{width:min(92vw,520px)!important;max-width:calc(100vw - 24px)!important;max-height:calc(100vh - 88px)!important;padding:12px!important;border-radius:22px!important;}.live2d-checkin-main{grid-template-columns:1fr!important;gap:12px;}.live2d-checkin-stats,.live2d-checkin-rules{grid-template-columns:1fr!important;}.live2d-checkin-calendar{max-width:100%;justify-self:stretch;padding:12px;}.live2d-checkin-weekdays,.live2d-checkin-days{gap:5px;}.live2d-checkin-day{border-radius:10px;font-size:11px;}.live2d-checkin-actions{display:grid;grid-template-columns:1fr;}.live2d-quiz.is-checkin .live2d-checkin-action{width:100%;min-width:0;max-width:none;}}",
+            ".live2d-quiz.is-checkin button.live2d-checkin-action{appearance:none!important;-webkit-appearance:none!important;display:inline-flex!important;align-items:center;justify-content:center;min-height:44px;min-width:128px;padding:10px 16px;border:1px solid rgba(175,230,255,.44)!important;border-radius:999px!important;background:linear-gradient(135deg,rgba(40,96,154,.52),rgba(27,50,102,.56))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 0 14px rgba(96,204,255,.1)!important;color:rgba(240,252,255,.96)!important;font:inherit;font-size:14px;font-weight:850;white-space:nowrap;cursor:pointer;}",
+            ".live2d-quiz.is-checkin button.live2d-checkin-action--primary{flex:1 1 190px;max-width:280px;border-color:rgba(195,243,255,.72)!important;background:linear-gradient(135deg,rgba(92,210,255,.82),rgba(176,123,255,.72))!important;box-shadow:0 0 24px rgba(103,213,255,.28),inset 0 1px 0 rgba(255,255,255,.28)!important;}",
+            ".live2d-quiz.is-checkin button.live2d-checkin-action:disabled{opacity:1;filter:none;color:rgba(224,244,255,.68)!important;background:linear-gradient(135deg,rgba(42,82,126,.38),rgba(24,45,82,.44))!important;cursor:default;}",
+            "@media (max-width:720px){.live2d-quiz.is-checkin{width:min(92vw,520px)!important;max-width:calc(100vw - 24px)!important;max-height:calc(100vh - 88px)!important;padding:12px!important;border-radius:22px!important;}.live2d-checkin-main,.live2d-checkin-layout{grid-template-columns:1fr!important;gap:12px;}.live2d-checkin-stats,.live2d-checkin-rules{grid-template-columns:1fr!important;}.live2d-checkin-calendar,.live2d-checkin-calendar-card{max-width:100%;justify-self:stretch;padding:12px;}.live2d-checkin-weekdays,.live2d-checkin-days,.live2d-checkin-calendar-grid{gap:5px;}.live2d-checkin-day{border-radius:10px;font-size:11px;}.live2d-checkin-actions{display:grid;grid-template-columns:1fr;}.live2d-quiz.is-checkin button.live2d-checkin-action{width:100%;min-width:0;max-width:none;}}",
             ".score-guess-header{padding:2px 0 4px;}",
             ".score-guess-kicker{width:max-content;padding:4px 10px;border:1px solid rgba(180,235,255,.56);border-radius:999px;background:rgba(103,202,255,.16);color:rgba(199,239,255,.96);font-size:12px;font-weight:700;}",
             ".score-guess-subtitle{color:rgba(218,237,255,.86);font-size:13px;line-height:1.55;}",
@@ -1844,7 +1849,7 @@
 
         async function ensureBossReviewsApi() {
             await loadExternalScript("assets/supabase-config.js?v=20260611-1").catch(function () {});
-            await loadExternalScript("assets/price-reviews.js?v=20260625-boss-register-link1");
+            await loadExternalScript("assets/price-reviews.js?v=20260625-live2d-checkin-calendar2");
 
             if (!window.JunxueBossReviews) {
                 throw new Error("老板评价系统暂未配置，请稍后再来～");
@@ -2111,13 +2116,13 @@
             }
 
             return [
-                '<section class="live2d-checkin-calendar" aria-label="本月签到日历">',
+                '<section class="live2d-checkin-calendar live2d-checkin-calendar-card" aria-label="本月签到日历" style="display:grid;gap:10px;width:100%;max-width:360px;justify-self:end;box-sizing:border-box;">',
                     '<div class="live2d-checkin-calendar__head">',
                         '<span>' + escapeHtml(getCheckinMonthLabel(status.monthStart, status.todayDate)) + '</span>',
                         '<span class="live2d-checkin-calendar__status">' + (status.signedToday ? "今日已完成签到" : "今日还未签到") + '</span>',
                     '</div>',
                     '<div class="live2d-checkin-weekdays" aria-hidden="true"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>',
-                    '<div class="live2d-checkin-days">',
+                    '<div class="live2d-checkin-days live2d-checkin-calendar-grid" style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;width:100%;">',
                         cells.join(""),
                     '</div>',
                 '</section>'
@@ -2180,9 +2185,9 @@
             const panelMessage = message || (status.signedToday ? "今日已完成签到。" : "今日还可以签到。");
 
             options.innerHTML = [
-                '<div class="live2d-checkin-panel">',
-                    '<div class="live2d-checkin-main">',
-                        '<div class="live2d-checkin-left">',
+                '<div class="live2d-checkin-panel live2d-checkin-shell" data-checkin-ui-version="20260625-live2d-checkin-calendar2">',
+                    '<div class="live2d-checkin-main live2d-checkin-layout" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,360px);gap:18px;align-items:start;width:100%;box-sizing:border-box;">',
+                        '<div class="live2d-checkin-left live2d-checkin-info" style="display:grid;gap:12px;min-width:0;">',
                             '<section class="live2d-checkin-hero">',
                                 '<span class="live2d-checkin-kicker">Star Lake Check-in</span>',
                                 '<h3 class="live2d-checkin-title">星湖签到</h3>',

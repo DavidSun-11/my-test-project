@@ -550,35 +550,41 @@
             ".live2d-boss-auth-hint{margin:0;padding:10px 12px;border:1px solid rgba(168,226,255,.18);border-radius:15px;background:linear-gradient(90deg,transparent,rgba(95,184,240,.08),transparent);color:rgba(190,224,244,.78);font-size:12px;line-height:1.55;text-align:center;}",
             ".live2d-quiz.is-boss-auth .live2d-boss-auth-note{margin-top:12px;border-color:rgba(170,226,255,.22);background:linear-gradient(90deg,rgba(33,84,132,.22),rgba(108,88,184,.18));color:rgba(216,239,252,.88);}",
             "@media (max-width:720px){.live2d-quiz.is-boss-auth{width:min(92vw,520px)!important;max-width:calc(100vw - 24px)!important;max-height:calc(100vh - 88px)!important;padding:12px!important;border-radius:22px!important;}.live2d-boss-auth-shell{grid-template-columns:1fr!important;gap:12px;}.live2d-boss-auth-ambient{padding:18px;}.live2d-boss-auth-title{font-size:24px;}.live2d-boss-auth-card{padding:18px;}.live2d-boss-auth-actions{display:grid;grid-template-columns:1fr;}.live2d-quiz.is-boss-auth .live2d-boss-auth-action{width:100%;min-width:0;}.live2d-quiz.is-boss-auth::after{opacity:.12;width:92px;height:92px;}}",
-            ".live2d-quiz.is-checkin{width:min(760px,calc(100vw - 32px))!important;max-width:calc(100vw - 32px)!important;max-height:calc(100vh - 72px)!important;overflow:auto!important;padding:18px!important;border:1px solid rgba(174,232,255,.38)!important;border-radius:28px!important;background:url(\"assets/ui/star-dust.svg\") center/190px 130px repeat,radial-gradient(circle at 18% 5%,rgba(155,228,255,.22),transparent 34%),radial-gradient(ellipse at 92% 16%,rgba(199,145,255,.2),transparent 38%),linear-gradient(150deg,rgba(7,20,47,.84),rgba(8,13,34,.92))!important;box-shadow:0 26px 74px rgba(2,10,30,.5),0 0 42px rgba(96,205,255,.17),inset 0 1px 0 rgba(255,255,255,.16)!important;box-sizing:border-box!important;}",
+            ".live2d-quiz.is-checkin{width:min(880px,calc(100vw - 32px))!important;max-width:calc(100vw - 32px)!important;max-height:calc(100vh - 72px)!important;overflow:auto!important;padding:18px!important;border:1px solid rgba(174,232,255,.38)!important;border-radius:28px!important;background:url(\"assets/ui/star-dust.svg\") center/190px 130px repeat,radial-gradient(circle at 18% 5%,rgba(155,228,255,.22),transparent 34%),radial-gradient(ellipse at 92% 16%,rgba(199,145,255,.2),transparent 38%),linear-gradient(150deg,rgba(7,20,47,.84),rgba(8,13,34,.92))!important;box-shadow:0 26px 74px rgba(2,10,30,.5),0 0 42px rgba(96,205,255,.17),inset 0 1px 0 rgba(255,255,255,.16)!important;box-sizing:border-box!important;}",
             ".live2d-checkin-panel{display:grid;gap:14px;width:100%;box-sizing:border-box;}",
-            ".live2d-checkin-hero{position:relative;display:grid;gap:8px;padding:16px;border:1px solid rgba(172,229,255,.26);border-radius:22px;background:radial-gradient(circle at 12% 10%,rgba(178,239,255,.18),transparent 34%),linear-gradient(145deg,rgba(255,255,255,.08),rgba(78,145,218,.1));box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 14px 28px rgba(0,12,42,.16);overflow:hidden;}",
+            ".live2d-checkin-main{display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,360px);gap:18px;align-items:start;width:100%;box-sizing:border-box;}",
+            ".live2d-checkin-left{display:grid;gap:12px;min-width:0;}",
+            ".live2d-checkin-hero{position:relative;display:grid;gap:7px;padding:15px 16px;border:1px solid rgba(172,229,255,.26);border-radius:22px;background:radial-gradient(circle at 12% 10%,rgba(178,239,255,.18),transparent 34%),linear-gradient(145deg,rgba(255,255,255,.08),rgba(78,145,218,.1));box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 14px 28px rgba(0,12,42,.16);overflow:hidden;}",
             ".live2d-checkin-hero::after{content:\"\";position:absolute;right:-26px;top:-30px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(202,246,255,.22),transparent 62%);pointer-events:none;}",
-            ".live2d-checkin-kicker{display:inline-flex;width:max-content;max-width:100%;padding:5px 11px;border:1px solid rgba(188,238,255,.42);border-radius:999px;background:rgba(91,203,255,.12);color:rgba(206,241,255,.92);font-size:12px;font-weight:820;}",
-            ".live2d-checkin-title{margin:0;color:rgba(248,253,255,.98);font-size:24px;font-weight:920;line-height:1.16;text-shadow:0 0 18px rgba(117,219,255,.24);}",
-            ".live2d-checkin-copy{margin:0;color:rgba(202,229,246,.82);font-size:13px;line-height:1.65;}",
-            ".live2d-checkin-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}",
+            ".live2d-checkin-kicker{display:inline-flex;width:max-content;max-width:100%;padding:4px 10px;border:1px solid rgba(188,238,255,.36);border-radius:999px;background:rgba(91,203,255,.1);color:rgba(190,226,244,.76);font-size:11px;font-weight:780;}",
+            ".live2d-checkin-title{margin:0;color:rgba(248,253,255,.98);font-size:25px;font-weight:920;line-height:1.16;text-shadow:0 0 18px rgba(117,219,255,.24);}",
+            ".live2d-checkin-copy{margin:0;color:rgba(202,229,246,.82);font-size:13px;line-height:1.55;}",
+            ".live2d-checkin-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;}",
             ".live2d-checkin-stat{display:grid;gap:4px;min-width:0;padding:12px;border:1px solid rgba(164,223,255,.28);border-radius:16px;background:linear-gradient(145deg,rgba(255,255,255,.08),rgba(67,133,201,.1));box-shadow:inset 0 1px 0 rgba(255,255,255,.13);}",
             ".live2d-checkin-stat span{color:rgba(190,224,244,.78);font-size:12px;font-weight:760;}",
             ".live2d-checkin-stat strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:rgba(246,253,255,.98);font-size:18px;font-weight:920;}",
-            ".live2d-checkin-rules{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0;padding:0;list-style:none;}",
+            ".live2d-checkin-rules{display:grid;grid-template-columns:1fr;gap:8px;margin:0;padding:0;list-style:none;}",
             ".live2d-checkin-rules li{position:relative;min-width:0;padding:9px 10px 9px 28px;border:1px solid rgba(172,229,255,.2);border-radius:14px;background:rgba(9,31,64,.25);color:rgba(221,241,253,.86);font-size:12px;line-height:1.45;}",
             ".live2d-checkin-rules li::before{content:\"\";position:absolute;left:11px;top:14px;width:7px;height:7px;border-radius:50%;background:radial-gradient(circle,#fff,rgba(115,220,255,.9) 45%,rgba(177,136,255,.4));box-shadow:0 0 12px rgba(118,221,255,.42);}",
-            ".live2d-checkin-calendar{display:grid;gap:9px;padding:13px;border:1px solid rgba(168,226,255,.22);border-radius:18px;background:linear-gradient(145deg,rgba(12,34,66,.45),rgba(21,31,70,.36));}",
+            ".live2d-checkin-message{padding:10px 12px;border:1px solid rgba(168,226,255,.2);border-radius:15px;background:linear-gradient(90deg,rgba(47,112,166,.14),rgba(102,88,184,.1));color:rgba(212,238,252,.9);font-size:12px;line-height:1.55;text-align:center;}",
+            ".live2d-checkin-calendar{display:grid;gap:10px;width:100%;max-width:360px;justify-self:end;padding:14px;border:1px solid rgba(168,226,255,.26);border-radius:20px;background:radial-gradient(circle at 16% 8%,rgba(180,240,255,.14),transparent 34%),linear-gradient(145deg,rgba(12,34,66,.52),rgba(21,31,70,.42));box-shadow:0 16px 32px rgba(0,12,40,.18),inset 0 1px 0 rgba(255,255,255,.14);box-sizing:border-box;}",
             ".live2d-checkin-calendar__head{display:flex;align-items:center;justify-content:space-between;gap:12px;color:rgba(233,249,255,.96);font-size:14px;font-weight:860;}",
             ".live2d-checkin-calendar__status{padding:4px 9px;border:1px solid rgba(185,235,255,.4);border-radius:999px;background:rgba(98,198,255,.12);color:rgba(203,238,255,.92);font-size:12px;font-weight:780;}",
-            ".live2d-checkin-weekdays,.live2d-checkin-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;}",
-            ".live2d-checkin-weekdays span{color:rgba(178,211,232,.72);font-size:11px;text-align:center;}",
-            ".live2d-checkin-day{position:relative;display:grid;place-items:center;min-width:0;min-height:42px;border:1px solid rgba(160,220,255,.16);border-radius:12px;background:rgba(7,23,52,.26);color:rgba(220,239,252,.82);font-size:12px;font-weight:780;line-height:1.15;}",
-            ".live2d-checkin-day.is-empty{opacity:0;pointer-events:none;}",
-            ".live2d-checkin-day.is-signed{border-color:rgba(191,243,255,.62);background:linear-gradient(145deg,rgba(85,205,255,.26),rgba(158,117,255,.2));box-shadow:0 0 14px rgba(99,212,255,.18),inset 0 1px 0 rgba(255,255,255,.18);color:rgba(244,253,255,.98);}",
+            ".live2d-checkin-weekdays,.live2d-checkin-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;width:100%;}",
+            ".live2d-checkin-weekdays span{display:grid;place-items:center;min-width:0;color:rgba(178,211,232,.72);font-size:11px;text-align:center;line-height:1;}",
+            ".live2d-checkin-day{position:relative;display:grid;grid-template-rows:auto 10px;place-items:center;gap:2px;min-width:0;aspect-ratio:1/1;border:1px solid rgba(160,220,255,.16);border-radius:11px;background:rgba(7,23,52,.28);color:rgba(220,239,252,.84);font-size:12px;font-weight:780;line-height:1;box-sizing:border-box;overflow:hidden;}",
+            ".live2d-checkin-day.is-empty{visibility:hidden;pointer-events:none;}",
+            ".live2d-checkin-day.is-signed{border-color:rgba(191,243,255,.66);background:linear-gradient(145deg,rgba(85,205,255,.3),rgba(158,117,255,.24));box-shadow:0 0 14px rgba(99,212,255,.2),inset 0 1px 0 rgba(255,255,255,.18);color:rgba(244,253,255,.98);}",
             ".live2d-checkin-day.is-today{border-color:rgba(255,236,178,.7);box-shadow:0 0 18px rgba(255,220,126,.18),inset 0 1px 0 rgba(255,255,255,.18);}",
-            ".live2d-checkin-day small{display:block;margin-top:2px;color:rgba(203,245,255,.9);font-size:9px;font-weight:820;}",
-            ".live2d-checkin-actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;}",
+            ".live2d-checkin-day__num{position:relative;z-index:1;}",
+            ".live2d-checkin-day__mark{display:block;width:6px;height:6px;border-radius:999px;background:rgba(105,219,255,.92);box-shadow:0 0 10px rgba(105,219,255,.62);opacity:0;}",
+            ".live2d-checkin-day.is-signed .live2d-checkin-day__mark{opacity:1;}",
+            ".live2d-checkin-day.is-today .live2d-checkin-day__mark{background:rgba(255,232,158,.96);box-shadow:0 0 10px rgba(255,224,130,.64);opacity:1;}",
+            ".live2d-checkin-actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-start;}",
             ".live2d-quiz.is-checkin .live2d-checkin-action{appearance:none;-webkit-appearance:none;display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:128px;padding:10px 16px;border:1px solid rgba(175,230,255,.44);border-radius:999px;background:linear-gradient(135deg,rgba(40,96,154,.52),rgba(27,50,102,.56));box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 0 14px rgba(96,204,255,.1);color:rgba(240,252,255,.96);font:inherit;font-size:14px;font-weight:850;white-space:nowrap;cursor:pointer;}",
-            ".live2d-quiz.is-checkin .live2d-checkin-action--primary{flex:1 1 210px;max-width:320px;border-color:rgba(195,243,255,.72);background:linear-gradient(135deg,rgba(92,210,255,.82),rgba(176,123,255,.72));box-shadow:0 0 24px rgba(103,213,255,.28),inset 0 1px 0 rgba(255,255,255,.28);}",
+            ".live2d-quiz.is-checkin .live2d-checkin-action--primary{flex:1 1 190px;max-width:280px;border-color:rgba(195,243,255,.72);background:linear-gradient(135deg,rgba(92,210,255,.82),rgba(176,123,255,.72));box-shadow:0 0 24px rgba(103,213,255,.28),inset 0 1px 0 rgba(255,255,255,.28);}",
             ".live2d-quiz.is-checkin .live2d-checkin-action:disabled{opacity:1;filter:none;color:rgba(224,244,255,.68);background:linear-gradient(135deg,rgba(42,82,126,.38),rgba(24,45,82,.44));cursor:default;}",
-            "@media (max-width:720px){.live2d-quiz.is-checkin{width:min(92vw,520px)!important;max-width:calc(100vw - 24px)!important;max-height:calc(100vh - 88px)!important;padding:12px!important;border-radius:22px!important;}.live2d-checkin-stats,.live2d-checkin-rules{grid-template-columns:1fr!important;}.live2d-checkin-day{min-height:36px;border-radius:10px;font-size:11px;}.live2d-checkin-actions{display:grid;grid-template-columns:1fr;}.live2d-quiz.is-checkin .live2d-checkin-action{width:100%;min-width:0;max-width:none;}}",
+            "@media (max-width:720px){.live2d-quiz.is-checkin{width:min(92vw,520px)!important;max-width:calc(100vw - 24px)!important;max-height:calc(100vh - 88px)!important;padding:12px!important;border-radius:22px!important;}.live2d-checkin-main{grid-template-columns:1fr!important;gap:12px;}.live2d-checkin-stats,.live2d-checkin-rules{grid-template-columns:1fr!important;}.live2d-checkin-calendar{max-width:100%;justify-self:stretch;padding:12px;}.live2d-checkin-weekdays,.live2d-checkin-days{gap:5px;}.live2d-checkin-day{border-radius:10px;font-size:11px;}.live2d-checkin-actions{display:grid;grid-template-columns:1fr;}.live2d-quiz.is-checkin .live2d-checkin-action{width:100%;min-width:0;max-width:none;}}",
             ".score-guess-header{padding:2px 0 4px;}",
             ".score-guess-kicker{width:max-content;padding:4px 10px;border:1px solid rgba(180,235,255,.56);border-radius:999px;background:rgba(103,202,255,.16);color:rgba(199,239,255,.96);font-size:12px;font-weight:700;}",
             ".score-guess-subtitle{color:rgba(218,237,255,.86);font-size:13px;line-height:1.55;}",
@@ -1838,7 +1844,7 @@
 
         async function ensureBossReviewsApi() {
             await loadExternalScript("assets/supabase-config.js?v=20260611-1").catch(function () {});
-            await loadExternalScript("assets/price-reviews.js?v=20260625-live2d-checkin-streak1");
+            await loadExternalScript("assets/price-reviews.js?v=20260625-live2d-checkin-calendar1");
 
             if (!window.JunxueBossReviews) {
                 throw new Error("老板评价系统暂未配置，请稍后再来～");
@@ -2082,7 +2088,6 @@
             const parts = getCheckinMonthParts(status.monthStart, status.todayDate);
             const daysInMonth = new Date(parts.year, parts.month, 0).getDate();
             const firstDay = new Date(parts.year, parts.month - 1, 1).getDay();
-            const mondayFirstOffset = (firstDay + 6) % 7;
             const signedMap = status.signedDates.reduce(function (map, date) {
                 map[date] = true;
                 return map;
@@ -2091,7 +2096,7 @@
             const cells = [];
             let index = 0;
 
-            for (index = 0; index < mondayFirstOffset; index += 1) {
+            for (index = 0; index < firstDay; index += 1) {
                 cells.push('<span class="live2d-checkin-day is-empty" aria-hidden="true"></span>');
             }
 
@@ -2100,9 +2105,9 @@
                 const isSigned = !!signedMap[dateText];
                 const isToday = dateText === today;
                 const className = "live2d-checkin-day" + (isSigned ? " is-signed" : "") + (isToday ? " is-today" : "");
-                const label = isSigned ? '<small>已签</small>' : (isToday ? '<small>今天</small>' : "");
+                const label = isSigned ? "已签到" : (isToday ? "今天" : "未签到");
 
-                cells.push('<span class="' + className + '"><span>' + String(index) + '</span>' + label + '</span>');
+                cells.push('<span class="' + className + '" aria-label="' + escapeHtml(dateText + " " + label) + '"><span class="live2d-checkin-day__num">' + String(index) + '</span><span class="live2d-checkin-day__mark" aria-hidden="true"></span></span>');
             }
 
             return [
@@ -2111,7 +2116,7 @@
                         '<span>' + escapeHtml(getCheckinMonthLabel(status.monthStart, status.todayDate)) + '</span>',
                         '<span class="live2d-checkin-calendar__status">' + (status.signedToday ? "今日已完成签到" : "今日还未签到") + '</span>',
                     '</div>',
-                    '<div class="live2d-checkin-weekdays" aria-hidden="true"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>',
+                    '<div class="live2d-checkin-weekdays" aria-hidden="true"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>',
                     '<div class="live2d-checkin-days">',
                         cells.join(""),
                     '</div>',
@@ -2172,34 +2177,40 @@
         function renderCheckinStatusPanel(client, displayName, status, message, type) {
             const safeName = normalizeBossDisplayNameInput(displayName) || "老板";
             const claimDisabled = status.signedToday ? " disabled" : "";
+            const panelMessage = message || (status.signedToday ? "今日已完成签到。" : "今日还可以签到。");
 
             options.innerHTML = [
                 '<div class="live2d-checkin-panel">',
-                    '<section class="live2d-checkin-hero">',
-                        '<span class="live2d-checkin-kicker">Star Lake Check-in</span>',
-                        '<h3 class="live2d-checkin-title">今天也欢迎你，' + escapeHtml(safeName) + '</h3>',
-                        '<p class="live2d-checkin-copy">每天来见甘雨一次，积一点温柔的小积分。</p>',
-                    '</section>',
-                    '<div class="live2d-checkin-stats">',
-                        '<div class="live2d-checkin-stat"><span>当前积分</span><strong>' + String(status.totalPoints) + '</strong></div>',
-                        '<div class="live2d-checkin-stat"><span>当前连续签到</span><strong>' + String(status.currentStreak) + ' 天</strong></div>',
-                        '<div class="live2d-checkin-stat"><span>本月累计签到</span><strong>' + String(status.monthlyCheckins) + ' 天</strong></div>',
-                    '</div>',
-                    '<ul class="live2d-checkin-rules">',
-                        '<li>普通签到：10 积分</li>',
-                        '<li>连续签到第 7 天：20 积分</li>',
-                        '<li>每月累计签到第 30 天：50 积分</li>',
-                    '</ul>',
-                    renderCheckinCalendar(status),
-                    '<div class="live2d-checkin-actions">',
-                        '<button class="live2d-checkin-action live2d-checkin-action--primary" type="button" data-action="claim"' + claimDisabled + '>' + (status.signedToday ? "今日已签到" : "立即签到") + '</button>',
-                        '<button class="live2d-checkin-action" type="button" data-action="refresh">刷新状态</button>',
-                        '<button class="live2d-checkin-action" type="button" data-action="back">返回</button>',
+                    '<div class="live2d-checkin-main">',
+                        '<div class="live2d-checkin-left">',
+                            '<section class="live2d-checkin-hero">',
+                                '<span class="live2d-checkin-kicker">Star Lake Check-in</span>',
+                                '<h3 class="live2d-checkin-title">星湖签到</h3>',
+                                '<p class="live2d-checkin-copy">今天也欢迎你，' + escapeHtml(safeName) + '。每天来见甘雨一次，积一点温柔的小积分。</p>',
+                            '</section>',
+                            '<div class="live2d-checkin-stats">',
+                                '<div class="live2d-checkin-stat"><span>当前积分</span><strong>' + String(status.totalPoints) + '</strong></div>',
+                                '<div class="live2d-checkin-stat"><span>当前连续签到</span><strong>' + String(status.currentStreak) + ' 天</strong></div>',
+                                '<div class="live2d-checkin-stat"><span>本月累计签到</span><strong>' + String(status.monthlyCheckins) + ' 天</strong></div>',
+                            '</div>',
+                            '<ul class="live2d-checkin-rules">',
+                                '<li>普通签到：10 积分</li>',
+                                '<li>连续签到第 7 天：20 积分</li>',
+                                '<li>每月累计签到第 30 天：50 积分</li>',
+                            '</ul>',
+                            '<div class="live2d-checkin-actions">',
+                                '<button class="live2d-checkin-action live2d-checkin-action--primary" type="button" data-action="claim"' + claimDisabled + '>' + (status.signedToday ? "今日已签到" : "立即签到") + '</button>',
+                                '<button class="live2d-checkin-action" type="button" data-action="refresh">刷新状态</button>',
+                                '<button class="live2d-checkin-action" type="button" data-action="back">返回</button>',
+                            '</div>',
+                            '<div class="live2d-checkin-message">' + escapeHtml(panelMessage) + '</div>',
+                        '</div>',
+                        renderCheckinCalendar(status),
                     '</div>',
                 '</div>'
             ].join("");
 
-            result.textContent = message || (status.signedToday ? "今日已完成签到。" : "今日还可以签到。");
+            result.textContent = "";
             result.className = "live2d-quiz__result " + (type || "is-neutral");
             refreshDialogPosition();
 

@@ -1844,7 +1844,7 @@
 
         async function ensureBossReviewsApi() {
             await loadExternalScript("assets/supabase-config.js?v=20260611-1").catch(function () {});
-            await loadExternalScript("assets/price-reviews.js?v=20260625-live2d-checkin-calendar1");
+            await loadExternalScript("assets/price-reviews.js?v=20260625-boss-register-link1");
 
             if (!window.JunxueBossReviews) {
                 throw new Error("老板评价系统暂未配置，请稍后再来～");
@@ -3121,7 +3121,7 @@
                         '<ul class="live2d-boss-auth-notes">',
                             '<li>账号用于互动、评价与投票，不影响本地昵称记忆。</li>',
                             '<li>界面信息会同步到 Supabase Auth，前端不保存密码。</li>',
-                            '<li>' + (mode === "register" ? "如果已经注册过，可以直接返回登录。" : "还没有账号时，可以切换到注册。") + '</li>',
+                            '<li>' + (mode === "register" ? "如果已经注册过，可以直接返回登录。" : "还没有账号时，可以前往独立注册页。") + '</li>',
                         '</ul>',
                     '</div>',
                     '<form class="live2d-boss-auth-card live2d-boss-auth-form">',
@@ -3146,7 +3146,7 @@
                             '<button class="live2d-boss-auth-action live2d-boss-auth-secondary" type="button" data-action="toggle">' + (mode === "register" ? "返回登录" : "去注册") + '</button>',
                             '<button class="live2d-boss-auth-action live2d-boss-auth-ghost" type="button" data-action="back">返回</button>',
                         '</div>',
-                        '<p class="live2d-boss-auth-hint">' + (mode === "register" ? "注册后可参与互动、发布评价，并使用更多专属功能。" : "还没有老板账号？切换到注册，甘雨会带你完成账号创建。") + '</p>',
+                        '<p class="live2d-boss-auth-hint">' + (mode === "register" ? "注册后可参与互动、发布评价，并使用更多专属功能。" : "还没有老板账号？点击去注册，会打开独立老板注册页。") + '</p>',
                     '</form>',
                 '</div>'
             ].join("");

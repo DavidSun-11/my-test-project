@@ -6,7 +6,7 @@
 
     window.__JUNXUE_LIVE2D_INTERACTIONS_INSTALLED__ = true;
 
-    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260625-live2d-menu-fix4";
+    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260625-live2d-menu-anchor1";
     if (typeof window.enableGanyuMemory !== "boolean") {
         window.enableGanyuMemory = true;
     }
@@ -286,7 +286,7 @@
     }
 
     function getLive2DRect() {
-        const selectors = ["#oml2d-stage", "#oml2d-canvas", ".live2d-hit-area"];
+        const selectors = ["#ganyu-live2d-frame-shell>.live2d-hit-area", "#ganyu-live2d-frame-shell", "#ganyu-live2d-frame", "#oml2d-stage", "#oml2d-canvas", ".live2d-hit-area"];
 
         for (let index = 0; index < selectors.length; index += 1) {
             const node = document.querySelector(selectors[index]);
@@ -367,6 +367,10 @@
             }
         }
 
+        node.style.setProperty("position", "fixed", "important");
+        if (node.classList && node.classList.contains("live2d-quiz")) {
+            node.style.zIndex = "63";
+        }
         node.style.left = Math.min(Math.max(settings.margin, nextLeft), maxLeft) + "px";
         node.style.top = Math.min(Math.max(settings.margin, nextTop), maxTop) + "px";
         node.style.right = "auto";

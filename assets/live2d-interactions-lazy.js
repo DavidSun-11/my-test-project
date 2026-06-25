@@ -482,7 +482,7 @@
     function ensureOpeningBubbleStyles() {
         const existingStyle = document.getElementById("live2d-opening-bubble-style");
         if (existingStyle) {
-            if (existingStyle.textContent && existingStyle.textContent.indexOf("20260625-live2d-menu-fix4") !== -1) {
+            if (existingStyle.textContent && existingStyle.textContent.indexOf("20260625-live2d-menu-anchor1") !== -1) {
                 return;
             }
             existingStyle.remove();
@@ -491,7 +491,8 @@
         const style = document.createElement("style");
         style.id = "live2d-opening-bubble-style";
         style.textContent = [
-            "/* 20260625-live2d-menu-fix4 */",
+            "/* 20260625-live2d-menu-anchor1 */",
+            ".live2d-quiz{position:fixed;left:252px;top:160px;right:auto;bottom:auto;z-index:63;}",
             ".live2d-opening-bubble{position:fixed;left:252px;top:160px;z-index:61;width:min(328px,calc(100vw - 32px));padding:12px 14px;border:1px solid rgba(255,236,245,.88);border-radius:16px;background:rgba(255,178,211,.76);box-shadow:0 0 22px rgba(255,142,196,.38),inset 0 0 14px rgba(255,255,255,.16);backdrop-filter:blur(10px);color:rgba(92,28,58,.96);font-size:14px;line-height:1.55;letter-spacing:0;pointer-events:none;opacity:0;transform:translateY(8px);transition:opacity .35s ease,transform .35s ease;}",
             ".live2d-opening-bubble.is-open{opacity:1;transform:translateY(0);}",
             ".live2d-opening-bubble.is-fading{opacity:0;transform:translateY(-6px);}",
@@ -515,7 +516,7 @@
             "@keyframes live2d-nightlake-ripple{0%{background-position:0 0,36px 0,0 0;transform:translateX(-2px);}100%{background-position:140px 0,-112px 0,0 0;transform:translateX(2px);}}",
             "@keyframes live2d-menu-starglint{0%,100%{opacity:.28;transform:translateX(-18%);}50%{opacity:.52;transform:translateX(18%);}}",
             "#ganyu-live2d-frame-shell>.live2d-hit-area{pointer-events:auto!important;z-index:59!important;}",
-            ".live2d-quiz.is-main-menu{position:relative!important;z-index:63!important;isolation:isolate;width:min(374px,calc(100vw - 34px))!important;max-width:calc(100vw - 34px)!important;padding:15px 16px 16px!important;border:1px solid rgba(174,226,246,.5)!important;border-radius:20px!important;overflow:hidden!important;pointer-events:auto!important;background:radial-gradient(circle at 20% 8%,rgba(158,218,255,.14),transparent 34%),radial-gradient(circle at 86% 10%,rgba(188,170,255,.1),transparent 34%),linear-gradient(180deg,rgba(9,22,46,.86),rgba(8,25,51,.74) 54%,rgba(9,34,62,.82))!important;box-shadow:0 16px 38px rgba(2,11,28,.42),0 0 24px rgba(103,198,238,.16),inset 0 1px 0 rgba(255,255,255,.18),inset 0 -18px 30px rgba(83,161,210,.1)!important;-webkit-backdrop-filter:blur(16px) saturate(1.12);backdrop-filter:blur(16px) saturate(1.12);}",
+            ".live2d-quiz.is-main-menu{position:fixed!important;z-index:63!important;isolation:isolate;width:min(374px,calc(100vw - 34px))!important;max-width:calc(100vw - 34px)!important;padding:15px 16px 16px!important;border:1px solid rgba(174,226,246,.5)!important;border-radius:20px!important;overflow:hidden!important;pointer-events:auto!important;background:radial-gradient(circle at 20% 8%,rgba(158,218,255,.14),transparent 34%),radial-gradient(circle at 86% 10%,rgba(188,170,255,.1),transparent 34%),linear-gradient(180deg,rgba(9,22,46,.86),rgba(8,25,51,.74) 54%,rgba(9,34,62,.82))!important;box-shadow:0 16px 38px rgba(2,11,28,.42),0 0 24px rgba(103,198,238,.16),inset 0 1px 0 rgba(255,255,255,.18),inset 0 -18px 30px rgba(83,161,210,.1)!important;-webkit-backdrop-filter:blur(16px) saturate(1.12);backdrop-filter:blur(16px) saturate(1.12);}",
             ".live2d-quiz.is-main-menu::before{content:\"\"!important;position:absolute;z-index:0!important;left:14px!important;right:46px!important;top:9px!important;height:1px!important;background:linear-gradient(90deg,transparent,rgba(221,247,255,.7),rgba(176,213,255,.3),transparent)!important;box-shadow:0 0 14px rgba(120,210,245,.22);animation:live2d-menu-starglint 12s ease-in-out infinite;pointer-events:none!important;}",
             ".live2d-quiz.is-main-menu::after{content:\"\";position:absolute;z-index:0!important;left:-18px;right:-18px;bottom:-4px;height:74px;background:linear-gradient(90deg,rgba(170,224,255,0),rgba(170,224,255,.16),rgba(170,224,255,0)) 0 18px/120px 1px repeat-x,linear-gradient(90deg,rgba(215,236,255,0),rgba(215,236,255,.1),rgba(215,236,255,0)) 36px 36px/150px 1px repeat-x,radial-gradient(ellipse at 50% 100%,rgba(91,183,236,.16),transparent 68%);opacity:.75;filter:blur(.1px);mask-image:linear-gradient(to top,rgba(0,0,0,.85),rgba(0,0,0,.2),transparent);-webkit-mask-image:linear-gradient(to top,rgba(0,0,0,.85),rgba(0,0,0,.2),transparent);animation:live2d-nightlake-ripple 18s linear infinite;pointer-events:none!important;}",
             ".live2d-quiz.is-main-menu .live2d-quiz__meta{position:relative;z-index:2;margin-bottom:4px;color:rgba(210,238,250,.82);font-size:12px;letter-spacing:.02em;pointer-events:auto;}",
@@ -1016,7 +1017,7 @@
     }
 
     function getLive2DRect() {
-        const selectors = ["#oml2d-stage", "#oml2d-canvas", ".live2d-hit-area"];
+        const selectors = ["#ganyu-live2d-frame-shell>.live2d-hit-area", "#ganyu-live2d-frame-shell", "#ganyu-live2d-frame", "#oml2d-stage", "#oml2d-canvas", ".live2d-hit-area"];
 
         for (let index = 0; index < selectors.length; index += 1) {
             const node = document.querySelector(selectors[index]);
@@ -1102,6 +1103,10 @@
             }
         }
 
+        node.style.setProperty("position", "fixed", "important");
+        if (node.classList && node.classList.contains("live2d-quiz")) {
+            node.style.zIndex = "63";
+        }
         node.style.left = clamp(nextLeft, margin, maxLeft) + "px";
         node.style.top = clamp(nextTop, margin, maxTop) + "px";
         node.style.right = "auto";
@@ -1871,7 +1876,7 @@
 
         async function ensureBossReviewsApi() {
             await loadExternalScript("assets/supabase-config.js?v=20260611-1").catch(function () {});
-            await loadExternalScript("assets/price-reviews.js?v=20260625-live2d-menu-fix4");
+            await loadExternalScript("assets/price-reviews.js?v=20260625-live2d-menu-anchor1");
 
             if (!window.JunxueBossReviews) {
                 throw new Error("老板评价系统暂未配置，请稍后再来～");

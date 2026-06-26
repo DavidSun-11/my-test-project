@@ -203,6 +203,20 @@
         const rect = getStageRect();
         const width = Math.max(1, rect.width || 260);
         const height = Math.max(1, rect.height || 400);
+        const stage = getStage();
+
+        if (stage === getStaticCard()) {
+            const margin = 12;
+            const bottomReserve = Math.max(96, Math.round((window.innerHeight || 640) * 0.16));
+            const maxLeft = Math.max(margin, window.innerWidth - width - margin);
+            const maxTop = Math.max(margin, window.innerHeight - height - bottomReserve);
+
+            return {
+                left: clamp(position.left, margin, maxLeft),
+                top: clamp(position.top, margin, maxTop)
+            };
+        }
+
         const minLeft = EDGE_LIMITS.leftVisible - width;
         const maxLeft = Math.max(minLeft, window.innerWidth - EDGE_LIMITS.rightVisible);
         const minTop = EDGE_LIMITS.topVisible - height;

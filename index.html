@@ -877,7 +877,7 @@
             }
         }
 
-        /* 20260626-home-mobile-entry-polish2 */
+        /* 20260626-home-mobile-hero-position-polish1 */
         @media (max-width: 768px) {
             .home-bg-video {
                 display: none;
@@ -939,32 +939,34 @@
             }
 
             .home-hero {
-                min-height: 60svh;
-                padding: 62px 18px 110px;
+                min-height: 100svh;
+                padding: clamp(250px, 45svh, 390px) 16px 110px;
                 align-items: flex-start;
                 justify-content: flex-start;
             }
 
             .home-hero::before {
-                left: 10%;
-                top: 16%;
-                width: 72vw;
+                left: 42%;
+                top: 28%;
+                width: 58vw;
                 height: 42vh;
                 filter: blur(5px);
-                opacity: 0.48;
+                opacity: 0.44;
             }
 
             .home-hero__content {
-                width: min(82vw, 500px);
-                max-width: 82vw;
+                width: min(64vw, 320px);
+                max-width: 64vw;
+                margin-left: auto;
+                margin-right: clamp(6px, 4vw, 28px);
             }
 
             .hero-title-art {
                 width: 100%;
                 margin-left: 0;
                 margin-top: 0;
-                transform: translateY(-10px) scale(0.76);
-                transform-origin: top center;
+                transform: translateY(0) scale(0.78);
+                transform-origin: center center;
             }
 
             .hero-title-art img {
@@ -1098,18 +1100,20 @@
 
         @media (max-width: 640px) {
             .home-hero {
-                min-height: 58svh;
-                padding: 60px 16px 106px;
+                min-height: 100svh;
+                padding: clamp(238px, 44svh, 348px) 14px 106px;
             }
 
             .home-hero__content {
-                width: min(80vw, 430px);
-                max-width: 80vw;
+                width: min(62vw, 280px);
+                max-width: 62vw;
+                margin-left: auto;
+                margin-right: clamp(4px, 3vw, 18px);
             }
 
             .hero-title-art {
-                opacity: 0.82;
-                transform: translateY(-12px) scale(0.68);
+                opacity: 0.84;
+                transform: translateY(0) scale(0.74);
             }
 
             .hero-title-svg .hero-title-svg__glow {

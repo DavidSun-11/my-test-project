@@ -16,6 +16,7 @@
     const FRAME_SHELL_SELECTOR = "#ganyu-live2d-frame-shell";
     const FRAME_SELECTOR = "#ganyu-live2d-frame";
     const HIT_AREA_SELECTOR = ".live2d-hit-area";
+    const STATIC_CARD_SELECTOR = ".ganyu-static-card";
     const BUTTON_CLASS = "live2d-drag-button";
     const DRAG_THRESHOLD = 8;
     const STAGE_Z_INDEX = 55;
@@ -67,18 +68,28 @@
             #oml2d-canvas,
             #ganyu-live2d-frame-shell > .live2d-hit-area,
             #oml2d-statusBar,
-            .live2d-hit-area {
+            .live2d-hit-area,
+            .ganyu-static-card {
                 pointer-events: auto !important;
                 touch-action: none;
                 user-select: none;
+                -webkit-user-select: none;
+                -webkit-user-drag: none;
                 cursor: grab;
+            }
+
+            .ganyu-static-card img {
+                user-select: none;
+                -webkit-user-select: none;
+                -webkit-user-drag: none;
             }
 
             body.is-live2d-external-dragging,
             body.is-live2d-external-dragging #oml2d-stage,
             body.is-live2d-external-dragging #oml2d-canvas,
             body.is-live2d-external-dragging #ganyu-live2d-frame-shell,
-            body.is-live2d-external-dragging .live2d-hit-area {
+            body.is-live2d-external-dragging .live2d-hit-area,
+            body.is-live2d-external-dragging .ganyu-static-card {
                 cursor: grabbing !important;
                 user-select: none;
             }
@@ -86,12 +97,49 @@
         document.head.appendChild(style);
     }
 
+    function isVisibleDragNode(node) {
+        if (!node || !node.getBoundingClientRect) {
+            return false;
+        }
+
+        const rect = node.getBoundingClientRect();
+
+        if (rect.width <= 0 || rect.height <= 0) {
+            return false;
+        }
+
+        if (window.getComputedStyle) {
+            const style = window.getComputedStyle(node);
+
+            if (style.display === "none" || style.visibility === "hidden" || Number(style.opacity || 1) <= 0.01) {
+                return false;
+            }
+        }
+
+        return rect.right > 0 &&
+            rect.bottom > 0 &&
+            rect.left < window.innerWidth &&
+            rect.top < window.innerHeight;
+    }
+
+    function firstUsableNode(selectors) {
+        const nodes = selectors.map(function (selector) {
+            return document.querySelector(selector);
+        }).filter(Boolean);
+
+        return nodes.find(isVisibleDragNode) || nodes[0] || null;
+    }
+
     function getStage() {
-        return document.querySelector(STAGE_SELECTOR) || document.querySelector(FRAME_SHELL_SELECTOR);
+        return firstUsableNode([STAGE_SELECTOR, FRAME_SHELL_SELECTOR, STATIC_CARD_SELECTOR]);
     }
 
     function getCanvas() {
-        return document.querySelector(CANVAS_SELECTOR) || document.querySelector(FRAME_SELECTOR);
+        return firstUsableNode([CANVAS_SELECTOR, FRAME_SELECTOR, STATIC_CARD_SELECTOR]);
+    }
+
+    function getStaticCard() {
+        return document.querySelector(STATIC_CARD_SELECTOR);
     }
 
     function getHitArea() {
@@ -100,7 +148,11 @@
 
     function getDragTargets() {
         const targets = [];
-        [getStage(), getCanvas(), getHitArea()].forEach(function (node) {
+        const stage = getStage();
+        const staticCard = getStaticCard();
+        const candidates = stage === staticCard ? [stage] : [stage, getCanvas(), getHitArea()];
+
+        candidates.forEach(function (node) {
             if (node && !targets.includes(node)) {
                 targets.push(node);
             }
@@ -220,6 +272,10 @@
     }
 
     function syncHitArea(position) {
+        if (getStage() === getStaticCard()) {
+            return;
+        }
+
         const hitArea = getHitArea();
         const rect = getStageRect();
 
@@ -255,6 +311,9 @@
             stage.style.setProperty("z-index", String(STAGE_Z_INDEX), "important");
             stage.style.setProperty("pointer-events", "auto", "important");
             stage.style.setProperty("touch-action", "none", "important");
+            stage.style.setProperty("user-select", "none", "important");
+            stage.style.setProperty("-webkit-user-select", "none", "important");
+            stage.style.setProperty("-webkit-user-drag", "none", "important");
             stage.style.setProperty("cursor", "grab", "important");
         }
 
@@ -322,6 +381,11 @@
 
     function handlePointerDown(event) {
         if (event.button !== undefined && event.button !== 0) {
+            return;
+        }
+
+        const interactiveTarget = event.target && event.target.closest ? event.target.closest("button,a,input,textarea,select") : null;
+        if (interactiveTarget && interactiveTarget !== event.currentTarget && !interactiveTarget.classList.contains("live2d-hit-area")) {
             return;
         }
 

@@ -1,8 +1,8 @@
 /* Lightweight Live2D loader: desktop keeps dynamic Ganyu, mobile uses a stable static fallback first. */
 (function () {
     const WIDGET_SCRIPT = "live2d/live2d-widget.js?v=20260613-5";
-    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260626-home-smooth-mobile-bg1";
-    const DRAG_SCRIPT = "assets/live2d-drag.js?v=20260613-2";
+    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260626-static-ganyu-drag1";
+    const DRAG_SCRIPT = "assets/live2d-drag.js?v=20260626-static-ganyu-drag1";
     const FRAME_HOST_SRC = "live2d/ganyu-host.html?v=20260613-iframe1";
     const STATIC_WEBP = "assets/images/price-ganyu-showcase.webp";
     const STATIC_PNG = "assets/images/price-ganyu-showcase.png";
@@ -49,12 +49,12 @@
             ".live2d-load-control__button:disabled{cursor:wait;opacity:.72;}",
             ".live2d-load-control__status{max-width:min(240px,calc(100vw - 36px));padding:8px 10px;border:1px solid rgba(213,244,255,.5);border-radius:12px;background:rgba(6,22,44,.7);color:rgba(234,252,255,.86);font-size:12px;line-height:1.45;box-shadow:0 0 12px rgba(0,190,255,.14);backdrop-filter:blur(8px);}",
             ".live2d-load-control.is-hidden{display:none;}",
-            ".ganyu-static-card{position:fixed;left:12px;bottom:max(132px,calc(env(safe-area-inset-bottom) + 130px));z-index:57;width:clamp(154px,48vw,210px);max-width:54vw;max-height:36vh;padding:8px;border:1px solid rgba(196,238,255,.72);border-radius:18px;background:linear-gradient(145deg,rgba(13,38,78,.78),rgba(44,112,172,.52) 52%,rgba(154,118,222,.42));box-shadow:0 0 22px rgba(90,213,255,.28),0 16px 34px rgba(2,10,30,.26),inset 0 0 16px rgba(255,255,255,.12);backdrop-filter:blur(12px);font-family:Arial,sans-serif;color:rgba(239,252,255,.96);overflow:hidden;pointer-events:auto;cursor:pointer;transition:transform .16s ease,box-shadow .16s ease;}",
+            ".ganyu-static-card{position:fixed;left:12px;bottom:max(132px,calc(env(safe-area-inset-bottom) + 130px));z-index:57;width:clamp(154px,48vw,210px);max-width:54vw;max-height:36vh;padding:8px;border:1px solid rgba(196,238,255,.72);border-radius:18px;background:linear-gradient(145deg,rgba(13,38,78,.78),rgba(44,112,172,.52) 52%,rgba(154,118,222,.42));box-shadow:0 0 22px rgba(90,213,255,.28),0 16px 34px rgba(2,10,30,.26),inset 0 0 16px rgba(255,255,255,.12);backdrop-filter:blur(12px);font-family:Arial,sans-serif;color:rgba(239,252,255,.96);overflow:hidden;pointer-events:auto;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-user-drag:none;cursor:pointer;transition:transform .16s ease,box-shadow .16s ease;}",
             ".ganyu-static-card:active{transform:scale(.985);box-shadow:0 0 28px rgba(120,229,255,.34),0 12px 26px rgba(2,10,30,.24),inset 0 0 18px rgba(255,255,255,.14);}",
             ".ganyu-static-card.is-hidden{display:none!important;}",
             ".ganyu-static-card.is-dynamic-ready .ganyu-static-card__visual{opacity:.28;filter:saturate(.75) blur(.2px);}",
             ".ganyu-static-card__visual{position:relative;display:grid;place-items:center;min-height:104px;max-height:22vh;border-radius:14px;overflow:hidden;background:radial-gradient(circle at 50% 20%,rgba(220,250,255,.24),rgba(75,160,226,.16) 50%,rgba(8,26,58,.62));}",
-            ".ganyu-static-card__visual picture,.ganyu-static-card__visual img{display:block;width:100%;height:100%;min-height:104px;max-height:22vh;pointer-events:none;}",
+            ".ganyu-static-card__visual picture,.ganyu-static-card__visual img{display:block;width:100%;height:100%;min-height:104px;max-height:22vh;pointer-events:none;user-select:none;-webkit-user-select:none;-webkit-user-drag:none;}",
             ".ganyu-static-card__visual img{object-fit:cover;object-position:center 36%;border-radius:14px;pointer-events:none;}",
             ".ganyu-static-card__fallback{display:none;place-items:center;min-height:104px;padding:12px;text-align:center;font-size:13px;line-height:1.45;color:rgba(238,252,255,.9);}",
             ".ganyu-static-card.is-image-failed .ganyu-static-card__fallback{display:grid;}",
@@ -206,6 +206,7 @@
         updateRenderInfo();
         setControlState("loaded");
         if (visible) {
+            loadStaticGanyuDrag();
             window.setTimeout(notifyLive2DVisible, 0);
         }
     }
@@ -321,6 +322,7 @@
 
         document.body.appendChild(card);
         applySavedPosition(card);
+        loadStaticGanyuDrag();
         return card;
     }
 
@@ -346,6 +348,7 @@
         updateStaticCardStatus("", loaderState.dynamicAttempted ? "再试一次动态甘雨" : "尝试动态甘雨");
         updateRenderInfo();
         setControlState("loaded");
+        loadStaticGanyuDrag();
         window.setTimeout(notifyLive2DVisible, 0);
     }
 
@@ -467,6 +470,16 @@
             };
             document.body.appendChild(script);
         });
+    }
+
+    function syncStaticGanyuDrag() {
+        if (window.JunxueLive2DDrag && typeof window.JunxueLive2DDrag.sync === "function") {
+            window.JunxueLive2DDrag.sync();
+        }
+    }
+
+    function loadStaticGanyuDrag() {
+        loadScript(DRAG_SCRIPT).then(syncStaticGanyuDrag).catch(function () {});
     }
 
     function findLive2DStage() {
@@ -699,6 +712,10 @@
 
     function openStaticGanyuMenu(event) {
         if (!isIframeMobileMode()) {
+            return;
+        }
+
+        if (window.JunxueLive2DDrag && typeof window.JunxueLive2DDrag.shouldIgnoreMenuEvent === "function" && window.JunxueLive2DDrag.shouldIgnoreMenuEvent(event)) {
             return;
         }
 

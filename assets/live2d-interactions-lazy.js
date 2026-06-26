@@ -491,7 +491,7 @@
     function ensureOpeningBubbleStyles() {
         const existingStyle = document.getElementById("live2d-opening-bubble-style");
         if (existingStyle) {
-            if (existingStyle.textContent && existingStyle.textContent.indexOf("20260626-static-ganyu-drag1") !== -1) {
+            if (existingStyle.textContent && existingStyle.textContent.indexOf("20260626-contact-register-entry1") !== -1) {
                 return;
             }
             existingStyle.remove();
@@ -500,7 +500,7 @@
         const style = document.createElement("style");
         style.id = "live2d-opening-bubble-style";
         style.textContent = [
-            "/* 20260626-static-ganyu-drag1 */",
+            "/* 20260626-contact-register-entry1 */",
             ".live2d-quiz{position:fixed;left:252px;top:160px;right:auto;bottom:auto;z-index:63;}",
             ".live2d-opening-bubble{position:fixed;left:252px;top:160px;z-index:61;width:min(328px,calc(100vw - 32px));padding:12px 14px;border:1px solid rgba(255,236,245,.88);border-radius:16px;background:rgba(255,178,211,.76);box-shadow:0 0 22px rgba(255,142,196,.38),inset 0 0 14px rgba(255,255,255,.16);backdrop-filter:blur(10px);color:rgba(92,28,58,.96);font-size:14px;line-height:1.55;letter-spacing:0;pointer-events:none;opacity:0;transform:translateY(8px);transition:opacity .35s ease,transform .35s ease;}",
             ".live2d-opening-bubble.is-open{opacity:1;transform:translateY(0);}",
@@ -1848,10 +1848,35 @@
                 recordGanyuFeature("星湖签到");
                 showBossDailyCheckinPanel();
             });
+            addConsultCard("联系君雪", "想咨询陪玩、复盘或互动合作，可以从这里找到我。", false, function () {
+                recordGanyuFeature("联系君雪");
+                showJunxueContactPanel();
+            });
             addConsultCard("返回", "回到主菜单", false, function () {
                 showMenu();
             });
             result.textContent = "想先聊哪一件事呢？";
+            result.className = "live2d-quiz__result is-neutral";
+            showDialog();
+        }
+
+        function showJunxueContactPanel() {
+            clearDialog();
+            setDialogMode("menu");
+            meta.textContent = "认识君雪";
+            question.innerHTML = [
+                '<strong class="live2d-panel-title">联系君雪</strong>',
+                '<span class="live2d-panel-copy">想咨询陪玩、复盘或互动合作，可以从这里找到我。</span>'
+            ].join("");
+            options.classList.add("live2d-consult-grid");
+            addConsultCard("查看联系方式", "联系方式需按页面提示付款后手动查看，请不要重复支付。", false, function () {
+                recordGanyuFeature("查看联系方式");
+                window.location.href = "contact.html";
+            });
+            addConsultCard("返回", "回到认识君雪", false, function () {
+                showKnowJunxuePanel();
+            });
+            result.textContent = "联系方式需按页面提示付款后手动查看，请不要重复支付。";
             result.className = "live2d-quiz__result is-neutral";
             showDialog();
         }

@@ -1,7 +1,7 @@
 /* Lightweight Live2D loader: desktop keeps dynamic Ganyu, mobile uses a stable static fallback first. */
 (function () {
     const WIDGET_SCRIPT = "live2d/live2d-widget.js?v=20260613-5";
-    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260624-live2d-menu-beautiful-replica6";
+    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260626-live2d-menu-state-fix1";
     const DRAG_SCRIPT = "assets/live2d-drag.js?v=20260613-2";
     const FRAME_HOST_SRC = "live2d/ganyu-host.html?v=20260613-iframe1";
     const STATIC_WEBP = "assets/images/price-ganyu-showcase.webp";
@@ -65,9 +65,10 @@
             ".ganyu-static-card__status:empty{display:none;}",
             ".ganyu-static-card__dynamic{justify-self:center;min-height:28px;margin-top:2px;padding:0 10px;border:1px solid rgba(184,235,255,.66);border-radius:999px;background:linear-gradient(135deg,rgba(68,202,255,.48),rgba(177,122,255,.38));color:rgba(247,253,255,.96);font-size:11px;font-weight:800;white-space:nowrap;cursor:pointer;box-shadow:0 0 12px rgba(109,217,255,.18);pointer-events:auto;}",
             ".ganyu-static-card__dynamic:disabled{cursor:wait;opacity:.7;}",
-            "#ganyu-live2d-frame-shell{position:fixed;left:10px;bottom:max(86px,calc(env(safe-area-inset-bottom) + 84px));width:min(54vw,196px);height:min(58vh,360px);z-index:58;overflow:visible;background:transparent;border:0;pointer-events:none;}",
-            "#ganyu-live2d-frame{display:block;width:100%;height:100%;border:0;background:transparent;overflow:visible;pointer-events:none;}",
-            "#ganyu-live2d-frame-shell>.live2d-hit-area{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;border:0!important;border-radius:0!important;background:transparent!important;padding:0!important;margin:0!important;cursor:grab;touch-action:none;pointer-events:auto!important;z-index:59!important;}",
+            "#ganyu-live2d-frame-shell{position:fixed;left:10px;bottom:max(86px,calc(env(safe-area-inset-bottom) + 84px));width:min(54vw,196px);height:min(58vh,360px);z-index:58;overflow:visible;background:transparent;border:0;pointer-events:none;outline:none;-webkit-tap-highlight-color:transparent;}",
+            "#ganyu-live2d-frame{display:block;width:100%;height:100%;border:0;background:transparent;overflow:visible;pointer-events:none;outline:none;-webkit-tap-highlight-color:transparent;}",
+            "#ganyu-live2d-frame-shell>.live2d-hit-area{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;border:0!important;border-radius:0!important;background:transparent!important;padding:0!important;margin:0!important;cursor:grab;touch-action:none;pointer-events:auto!important;z-index:59!important;outline:none!important;-webkit-tap-highlight-color:transparent!important;box-shadow:none!important;}",
+            "#ganyu-live2d-frame-shell:focus,#ganyu-live2d-frame:focus,#ganyu-live2d-frame-shell>.live2d-hit-area:focus{outline:none!important;box-shadow:none!important;}",
             "body.live2d-hidden #live2d-widget,body.live2d-hidden #oml2d-stage,body.live2d-hidden #oml2d-canvas,body.live2d-hidden #oml2d-tips,body.live2d-hidden #ganyu-live2d-frame-shell,body.live2d-hidden .live2d-hit-area,body.live2d-hidden .ganyu-static-card{display:none!important;}",
             "html.performance-low .live2d-load-control__button,html.performance-low .live2d-load-control__status,html.performance-low .ganyu-static-card{backdrop-filter:none;box-shadow:inset 0 0 8px rgba(255,255,255,.05);}",
             "@media(max-width:768px){.live2d-load-control{left:12px;bottom:88px}.live2d-load-control__button{min-height:34px;padding:0 13px;font-size:12px}.live2d-load-control__status{max-width:min(78vw,240px);font-size:12px;}#ganyu-live2d-frame-shell{left:10px;bottom:max(88px,calc(env(safe-area-inset-bottom) + 86px));width:min(54vw,204px);height:min(60vh,376px);}.ganyu-static-card{left:12px;bottom:max(132px,calc(env(safe-area-inset-bottom) + 130px));width:clamp(154px,48vw,210px);}}"

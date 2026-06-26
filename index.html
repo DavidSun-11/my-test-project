@@ -877,7 +877,7 @@
             }
         }
 
-        /* 20260626-home-mobile-entry-fix1 */
+        /* 20260626-home-mobile-entry-polish2 */
         @media (max-width: 768px) {
             .home-bg-video {
                 display: none;
@@ -895,9 +895,9 @@
 
             .home-bg-overlay {
                 background:
-                    radial-gradient(ellipse at 50% 10%, rgba(190, 231, 255, 0.12), transparent 34%),
-                    linear-gradient(180deg, rgba(4, 13, 31, 0.12) 0%, rgba(4, 14, 34, 0.18) 44%, rgba(3, 10, 26, 0.50) 100%),
-                    linear-gradient(90deg, rgba(1, 6, 17, 0.34), rgba(3, 15, 34, 0.10) 46%, rgba(1, 6, 17, 0.34)),
+                    radial-gradient(ellipse at 50% 10%, rgba(190, 231, 255, 0.10), transparent 34%),
+                    linear-gradient(180deg, rgba(4, 13, 31, 0.08) 0%, rgba(4, 14, 34, 0.14) 44%, rgba(3, 10, 26, 0.42) 100%),
+                    linear-gradient(90deg, rgba(1, 6, 17, 0.28), rgba(3, 15, 34, 0.08) 46%, rgba(1, 6, 17, 0.28)),
                     var(--home-smooth-bg) center top / cover no-repeat;
             }
 
@@ -906,7 +906,7 @@
                 background:
                     linear-gradient(112deg, transparent 0 16%, rgba(108, 221, 255, 0.12) 28%, rgba(154, 129, 255, 0.08) 42%, transparent 58%),
                     linear-gradient(68deg, transparent 0 46%, rgba(204, 131, 255, 0.10) 58%, rgba(91, 239, 214, 0.08) 70%, transparent 86%);
-                opacity: 0.68;
+                opacity: 0.52;
             }
 
             .home-bg-overlay::after {
@@ -914,7 +914,7 @@
                 background:
                     radial-gradient(ellipse at 50% 78%, rgba(202, 246, 255, 0.12), transparent 42%),
                     linear-gradient(to top, rgba(7, 18, 42, 0.18), transparent 34%);
-                opacity: 0.82;
+                opacity: 0.64;
             }
 
             .cursor-light,
@@ -939,8 +939,8 @@
             }
 
             .home-hero {
-                min-height: 58svh;
-                padding: 60px 18px 104px;
+                min-height: 60svh;
+                padding: 62px 18px 110px;
                 align-items: flex-start;
                 justify-content: flex-start;
             }
@@ -1013,60 +1013,67 @@
             .home-nav {
                 left: 50%;
                 right: auto;
-                bottom: max(42px, calc(env(safe-area-inset-bottom) + 34px));
-                width: min(94vw, 396px);
+                bottom: max(22px, calc(env(safe-area-inset-bottom) + 16px));
+                width: min(90vw, 360px);
                 grid-template-columns: repeat(3, minmax(0, 1fr));
-                gap: 9px;
+                gap: clamp(10px, 4vw, 24px);
                 padding: 0;
                 transform: translateX(-50%);
             }
 
             .home-nav a {
-                width: 100%;
-                min-height: 62px;
+                width: auto;
+                min-height: 40px;
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
-                padding: 11px 8px;
-                border: 1px solid rgba(156, 235, 255, 0.58);
-                border-radius: 16px;
-                background:
-                    radial-gradient(circle at 18% 0%, rgba(150, 230, 255, 0.26), transparent 44%),
-                    linear-gradient(145deg, rgba(8, 28, 58, 0.80), rgba(38, 67, 108, 0.68));
-                box-shadow:
-                    0 0 20px rgba(100, 210, 255, 0.20),
-                    0 10px 24px rgba(1, 9, 28, 0.20),
-                    inset 0 1px 0 rgba(255, 255, 255, 0.16),
-                    inset 0 -10px 22px rgba(84, 185, 255, 0.08);
-                color: rgba(244, 253, 255, 0.98);
-                font-size: clamp(13px, 3.65vw, 15px);
-                line-height: 1.22;
-                font-weight: 800;
+                padding: 8px 3px 9px;
+                border: 0;
+                border-radius: 0;
+                background: transparent;
+                box-shadow: none;
+                color: rgba(240, 252, 255, 0.93);
+                font-size: clamp(12px, 3.45vw, 14px);
+                line-height: 1.18;
+                font-weight: 700;
                 text-align: center;
                 box-sizing: border-box;
-                white-space: normal;
-                overflow-wrap: anywhere;
-                -webkit-backdrop-filter: blur(10px) saturate(1.12);
-                backdrop-filter: blur(10px) saturate(1.12);
+                white-space: nowrap;
+                overflow-wrap: normal;
+                text-shadow:
+                    0 0 12px rgba(105, 218, 255, 0.44),
+                    0 1px 4px rgba(0, 12, 32, 0.62);
+                -webkit-backdrop-filter: none;
+                backdrop-filter: none;
             }
 
             .home-nav a:active {
-                transform: translateY(1px) scale(0.985);
-                border-color: rgba(218, 249, 255, 0.78);
-                box-shadow:
-                    0 0 24px rgba(125, 222, 255, 0.26),
-                    inset 0 0 16px rgba(255, 255, 255, 0.12);
+                transform: translateY(1px);
+                color: rgba(255, 255, 255, 0.98);
+                text-shadow:
+                    0 0 16px rgba(130, 232, 255, 0.58),
+                    0 1px 4px rgba(0, 12, 32, 0.66);
             }
 
             .home-nav a::after {
-                display: none;
+                display: block;
+                left: 10%;
+                right: 10%;
+                bottom: 4px;
+                height: 1px;
+                opacity: 0.56;
+                background: linear-gradient(90deg, transparent, rgba(197, 243, 255, 0.82), rgba(124, 213, 255, 0.72), transparent);
+                box-shadow: 0 0 8px rgba(103, 215, 255, 0.46);
+                transform: scaleX(0.74);
+                transform-origin: center;
             }
 
             html.performance-low .home-nav a {
                 backdrop-filter: none;
-                box-shadow:
-                    0 0 14px rgba(100, 210, 255, 0.12),
-                    inset 0 0 10px rgba(255, 255, 255, 0.06);
+                box-shadow: none;
+                text-shadow:
+                    0 0 9px rgba(105, 218, 255, 0.34),
+                    0 1px 4px rgba(0, 12, 32, 0.64);
             }
 
             body.keyboard-open .cursor-light,
@@ -1091,8 +1098,8 @@
 
         @media (max-width: 640px) {
             .home-hero {
-                min-height: 54svh;
-                padding: 58px 16px 98px;
+                min-height: 58svh;
+                padding: 60px 16px 106px;
             }
 
             .home-hero__content {
@@ -1110,13 +1117,14 @@
             }
 
             .home-nav {
-                width: min(94vw, 380px);
+                width: min(92vw, 342px);
                 gap: 8px;
             }
 
             .home-nav a {
-                min-height: 60px;
-                padding: 10px 7px;
+                min-height: 38px;
+                padding: 7px 2px 8px;
+                font-size: clamp(12px, 3.55vw, 13.5px);
             }
         }
 
@@ -1494,7 +1502,7 @@ document.addEventListener("click", (e) => {
 </script>
 <script src="assets/supabase-client.js?v=20260626-boss-admin1"></script>
 <script src="assets/boss-visit.js?v=20260626-boss-admin1"></script>
-<script src="assets/live2d-loader.js?v=20260626-home-mobile-entry-fix1" data-live2d-autoload="home"></script>
+<script src="assets/live2d-loader.js?v=20260626-home-mobile-entry-polish2" data-live2d-autoload="home"></script>
 <script src="assets/home-boss-status-guide.js?v=20260626-home-smooth-mobile-bg1"></script>
 </body>
 </html>

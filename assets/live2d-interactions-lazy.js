@@ -33,6 +33,11 @@
         isAdmin: false,
         realtimeWarning: false
     };
+    let live2dAdminMenuState = {
+        loaded: false,
+        isAdmin: false,
+        loadingPromise: null
+    };
 
     const quizBank = [
         {
@@ -483,7 +488,7 @@
     function ensureOpeningBubbleStyles() {
         const existingStyle = document.getElementById("live2d-opening-bubble-style");
         if (existingStyle) {
-            if (existingStyle.textContent && existingStyle.textContent.indexOf("20260626-boss-admin1") !== -1) {
+            if (existingStyle.textContent && existingStyle.textContent.indexOf("20260626-live2d-admin-entry1") !== -1) {
                 return;
             }
             existingStyle.remove();
@@ -492,7 +497,7 @@
         const style = document.createElement("style");
         style.id = "live2d-opening-bubble-style";
         style.textContent = [
-            "/* 20260626-boss-admin1 */",
+            "/* 20260626-live2d-admin-entry1 */",
             ".live2d-quiz{position:fixed;left:252px;top:160px;right:auto;bottom:auto;z-index:63;}",
             ".live2d-opening-bubble{position:fixed;left:252px;top:160px;z-index:61;width:min(328px,calc(100vw - 32px));padding:12px 14px;border:1px solid rgba(255,236,245,.88);border-radius:16px;background:rgba(255,178,211,.76);box-shadow:0 0 22px rgba(255,142,196,.38),inset 0 0 14px rgba(255,255,255,.16);backdrop-filter:blur(10px);color:rgba(92,28,58,.96);font-size:14px;line-height:1.55;letter-spacing:0;pointer-events:none;opacity:0;transform:translateY(8px);transition:opacity .35s ease,transform .35s ease;}",
             ".live2d-opening-bubble.is-open{opacity:1;transform:translateY(0);}",
@@ -549,6 +554,13 @@
             ".live2d-quiz.is-main-menu .live2d-quiz__option::after{content:\"\";position:absolute;inset:0;background:linear-gradient(105deg,transparent 18%,rgba(222,247,255,.22) 45%,transparent 68%);opacity:0;transform:translateX(-36%);transition:opacity .18s ease,transform .36s ease;pointer-events:none!important;}",
             ".live2d-quiz.is-main-menu .live2d-quiz__option:hover:not(:disabled){transform:translateY(-1px);border-color:rgba(226,251,255,.82)!important;background:radial-gradient(ellipse at 50% 0%,rgba(255,255,255,.2),transparent 58%),linear-gradient(90deg,rgba(174,232,255,.08),rgba(183,238,255,.26),rgba(174,232,255,.08))!important;box-shadow:0 0 24px rgba(112,204,242,.24),inset 0 1px 0 rgba(255,255,255,.24)!important;}",
             ".live2d-quiz.is-main-menu .live2d-quiz__option:hover:not(:disabled)::after{opacity:.7;transform:translateX(30%);}",
+            ".live2d-consult-card--admin{appearance:none;-webkit-appearance:none;position:relative;display:grid;gap:6px;align-content:center;min-height:76px;width:100%;padding:14px 78px 14px 16px;border:1px solid rgba(205,244,255,.58);border-radius:18px;background:radial-gradient(circle at 12% 12%,rgba(235,253,255,.2),transparent 36%),linear-gradient(135deg,rgba(35,92,145,.7),rgba(82,65,145,.58));box-shadow:0 0 22px rgba(105,213,255,.18),inset 0 1px 0 rgba(255,255,255,.2);color:rgba(241,252,255,.98);text-align:left;overflow:hidden;box-sizing:border-box;}",
+            ".live2d-consult-card--admin::after{content:\"\";position:absolute;inset:0;background:linear-gradient(105deg,transparent 20%,rgba(229,248,255,.18) 46%,transparent 68%);opacity:.44;pointer-events:none;}",
+            ".live2d-consult-card--admin:hover:not(:disabled){border-color:rgba(232,251,255,.86);background:radial-gradient(circle at 12% 12%,rgba(245,254,255,.26),transparent 36%),linear-gradient(135deg,rgba(50,116,172,.78),rgba(103,77,166,.68));box-shadow:0 0 28px rgba(112,213,255,.26),inset 0 1px 0 rgba(255,255,255,.24);}",
+            ".live2d-consult-card--admin .live2d-consult-card__title,.live2d-consult-card--admin .live2d-consult-card__desc{position:relative;z-index:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}",
+            ".live2d-consult-card--admin .live2d-consult-card__title{font-weight:880;font-size:15px;color:rgba(247,253,255,.98);}",
+            ".live2d-consult-card--admin .live2d-consult-card__desc{font-size:12px;color:rgba(208,235,250,.82);}",
+            ".live2d-consult-card__badge{position:absolute;right:12px;top:12px;z-index:1;max-width:58px;padding:4px 8px;border:1px solid rgba(235,252,255,.56);border-radius:999px;background:linear-gradient(135deg,rgba(110,219,255,.34),rgba(192,145,255,.26));box-shadow:0 0 14px rgba(129,219,255,.18),inset 0 1px 0 rgba(255,255,255,.22);color:rgba(240,252,255,.96);font-size:11px;font-weight:820;line-height:1;white-space:nowrap;}",
             ".live2d-quiz.is-main-menu .live2d-quiz__close{position:absolute!important;z-index:7!important;right:22px!important;top:22px!important;width:32px!important;height:32px!important;border-color:rgba(219,242,255,.52)!important;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.34),rgba(116,185,222,.22) 44%,rgba(10,30,58,.38))!important;box-shadow:0 0 14px rgba(145,213,244,.22),inset 0 1px 0 rgba(255,255,255,.18)!important;color:rgba(244,252,255,.94)!important;pointer-events:auto!important;touch-action:manipulation;}",
             ".live2d-quiz.is-main-menu .live2d-quiz__close:hover{background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.52),rgba(132,205,238,.46) 46%,rgba(14,42,76,.66))!important;box-shadow:0 0 18px rgba(154,224,255,.32),inset 0 1px 0 rgba(255,255,255,.28)!important;}",
             ".live2d-quiz.is-boss-auth{width:min(860px,calc(100vw - 32px))!important;max-width:calc(100vw - 32px)!important;max-height:calc(100vh - 72px)!important;overflow:auto!important;padding:18px!important;border:1px solid rgba(174,232,255,.34)!important;border-radius:28px!important;background:url(\"assets/ui/star-dust.svg\") center/190px 130px repeat,radial-gradient(circle at 18% 5%,rgba(155,228,255,.22),transparent 34%),radial-gradient(ellipse at 92% 16%,rgba(199,145,255,.2),transparent 38%),radial-gradient(ellipse at 52% 105%,rgba(86,206,255,.16),transparent 48%),linear-gradient(150deg,rgba(7,20,47,.82),rgba(8,13,34,.9))!important;box-shadow:0 26px 74px rgba(2,10,30,.5),0 0 42px rgba(96,205,255,.17),0 0 34px rgba(187,132,255,.12),inset 0 1px 0 rgba(255,255,255,.16),inset 0 -28px 56px rgba(81,76,178,.12)!important;-webkit-backdrop-filter:blur(18px) saturate(1.18);backdrop-filter:blur(18px) saturate(1.18);box-sizing:border-box!important;}",
@@ -1765,12 +1777,38 @@
                 recordGanyuFeature("星湖签到");
                 showBossDailyCheckinPanel();
             });
+            if (live2dAdminMenuState.loaded && live2dAdminMenuState.isAdmin) {
+                addAdminMenuCard();
+            } else {
+                refreshKnowJunxueAdminEntryWhenReady();
+            }
             addConsultCard("返回", "回到主菜单", false, function () {
                 showMenu();
             });
             result.textContent = "想先聊哪一件事呢？";
             result.className = "live2d-quiz__result is-neutral";
             showDialog();
+        }
+
+        function addAdminMenuCard() {
+            const card = addConsultCard("管理员后台", "管理老板账号与积分", false, function () {
+                recordGanyuFeature("管理员后台");
+                window.location.href = "admin.html";
+            });
+
+            card.classList.add("live2d-consult-card--admin");
+            card.setAttribute("data-live2d-admin-entry", "true");
+            card.insertAdjacentHTML("beforeend", '<span class="live2d-consult-card__badge">管理员</span>');
+        }
+
+        function refreshKnowJunxueAdminEntryWhenReady() {
+            loadLive2DAdminMenuState(true).then(function (state) {
+                if (!state.isAdmin || !dialog || meta.textContent !== "认识君雪" || options.querySelector("[data-live2d-admin-entry]")) {
+                    return;
+                }
+
+                showKnowJunxuePanel();
+            }).catch(function () {});
         }
 
         function getSupabaseConfigValue(name) {
@@ -2746,6 +2784,39 @@
             }
 
             return !!response.data;
+        }
+
+        function loadLive2DAdminMenuState(force) {
+            if (live2dAdminMenuState.loaded && !force) {
+                return Promise.resolve(live2dAdminMenuState);
+            }
+
+            if (live2dAdminMenuState.loadingPromise) {
+                return live2dAdminMenuState.loadingPromise;
+            }
+
+            live2dAdminMenuState.loadingPromise = (async function () {
+                let isAdmin = false;
+
+                try {
+                    const client = await ensureScoreGuessClient();
+                    const sessionResponse = await client.auth.getSession();
+                    const session = sessionResponse.data && sessionResponse.data.session ? sessionResponse.data.session : null;
+                    isAdmin = await checkScoreGuessAdmin(client, session && session.user && session.user.id);
+                } catch (error) {
+                    isAdmin = false;
+                }
+
+                live2dAdminMenuState = {
+                    loaded: true,
+                    isAdmin: isAdmin,
+                    loadingPromise: null
+                };
+
+                return live2dAdminMenuState;
+            })();
+
+            return live2dAdminMenuState.loadingPromise;
         }
 
         async function loadScoreGuessData() {

@@ -14,6 +14,7 @@
         }
 
         body {
+            --home-smooth-bg: url("assets/images/主页背景.png?v=20260626-home-smooth-mobile-bg1");
             font-family: Arial, sans-serif;
             margin: 0;
             min-height: 100vh;
@@ -463,9 +464,17 @@
             display: none !important;
         }
 
+        html.performance-low .home-bg-overlay {
+            background:
+                radial-gradient(ellipse at 50% 18%, rgba(125, 204, 255, 0.16), transparent 38%),
+                linear-gradient(90deg, rgba(1, 5, 13, 0.48), rgba(2, 14, 32, 0.24) 48%, rgba(1, 5, 13, 0.48)),
+                linear-gradient(to bottom, rgba(2, 8, 22, 0.10), rgba(2, 10, 28, 0.28) 58%, rgba(2, 8, 22, 0.42)),
+                var(--home-smooth-bg) center center / cover no-repeat;
+        }
+
         html.performance-low .home-hero::before {
             filter: none;
-            opacity: 0.38;
+            opacity: 0.24;
         }
 
         .home-hero {
@@ -867,53 +876,44 @@
             }
         }
 
-        /* 20260626-home-mobile-hero-balance1 */
+        /* 20260626-home-smooth-mobile-bg1 */
         @media (max-width: 768px) {
             .home-bg-video {
                 display: none;
             }
 
-            html[data-performance-preference="high"] .home-bg-video {
-                display: none;
+            html[data-performance-preference="high"] .home-bg-video,
+            html.mobile-video-unlocked .home-bg-video {
+                display: none !important;
             }
 
-            html.mobile-video-unlocked .home-bg-video {
-                display: block;
+            body {
+                background:
+                    linear-gradient(to bottom, #061323 0%, #071a2f 48%, #081528 100%);
             }
 
             .home-bg-overlay {
                 background:
-                    radial-gradient(ellipse at 52% 28%, rgba(142, 229, 255, 0.28), transparent 36%),
-                    radial-gradient(circle at 16% 24%, rgba(119, 155, 255, 0.22), transparent 34%),
-                    radial-gradient(circle at 86% 20%, rgba(199, 123, 255, 0.18), transparent 32%),
-                    linear-gradient(168deg, rgba(6, 36, 91, 0.72) 0%, rgba(5, 24, 61, 0.56) 40%, rgba(7, 31, 68, 0.5) 100%),
-                    linear-gradient(to bottom, rgba(5, 17, 46, 0.34), rgba(4, 13, 32, 0.42));
+                    radial-gradient(ellipse at 50% 10%, rgba(190, 231, 255, 0.12), transparent 34%),
+                    linear-gradient(180deg, rgba(4, 13, 31, 0.12) 0%, rgba(4, 14, 34, 0.18) 44%, rgba(3, 10, 26, 0.50) 100%),
+                    linear-gradient(90deg, rgba(1, 6, 17, 0.34), rgba(3, 15, 34, 0.10) 46%, rgba(1, 6, 17, 0.34)),
+                    var(--home-smooth-bg) center top / cover no-repeat;
             }
 
             .home-bg-overlay::before {
                 display: block;
                 background:
-                    linear-gradient(112deg, transparent 0 12%, rgba(89, 235, 255, 0.24) 22%, rgba(154, 129, 255, 0.16) 34%, transparent 48%),
-                    linear-gradient(68deg, transparent 0 48%, rgba(204, 131, 255, 0.17) 58%, rgba(91, 239, 214, 0.13) 68%, transparent 82%),
-                    radial-gradient(circle at 24px 44px, rgba(255,255,255,0.58) 0 0.8px, transparent 1.25px),
-                    radial-gradient(circle at 72vw 18vh, rgba(226,248,255,0.52) 0 0.9px, transparent 1.35px),
-                    radial-gradient(circle at 46vw 40vh, rgba(157,220,255,0.42) 0 0.7px, transparent 1.2px);
-                opacity: 0.9;
+                    linear-gradient(112deg, transparent 0 16%, rgba(108, 221, 255, 0.12) 28%, rgba(154, 129, 255, 0.08) 42%, transparent 58%),
+                    linear-gradient(68deg, transparent 0 46%, rgba(204, 131, 255, 0.10) 58%, rgba(91, 239, 214, 0.08) 70%, transparent 86%);
+                opacity: 0.68;
             }
 
             .home-bg-overlay::after {
                 display: block;
                 background:
-                    radial-gradient(ellipse at 50% 80%, rgba(202, 246, 255, 0.2), transparent 38%),
-                    repeating-linear-gradient(178deg, rgba(220, 249, 255, 0.12) 0 1px, transparent 1px 24px),
-                    linear-gradient(to top, rgba(130, 218, 255, 0.14), transparent 32%);
-                opacity: 0.72;
-            }
-
-            html.mobile-video-unlocked .home-bg-overlay {
-                background:
-                    linear-gradient(90deg, rgba(1, 5, 13, 0.32), rgba(2, 13, 28, 0.22) 46%, rgba(1, 5, 13, 0.34)),
-                    linear-gradient(to bottom, rgba(1, 7, 18, 0.18), rgba(2, 12, 28, 0.28));
+                    radial-gradient(ellipse at 50% 78%, rgba(202, 246, 255, 0.12), transparent 42%),
+                    linear-gradient(to top, rgba(7, 18, 42, 0.18), transparent 34%);
+                opacity: 0.82;
             }
 
             .cursor-light,
@@ -938,8 +938,8 @@
             }
 
             .home-hero {
-                min-height: 68svh;
-                padding: 72px 18px 118px;
+                min-height: 66svh;
+                padding: 66px 18px 112px;
                 align-items: flex-start;
                 justify-content: flex-start;
             }
@@ -1022,7 +1022,7 @@
 
             .home-nav a {
                 width: 100%;
-                min-height: 52px;
+                min-height: 54px;
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
@@ -1073,8 +1073,8 @@
 
         @media (max-width: 640px) {
             .home-hero {
-                min-height: 62svh;
-                padding: 70px 16px 112px;
+                min-height: 60svh;
+                padding: 64px 16px 108px;
             }
 
             .home-hero__content {
@@ -1097,7 +1097,7 @@
             }
 
             .home-nav a {
-                min-height: 54px;
+                min-height: 56px;
                 padding: 11px 10px;
                 font-size: 14px;
             }
@@ -1477,7 +1477,7 @@ document.addEventListener("click", (e) => {
 </script>
 <script src="assets/supabase-client.js?v=20260626-boss-admin1"></script>
 <script src="assets/boss-visit.js?v=20260626-boss-admin1"></script>
-<script src="assets/live2d-loader.js?v=20260626-home-mobile-hero-balance1" data-live2d-autoload="home"></script>
-<script src="assets/home-boss-status-guide.js?v=20260626-home-mobile-hero-balance1"></script>
+<script src="assets/live2d-loader.js?v=20260626-home-smooth-mobile-bg1" data-live2d-autoload="home"></script>
+<script src="assets/home-boss-status-guide.js?v=20260626-home-smooth-mobile-bg1"></script>
 </body>
 </html>

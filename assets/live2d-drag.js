@@ -398,6 +398,10 @@
                 source: "live2d-drag-tap"
             }
         }));
+
+        if (window.JunxueLive2DLoader && typeof window.JunxueLive2DLoader.openMenuFromStaticCard === "function") {
+            window.JunxueLive2DLoader.openMenuFromStaticCard();
+        }
     }
 
     function shouldIgnoreMenuEvent(event) {

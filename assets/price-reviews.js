@@ -8,6 +8,10 @@
     const BLOCKED_INTERACTION_TEXT = "当前账号暂时不能参与互动，如有疑问可以联系君雪。";
     const VALID_SERVICE_TYPES = ["王者荣耀", "永劫无间", "语音聊天", "其它"];
 
+    const PENDING_BOSS_REGISTER_KEY = "junxuePendingBossRegistration";
+    const PENDING_BOSS_REGISTER_TTL = 24 * 60 * 60 * 1000;
+    const BOSS_NICKNAME_CACHE_PREFIX = "junxueBossNickname:";
+
     const reviewStatus = document.getElementById("price-review-status");
     const reviewList = document.getElementById("price-review-list");
     const reviewStats = document.getElementById("price-review-stats");
@@ -60,6 +64,12 @@
         console.error("[JunxueBossReviews] " + context, error);
     }
 
+    function debugBossProfile(context) {
+        if (window.console && typeof window.console.debug === "function") {
+            window.console.debug("[JunxueBossReviews] " + context);
+        }
+    }
+
     function isConfigMissingError(error) {
         return !!error && error.message === CONFIG_MISSING_TEXT;
     }
@@ -101,6 +111,157 @@
 
     function getEmailNickname() {
         return currentUser && currentUser.email ? currentUser.email.split("@")[0].slice(0, 20) : "";
+    }
+
+    function normalizeBossEmail(email) {
+        return String(email || "").trim().toLowerCase();
+    }
+
+    function maskBossEmail(email) {
+        const value = String(email || "").trim();
+        const atIndex = value.indexOf("@");
+
+        if (atIndex <= 0) {
+            return "";
+        }
+
+        const local = value.slice(0, atIndex);
+        const domain = value.slice(atIndex + 1);
+        return local.slice(0, 1) + "***@" + domain;
+    }
+
+    function getBossMetadataDisplayName(user) {
+        const metadata = user && user.user_metadata ? user.user_metadata : {};
+        return normalizeBossDisplayName(
+            metadata.boss_nickname ||
+            metadata.display_name ||
+            metadata.nickname ||
+            metadata.full_name ||
+            metadata.name
+        );
+    }
+
+    function createShortHash(value) {
+        let hash = 2166136261;
+        const text = String(value || "");
+
+        for (let index = 0; index < text.length; index += 1) {
+            hash ^= text.charCodeAt(index);
+            hash = Math.imul(hash, 16777619);
+        }
+
+        return (hash >>> 0).toString(36);
+    }
+
+    function getBossNicknameCacheKey(user) {
+        return user && user.id ? BOSS_NICKNAME_CACHE_PREFIX + createShortHash(user.id) : "";
+    }
+
+    function readCachedBossNickname(user) {
+        const key = getBossNicknameCacheKey(user);
+
+        if (!key) {
+            return "";
+        }
+
+        try {
+            return normalizeBossDisplayName(window.localStorage.getItem(key));
+        } catch (error) {
+            return "";
+        }
+    }
+
+    function writeCachedBossNickname(user, displayName) {
+        const key = getBossNicknameCacheKey(user);
+        const safeDisplayName = normalizeBossDisplayName(displayName);
+
+        if (!key || !safeDisplayName) {
+            return;
+        }
+
+        try {
+            window.localStorage.setItem(key, safeDisplayName);
+        } catch (error) {}
+    }
+
+    function clearPendingBossRegistration() {
+        try {
+            window.sessionStorage.removeItem(PENDING_BOSS_REGISTER_KEY);
+        } catch (error) {}
+    }
+
+    function readPendingBossRegistration() {
+        let pending = null;
+
+        try {
+            pending = JSON.parse(window.sessionStorage.getItem(PENDING_BOSS_REGISTER_KEY) || "null");
+        } catch (error) {
+            pending = null;
+        }
+
+        if (!pending || typeof pending !== "object") {
+            return null;
+        }
+
+        const createdAt = Number(pending.createdAt) || 0;
+        if (!createdAt || Date.now() - createdAt > PENDING_BOSS_REGISTER_TTL) {
+            clearPendingBossRegistration();
+            return null;
+        }
+
+        const email = normalizeBossEmail(pending.email);
+        const displayName = normalizeBossDisplayName(pending.displayName);
+
+        if (!email || !displayName) {
+            return null;
+        }
+
+        return {
+            email: email,
+            displayName: displayName,
+            createdAt: createdAt,
+            dismissed: !!pending.dismissed,
+            maskedEmail: maskBossEmail(email)
+        };
+    }
+
+    function savePendingBossRegistration(email, displayName) {
+        const safeEmail = normalizeBossEmail(email);
+        const safeDisplayName = normalizeBossDisplayName(displayName);
+
+        if (!safeEmail || !safeDisplayName) {
+            return null;
+        }
+
+        try {
+            window.sessionStorage.setItem(PENDING_BOSS_REGISTER_KEY, JSON.stringify({
+                email: safeEmail,
+                displayName: safeDisplayName,
+                createdAt: Date.now(),
+                dismissed: false
+            }));
+        } catch (error) {}
+
+        return readPendingBossRegistration();
+    }
+
+    function dismissPendingBossRegistration() {
+        const pending = readPendingBossRegistration();
+
+        if (!pending) {
+            return null;
+        }
+
+        try {
+            window.sessionStorage.setItem(PENDING_BOSS_REGISTER_KEY, JSON.stringify({
+                email: pending.email,
+                displayName: pending.displayName,
+                createdAt: pending.createdAt,
+                dismissed: true
+            }));
+        } catch (error) {}
+
+        return readPendingBossRegistration();
     }
 
     function getReviewById(reviewId) {
@@ -187,6 +348,11 @@
             authListenerBound = true;
             client.auth.onAuthStateChange(function (event, session) {
                 currentUser = session ? session.user : null;
+                if (session && session.user) {
+                    applyPendingBossNicknameForSession(session).catch(function () {
+                        debugBossProfile("pending boss nickname apply unavailable");
+                    });
+                }
                 if (reviewList) {
                     refreshReviewWall();
                 }
@@ -243,6 +409,13 @@
         }
 
         currentUser = response.data && response.data.session ? response.data.session.user : response.data.user;
+        if (response.data && response.data.session) {
+            try {
+                await applyPendingBossNicknameForSession(response.data.session);
+            } catch (error) {
+                debugBossProfile("pending boss nickname apply unavailable");
+            }
+        }
         return response.data;
     }
 
@@ -257,6 +430,41 @@
         return code === "42P01" || /boss_profiles|relation .* does not exist|schema cache/i.test(message);
     }
 
+    async function updateBossAuthMetadata(activeClient, user, displayName) {
+        const safeDisplayName = normalizeBossDisplayName(displayName);
+
+        if (!activeClient || !user || !safeDisplayName || !activeClient.auth || typeof activeClient.auth.updateUser !== "function") {
+            return { saved: false, warning: "" };
+        }
+
+        const nextMetadata = Object.assign({}, user.user_metadata || {}, {
+            boss_nickname: safeDisplayName,
+            display_name: safeDisplayName,
+            nickname: safeDisplayName
+        });
+        let response = null;
+
+        try {
+            response = await activeClient.auth.updateUser({ data: nextMetadata });
+        } catch (error) {
+            response = { error: error };
+        }
+
+        if (response.error) {
+            debugBossProfile("boss metadata update unavailable");
+            return {
+                saved: false,
+                warning: "è€æ¿æ˜µç§°å·²å°è¯•ä¿å­˜ï¼Œä½†è´¦å·èµ„æ–™æš‚æ—¶åŒæ­¥å¤±è´¥ã€‚"
+            };
+        }
+
+        if (response.data && response.data.user) {
+            currentUser = response.data.user;
+        }
+
+        return { saved: true, warning: "" };
+    }
+
     async function saveBossProfile(activeClient, userId, displayName) {
         const safeDisplayName = normalizeBossDisplayName(displayName);
 
@@ -264,17 +472,24 @@
             return { saved: false, warning: "" };
         }
 
-        const response = await activeClient
-            .from("boss_profiles")
-            .upsert({
-                user_id: userId,
-                display_name: safeDisplayName,
-                updated_at: new Date().toISOString()
-            }, { onConflict: "user_id" })
-            .select("user_id")
-            .single();
+        let response = null;
+
+        try {
+            response = await activeClient
+                .from("boss_profiles")
+                .upsert({
+                    user_id: userId,
+                    display_name: safeDisplayName,
+                    updated_at: new Date().toISOString()
+                }, { onConflict: "user_id" })
+                .select("user_id")
+                .single();
+        } catch (error) {
+            response = { error: error };
+        }
 
         if (response.error) {
+            debugBossProfile("boss profile save unavailable");
             if (isMissingBossProfilesError(response.error)) {
                 return {
                     saved: false,
@@ -291,6 +506,45 @@
         return { saved: true, warning: "" };
     }
 
+    async function applyPendingBossNicknameForSession(session) {
+        const pending = readPendingBossRegistration();
+
+        if (!pending || !session || !session.user) {
+            return { applied: false, warning: "" };
+        }
+
+        if (normalizeBossEmail(session.user.email) !== pending.email) {
+            return { applied: false, warning: "" };
+        }
+
+        const activeClient = await ensureClient();
+        const metadataName = getBossMetadataDisplayName(session.user);
+        const displayName = metadataName || pending.displayName;
+        let metadataResult = { saved: !!metadataName, warning: "" };
+        let profileResult = { saved: false, warning: "" };
+
+        if (!displayName) {
+            return { applied: false, warning: "" };
+        }
+
+        if (!metadataName) {
+            metadataResult = await updateBossAuthMetadata(activeClient, session.user, displayName);
+        }
+
+        profileResult = await saveBossProfile(activeClient, session.user.id, displayName);
+        writeCachedBossNickname(session.user, displayName);
+
+        if (metadataResult.saved || metadataName) {
+            clearPendingBossRegistration();
+        }
+
+        return {
+            applied: !!(metadataResult.saved || metadataName),
+            displayName: displayName,
+            warning: profileResult.warning || metadataResult.warning || ""
+        };
+    }
+
     async function loadBossProfile() {
         const activeClient = await ensureClient();
         const session = await getSession();
@@ -301,6 +555,7 @@
         }
 
         let response = null;
+        const fallbackName = getBossMetadataDisplayName(session.user) || readCachedBossNickname(session.user);
 
         try {
             response = await activeClient
@@ -313,6 +568,18 @@
         }
 
         if (response.error) {
+            debugBossProfile("boss profile load unavailable");
+            if (fallbackName) {
+                currentBossDisplayName = fallbackName;
+                writeCachedBossNickname(session.user, fallbackName);
+                return {
+                    displayName: fallbackName,
+                    warning: isMissingBossProfilesError(response.error) ?
+                        "è€æ¿æ˜µç§°åŠŸèƒ½è¿˜éœ€è¦æ‰§è¡Œæ•°æ®åº“å‡çº§ SQLã€‚" :
+                        ""
+                };
+            }
+
             if (isMissingBossProfilesError(response.error)) {
                 return {
                     displayName: "",
@@ -327,6 +594,18 @@
         }
 
         currentBossDisplayName = normalizeBossDisplayName(response.data && response.data.display_name);
+        if (!currentBossDisplayName && fallbackName) {
+            currentBossDisplayName = fallbackName;
+            writeCachedBossNickname(session.user, fallbackName);
+            saveBossProfile(activeClient, session.user.id, fallbackName).catch(function () {
+                debugBossProfile("boss profile fallback save unavailable");
+            });
+        }
+
+        if (currentBossDisplayName) {
+            writeCachedBossNickname(session.user, currentBossDisplayName);
+        }
+
         return { displayName: currentBossDisplayName, warning: "" };
     }
 
@@ -370,18 +649,20 @@
             throw new Error("老板昵称最多 20 个字");
         }
 
+        const metadataResult = await updateBossAuthMetadata(activeClient, session.user, safeDisplayName);
         const profileResult = await saveBossProfile(activeClient, session.user.id, safeDisplayName);
 
-        if (!profileResult.saved) {
-            throw new Error(profileResult.warning || "老板昵称暂时保存失败，请稍后再试。");
+        if (!profileResult.saved && !metadataResult.saved) {
+            throw new Error(profileResult.warning || metadataResult.warning || "老板昵称暂时保存失败，请稍后再试。");
         }
 
         currentBossDisplayName = safeDisplayName;
+        writeCachedBossNickname(currentUser || session.user, safeDisplayName);
         const syncResult = await syncOwnReviewNicknames(safeDisplayName);
 
         return {
             displayName: safeDisplayName,
-            warning: syncResult.warning || ""
+            warning: syncResult.warning || (!profileResult.saved ? profileResult.warning : "") || metadataResult.warning || ""
         };
     }
 
@@ -427,6 +708,7 @@
             password: password,
             options: safeDisplayName ? {
                 data: {
+                    boss_nickname: safeDisplayName,
                     display_name: safeDisplayName,
                     nickname: safeDisplayName
                 }
@@ -444,7 +726,9 @@
         responseData.profileSaved = false;
 
         if (safeDisplayName && responseData.session) {
-            const userId = responseData.user ? responseData.user.id : "";
+            const user = responseData.session.user || responseData.user;
+            const userId = user ? user.id : "";
+            writeCachedBossNickname(user, safeDisplayName);
 
             try {
                 const profileResult = await saveBossProfile(activeClient, userId, safeDisplayName);
@@ -452,7 +736,7 @@
                 responseData.profileWarning = profileResult.warning || "";
                 responseData.profileSaved = !!profileResult.saved;
             } catch (error) {
-                logError("save boss profile failed", error);
+                debugBossProfile("boss profile save after register unavailable");
                 responseData.profileWarning = isMissingBossProfilesError(error) ?
                     "老板昵称功能还需要执行数据库升级 SQL。" :
                     "老板账号已创建，但昵称暂时没有保存成功。稍后登录后可以再试。";
@@ -1025,6 +1309,11 @@
         getSession: getSession,
         login: login,
         register: register,
+        savePendingBossRegistration: savePendingBossRegistration,
+        getPendingBossRegistration: readPendingBossRegistration,
+        dismissPendingBossRegistration: dismissPendingBossRegistration,
+        clearPendingBossRegistration: clearPendingBossRegistration,
+        applyPendingBossNicknameForSession: applyPendingBossNicknameForSession,
         loadBossProfile: loadBossProfile,
         updateBossDisplayName: updateBossDisplayName,
         logout: logout,

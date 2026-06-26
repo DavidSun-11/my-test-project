@@ -78,17 +78,29 @@
             const api = getBossReviewsApi();
             const response = await api.register(email, password, displayName);
 
-            form.reset();
-            if (response && response.profileWarning) {
-                setStatus(response.profileWarning + " 老板账号已创建，可以继续返回登录。", "warning");
+            if (response && response.session) {
+                setStatus("注册成功啦，正在带你回到首页。", "good");
+                form.reset();
+                window.setTimeout(function () {
+                    window.location.href = "index.html";
+                }, 500);
                 return;
             }
 
-            if (response && response.session) {
-                setStatus("注册成功啦。现在可以返回登录，继续参与互动、评价与投票。", "good");
-            } else {
-                setStatus("注册成功，请先前往邮箱确认账号，再返回登录。", "good");
+            if (typeof api.savePendingBossRegistration === "function") {
+                api.savePendingBossRegistration(email, displayName);
             }
+
+            form.reset();
+            if (response && response.profileWarning) {
+                setStatus(response.profileWarning + " 老板账号已创建，正在带你回到首页登录。", "warning");
+            } else {
+                setStatus("注册成功，请先前往邮箱确认账号，再回到首页登录。", "good");
+            }
+
+            window.setTimeout(function () {
+                window.location.href = "index.html?bossRegistered=1";
+            }, 700);
         } catch (error) {
             const message = error && error.message ?
                 error.message :

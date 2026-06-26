@@ -410,7 +410,7 @@
         }
 
         const metadata = user.user_metadata || {};
-        const name = metadata.nickname || metadata.display_name || metadata.full_name || metadata.name;
+        const name = metadata.boss_nickname || metadata.nickname || metadata.display_name || metadata.full_name || metadata.name;
 
         if (typeof name === "string" && name.trim()) {
             return name.trim();
@@ -491,7 +491,7 @@
     function ensureOpeningBubbleStyles() {
         const existingStyle = document.getElementById("live2d-opening-bubble-style");
         if (existingStyle) {
-            if (existingStyle.textContent && existingStyle.textContent.indexOf("20260626-live2d-admin-main-entry1") !== -1) {
+            if (existingStyle.textContent && existingStyle.textContent.indexOf("20260626-boss-nickname-bind1") !== -1) {
                 return;
             }
             existingStyle.remove();
@@ -500,7 +500,7 @@
         const style = document.createElement("style");
         style.id = "live2d-opening-bubble-style";
         style.textContent = [
-            "/* 20260626-live2d-admin-main-entry1 */",
+            "/* 20260626-boss-nickname-bind1 */",
             ".live2d-quiz{position:fixed;left:252px;top:160px;right:auto;bottom:auto;z-index:63;}",
             ".live2d-opening-bubble{position:fixed;left:252px;top:160px;z-index:61;width:min(328px,calc(100vw - 32px));padding:12px 14px;border:1px solid rgba(255,236,245,.88);border-radius:16px;background:rgba(255,178,211,.76);box-shadow:0 0 22px rgba(255,142,196,.38),inset 0 0 14px rgba(255,255,255,.16);backdrop-filter:blur(10px);color:rgba(92,28,58,.96);font-size:14px;line-height:1.55;letter-spacing:0;pointer-events:none;opacity:0;transform:translateY(8px);transition:opacity .35s ease,transform .35s ease;}",
             ".live2d-opening-bubble.is-open{opacity:1;transform:translateY(0);}",
@@ -2139,7 +2139,7 @@
             try {
                 await loadExternalScript("assets/supabase-client.js?v=20260626-boss-admin1").catch(function () {});
                 await loadExternalScript("assets/supabase-config.js?v=20260611-1").catch(function () {});
-                await loadExternalScript("assets/price-reviews.js?v=20260626-boss-profile-script-fix1");
+                await loadExternalScript("assets/price-reviews.js?v=20260626-boss-nickname-bind1");
             } catch (error) {
                 console.warn("[JunxueBossProfile] boss profile script load failed.", error);
                 throw new Error(BOSS_PROFILE_SCRIPT_LOAD_ERROR_TEXT);
@@ -2215,9 +2215,7 @@
                 }
             }
 
-            const currentName = normalizeBossDisplayNameInput(profile.displayName) ||
-                getDisplayNameFromAuthUser(session.user) ||
-                (getBossReviewEmail(session).split("@")[0] || "老板").slice(0, 20);
+            const currentName = normalizeBossDisplayNameInput(profile.displayName) || "老板昵称";
             const safeWarning = profile.warning ? '<p class="live2d-boss-auth-hint is-warning">' + escapeHtml(profile.warning) + '</p>' : '';
 
             options.innerHTML = [
@@ -3442,6 +3440,7 @@
 
         function showBossReviewAuthPanel(mode, authOptions) {
             const returnToScoreGuess = authOptions && authOptions.returnTo === "scoreGuess";
+            const prefillEmail = authOptions && typeof authOptions.prefillEmail === "string" ? authOptions.prefillEmail : "";
 
             if (mode === "register") {
                 openBossRegisterPage();
@@ -3478,7 +3477,7 @@
                         '<div class="live2d-boss-auth-fields">',
                             '<label class="live2d-boss-auth-field" data-icon="✦">',
                                 '<span class="live2d-boss-auth-label">邮箱</span>',
-                                '<input class="live2d-weather-input live2d-boss-auth-input" name="email" type="email" autocomplete="email" placeholder="用于登录的邮箱">',
+                                '<input class="live2d-weather-input live2d-boss-auth-input" name="email" type="email" autocomplete="email" value="' + escapeHtml(prefillEmail) + '" placeholder="用于登录的邮箱">',
                             '</label>',
                             '<label class="live2d-boss-auth-field" data-icon="◇">',
                                 '<span class="live2d-boss-auth-label">密码</span>',
@@ -3599,6 +3598,23 @@
             } catch (error) {}
         }
 
+        function clearBossRegisteredQuery() {
+            if (!window.history || typeof window.history.replaceState !== "function") {
+                return;
+            }
+
+            try {
+                const url = new URL(window.location.href);
+                if (!url.searchParams.has("bossRegistered")) {
+                    return;
+                }
+
+                url.searchParams.delete("bossRegistered");
+                const nextSearch = url.searchParams.toString();
+                window.history.replaceState(null, "", url.pathname + (nextSearch ? "?" + nextSearch : "") + url.hash);
+            } catch (error) {}
+        }
+
         function openBossLoginFromQuery() {
             if (window.__JUNXUE_BOSS_LOGIN_QUERY_HANDLED__) {
                 return;
@@ -3609,11 +3625,77 @@
             showBossReviewAuthPanel("login");
         }
 
+        async function openBossRegisteredPromptFromQuery() {
+            if (window.__JUNXUE_BOSS_REGISTERED_QUERY_HANDLED__) {
+                return;
+            }
+
+            window.__JUNXUE_BOSS_REGISTERED_QUERY_HANDLED__ = true;
+            clearBossRegisteredQuery();
+
+            let api = null;
+            let pending = null;
+            let session = null;
+
+            try {
+                api = await ensureBossReviewsApi();
+                pending = typeof api.getPendingBossRegistration === "function" ? api.getPendingBossRegistration() : null;
+                session = typeof api.getSession === "function" ? await api.getSession() : null;
+                if (session && session.user) {
+                    if (typeof api.applyPendingBossNicknameForSession === "function") {
+                        await api.applyPendingBossNicknameForSession(session);
+                    }
+                    return;
+                }
+            } catch (error) {
+                console.debug("[JunxueLive2D] pending boss login prompt unavailable.");
+                return;
+            }
+
+            if (!pending || pending.dismissed) {
+                return;
+            }
+
+            clearDialog();
+            setDialogMode("panel");
+            dialog.classList.add("is-weather");
+            meta.textContent = "老板账号";
+            question.textContent = "老板账号已经注册好啦，要现在登录这个邮箱吗？";
+            options.innerHTML = [
+                '<div class="boss-modal-panel">',
+                    '<div class="boss-form-heading"><span class="boss-form-badge">Boss Account</span><span>登录刚刚注册的账号</span></div>',
+                    '<p class="live2d-boss-auth-hint">邮箱：' + escapeHtml(pending.maskedEmail || "") + '</p>',
+                    '<div class="boss-modal-actions">',
+                        '<button class="live2d-quiz__option boss-modal-primary" type="button" data-action="login">去登录</button>',
+                        '<button class="live2d-quiz__option" type="button" data-action="later">稍后再说</button>',
+                    '</div>',
+                '</div>'
+            ].join("");
+            result.textContent = "不会保存密码；点击去登录后，只会帮你填好邮箱。";
+            result.className = "live2d-quiz__result is-neutral";
+            showDialog();
+
+            options.querySelector('[data-action="login"]').addEventListener("click", function (event) {
+                event.stopPropagation();
+                showBossReviewAuthPanel("login", { prefillEmail: pending.email });
+            });
+            options.querySelector('[data-action="later"]').addEventListener("click", function (event) {
+                event.stopPropagation();
+                if (api && typeof api.dismissPendingBossRegistration === "function") {
+                    api.dismissPendingBossRegistration();
+                }
+                closeDialog();
+            });
+        }
+
         function handleBossLoginQuery() {
             try {
                 const params = new URLSearchParams(window.location.search);
                 if (params.get("bossLogin") === "1") {
                     window.setTimeout(openBossLoginFromQuery, 0);
+                }
+                if (params.get("bossRegistered") === "1") {
+                    window.setTimeout(openBossRegisteredPromptFromQuery, 0);
                 }
             } catch (error) {}
         }
@@ -4898,6 +4980,7 @@
             open: showMenu,
             openBossReviews: showBossReviewsPanel,
             openBossLogin: openBossLoginFromQuery,
+            openBossRegisteredPrompt: openBossRegisteredPromptFromQuery,
             sync: syncLive2DPopupPositions
         };
         handleBossLoginQuery();

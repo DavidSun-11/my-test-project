@@ -6,7 +6,7 @@
 
     window.__JUNXUE_LIVE2D_INTERACTIONS_INSTALLED__ = true;
 
-    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260626-live2d-admin-main-entry1";
+    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260626-boss-nickname-bind1";
     if (typeof window.enableGanyuMemory !== "boolean") {
         window.enableGanyuMemory = true;
     }
@@ -1302,6 +1302,15 @@
         }
     }
 
+    function shouldOpenBossRegisteredFromQuery() {
+        try {
+            const params = new URLSearchParams(window.location.search);
+            return params.get("bossRegistered") === "1";
+        } catch (error) {
+            return false;
+        }
+    }
+
     function openLazyMenu(event) {
         if (window.JunxueLive2DDrag && typeof window.JunxueLive2DDrag.shouldIgnoreMenuEvent === "function" && window.JunxueLive2DDrag.shouldIgnoreMenuEvent(event)) {
             return;
@@ -1412,6 +1421,13 @@
             loadLazyInteractions().then(function (menu) {
                 if (menu && typeof menu.openBossLogin === "function") {
                     menu.openBossLogin();
+                }
+            }).catch(function () {});
+        }
+        if (shouldOpenBossRegisteredFromQuery()) {
+            loadLazyInteractions().then(function (menu) {
+                if (menu && typeof menu.openBossRegisteredPrompt === "function") {
+                    menu.openBossRegisteredPrompt();
                 }
             }).catch(function () {});
         }

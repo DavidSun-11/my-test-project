@@ -5,6 +5,7 @@
     const SUPABASE_LOCAL_SDK = "assets/vendor/supabase-js-2.min.js?v=20260616-1";
     const SUPABASE_CDN = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.108.2/dist/umd/supabase.min.js";
     const SUPABASE_SDK_LOAD_ERROR_TEXT = "老板评价功能加载失败，可能是网络暂时不稳定，请稍后再试。";
+    const BLOCKED_INTERACTION_TEXT = "当前账号暂时不能参与互动，如有疑问可以联系君雪。";
     const VALID_SERVICE_TYPES = ["王者荣耀", "永劫无间", "语音聊天", "其它"];
 
     const reviewStatus = document.getElementById("price-review-status");
@@ -17,6 +18,7 @@
     let currentReviews = [];
     let lastReviews = [];
     let currentBossDisplayName = "";
+    let authListenerBound = false;
     const reviewInteractions = new Map();
 
     function getConfigValue(name) {
@@ -64,6 +66,12 @@
 
     function isSdkLoadError(error) {
         return !!error && error.message === SUPABASE_SDK_LOAD_ERROR_TEXT;
+    }
+
+    function isBlockedInteractionError(error) {
+        const message = error && error.message ? String(error.message) : "";
+        return message === BLOCKED_INTERACTION_TEXT ||
+            /account.*blocked|blocked.*account|账号.*暂时不能参与互动|row-level security|violates row-level security|policy/i.test(message);
     }
 
     function escapeHtml(value) {
@@ -167,8 +175,16 @@
         }
 
         if (!client) {
-            await loadSupabaseSdk();
-            client = window.supabase.createClient(getConfigValue("SUPABASE_URL"), getConfigValue("SUPABASE_ANON_KEY"));
+            if (window.JunxueSupabaseClient && typeof window.JunxueSupabaseClient.getClient === "function") {
+                client = await window.JunxueSupabaseClient.getClient();
+            } else {
+                await loadSupabaseSdk();
+                client = window.supabase.createClient(getConfigValue("SUPABASE_URL"), getConfigValue("SUPABASE_ANON_KEY"));
+            }
+        }
+
+        if (!authListenerBound && client && client.auth && typeof client.auth.onAuthStateChange === "function") {
+            authListenerBound = true;
             client.auth.onAuthStateChange(function (event, session) {
                 currentUser = session ? session.user : null;
                 if (reviewList) {
@@ -186,6 +202,36 @@
 
         currentUser = sessionResponse.data && sessionResponse.data.session ? sessionResponse.data.session.user : null;
         return sessionResponse.data ? sessionResponse.data.session : null;
+    }
+
+    async function getOwnBossAccountFlags() {
+        const activeClient = await ensureClient();
+        const response = await activeClient.rpc("get_own_boss_account_flags", {});
+
+        if (response.error) {
+            if (/get_own_boss_account_flags|schema cache|function .* does not exist/i.test(response.error.message || "")) {
+                return { isBlocked: false, blockedReason: "", warning: "老板账号管理功能还需要执行数据库升级 SQL。" };
+            }
+            throw response.error;
+        }
+
+        const row = Array.isArray(response.data) ? response.data[0] : response.data;
+
+        return {
+            isBlocked: !!(row && (row.is_blocked || row.isBlocked)),
+            blockedReason: row && (row.blocked_reason || row.blockedReason) ? String(row.blocked_reason || row.blockedReason) : "",
+            warning: ""
+        };
+    }
+
+    async function ensureNotBlocked() {
+        const flags = await getOwnBossAccountFlags();
+
+        if (flags.isBlocked) {
+            throw new Error(BLOCKED_INTERACTION_TEXT);
+        }
+
+        return flags;
     }
 
     async function login(email, password) {
@@ -539,6 +585,8 @@
             throw new Error("评价内容有点不对，请重新检查一下。");
         }
 
+        await ensureNotBlocked();
+
         const response = await client.from("boss_reviews").insert({
             user_id: currentUser.id,
             nickname: nickname,
@@ -798,6 +846,13 @@
             return;
         }
 
+        try {
+            await ensureNotBlocked();
+        } catch (error) {
+            setStatus(reviewStatus, isBlockedInteractionError(error) ? BLOCKED_INTERACTION_TEXT : "互动状态暂时确认失败，请稍后再试。", "warning");
+            return;
+        }
+
         if (interaction.userLiked) {
             response = await client
                 .from("boss_review_likes")
@@ -812,7 +867,7 @@
         }
 
         if (response.error) {
-            setStatus(reviewStatus, response.error.message, "warning");
+            setStatus(reviewStatus, isBlockedInteractionError(response.error) ? BLOCKED_INTERACTION_TEXT : response.error.message, "warning");
             return;
         }
 
@@ -838,6 +893,13 @@
             return;
         }
 
+        try {
+            await ensureNotBlocked();
+        } catch (error) {
+            setStatus(reviewStatus, isBlockedInteractionError(error) ? BLOCKED_INTERACTION_TEXT : "互动状态暂时确认失败，请稍后再试。", "warning");
+            return;
+        }
+
         const response = await client.from("boss_review_comments").insert({
             review_id: reviewId,
             user_id: currentUser.id,
@@ -846,7 +908,7 @@
         });
 
         if (response.error) {
-            setStatus(reviewStatus, response.error.message, "warning");
+            setStatus(reviewStatus, isBlockedInteractionError(response.error) ? BLOCKED_INTERACTION_TEXT : response.error.message, "warning");
             return;
         }
 
@@ -966,6 +1028,9 @@
         loadBossProfile: loadBossProfile,
         updateBossDisplayName: updateBossDisplayName,
         logout: logout,
+        getClient: ensureClient,
+        getOwnBossAccountFlags: getOwnBossAccountFlags,
+        ensureNotBlocked: ensureNotBlocked,
         loadReviews: loadReviews,
         submitReview: submitReview,
         refreshReviewWall: refreshReviewWall,

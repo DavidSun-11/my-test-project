@@ -1154,3 +1154,796 @@ revoke all on function public.claim_boss_daily_checkin() from public;
 grant execute on function public.get_boss_checkin_status(date) to authenticated;
 grant execute on function public.claim_boss_daily_checkin() to authenticated;
 ```
+
+## 13. 管理员后台与老板账号管理升级 SQL
+
+Run this SQL manually in Supabase SQL Editor to enable `admin.html`.
+It is safe to run after Sections 10-12 and keeps the permission boundary in admin-only RPC/RLS. The frontend still uses only the anon/publishable key and must not query `auth.users`.
+
+```sql
+create extension if not exists pgcrypto;
+
+create table if not exists public.boss_profiles (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  display_name text not null check (char_length(display_name) between 1 and 20),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.boss_profiles
+  add column if not exists admin_ref uuid not null default gen_random_uuid();
+
+create unique index if not exists boss_profiles_admin_ref_key
+on public.boss_profiles (admin_ref);
+
+update public.boss_profiles
+set admin_ref = gen_random_uuid()
+where admin_ref is null;
+
+insert into public.boss_profiles (user_id, display_name)
+select
+  users.id,
+  left(coalesce(
+    nullif(trim(users.raw_user_meta_data->>'display_name'), ''),
+    nullif(trim(users.raw_user_meta_data->>'nickname'), ''),
+    '老板用户'
+  ), 20)
+from auth.users users
+on conflict (user_id) do nothing;
+
+create table if not exists public.boss_account_flags (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  is_blocked boolean not null default false,
+  blocked_reason text check (blocked_reason is null or char_length(blocked_reason) <= 120),
+  blocked_at timestamptz,
+  blocked_by uuid references auth.users(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.boss_visit_stats (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  visit_count integer not null default 0,
+  last_seen_at timestamptz,
+  last_counted_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint boss_visit_stats_count_nonnegative check (visit_count >= 0)
+);
+
+alter table public.boss_visit_stats
+  add column if not exists last_counted_at timestamptz;
+
+alter table public.boss_visit_stats
+  drop constraint if exists boss_visit_stats_count_nonnegative;
+alter table public.boss_visit_stats
+  add constraint boss_visit_stats_count_nonnegative check (visit_count >= 0);
+
+create table if not exists public.boss_admin_actions (
+  id uuid primary key default gen_random_uuid(),
+  actor_user_id uuid not null references auth.users(id) on delete cascade,
+  target_user_id uuid references auth.users(id) on delete set null,
+  action_type text not null check (
+    action_type in ('add_points', 'block_user', 'unblock_user', 'grant_admin', 'revoke_admin')
+  ),
+  amount integer,
+  reason text check (reason is null or char_length(reason) <= 120),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists boss_admin_actions_actor_idx
+on public.boss_admin_actions (actor_user_id, created_at desc);
+
+create index if not exists boss_admin_actions_target_idx
+on public.boss_admin_actions (target_user_id, created_at desc);
+
+alter table public.boss_profiles enable row level security;
+alter table public.boss_account_flags enable row level security;
+alter table public.boss_visit_stats enable row level security;
+alter table public.boss_admin_actions enable row level security;
+
+revoke all on public.boss_account_flags from anon, authenticated;
+revoke all on public.boss_visit_stats from anon, authenticated;
+revoke all on public.boss_admin_actions from anon, authenticated;
+
+grant select on public.boss_account_flags to authenticated;
+grant select on public.boss_visit_stats to authenticated;
+
+drop policy if exists "Boss account flags can select own row" on public.boss_account_flags;
+create policy "Boss account flags can select own row"
+on public.boss_account_flags
+for select
+to authenticated
+using (user_id = auth.uid());
+
+drop policy if exists "Boss visit stats can select own row" on public.boss_visit_stats;
+create policy "Boss visit stats can select own row"
+on public.boss_visit_stats
+for select
+to authenticated
+using (user_id = auth.uid());
+
+create or replace function public.is_live_interaction_admin(p_user_id uuid)
+returns boolean
+language sql
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from public.live_interaction_admins admin
+    where admin.user_id = p_user_id
+  );
+$$;
+
+create or replace function public.is_boss_account_blocked(p_user_id uuid)
+returns boolean
+language sql
+security definer
+set search_path = public
+as $$
+  select coalesce((
+    select flags.is_blocked
+    from public.boss_account_flags flags
+    where flags.user_id = p_user_id
+  ), false);
+$$;
+
+create or replace function public.mask_admin_email(p_email text)
+returns text
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_email text := trim(coalesce(p_email, ''));
+  v_name text;
+  v_domain text;
+  v_at integer;
+begin
+  if v_email = '' then
+    return '未绑定邮箱';
+  end if;
+
+  v_at := position('@' in v_email);
+  if v_at <= 1 then
+    if char_length(v_email) <= 2 then
+      return left(v_email, 1) || '*';
+    end if;
+    return left(v_email, 1) || repeat('*', greatest(char_length(v_email) - 2, 1)) || right(v_email, 1);
+  end if;
+
+  v_name := left(v_email, v_at - 1);
+  v_domain := substring(v_email from v_at + 1);
+
+  if v_domain = '' then
+    return left(v_name, 1) || '***';
+  end if;
+
+  if char_length(v_name) = 1 then
+    return v_name || '***@' || v_domain;
+  end if;
+
+  return left(v_name, 1) || repeat('*', least(greatest(char_length(v_name) - 2, 2), 6)) || right(v_name, 1) || '@' || v_domain;
+end;
+$$;
+
+drop function if exists public.get_own_boss_account_flags();
+create or replace function public.get_own_boss_account_flags()
+returns table (
+  is_blocked boolean,
+  blocked_reason text
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_user_id uuid := auth.uid();
+begin
+  if v_user_id is null then
+    raise exception 'not authenticated';
+  end if;
+
+  return query
+  select coalesce(flags.is_blocked, false), flags.blocked_reason
+  from (select v_user_id as user_id) me
+  left join public.boss_account_flags flags
+    on flags.user_id = me.user_id;
+end;
+$$;
+
+drop function if exists public.record_boss_site_visit(text);
+create or replace function public.record_boss_site_visit(p_page_path text default null)
+returns table (
+  counted boolean,
+  visit_count integer,
+  last_seen_at timestamptz
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_user_id uuid := auth.uid();
+  v_now timestamptz := now();
+  v_stats public.boss_visit_stats%rowtype;
+  v_counted boolean := false;
+begin
+  if v_user_id is null then
+    raise exception 'not authenticated';
+  end if;
+
+  insert into public.boss_visit_stats (user_id, visit_count, last_seen_at, last_counted_at)
+  values (v_user_id, 0, v_now, null)
+  on conflict (user_id) do nothing;
+
+  select *
+  into v_stats
+  from public.boss_visit_stats
+  where user_id = v_user_id
+  for update;
+
+  if v_stats.last_counted_at is null or v_stats.last_counted_at <= v_now - interval '30 minutes' then
+    update public.boss_visit_stats
+    set
+      visit_count = public.boss_visit_stats.visit_count + 1,
+      last_seen_at = v_now,
+      last_counted_at = v_now,
+      updated_at = v_now
+    where user_id = v_user_id
+    returning *
+    into v_stats;
+    v_counted := true;
+  else
+    update public.boss_visit_stats
+    set
+      last_seen_at = v_now,
+      updated_at = v_now
+    where user_id = v_user_id
+    returning *
+    into v_stats;
+  end if;
+
+  return query select v_counted, v_stats.visit_count, v_stats.last_seen_at;
+end;
+$$;
+
+drop function if exists public.admin_get_boss_users();
+create or replace function public.admin_get_boss_users()
+returns table (
+  boss_ref uuid,
+  display_name text,
+  email_masked text,
+  points integer,
+  total_checkins integer,
+  current_streak integer,
+  monthly_checkins integer,
+  visit_count integer,
+  last_seen_at timestamptz,
+  is_blocked boolean,
+  is_admin boolean,
+  created_at timestamptz
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_actor uuid := auth.uid();
+  v_month_start date := date_trunc('month', (now() at time zone 'Asia/Shanghai')::date)::date;
+  v_month_end date := (date_trunc('month', (now() at time zone 'Asia/Shanghai')::date) + interval '1 month')::date;
+begin
+  if v_actor is null or not public.is_live_interaction_admin(v_actor) then
+    raise exception 'not authorized';
+  end if;
+
+  return query
+  select
+    profile.admin_ref as boss_ref,
+    coalesce(nullif(trim(profile.display_name), ''), '老板用户') as display_name,
+    public.mask_admin_email(auth_user.email) as email_masked,
+    coalesce(points.points, 0)::integer as points,
+    coalesce(points.total_checkins, 0)::integer as total_checkins,
+    coalesce(points.current_streak, 0)::integer as current_streak,
+    coalesce((
+      select count(*)::integer
+      from public.boss_daily_checkins checkin
+      where checkin.user_id = profile.user_id
+        and checkin.sign_date >= v_month_start
+        and checkin.sign_date < v_month_end
+    ), 0)::integer as monthly_checkins,
+    coalesce(visits.visit_count, 0)::integer as visit_count,
+    visits.last_seen_at,
+    coalesce(flags.is_blocked, false) as is_blocked,
+    exists (
+      select 1
+      from public.live_interaction_admins admin
+      where admin.user_id = profile.user_id
+    ) as is_admin,
+    profile.created_at
+  from public.boss_profiles profile
+  left join auth.users auth_user
+    on auth_user.id = profile.user_id
+  left join public.boss_points points
+    on points.user_id = profile.user_id
+  left join public.boss_visit_stats visits
+    on visits.user_id = profile.user_id
+  left join public.boss_account_flags flags
+    on flags.user_id = profile.user_id
+  order by coalesce(visits.last_seen_at, profile.created_at) desc nulls last, profile.created_at desc;
+end;
+$$;
+
+drop function if exists public.admin_adjust_boss_points(uuid, integer, text);
+create or replace function public.admin_adjust_boss_points(
+  p_boss_ref uuid,
+  p_amount integer,
+  p_reason text default null
+)
+returns table (
+  boss_ref uuid,
+  points integer
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_actor uuid := auth.uid();
+  v_target uuid;
+  v_points integer;
+  v_reason text := left(trim(coalesce(p_reason, '')), 120);
+begin
+  if v_actor is null or not public.is_live_interaction_admin(v_actor) then
+    raise exception 'not authorized';
+  end if;
+  if p_amount is null or p_amount < 1 or p_amount > 10000 then
+    raise exception 'points amount must be between 1 and 10000';
+  end if;
+
+  select profile.user_id
+  into v_target
+  from public.boss_profiles profile
+  where profile.admin_ref = p_boss_ref;
+
+  if v_target is null then
+    raise exception 'target not found';
+  end if;
+
+  insert into public.boss_points (user_id, points, total_checkins, current_streak, longest_streak, last_checkin_date)
+  values (v_target, p_amount, 0, 0, 0, null)
+  on conflict (user_id) do update
+  set points = public.boss_points.points + excluded.points,
+      updated_at = now()
+  returning public.boss_points.points
+  into v_points;
+
+  insert into public.boss_admin_actions (actor_user_id, target_user_id, action_type, amount, reason)
+  values (v_actor, v_target, 'add_points', p_amount, nullif(v_reason, ''));
+
+  return query select p_boss_ref, v_points;
+end;
+$$;
+
+drop function if exists public.admin_set_boss_blocked(uuid, boolean, text);
+create or replace function public.admin_set_boss_blocked(
+  p_boss_ref uuid,
+  p_is_blocked boolean,
+  p_reason text default null
+)
+returns table (
+  boss_ref uuid,
+  is_blocked boolean
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_actor uuid := auth.uid();
+  v_target uuid;
+  v_reason text := left(trim(coalesce(p_reason, '')), 120);
+begin
+  if v_actor is null or not public.is_live_interaction_admin(v_actor) then
+    raise exception 'not authorized';
+  end if;
+
+  select profile.user_id
+  into v_target
+  from public.boss_profiles profile
+  where profile.admin_ref = p_boss_ref;
+
+  if v_target is null then
+    raise exception 'target not found';
+  end if;
+  if v_target = v_actor and p_is_blocked then
+    raise exception 'cannot block yourself';
+  end if;
+
+  insert into public.boss_account_flags (user_id, is_blocked, blocked_reason, blocked_at, blocked_by)
+  values (
+    v_target,
+    coalesce(p_is_blocked, false),
+    case when coalesce(p_is_blocked, false) then nullif(v_reason, '') else null end,
+    case when coalesce(p_is_blocked, false) then now() else null end,
+    case when coalesce(p_is_blocked, false) then v_actor else null end
+  )
+  on conflict (user_id) do update
+  set
+    is_blocked = excluded.is_blocked,
+    blocked_reason = excluded.blocked_reason,
+    blocked_at = excluded.blocked_at,
+    blocked_by = excluded.blocked_by,
+    updated_at = now();
+
+  insert into public.boss_admin_actions (actor_user_id, target_user_id, action_type, reason)
+  values (
+    v_actor,
+    v_target,
+    case when coalesce(p_is_blocked, false) then 'block_user' else 'unblock_user' end,
+    nullif(v_reason, '')
+  );
+
+  return query select p_boss_ref, coalesce(p_is_blocked, false);
+end;
+$$;
+
+drop function if exists public.admin_set_live_interaction_admin(uuid, boolean);
+create or replace function public.admin_set_live_interaction_admin(
+  p_boss_ref uuid,
+  p_is_admin boolean
+)
+returns table (
+  boss_ref uuid,
+  is_admin boolean
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_actor uuid := auth.uid();
+  v_target uuid;
+  v_admin_count integer;
+begin
+  if v_actor is null or not public.is_live_interaction_admin(v_actor) then
+    raise exception 'not authorized';
+  end if;
+
+  select profile.user_id
+  into v_target
+  from public.boss_profiles profile
+  where profile.admin_ref = p_boss_ref;
+
+  if v_target is null then
+    raise exception 'target not found';
+  end if;
+
+  if coalesce(p_is_admin, false) then
+    if public.is_boss_account_blocked(v_target) then
+      raise exception 'blocked user cannot be admin';
+    end if;
+
+    insert into public.live_interaction_admins (user_id)
+    values (v_target)
+    on conflict (user_id) do nothing;
+
+    insert into public.boss_admin_actions (actor_user_id, target_user_id, action_type)
+    values (v_actor, v_target, 'grant_admin');
+  else
+    if v_target = v_actor then
+      raise exception 'cannot revoke your own admin role';
+    end if;
+
+    select count(*)::integer
+    into v_admin_count
+    from public.live_interaction_admins;
+
+    if v_admin_count <= 1 then
+      raise exception 'cannot revoke the last admin';
+    end if;
+
+    delete from public.live_interaction_admins
+    where user_id = v_target;
+
+    insert into public.boss_admin_actions (actor_user_id, target_user_id, action_type)
+    values (v_actor, v_target, 'revoke_admin');
+  end if;
+
+  return query select p_boss_ref, coalesce(p_is_admin, false);
+end;
+$$;
+
+drop policy if exists "Authenticated users can insert own reviews" on public.boss_reviews;
+create policy "Authenticated users can insert own reviews"
+on public.boss_reviews
+for insert
+to authenticated
+with check (
+  auth.uid() = user_id
+  and not exists (select 1 from public.boss_account_flags bf where bf.user_id = auth.uid() and bf.is_blocked)
+);
+
+drop policy if exists "Authenticated users can insert own boss review likes" on public.boss_review_likes;
+create policy "Authenticated users can insert own boss review likes"
+on public.boss_review_likes
+for insert
+to authenticated
+with check (
+  auth.uid() = user_id
+  and not exists (select 1 from public.boss_account_flags bf where bf.user_id = auth.uid() and bf.is_blocked)
+);
+
+drop policy if exists "Users can delete own boss review likes" on public.boss_review_likes;
+create policy "Users can delete own boss review likes"
+on public.boss_review_likes
+for delete
+to authenticated
+using (
+  auth.uid() = user_id
+  and not exists (select 1 from public.boss_account_flags bf where bf.user_id = auth.uid() and bf.is_blocked)
+);
+
+drop policy if exists "Authenticated users can insert own boss review comments" on public.boss_review_comments;
+create policy "Authenticated users can insert own boss review comments"
+on public.boss_review_comments
+for insert
+to authenticated
+with check (
+  auth.uid() = user_id
+  and not exists (select 1 from public.boss_account_flags bf where bf.user_id = auth.uid() and bf.is_blocked)
+);
+
+drop policy if exists "Users can update own boss review comments" on public.boss_review_comments;
+create policy "Users can update own boss review comments"
+on public.boss_review_comments
+for update
+to authenticated
+using (
+  auth.uid() = user_id
+  and not exists (select 1 from public.boss_account_flags bf where bf.user_id = auth.uid() and bf.is_blocked)
+)
+with check (
+  auth.uid() = user_id
+  and not exists (select 1 from public.boss_account_flags bf where bf.user_id = auth.uid() and bf.is_blocked)
+);
+
+drop policy if exists "Users can delete own boss review comments" on public.boss_review_comments;
+create policy "Users can delete own boss review comments"
+on public.boss_review_comments
+for delete
+to authenticated
+using (
+  auth.uid() = user_id
+  and not exists (select 1 from public.boss_account_flags bf where bf.user_id = auth.uid() and bf.is_blocked)
+);
+
+drop policy if exists "Authenticated users can insert own open score guess votes" on public.live_score_guess_votes;
+create policy "Authenticated users can insert own open score guess votes"
+on public.live_score_guess_votes
+for insert
+to authenticated
+with check (
+  user_id = auth.uid()
+  and not exists (select 1 from public.boss_account_flags bf where bf.user_id = auth.uid() and bf.is_blocked)
+  and exists (
+    select 1
+    from public.live_score_guess_sessions session
+    where session.id = session_id
+      and session.status = 'open'
+  )
+);
+
+drop policy if exists "Authenticated users can update own open score guess votes" on public.live_score_guess_votes;
+create policy "Authenticated users can update own open score guess votes"
+on public.live_score_guess_votes
+for update
+to authenticated
+using (
+  user_id = auth.uid()
+  and not exists (select 1 from public.boss_account_flags bf where bf.user_id = auth.uid() and bf.is_blocked)
+  and exists (
+    select 1
+    from public.live_score_guess_sessions session
+    where session.id = session_id
+      and session.status = 'open'
+  )
+)
+with check (
+  user_id = auth.uid()
+  and not exists (select 1 from public.boss_account_flags bf where bf.user_id = auth.uid() and bf.is_blocked)
+  and exists (
+    select 1
+    from public.live_score_guess_sessions session
+    where session.id = session_id
+      and session.status = 'open'
+  )
+);
+
+create or replace function public.claim_boss_daily_checkin()
+returns table (
+  signed_today boolean,
+  already_signed boolean,
+  sign_date date,
+  reward_points integer,
+  total_points integer,
+  total_checkins integer,
+  current_streak integer,
+  monthly_checkins integer,
+  message text
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_user_id uuid := auth.uid();
+  v_today date := (now() at time zone 'Asia/Shanghai')::date;
+  v_month_start date := date_trunc('month', (now() at time zone 'Asia/Shanghai')::date)::date;
+  v_month_end date := (date_trunc('month', (now() at time zone 'Asia/Shanghai')::date) + interval '1 month')::date;
+  v_points public.boss_points%rowtype;
+  v_current_streak_after integer;
+  v_monthly_checkins_after integer;
+  v_total_checkins_after integer;
+  v_reward_points integer;
+begin
+  if v_user_id is null then
+    raise exception 'not authenticated';
+  end if;
+
+  if public.is_boss_account_blocked(v_user_id) then
+    raise exception '当前账号暂时不能参与互动，如有疑问可以联系君雪。';
+  end if;
+
+  insert into public.boss_points (user_id, points, total_checkins, current_streak, longest_streak, last_checkin_date)
+  values (v_user_id, 0, 0, 0, 0, null)
+  on conflict (user_id) do nothing;
+
+  select *
+  into v_points
+  from public.boss_points
+  where user_id = v_user_id
+  for update;
+
+  if exists (
+    select 1
+    from public.boss_daily_checkins checkin
+    where checkin.user_id = v_user_id
+      and checkin.sign_date = v_today
+  ) then
+    select count(*)::integer
+    into v_monthly_checkins_after
+    from public.boss_daily_checkins checkin
+    where checkin.user_id = v_user_id
+      and checkin.sign_date >= v_month_start
+      and checkin.sign_date < v_month_end;
+
+    return query select
+      true,
+      true,
+      v_today,
+      0,
+      v_points.points,
+      v_points.total_checkins,
+      v_points.current_streak,
+      v_monthly_checkins_after,
+      '今天已经签到过啦，明天再来见甘雨吧。'::text;
+    return;
+  end if;
+
+  if v_points.last_checkin_date = v_today - 1 then
+    v_current_streak_after := v_points.current_streak + 1;
+  else
+    v_current_streak_after := 1;
+  end if;
+
+  select count(*)::integer + 1
+  into v_monthly_checkins_after
+  from public.boss_daily_checkins checkin
+  where checkin.user_id = v_user_id
+    and checkin.sign_date >= v_month_start
+    and checkin.sign_date < v_month_end;
+
+  v_total_checkins_after := v_points.total_checkins + 1;
+
+  if v_monthly_checkins_after = 30 then
+    v_reward_points := 50;
+  elsif v_current_streak_after = 7 then
+    v_reward_points := 20;
+  else
+    v_reward_points := 10;
+  end if;
+
+  begin
+    insert into public.boss_daily_checkins (
+      user_id,
+      sign_date,
+      reward_points,
+      streak_after,
+      monthly_checkins_after,
+      total_checkins_after
+    )
+    values (
+      v_user_id,
+      v_today,
+      v_reward_points,
+      v_current_streak_after,
+      v_monthly_checkins_after,
+      v_total_checkins_after
+    );
+  exception when unique_violation then
+    select *
+    into v_points
+    from public.boss_points
+    where user_id = v_user_id
+    for update;
+
+    select count(*)::integer
+    into v_monthly_checkins_after
+    from public.boss_daily_checkins checkin
+    where checkin.user_id = v_user_id
+      and checkin.sign_date >= v_month_start
+      and checkin.sign_date < v_month_end;
+
+    return query select
+      true,
+      true,
+      v_today,
+      0,
+      v_points.points,
+      v_points.total_checkins,
+      v_points.current_streak,
+      v_monthly_checkins_after,
+      '今天已经签到过啦，明天再来见甘雨吧。'::text;
+    return;
+  end;
+
+  update public.boss_points
+  set
+    points = points + v_reward_points,
+    total_checkins = v_total_checkins_after,
+    current_streak = v_current_streak_after,
+    longest_streak = greatest(longest_streak, v_current_streak_after),
+    last_checkin_date = v_today,
+    updated_at = now()
+  where user_id = v_user_id
+  returning *
+  into v_points;
+
+  return query select
+    true,
+    false,
+    v_today,
+    v_reward_points,
+    v_points.points,
+    v_points.total_checkins,
+    v_points.current_streak,
+    v_monthly_checkins_after,
+    case
+      when v_monthly_checkins_after = 30 then '本月累计签到 30 天达成，今日获得 50 积分。'
+      when v_current_streak_after = 7 then '连续签到 7 天达成，今日获得 20 积分。'
+      else '签到成功，今日获得 10 积分。'
+    end as message;
+end;
+$$;
+
+revoke all on function public.is_live_interaction_admin(uuid) from public;
+revoke all on function public.is_boss_account_blocked(uuid) from public;
+revoke all on function public.mask_admin_email(text) from public;
+revoke all on function public.get_own_boss_account_flags() from public;
+revoke all on function public.record_boss_site_visit(text) from public;
+revoke all on function public.admin_get_boss_users() from public;
+revoke all on function public.admin_adjust_boss_points(uuid, integer, text) from public;
+revoke all on function public.admin_set_boss_blocked(uuid, boolean, text) from public;
+revoke all on function public.admin_set_live_interaction_admin(uuid, boolean) from public;
+revoke all on function public.claim_boss_daily_checkin() from public;
+
+grant execute on function public.get_own_boss_account_flags() to authenticated;
+grant execute on function public.record_boss_site_visit(text) to authenticated;
+grant execute on function public.admin_get_boss_users() to authenticated;
+grant execute on function public.admin_adjust_boss_points(uuid, integer, text) to authenticated;
+grant execute on function public.admin_set_boss_blocked(uuid, boolean, text) to authenticated;
+grant execute on function public.admin_set_live_interaction_admin(uuid, boolean) to authenticated;
+grant execute on function public.claim_boss_daily_checkin() to authenticated;
+```

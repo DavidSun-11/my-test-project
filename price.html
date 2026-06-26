@@ -1901,11 +1901,13 @@ document.addEventListener("click", function (event) {
         });
     }
 
-    loadScript("assets/supabase-config.js?v=20260611-1").then(function () {
-        return loadScript("assets/price-reviews.js?v=20260624-boss-nickname-manage1");
+    loadScript("assets/supabase-client.js?v=20260626-boss-admin1").then(function () {
+        return loadScript("assets/price-reviews.js?v=20260626-boss-admin1");
+    }).then(function () {
+        return loadScript("assets/boss-visit.js?v=20260626-boss-admin1");
     });
 })();
 </script>
-<script src="assets/live2d-loader.js?v=20260624-music-tracks1" data-live2d-autoload="manual"></script>
+<script src="assets/live2d-loader.js?v=20260626-boss-admin1" data-live2d-autoload="manual"></script>
 </body>
 </html>

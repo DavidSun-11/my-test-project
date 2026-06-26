@@ -22,6 +22,7 @@
     const CHECKIN_SETUP_ERROR_TEXT = "签到功能还需要执行数据库升级 SQL。";
     const CHECKIN_NETWORK_ERROR_TEXT = "签到暂时没有连上星湖，稍后再试一次。";
     const CHECKIN_ALREADY_SIGNED_TEXT = "今天已经签到过啦，明天再来见甘雨吧。";
+    const BLOCKED_INTERACTION_TEXT = "当前账号暂时不能参与互动，如有疑问可以联系君雪。";
     let scoreGuessRealtimeChannels = [];
     let scoreGuessRealtimeWarningShown = false;
     let scoreGuessState = {
@@ -482,7 +483,7 @@
     function ensureOpeningBubbleStyles() {
         const existingStyle = document.getElementById("live2d-opening-bubble-style");
         if (existingStyle) {
-            if (existingStyle.textContent && existingStyle.textContent.indexOf("20260626-live2d-menu-state-fix1") !== -1) {
+            if (existingStyle.textContent && existingStyle.textContent.indexOf("20260626-boss-admin1") !== -1) {
                 return;
             }
             existingStyle.remove();
@@ -491,7 +492,7 @@
         const style = document.createElement("style");
         style.id = "live2d-opening-bubble-style";
         style.textContent = [
-            "/* 20260626-live2d-menu-state-fix1 */",
+            "/* 20260626-boss-admin1 */",
             ".live2d-quiz{position:fixed;left:252px;top:160px;right:auto;bottom:auto;z-index:63;}",
             ".live2d-opening-bubble{position:fixed;left:252px;top:160px;z-index:61;width:min(328px,calc(100vw - 32px));padding:12px 14px;border:1px solid rgba(255,236,245,.88);border-radius:16px;background:rgba(255,178,211,.76);box-shadow:0 0 22px rgba(255,142,196,.38),inset 0 0 14px rgba(255,255,255,.16);backdrop-filter:blur(10px);color:rgba(92,28,58,.96);font-size:14px;line-height:1.55;letter-spacing:0;pointer-events:none;opacity:0;transform:translateY(8px);transition:opacity .35s ease,transform .35s ease;}",
             ".live2d-opening-bubble.is-open{opacity:1;transform:translateY(0);}",
@@ -1832,11 +1833,62 @@
             }
         }
 
+        async function getSharedSupabaseClient() {
+            try {
+                if (!window.JunxueSupabaseClient || typeof window.JunxueSupabaseClient.getClient !== "function") {
+                    await loadExternalScript("assets/supabase-client.js?v=20260626-boss-admin1").catch(function () {});
+                }
+
+                if (window.JunxueSupabaseClient && typeof window.JunxueSupabaseClient.getClient === "function") {
+                    return await window.JunxueSupabaseClient.getClient();
+                }
+            } catch (error) {
+                console.warn("[JunxueLive2D] shared Supabase client unavailable, falling back.", error);
+            }
+
+            return null;
+        }
+
+        function isBlockedInteractionError(error) {
+            const message = error && error.message ? String(error.message) : "";
+            return message === BLOCKED_INTERACTION_TEXT ||
+                /account.*blocked|blocked.*account|账号.*暂时不能参与互动|row-level security|violates row-level security|policy/i.test(message);
+        }
+
+        async function ensureBossAccountNotBlocked(activeClient) {
+            if (!activeClient || typeof activeClient.rpc !== "function") {
+                return { isBlocked: false };
+            }
+
+            const response = await activeClient.rpc("get_own_boss_account_flags", {});
+
+            if (response.error) {
+                if (/get_own_boss_account_flags|schema cache|function .* does not exist/i.test(response.error.message || "")) {
+                    return { isBlocked: false };
+                }
+                throw response.error;
+            }
+
+            const row = Array.isArray(response.data) ? response.data[0] : response.data;
+
+            if (row && (row.is_blocked || row.isBlocked)) {
+                throw new Error(BLOCKED_INTERACTION_TEXT);
+            }
+
+            return { isBlocked: false };
+        }
+
         async function ensureBossRegisterClient() {
             await loadExternalScript("assets/supabase-config.js?v=20260611-1").catch(function () {});
 
             if (!hasBossRegisterConfig()) {
                 throw new Error("老板账号注册暂未配置，请稍后再试。");
+            }
+
+            const sharedClient = await getSharedSupabaseClient();
+
+            if (sharedClient) {
+                return sharedClient;
             }
 
             await loadSupabaseSdk();
@@ -1971,8 +2023,9 @@
 
 
         async function ensureBossReviewsApi() {
+            await loadExternalScript("assets/supabase-client.js?v=20260626-boss-admin1").catch(function () {});
             await loadExternalScript("assets/supabase-config.js?v=20260611-1").catch(function () {});
-            await loadExternalScript("assets/price-reviews.js?v=20260626-live2d-menu-state-fix1");
+            await loadExternalScript("assets/price-reviews.js?v=20260626-boss-admin1");
 
             if (!window.JunxueBossReviews) {
                 throw new Error("老板评价系统暂未配置，请稍后再来～");
@@ -2293,6 +2346,7 @@
         }
 
         async function claimBossDailyCheckin(client) {
+            await ensureBossAccountNotBlocked(client);
             const response = await client.rpc("claim_boss_daily_checkin", {});
 
             if (response.error) {
@@ -2374,7 +2428,7 @@
                             } catch (loadError) {}
                         }
 
-                        result.textContent = isCheckinSetupError(error) ? CHECKIN_SETUP_ERROR_TEXT : CHECKIN_NETWORK_ERROR_TEXT;
+                        result.textContent = isBlockedInteractionError(error) ? BLOCKED_INTERACTION_TEXT : (isCheckinSetupError(error) ? CHECKIN_SETUP_ERROR_TEXT : CHECKIN_NETWORK_ERROR_TEXT);
                         result.className = "live2d-quiz__result is-warning";
                         claimButton.disabled = false;
                     }
@@ -2391,7 +2445,7 @@
                     const nextStatus = await loadBossDailyCheckinStatus(client);
                     renderCheckinStatusPanel(client, safeName, nextStatus, "签到状态已刷新。", "is-good");
                 } catch (error) {
-                    result.textContent = isCheckinSetupError(error) ? CHECKIN_SETUP_ERROR_TEXT : CHECKIN_NETWORK_ERROR_TEXT;
+                    result.textContent = isBlockedInteractionError(error) ? BLOCKED_INTERACTION_TEXT : (isCheckinSetupError(error) ? CHECKIN_SETUP_ERROR_TEXT : CHECKIN_NETWORK_ERROR_TEXT);
                     result.className = "live2d-quiz__result is-warning";
                     refreshButton.disabled = false;
                 }
@@ -2471,6 +2525,12 @@
 
             if (!hasBossRegisterConfig()) {
                 throw new Error("评分竞猜暂时还没有配置好，请稍后再试。");
+            }
+
+            const sharedClient = await getSharedSupabaseClient();
+
+            if (sharedClient) {
+                return sharedClient;
             }
 
             await loadSupabaseSdk();
@@ -3148,6 +3208,8 @@
             }
 
             try {
+                await ensureBossAccountNotBlocked(scoreGuessState.client);
+
                 const response = await scoreGuessState.client
                     .from("live_score_guess_votes")
                     .upsert({
@@ -3164,9 +3226,9 @@
                 await refreshScoreGuessPanel("你选择了：" + choice + "。", "is-good");
             } catch (error) {
                 console.error("[JunxueScoreGuess] vote failed.", error);
-                const message = /closed|status/i.test(error.message || "") ?
+                const message = isBlockedInteractionError(error) ? BLOCKED_INTERACTION_TEXT : (/closed|status/i.test(error.message || "") ?
                     "竞猜已经结束，不能再修改选择啦～" :
-                    "评分竞猜暂时加载失败，可能是网络不稳定，请稍后再试。";
+                    "评分竞猜暂时加载失败，可能是网络不稳定，请稍后再试。");
                 result.textContent = message;
                 result.className = "live2d-quiz__result is-warning";
             }

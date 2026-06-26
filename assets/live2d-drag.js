@@ -17,6 +17,7 @@
     const FRAME_SELECTOR = "#ganyu-live2d-frame";
     const HIT_AREA_SELECTOR = ".live2d-hit-area";
     const STATIC_CARD_SELECTOR = ".ganyu-static-card";
+    const MENU_REQUEST_EVENT = "junxue-live2d-open-menu-request";
     const BUTTON_CLASS = "live2d-drag-button";
     const DRAG_THRESHOLD = 8;
     const STAGE_Z_INDEX = 55;
@@ -377,6 +378,28 @@
         suppressNextClickUntil = Date.now() + CLICK_SUPPRESS_MS;
     }
 
+    function requestMenuFromTap(event, target) {
+        if (!target || event.type !== "pointerup") {
+            return;
+        }
+
+        if (event && typeof event.preventDefault === "function") {
+            event.preventDefault();
+        }
+
+        if (event && typeof event.stopPropagation === "function") {
+            event.stopPropagation();
+        }
+
+        markSuppressNextClick();
+        target.dispatchEvent(new CustomEvent(MENU_REQUEST_EVENT, {
+            bubbles: true,
+            detail: {
+                source: "live2d-drag-tap"
+            }
+        }));
+    }
+
     function shouldIgnoreMenuEvent(event) {
         if (Date.now() > suppressNextClickUntil) {
             return false;
@@ -489,6 +512,8 @@
                 }
             }));
             playDragEndAnimation();
+        } else {
+            requestMenuFromTap(event, captureTarget);
         }
 
         dragState = null;

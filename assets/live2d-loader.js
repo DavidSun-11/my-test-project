@@ -1,8 +1,8 @@
 /* Lightweight Live2D loader: desktop keeps dynamic Ganyu, mobile uses a stable static fallback first. */
 (function () {
     const WIDGET_SCRIPT = "live2d/live2d-widget.js?v=20260613-5";
-    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260626-home-mobile-entry-polish2";
-    const DRAG_SCRIPT = "assets/live2d-drag.js?v=20260626-home-mobile-entry-polish2";
+    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260627-live2d-smooth-menu-tap1";
+    const DRAG_SCRIPT = "assets/live2d-drag.js?v=20260627-live2d-smooth-menu-tap1";
     const FRAME_HOST_SRC = "live2d/ganyu-host.html?v=20260613-iframe1";
     const STATIC_WEBP = "assets/images/price-ganyu-showcase.webp";
     const STATIC_PNG = "assets/images/price-ganyu-showcase.png";
@@ -10,6 +10,7 @@
     const AUTOLOAD_DELAY_MS = 1200;
     const STORAGE_KEY = "junxue-live2d-stage-position";
     const LEGACY_STORAGE_KEY = "ganyuLive2DPosition";
+    const MENU_REQUEST_EVENT = "junxue-live2d-open-menu-request";
     const currentScript = document.currentScript;
     const autoloadMode = currentScript ? currentScript.getAttribute("data-live2d-autoload") : "manual";
     const performanceMode = window.JunxuePerformanceMode;
@@ -711,10 +712,6 @@
     }
 
     function openStaticGanyuMenu(event) {
-        if (!isIframeMobileMode()) {
-            return;
-        }
-
         if (window.JunxueLive2DDrag && typeof window.JunxueLive2DDrag.shouldIgnoreMenuEvent === "function" && window.JunxueLive2DDrag.shouldIgnoreMenuEvent(event)) {
             return;
         }
@@ -733,6 +730,22 @@
                 window.Live2DInteractiveMenu.open(event);
             }
         }).catch(function () {});
+    }
+
+    function isGanyuMenuRequestTarget(target) {
+        if (!target || !target.closest) {
+            return false;
+        }
+
+        return !!target.closest(".ganyu-static-card,#ganyu-live2d-frame-shell,.live2d-hit-area,#oml2d-canvas,#oml2d-stage");
+    }
+
+    function handleGanyuMenuRequest(event) {
+        if (!event || !isGanyuMenuRequestTarget(event.target)) {
+            return;
+        }
+
+        openStaticGanyuMenu();
     }
 
     function startLoadTimeout() {
@@ -1079,6 +1092,7 @@
     loaderState.tryDynamic = tryDynamicGanyu;
     loaderState.showStaticFallback = showStaticFallback;
     loaderState.isIframeMobile = isIframeMobileMode;
+    window.addEventListener(MENU_REQUEST_EVENT, handleGanyuMenuRequest);
 
     if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", init, { once: true });

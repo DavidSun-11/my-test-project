@@ -6,7 +6,7 @@
 
     window.__JUNXUE_LIVE2D_INTERACTIONS_INSTALLED__ = true;
 
-    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260626-contact-register-entry1";
+    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260626-home-mobile-entry-polish1";
     if (typeof window.enableGanyuMemory !== "boolean") {
         window.enableGanyuMemory = true;
     }

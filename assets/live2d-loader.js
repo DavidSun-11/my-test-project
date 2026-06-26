@@ -1,8 +1,8 @@
 /* Lightweight Live2D loader: desktop keeps dynamic Ganyu, mobile uses a stable static fallback first. */
 (function () {
     const WIDGET_SCRIPT = "live2d/live2d-widget.js?v=20260613-5";
-    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260626-contact-register-entry1";
-    const DRAG_SCRIPT = "assets/live2d-drag.js?v=20260626-static-ganyu-drag1";
+    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260626-home-mobile-entry-polish1";
+    const DRAG_SCRIPT = "assets/live2d-drag.js?v=20260626-home-mobile-entry-polish1";
     const FRAME_HOST_SRC = "live2d/ganyu-host.html?v=20260613-iframe1";
     const STATIC_WEBP = "assets/images/price-ganyu-showcase.webp";
     const STATIC_PNG = "assets/images/price-ganyu-showcase.png";
@@ -71,7 +71,7 @@
             "#ganyu-live2d-frame-shell:focus,#ganyu-live2d-frame:focus,#ganyu-live2d-frame-shell>.live2d-hit-area:focus{outline:none!important;box-shadow:none!important;}",
             "body.live2d-hidden #live2d-widget,body.live2d-hidden #oml2d-stage,body.live2d-hidden #oml2d-canvas,body.live2d-hidden #oml2d-tips,body.live2d-hidden #ganyu-live2d-frame-shell,body.live2d-hidden .live2d-hit-area,body.live2d-hidden .ganyu-static-card{display:none!important;}",
             "html.performance-low .live2d-load-control__button,html.performance-low .live2d-load-control__status,html.performance-low .ganyu-static-card{backdrop-filter:none;box-shadow:inset 0 0 8px rgba(255,255,255,.05);}",
-            "@media(max-width:768px){.live2d-load-control{left:12px;bottom:88px}.live2d-load-control__button{min-height:34px;padding:0 13px;font-size:12px}.live2d-load-control__status{max-width:min(78vw,240px);font-size:12px;}#ganyu-live2d-frame-shell{left:10px;bottom:max(88px,calc(env(safe-area-inset-bottom) + 86px));width:min(54vw,204px);height:min(60vh,376px);}.ganyu-static-card{left:12px;bottom:max(132px,calc(env(safe-area-inset-bottom) + 130px));width:clamp(154px,48vw,210px);}}"
+            "@media(max-width:768px){.live2d-load-control{left:12px;bottom:max(116px,calc(env(safe-area-inset-bottom) + 104px));}.live2d-load-control__button{min-height:36px;padding:0 14px;font-size:12px}.live2d-load-control__status{max-width:min(78vw,240px);font-size:12px;}#ganyu-live2d-frame-shell{left:10px;bottom:max(118px,calc(env(safe-area-inset-bottom) + 108px));width:min(58vw,226px);height:min(60vh,376px);}.ganyu-static-card{left:calc((100vw - min(78vw,320px))/2);bottom:max(142px,calc(env(safe-area-inset-bottom) + 132px));width:min(78vw,320px);max-width:calc(100vw - 32px);max-height:44vh;padding:10px;border-radius:20px;box-shadow:0 0 28px rgba(108,218,255,.34),0 16px 36px rgba(2,10,30,.28),inset 0 0 18px rgba(255,255,255,.13);}.ganyu-static-card__visual{min-height:122px;max-height:23vh;border-radius:16px;}.ganyu-static-card__visual picture,.ganyu-static-card__visual img{min-height:122px;max-height:23vh;}.ganyu-static-card__visual img{border-radius:16px;}.ganyu-static-card__body{gap:7px;padding:10px 5px 3px;}.ganyu-static-card__title{font-size:15px;}.ganyu-static-card__hint,.ganyu-static-card__status{font-size:12px;line-height:1.42;}.ganyu-static-card__dynamic{min-height:38px;padding:0 16px;font-size:12px;box-shadow:0 0 18px rgba(109,217,255,.28),inset 0 0 10px rgba(255,255,255,.1);}}"
         ].join("");
         document.head.appendChild(style);
     }
@@ -294,9 +294,9 @@
             '</div>',
             '<div class="ganyu-static-card__body">',
             '<strong class="ganyu-static-card__title">甘雨已在这里啦～</strong>',
-            '<span class="ganyu-static-card__hint">点我可以打开甘雨菜单～动态甘雨可以手动尝试。</span>',
+            '<span class="ganyu-static-card__hint">点我可以打开甘雨菜单～也可以拖动我换个位置。</span>',
             '<span class="ganyu-static-card__status" aria-live="polite"></span>',
-            '<button class="ganyu-static-card__dynamic" type="button">尝试动态甘雨</button>',
+            '<button class="ganyu-static-card__dynamic" type="button">尝试对话甘雨</button>',
             '</div>'
         ].join("");
 
@@ -332,7 +332,7 @@
         const button = card.querySelector(".ganyu-static-card__dynamic");
 
         status.textContent = message || "";
-        button.textContent = buttonText || (loaderState.dynamicAttempted ? "再试一次动态甘雨" : "尝试动态甘雨");
+        button.textContent = buttonText || (loaderState.dynamicAttempted ? "再试一次对话甘雨" : "尝试对话甘雨");
         button.disabled = !!loaderState.loading;
     }
 
@@ -345,7 +345,7 @@
         loaderState.loaded = false;
         loaderState.failed = false;
         document.body.classList.remove("live2d-hidden");
-        updateStaticCardStatus("", loaderState.dynamicAttempted ? "再试一次动态甘雨" : "尝试动态甘雨");
+        updateStaticCardStatus("", loaderState.dynamicAttempted ? "再试一次对话甘雨" : "尝试对话甘雨");
         updateRenderInfo();
         setControlState("loaded");
         loadStaticGanyuDrag();

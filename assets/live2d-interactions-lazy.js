@@ -23,6 +23,7 @@
     const CHECKIN_NETWORK_ERROR_TEXT = "签到暂时没有连上星湖，稍后再试一次。";
     const CHECKIN_ALREADY_SIGNED_TEXT = "今天已经签到过啦，明天再来见甘雨吧。";
     const BLOCKED_INTERACTION_TEXT = "当前账号暂时不能参与互动，如有疑问可以联系君雪。";
+    const BOSS_PROFILE_SCRIPT_LOAD_ERROR_TEXT = "老板资料脚本暂时没有加载完成，请刷新页面后再试。";
     let scoreGuessRealtimeChannels = [];
     let scoreGuessRealtimeWarningShown = false;
     let scoreGuessState = {
@@ -488,7 +489,7 @@
     function ensureOpeningBubbleStyles() {
         const existingStyle = document.getElementById("live2d-opening-bubble-style");
         if (existingStyle) {
-            if (existingStyle.textContent && existingStyle.textContent.indexOf("20260626-live2d-admin-entry1") !== -1) {
+            if (existingStyle.textContent && existingStyle.textContent.indexOf("20260626-boss-profile-script-fix1") !== -1) {
                 return;
             }
             existingStyle.remove();
@@ -497,7 +498,7 @@
         const style = document.createElement("style");
         style.id = "live2d-opening-bubble-style";
         style.textContent = [
-            "/* 20260626-live2d-admin-entry1 */",
+            "/* 20260626-boss-profile-script-fix1 */",
             ".live2d-quiz{position:fixed;left:252px;top:160px;right:auto;bottom:auto;z-index:63;}",
             ".live2d-opening-bubble{position:fixed;left:252px;top:160px;z-index:61;width:min(328px,calc(100vw - 32px));padding:12px 14px;border:1px solid rgba(255,236,245,.88);border-radius:16px;background:rgba(255,178,211,.76);box-shadow:0 0 22px rgba(255,142,196,.38),inset 0 0 14px rgba(255,255,255,.16);backdrop-filter:blur(10px);color:rgba(92,28,58,.96);font-size:14px;line-height:1.55;letter-spacing:0;pointer-events:none;opacity:0;transform:translateY(8px);transition:opacity .35s ease,transform .35s ease;}",
             ".live2d-opening-bubble.is-open{opacity:1;transform:translateY(0);}",
@@ -1827,11 +1828,20 @@
 
         function loadExternalScript(src) {
             return new Promise(function (resolve, reject) {
+                const scriptPath = getScriptPath(src);
                 const existing = Array.prototype.find.call(document.scripts, function (script) {
-                    return script.getAttribute("src") === src;
+                    return getScriptPath(script.getAttribute("src")) === scriptPath;
                 });
 
                 if (existing) {
+                    if (existing.dataset && existing.dataset.junxueLoading === "true") {
+                        existing.addEventListener("load", resolve, { once: true });
+                        existing.addEventListener("error", function () {
+                            reject(new Error("script-load-failed: " + src));
+                        }, { once: true });
+                        return;
+                    }
+
                     resolve();
                     return;
                 }
@@ -1840,13 +1850,34 @@
 
                 script.src = src;
                 script.async = true;
-                script.onload = resolve;
+                script.dataset.junxueLoading = "true";
+                script.onload = function () {
+                    script.dataset.junxueLoading = "false";
+                    script.dataset.junxueLoaded = "true";
+                    resolve();
+                };
                 script.onerror = function () {
+                    script.dataset.junxueLoading = "false";
                     script.remove();
-                    reject(new Error("script-load-failed"));
+                    reject(new Error("script-load-failed: " + src));
                 };
                 document.head.appendChild(script);
             });
+        }
+
+        function getScriptPath(src) {
+            const value = String(src || "");
+            const cleanValue = value.split("#")[0].split("?")[0];
+
+            if (!cleanValue) {
+                return "";
+            }
+
+            try {
+                return new URL(cleanValue, window.location.href).pathname;
+            } catch (error) {
+                return cleanValue;
+            }
         }
 
         async function loadSupabaseSdk() {
@@ -2061,12 +2092,17 @@
 
 
         async function ensureBossReviewsApi() {
-            await loadExternalScript("assets/supabase-client.js?v=20260626-boss-admin1").catch(function () {});
-            await loadExternalScript("assets/supabase-config.js?v=20260611-1").catch(function () {});
-            await loadExternalScript("assets/price-reviews.js?v=20260626-boss-admin1");
+            try {
+                await loadExternalScript("assets/supabase-client.js?v=20260626-boss-admin1").catch(function () {});
+                await loadExternalScript("assets/supabase-config.js?v=20260611-1").catch(function () {});
+                await loadExternalScript("assets/price-reviews.js?v=20260626-boss-profile-script-fix1");
+            } catch (error) {
+                console.warn("[JunxueBossProfile] boss profile script load failed.", error);
+                throw new Error(BOSS_PROFILE_SCRIPT_LOAD_ERROR_TEXT);
+            }
 
             if (!window.JunxueBossReviews) {
-                throw new Error("老板评价系统暂未配置，请稍后再来～");
+                throw new Error("老板资料脚本已加载，但初始化暂时失败，请刷新页面后再试。");
             }
 
             return window.JunxueBossReviews;

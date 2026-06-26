@@ -6,7 +6,7 @@
 
     window.__JUNXUE_LIVE2D_INTERACTIONS_INSTALLED__ = true;
 
-    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260626-home-boss-status-guide1";
+    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260626-home-mobile-hero-balance1";
     if (typeof window.enableGanyuMemory !== "boolean") {
         window.enableGanyuMemory = true;
     }

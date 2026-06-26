@@ -867,6 +867,7 @@
             }
         }
 
+        /* 20260626-home-mobile-hero-balance1 */
         @media (max-width: 768px) {
             .home-bg-video {
                 display: none;
@@ -937,9 +938,10 @@
             }
 
             .home-hero {
-                min-height: 100svh;
-                padding: 86px 18px 184px;
+                min-height: 68svh;
+                padding: 72px 18px 118px;
                 align-items: flex-start;
+                justify-content: flex-start;
             }
 
             .home-hero::before {
@@ -952,15 +954,15 @@
             }
 
             .home-hero__content {
-                width: min(86vw, 540px);
-                max-width: 86vw;
+                width: min(82vw, 500px);
+                max-width: 82vw;
             }
 
             .hero-title-art {
                 width: 100%;
                 margin-left: 0;
                 margin-top: 0;
-                transform: translateY(-4px) scale(0.86);
+                transform: translateY(-10px) scale(0.76);
                 transform-origin: top center;
             }
 
@@ -974,8 +976,8 @@
 
             .home-title {
                 max-width: 100%;
-                font-size: clamp(26px, 8.4vw, 40px);
-                line-height: 1.18;
+                font-size: clamp(24px, 7.6vw, 36px);
+                line-height: 1.12;
                 letter-spacing: 0.03em;
                 -webkit-text-stroke-width: 0.45px;
                 text-shadow:
@@ -1002,37 +1004,42 @@
             }
 
             .home-title::after {
-                width: min(250px, 62vw);
-                height: 34px;
-                margin-top: 2px;
+                width: min(230px, 58vw);
+                height: 22px;
+                margin-top: -1px;
             }
 
             .home-nav {
                 left: 50%;
                 right: auto;
-                bottom: max(14px, env(safe-area-inset-bottom));
-                width: min(92vw, 420px);
+                bottom: max(20px, calc(env(safe-area-inset-bottom) + 14px));
+                width: min(92vw, 440px);
                 grid-template-columns: repeat(2, minmax(0, 1fr));
-                gap: 10px;
+                gap: 12px;
                 padding: 0;
                 transform: translateX(-50%);
             }
 
             .home-nav a {
                 width: 100%;
-                min-height: 38px;
+                min-height: 52px;
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
-                padding: 0 8px;
-                border: 1px solid rgba(108, 229, 255, 0.28);
-                border-radius: 12px;
-                background: rgba(6, 22, 44, 0.5);
-                font-size: 13px;
-                line-height: 1.25;
+                padding: 10px 12px;
+                border: 1px solid rgba(134, 231, 255, 0.42);
+                border-radius: 14px;
+                background:
+                    radial-gradient(circle at 18% 0%, rgba(128, 221, 255, 0.18), transparent 42%),
+                    linear-gradient(145deg, rgba(7, 24, 48, 0.68), rgba(31, 52, 88, 0.58));
+                box-shadow:
+                    0 0 18px rgba(95, 205, 255, 0.14),
+                    inset 0 0 12px rgba(255, 255, 255, 0.08);
+                font-size: 14px;
+                line-height: 1.28;
                 text-align: center;
                 box-sizing: border-box;
-                backdrop-filter: blur(5px);
+                backdrop-filter: blur(8px);
             }
 
             .home-nav a::after {
@@ -1066,21 +1073,33 @@
 
         @media (max-width: 640px) {
             .home-hero {
-                padding: 96px 16px 232px;
+                min-height: 62svh;
+                padding: 70px 16px 112px;
             }
 
             .home-hero__content {
-                width: min(88vw, 480px);
-                max-width: 88vw;
+                width: min(80vw, 430px);
+                max-width: 80vw;
             }
 
             .hero-title-art {
                 opacity: 0.82;
-                transform: translateY(-2px) scale(0.78);
+                transform: translateY(-12px) scale(0.68);
             }
 
             .hero-title-svg .hero-title-svg__glow {
                 opacity: 0.32;
+            }
+
+            .home-nav {
+                width: min(92vw, 390px);
+                gap: 10px;
+            }
+
+            .home-nav a {
+                min-height: 54px;
+                padding: 11px 10px;
+                font-size: 14px;
             }
         }
 
@@ -1458,7 +1477,7 @@ document.addEventListener("click", (e) => {
 </script>
 <script src="assets/supabase-client.js?v=20260626-boss-admin1"></script>
 <script src="assets/boss-visit.js?v=20260626-boss-admin1"></script>
-<script src="assets/live2d-loader.js?v=20260626-home-boss-status-guide1" data-live2d-autoload="home"></script>
-<script src="assets/home-boss-status-guide.js?v=20260626-home-boss-status-guide1"></script>
+<script src="assets/live2d-loader.js?v=20260626-home-mobile-hero-balance1" data-live2d-autoload="home"></script>
+<script src="assets/home-boss-status-guide.js?v=20260626-home-mobile-hero-balance1"></script>
 </body>
 </html>

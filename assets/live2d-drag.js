@@ -34,6 +34,12 @@
     let suppressNextClickUntil = 0;
     let resizeFrame = 0;
 
+    function debugMobile(message) {
+        if (window.console && typeof window.console.debug === "function") {
+            window.console.debug("[live2d-mobile] " + message);
+        }
+    }
+
     function onReady(callback) {
         if (document.readyState === "loading") {
             document.addEventListener("DOMContentLoaded", callback, { once: true });
@@ -392,25 +398,16 @@
         }
 
         markSuppressNextClick();
-        if (window.console && typeof window.console.debug === "function") {
-            window.console.debug("[live2d-mobile] drag tap requests menu");
-        }
-
-        if (window.JunxueLive2DLoader && typeof window.JunxueLive2DLoader.openMenuFromStaticCard === "function") {
-            window.JunxueLive2DLoader.openMenuFromStaticCard(event, {
-                source: "live2d-drag-tap",
-                bypassSuppress: true
-            });
-            return;
-        }
-
         target.dispatchEvent(new CustomEvent(MENU_REQUEST_EVENT, {
             bubbles: true,
             detail: {
-                source: "live2d-drag-tap",
-                bypassSuppress: true
+                source: "live2d-drag-tap"
             }
         }));
+
+        if (window.JunxueLive2DLoader && typeof window.JunxueLive2DLoader.openMenuFromStaticCard === "function") {
+            window.JunxueLive2DLoader.openMenuFromStaticCard();
+        }
     }
 
     function shouldIgnoreMenuEvent(event) {
@@ -426,6 +423,7 @@
             event.stopPropagation();
         }
 
+        debugMobile("ignore ghost click after drag");
         return true;
     }
 
@@ -508,6 +506,7 @@
             dragState.started = true;
             dragState.moved = true;
             setDragging(true);
+            debugMobile("static drag start");
             window.dispatchEvent(new CustomEvent("live2d-stage-drag-started", {
                 detail: {
                     position: currentPosition || dragState.startPosition,
@@ -518,6 +517,7 @@
 
         event.preventDefault();
         event.stopPropagation();
+        debugMobile("static drag move");
         scheduleDragPosition({
             left: dragState.startPosition.left + deltaX,
             top: dragState.startPosition.top + deltaY
@@ -557,6 +557,7 @@
                 }
             }));
             playDragEndAnimation();
+            debugMobile("static drag end");
         } else {
             requestMenuFromTap(event, captureTarget);
         }

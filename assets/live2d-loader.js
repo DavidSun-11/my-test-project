@@ -1,8 +1,8 @@
 /* Lightweight Live2D loader: desktop keeps dynamic Ganyu, mobile uses a stable static fallback first. */
 (function () {
     const WIDGET_SCRIPT = "live2d/live2d-widget.js?v=20260613-5";
-    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260627-static-ganyu-suppress1";
-    const DRAG_SCRIPT = "assets/live2d-drag.js?v=20260627-static-ganyu-suppress1";
+    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260627-static-ganyu-drag-button1";
+    const DRAG_SCRIPT = "assets/live2d-drag.js?v=20260627-static-ganyu-drag-button1";
     const FRAME_HOST_SRC = "live2d/ganyu-host.html?v=20260613-iframe1";
     const STATIC_WEBP = "assets/images/price-ganyu-showcase.webp";
     const STATIC_PNG = "assets/images/price-ganyu-showcase.png";
@@ -789,15 +789,23 @@
 
     function openStaticMenuFromDelegatedEvent(event, trigger) {
         const source = trigger && trigger.action === "button" ? "open button clicked" : "static card pointerup";
+        const isButtonTrigger = trigger && trigger.action === "button";
 
         debugStaticMenu(source);
+        if (isButtonTrigger) {
+            debugStaticMenu("static button clicked");
+            debugStaticMenu("open menu from static button");
+        }
         lastDelegatedStaticOpenAt = Date.now();
 
         if (event && typeof event.preventDefault === "function") {
             event.preventDefault();
         }
 
-        requestOpenLive2DMenuFromStaticCard(event);
+        requestOpenLive2DMenuFromStaticCard(event, isButtonTrigger ? {
+            source: "static-open-button",
+            bypassSuppress: true
+        } : undefined);
     }
 
     function handleStaticMenuPointerDown(event) {
@@ -865,7 +873,10 @@
         if (event && typeof event.stopPropagation === "function") {
             event.stopPropagation();
         }
-        requestOpenLive2DMenuFromStaticCard(event);
+        requestOpenLive2DMenuFromStaticCard(event, trigger.action === "button" ? {
+            source: "static-open-button",
+            bypassSuppress: true
+        } : undefined);
     }
 
     function installStaticMenuDelegate() {
@@ -899,7 +910,7 @@
         const bypassSuppress = settings.bypassSuppress === true;
 
         if (bypassSuppress) {
-            debugStaticMenu("bypass suppress for drag tap");
+            debugStaticMenu(settings.source === "static-open-button" ? "bypass suppress for static button" : "bypass suppress for drag tap");
         }
 
         if (!bypassSuppress && window.JunxueLive2DDrag && typeof window.JunxueLive2DDrag.shouldIgnoreMenuEvent === "function" && window.JunxueLive2DDrag.shouldIgnoreMenuEvent(event)) {

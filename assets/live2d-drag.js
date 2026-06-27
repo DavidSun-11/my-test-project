@@ -392,16 +392,25 @@
         }
 
         markSuppressNextClick();
+        if (window.console && typeof window.console.debug === "function") {
+            window.console.debug("[live2d-mobile] drag tap requests menu");
+        }
+
+        if (window.JunxueLive2DLoader && typeof window.JunxueLive2DLoader.openMenuFromStaticCard === "function") {
+            window.JunxueLive2DLoader.openMenuFromStaticCard(event, {
+                source: "live2d-drag-tap",
+                bypassSuppress: true
+            });
+            return;
+        }
+
         target.dispatchEvent(new CustomEvent(MENU_REQUEST_EVENT, {
             bubbles: true,
             detail: {
-                source: "live2d-drag-tap"
+                source: "live2d-drag-tap",
+                bypassSuppress: true
             }
         }));
-
-        if (window.JunxueLive2DLoader && typeof window.JunxueLive2DLoader.openMenuFromStaticCard === "function") {
-            window.JunxueLive2DLoader.openMenuFromStaticCard();
-        }
     }
 
     function shouldIgnoreMenuEvent(event) {

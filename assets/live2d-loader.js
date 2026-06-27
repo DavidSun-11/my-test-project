@@ -1,8 +1,8 @@
 /* Lightweight Live2D loader: desktop keeps dynamic Ganyu, mobile uses a stable static fallback first. */
 (function () {
     const WIDGET_SCRIPT = "live2d/live2d-widget.js?v=20260613-5";
-    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260627-home-performance1";
-    const DRAG_SCRIPT = "assets/live2d-drag.js?v=20260627-home-performance1";
+    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260627-static-ganyu-suppress1";
+    const DRAG_SCRIPT = "assets/live2d-drag.js?v=20260627-static-ganyu-suppress1";
     const FRAME_HOST_SRC = "live2d/ganyu-host.html?v=20260613-iframe1";
     const STATIC_WEBP = "assets/images/price-ganyu-showcase.webp";
     const STATIC_PNG = "assets/images/price-ganyu-showcase.png";
@@ -879,18 +879,31 @@
         document.addEventListener("click", handleStaticMenuClick, true);
     }
 
-    function requestOpenLive2DMenuFromStaticCard(event) {
+    function requestOpenLive2DMenuFromStaticCard(event, options) {
+        const settings = options || {};
+
+        debugStaticMenu("static menu open requested");
+
         if (shouldDeduplicateStaticMenuTrigger()) {
+            debugStaticMenu("static menu open ignored: drag/ghost click");
             return;
         }
 
         debugStaticMenu("static card menu trigger");
 
-        openStaticGanyuMenu(event);
+        openStaticGanyuMenu(event, settings);
     }
 
-    function openStaticGanyuMenu(event) {
-        if (window.JunxueLive2DDrag && typeof window.JunxueLive2DDrag.shouldIgnoreMenuEvent === "function" && window.JunxueLive2DDrag.shouldIgnoreMenuEvent(event)) {
+    function openStaticGanyuMenu(event, options) {
+        const settings = options || {};
+        const bypassSuppress = settings.bypassSuppress === true;
+
+        if (bypassSuppress) {
+            debugStaticMenu("bypass suppress for drag tap");
+        }
+
+        if (!bypassSuppress && window.JunxueLive2DDrag && typeof window.JunxueLive2DDrag.shouldIgnoreMenuEvent === "function" && window.JunxueLive2DDrag.shouldIgnoreMenuEvent(event)) {
+            debugStaticMenu("static menu open ignored: drag/ghost click");
             return;
         }
 
@@ -905,11 +918,13 @@
 
             if (window.JunxueGanyuLazy && typeof window.JunxueGanyuLazy.openMenu === "function") {
                 window.JunxueGanyuLazy.openMenu();
+                debugStaticMenu("static menu opened");
                 return;
             }
 
             if (window.Live2DInteractiveMenu && typeof window.Live2DInteractiveMenu.open === "function") {
                 window.Live2DInteractiveMenu.open();
+                debugStaticMenu("static menu opened");
             }
         }).catch(function (error) {
             debugStaticMenu("menu open failed: " + (error && error.message ? error.message : "load-failed"));
@@ -930,7 +945,7 @@
             return;
         }
 
-        requestOpenLive2DMenuFromStaticCard();
+        requestOpenLive2DMenuFromStaticCard(event, event.detail || {});
     }
 
     function startLoadTimeout() {

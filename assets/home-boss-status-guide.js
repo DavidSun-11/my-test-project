@@ -201,6 +201,10 @@
 
             if (client.auth && typeof client.auth.onAuthStateChange === "function") {
                 client.auth.onAuthStateChange(function (event) {
+                    if (event === "INITIAL_SESSION" || event === "TOKEN_REFRESHED") {
+                        return;
+                    }
+
                     if (event === "SIGNED_OUT") {
                         state.sessionReady = true;
                         state.loggedIn = false;

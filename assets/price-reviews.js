@@ -328,6 +328,15 @@
         }
     }
 
+    function rememberSharedSupabaseClient(activeClient) {
+        if (!activeClient) {
+            return;
+        }
+
+        window.__JUNXUE_SUPABASE_CLIENT_STATE__ = window.__JUNXUE_SUPABASE_CLIENT_STATE__ || {};
+        window.__JUNXUE_SUPABASE_CLIENT_STATE__.client = activeClient;
+    }
+
     async function ensureClient() {
         await loadScript("assets/supabase-config.js?v=20260611-1").catch(function () {});
 
@@ -338,9 +347,12 @@
         if (!client) {
             if (window.JunxueSupabaseClient && typeof window.JunxueSupabaseClient.getClient === "function") {
                 client = await window.JunxueSupabaseClient.getClient();
+            } else if (window.__JUNXUE_SUPABASE_CLIENT_STATE__ && window.__JUNXUE_SUPABASE_CLIENT_STATE__.client) {
+                client = window.__JUNXUE_SUPABASE_CLIENT_STATE__.client;
             } else {
                 await loadSupabaseSdk();
                 client = window.supabase.createClient(getConfigValue("SUPABASE_URL"), getConfigValue("SUPABASE_ANON_KEY"));
+                rememberSharedSupabaseClient(client);
             }
         }
 

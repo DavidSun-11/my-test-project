@@ -1409,10 +1409,24 @@ window.JunxueHomeEffects = Object.assign(window.JunxueHomeEffects || {}, {
     }
 });
 
+let cursorLightFrame = 0;
+let cursorLightX = 0;
+let cursorLightY = 0;
+
 if (!isLowPerformance && !isMobileViewport && light) {
     document.addEventListener("pointermove", (e) => {
-        light.style.left = e.clientX + "px";
-        light.style.top = e.clientY + "px";
+        cursorLightX = e.clientX;
+        cursorLightY = e.clientY;
+
+        if (cursorLightFrame) {
+            return;
+        }
+
+        cursorLightFrame = window.requestAnimationFrame(() => {
+            cursorLightFrame = 0;
+            light.style.left = cursorLightX + "px";
+            light.style.top = cursorLightY + "px";
+        });
     });
 }
 
@@ -1504,9 +1518,9 @@ document.addEventListener("click", (e) => {
         window.JunxuePerformanceMode.applyLive2DConfig(window.Live2DWidgetConfig);
     }
 </script>
-<script src="assets/supabase-client.js?v=20260626-boss-admin1"></script>
-<script src="assets/boss-visit.js?v=20260626-boss-admin1"></script>
-<script src="assets/live2d-loader.js?v=20260627-live2d-static-menu-delegate1" data-live2d-autoload="home"></script>
-<script src="assets/home-boss-status-guide.js?v=20260626-home-smooth-mobile-bg1"></script>
+<script src="assets/supabase-client.js?v=20260627-home-performance1"></script>
+<script src="assets/boss-visit.js?v=20260627-home-performance1"></script>
+<script src="assets/live2d-loader.js?v=20260627-home-performance1" data-live2d-autoload="home"></script>
+<script src="assets/home-boss-status-guide.js?v=20260627-home-performance1"></script>
 </body>
 </html>

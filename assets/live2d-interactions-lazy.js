@@ -491,7 +491,7 @@
     function ensureOpeningBubbleStyles() {
         const existingStyle = document.getElementById("live2d-opening-bubble-style");
         if (existingStyle) {
-            if (existingStyle.textContent && existingStyle.textContent.indexOf("20260627-live2d-static-menu-delegate1") !== -1) {
+            if (existingStyle.textContent && existingStyle.textContent.indexOf("20260627-home-performance1") !== -1) {
                 return;
             }
             existingStyle.remove();
@@ -500,7 +500,7 @@
         const style = document.createElement("style");
         style.id = "live2d-opening-bubble-style";
         style.textContent = [
-            "/* 20260627-live2d-static-menu-delegate1 */",
+            "/* 20260627-home-performance1 */",
             ".live2d-quiz{position:fixed;left:252px;top:160px;right:auto;bottom:auto;z-index:63;}",
             ".live2d-opening-bubble{position:fixed;left:252px;top:160px;z-index:61;width:min(328px,calc(100vw - 32px));padding:12px 14px;border:1px solid rgba(255,236,245,.88);border-radius:16px;background:rgba(255,178,211,.76);box-shadow:0 0 22px rgba(255,142,196,.38),inset 0 0 14px rgba(255,255,255,.16);backdrop-filter:blur(10px);color:rgba(92,28,58,.96);font-size:14px;line-height:1.55;letter-spacing:0;pointer-events:none;opacity:0;transform:translateY(8px);transition:opacity .35s ease,transform .35s ease;}",
             ".live2d-opening-bubble.is-open{opacity:1;transform:translateY(0);}",
@@ -1973,8 +1973,12 @@
 
         async function getSharedSupabaseClient() {
             try {
+                if (window.__JUNXUE_SUPABASE_CLIENT_STATE__ && window.__JUNXUE_SUPABASE_CLIENT_STATE__.client) {
+                    return window.__JUNXUE_SUPABASE_CLIENT_STATE__.client;
+                }
+
                 if (!window.JunxueSupabaseClient || typeof window.JunxueSupabaseClient.getClient !== "function") {
-                    await loadExternalScript("assets/supabase-client.js?v=20260626-boss-admin1").catch(function () {});
+                    await loadExternalScript("assets/supabase-client.js?v=20260627-home-performance1").catch(function () {});
                 }
 
                 if (window.JunxueSupabaseClient && typeof window.JunxueSupabaseClient.getClient === "function") {
@@ -1985,6 +1989,15 @@
             }
 
             return null;
+        }
+
+        function rememberSharedSupabaseClient(activeClient) {
+            if (!activeClient) {
+                return;
+            }
+
+            window.__JUNXUE_SUPABASE_CLIENT_STATE__ = window.__JUNXUE_SUPABASE_CLIENT_STATE__ || {};
+            window.__JUNXUE_SUPABASE_CLIENT_STATE__.client = activeClient;
         }
 
         function isBlockedInteractionError(error) {
@@ -2030,10 +2043,12 @@
             }
 
             await loadSupabaseSdk();
-            return window.supabase.createClient(
+            const fallbackClient = window.supabase.createClient(
                 getSupabaseConfigValue("SUPABASE_URL"),
                 getSupabaseConfigValue("SUPABASE_ANON_KEY")
             );
+            rememberSharedSupabaseClient(fallbackClient);
+            return fallbackClient;
         }
 
         function openBossRegisterPage() {
@@ -2162,9 +2177,9 @@
 
         async function ensureBossReviewsApi() {
             try {
-                await loadExternalScript("assets/supabase-client.js?v=20260626-boss-admin1").catch(function () {});
+                await loadExternalScript("assets/supabase-client.js?v=20260627-home-performance1").catch(function () {});
                 await loadExternalScript("assets/supabase-config.js?v=20260611-1").catch(function () {});
-                await loadExternalScript("assets/price-reviews.js?v=20260626-boss-nickname-bind1");
+                await loadExternalScript("assets/price-reviews.js?v=20260627-home-performance1");
             } catch (error) {
                 console.warn("[JunxueBossProfile] boss profile script load failed.", error);
                 throw new Error(BOSS_PROFILE_SCRIPT_LOAD_ERROR_TEXT);
@@ -2675,10 +2690,12 @@
             }
 
             await loadSupabaseSdk();
-            return window.supabase.createClient(
+            const fallbackClient = window.supabase.createClient(
                 getSupabaseConfigValue("SUPABASE_URL"),
                 getSupabaseConfigValue("SUPABASE_ANON_KEY")
             );
+            rememberSharedSupabaseClient(fallbackClient);
+            return fallbackClient;
         }
 
         async function getCurrentAuthDisplayName() {

@@ -442,6 +442,8 @@
                 left: rect.left,
                 top: rect.top
             }),
+            pendingPosition: null,
+            frame: 0,
             moved: false,
             started: false
         };
@@ -453,6 +455,31 @@
                 // Some mobile browsers may reject pointer capture for this target.
             }
         }
+    }
+
+    function flushDragPosition() {
+        if (!dragState || !dragState.pendingPosition) {
+            return;
+        }
+
+        const position = dragState.pendingPosition;
+        dragState.pendingPosition = null;
+        dragState.frame = 0;
+        applyStagePosition(position, false);
+    }
+
+    function scheduleDragPosition(position) {
+        if (!dragState) {
+            return;
+        }
+
+        dragState.pendingPosition = position;
+
+        if (dragState.frame) {
+            return;
+        }
+
+        dragState.frame = window.requestAnimationFrame(flushDragPosition);
     }
 
     function handlePointerMove(event) {
@@ -482,10 +509,10 @@
 
         event.preventDefault();
         event.stopPropagation();
-        applyStagePosition({
+        scheduleDragPosition({
             left: dragState.startPosition.left + deltaX,
             top: dragState.startPosition.top + deltaY
-        }, false);
+        });
     }
 
     function handlePointerEnd(event) {
@@ -507,6 +534,11 @@
         if (completedDrag) {
             event.preventDefault();
             event.stopPropagation();
+            if (dragState.frame) {
+                window.cancelAnimationFrame(dragState.frame);
+                dragState.frame = 0;
+            }
+            flushDragPosition();
             markSuppressNextClick();
             savePosition(currentPosition || dragState.startPosition);
             window.dispatchEvent(new CustomEvent("live2d-stage-drag-finished", {

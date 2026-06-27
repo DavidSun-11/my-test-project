@@ -1577,8 +1577,9 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="assets/consult-pages.css?v=20260627-consult-mobile-split1">
 </head>
-<body>
+<body class="consult-page consult-home-page">
 <div class="price-bg-overlay" aria-hidden="true"></div>
 <div class="cursor-light"></div>
 <div class="stars"></div>
@@ -1587,6 +1588,73 @@
 <div class="meteor-layer" aria-hidden="true"></div>
 
 <main class="price-page price-anchor-target" id="top">
+    <section class="consult-mobile-view consult-mobile-home" aria-label="收费咨询服务台">
+        <nav class="consult-glass-nav" aria-label="手机端收费咨询导航">
+            <a class="is-active" href="#boss-reviews" aria-label="查看老板评价">
+                <span class="consult-nav-icon" aria-hidden="true">✦</span>
+                <span>老板评价</span>
+            </a>
+            <a href="wangzhe-consult.html" aria-label="查看王者咨询">
+                <span class="consult-nav-icon" aria-hidden="true">♛</span>
+                <span>王者咨询</span>
+            </a>
+            <a href="yongjie-consult.html" aria-label="查看永劫咨询">
+                <span class="consult-nav-icon" aria-hidden="true">❄</span>
+                <span>永劫咨询</span>
+            </a>
+            <a href="index.html" aria-label="返回首页">
+                <span class="consult-nav-icon" aria-hidden="true">⌂</span>
+                <span>返回首页</span>
+            </a>
+        </nav>
+
+        <article class="consult-mobile-hero">
+            <div class="price-kicker">君雪陪玩服务台</div>
+            <h1>收费咨询</h1>
+            <p>下单前请先确认档期、区服、段位和服务需求。价格写清楚，体验也会认真照顾。</p>
+            <div class="consult-mobile-actions">
+                <a class="price-button" href="wangzhe-consult.html">查看王者价格</a>
+                <a class="price-button" href="yongjie-consult.html">查看永劫价格</a>
+            </div>
+        </article>
+
+        <section class="consult-mobile-panel" aria-labelledby="consult-promise-title">
+            <div class="price-section-head">
+                <div class="price-section-kicker">下单前先说清楚</div>
+                <h2 id="consult-promise-title">给老板的细节承诺</h2>
+            </div>
+            <div class="consult-mobile-chip-grid">
+                <div class="consult-mobile-chip"><strong>先确认需求</strong><span>不乱接单</span></div>
+                <div class="consult-mobile-chip"><strong>价格提前说清楚</strong><span>不临时加价</span></div>
+                <div class="consult-mobile-chip"><strong>可沟通英雄/位置</strong><span>按需求安排</span></div>
+                <div class="consult-mobile-chip"><strong>语音需求先确认</strong><span>轻松或认真都可以</span></div>
+                <div class="consult-mobile-chip"><strong>特殊情况可协商</strong><span>补单或退款</span></div>
+                <div class="consult-mobile-chip"><strong>认真陪玩</strong><span>体验优先</span></div>
+            </div>
+        </section>
+
+        <section class="consult-mobile-panel" aria-labelledby="consult-flow-title">
+            <div class="price-section-head">
+                <h2 id="consult-flow-title">下单前确认流程</h2>
+            </div>
+            <div class="consult-mobile-steps">
+                <div class="consult-mobile-step"><span>1</span><strong>确认区服和段位</strong></div>
+                <div class="consult-mobile-step"><span>2</span><strong>确认英雄 / 位置</strong></div>
+                <div class="consult-mobile-step"><span>3</span><strong>确认是否需要语音</strong></div>
+                <div class="consult-mobile-step"><span>4</span><strong>确认档期后下单</strong></div>
+            </div>
+        </section>
+
+        <section class="consult-mobile-review-callout" aria-label="老板评价入口">
+            <div>
+                <strong>想先看看老板评价？</strong>
+                <p>真实老板反馈会比君雪自己介绍更有说服力。</p>
+            </div>
+            <a class="price-button" href="#boss-reviews">查看老板评价</a>
+        </section>
+    </section>
+
+    <div class="consult-desktop-view">
     <nav class="price-topbar" aria-label="收费咨询导航">
         <div class="price-topbar-brand">君雪陪玩服务台</div>
         <div class="price-topbar-nav">
@@ -1710,6 +1778,7 @@
             </div>
         </article>
     </section>
+    </div>
 
     <section class="price-card is-review price-anchor-target" id="boss-reviews" aria-labelledby="review-title">
         <div class="price-review-heading">
@@ -1732,6 +1801,7 @@
         </div>
     </section>
 
+    <div class="consult-desktop-view">
     <section class="price-card is-info">
         <div class="price-section-head">
             <h2>服务说明</h2>
@@ -1744,6 +1814,7 @@
             <div class="price-rule-tile"><strong>下单提醒</strong>价格会根据实际段位、时段、状态微调。下单前请先联系确认档期。</div>
         </div>
     </section>
+    </div>
 </main>
 
 <script>
@@ -1908,6 +1979,7 @@ document.addEventListener("click", function (event) {
     });
 })();
 </script>
+<script src="assets/consult-pages.js?v=20260627-consult-mobile-split1"></script>
 <script src="assets/live2d-loader.js?v=20260627-home-performance1" data-live2d-autoload="manual"></script>
 </body>
 </html>

@@ -1,8 +1,8 @@
 /* Lightweight Live2D loader: desktop keeps dynamic Ganyu, mobile uses a stable static fallback first. */
 (function () {
     const WIDGET_SCRIPT = "live2d/live2d-widget.js?v=20260613-5";
-    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260627-live2d-smooth-menu-tap2";
-    const DRAG_SCRIPT = "assets/live2d-drag.js?v=20260627-live2d-smooth-menu-tap2";
+    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260627-live2d-static-menu-delegate1";
+    const DRAG_SCRIPT = "assets/live2d-drag.js?v=20260627-live2d-static-menu-delegate1";
     const FRAME_HOST_SRC = "live2d/ganyu-host.html?v=20260613-iframe1";
     const STATIC_WEBP = "assets/images/price-ganyu-showcase.webp";
     const STATIC_PNG = "assets/images/price-ganyu-showcase.png";
@@ -11,7 +11,10 @@
     const STORAGE_KEY = "junxue-live2d-stage-position";
     const LEGACY_STORAGE_KEY = "ganyuLive2DPosition";
     const MENU_REQUEST_EVENT = "junxue-live2d-open-menu-request";
+    const STATIC_CARD_SELECTOR = "[data-live2d-static-card='true'],.ganyu-static-card";
+    const STATIC_OPEN_SELECTOR = "[data-live2d-action='open-menu']";
     const STATIC_MENU_TRIGGER_DEDUPE_MS = 520;
+    const STATIC_TAP_DISTANCE_PX = 8;
     const currentScript = document.currentScript;
     const autoloadMode = currentScript ? currentScript.getAttribute("data-live2d-autoload") : "manual";
     const performanceMode = window.JunxuePerformanceMode;
@@ -29,6 +32,8 @@
         visible: false
     };
     let lastStaticMenuTriggerAt = 0;
+    let delegatedStaticPointer = null;
+    let lastDelegatedStaticOpenAt = 0;
 
     loaderState.mode = useIframeMobile ? "mobile-static" : "inline";
     loaderState.dynamicMode = useIframeMobile ? "iframe-mobile" : "inline";
@@ -248,6 +253,51 @@
         return document.querySelector(".ganyu-static-card");
     }
 
+    function debugStaticMenu(message) {
+        if (window.console && typeof window.console.debug === "function") {
+            window.console.debug("[live2d-mobile] " + message);
+        }
+    }
+
+    function getStaticMenuTrigger(target) {
+        if (!target || !target.closest) {
+            return null;
+        }
+
+        const action = target.closest(STATIC_OPEN_SELECTOR);
+        if (action) {
+            return {
+                node: action,
+                action: "button"
+            };
+        }
+
+        const card = target.closest(STATIC_CARD_SELECTOR);
+        if (card) {
+            return {
+                node: card,
+                action: "card"
+            };
+        }
+
+        return null;
+    }
+
+    function prepareStaticCardMenuTargets(card) {
+        if (!card) {
+            return;
+        }
+
+        card.setAttribute("data-live2d-static-card", "true");
+
+        const button = card.querySelector(".ganyu-static-card__dynamic");
+        if (button) {
+            button.setAttribute("data-live2d-action", "open-menu");
+            button.disabled = false;
+            button.removeAttribute("disabled");
+        }
+    }
+
     function ensureFrameShell() {
         let shell = getFrameShell();
 
@@ -281,12 +331,14 @@
         let card = getStaticCard();
 
         if (card) {
+            prepareStaticCardMenuTargets(card);
             return card;
         }
 
         injectStyles();
         card = document.createElement("section");
         card.className = "ganyu-static-card";
+        card.setAttribute("data-live2d-static-card", "true");
         card.setAttribute("aria-label", "甘雨静态看板");
         card.innerHTML = [
             '<div class="ganyu-static-card__visual">',
@@ -300,7 +352,7 @@
             '<strong class="ganyu-static-card__title">甘雨已在这里啦～</strong>',
             '<span class="ganyu-static-card__hint">点我可以打开甘雨菜单～也可以拖动我换个位置。</span>',
             '<span class="ganyu-static-card__status" aria-live="polite"></span>',
-            '<button class="ganyu-static-card__dynamic" type="button">尝试对话甘雨</button>',
+            '<button class="ganyu-static-card__dynamic" type="button" data-live2d-action="open-menu">尝试对话甘雨</button>',
             '</div>'
         ].join("");
 
@@ -315,10 +367,7 @@
             card.classList.add("is-image-failed");
         });
 
-        const dynamicButton = card.querySelector(".ganyu-static-card__dynamic");
-        dynamicButton.addEventListener("pointerup", handleOpenLive2DMenuFromStaticCard);
-        dynamicButton.addEventListener("click", handleOpenLive2DMenuFromStaticCard);
-        card.addEventListener("click", handleOpenLive2DMenuFromStaticCard);
+        prepareStaticCardMenuTargets(card);
 
         document.body.appendChild(card);
         applySavedPosition(card);
@@ -333,7 +382,8 @@
 
         status.textContent = message || "";
         button.textContent = buttonText || (loaderState.dynamicAttempted ? "再试一次对话甘雨" : "尝试对话甘雨");
-        button.disabled = !!loaderState.loading;
+        button.disabled = false;
+        button.removeAttribute("disabled");
     }
 
     function showStaticFallback() {
@@ -733,14 +783,104 @@
         requestOpenLive2DMenuFromStaticCard(event);
     }
 
+    function openStaticMenuFromDelegatedEvent(event, trigger) {
+        const source = trigger && trigger.action === "button" ? "open button clicked" : "static card pointerup";
+
+        debugStaticMenu(source);
+        lastDelegatedStaticOpenAt = Date.now();
+
+        if (event && typeof event.preventDefault === "function") {
+            event.preventDefault();
+        }
+
+        requestOpenLive2DMenuFromStaticCard(event);
+    }
+
+    function handleStaticMenuPointerDown(event) {
+        if (event.button !== undefined && event.button !== 0) {
+            return;
+        }
+
+        const trigger = getStaticMenuTrigger(event.target);
+        if (!trigger) {
+            delegatedStaticPointer = null;
+            return;
+        }
+
+        delegatedStaticPointer = {
+            pointerId: event.pointerId,
+            startX: event.clientX,
+            startY: event.clientY,
+            action: trigger.action
+        };
+    }
+
+    function handleStaticMenuPointerUp(event) {
+        const trigger = getStaticMenuTrigger(event.target);
+        if (!trigger) {
+            delegatedStaticPointer = null;
+            return;
+        }
+
+        const pointer = delegatedStaticPointer && delegatedStaticPointer.pointerId === event.pointerId ? delegatedStaticPointer : null;
+        delegatedStaticPointer = null;
+
+        if (pointer) {
+            const deltaX = event.clientX - pointer.startX;
+            const deltaY = event.clientY - pointer.startY;
+            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+            if (distance > STATIC_TAP_DISTANCE_PX) {
+                return;
+            }
+        }
+
+        openStaticMenuFromDelegatedEvent(event, trigger);
+    }
+
+    function handleStaticMenuClick(event) {
+        const trigger = getStaticMenuTrigger(event.target);
+        if (!trigger) {
+            return;
+        }
+
+        if (Date.now() - lastDelegatedStaticOpenAt < STATIC_MENU_TRIGGER_DEDUPE_MS) {
+            if (event && typeof event.preventDefault === "function") {
+                event.preventDefault();
+            }
+            if (event && typeof event.stopPropagation === "function") {
+                event.stopPropagation();
+            }
+            return;
+        }
+
+        debugStaticMenu(trigger.action === "button" ? "open button clicked" : "static card click");
+        if (event && typeof event.preventDefault === "function") {
+            event.preventDefault();
+        }
+        if (event && typeof event.stopPropagation === "function") {
+            event.stopPropagation();
+        }
+        requestOpenLive2DMenuFromStaticCard(event);
+    }
+
+    function installStaticMenuDelegate() {
+        if (window.__JUNXUE_LIVE2D_STATIC_MENU_DELEGATE__) {
+            return;
+        }
+
+        window.__JUNXUE_LIVE2D_STATIC_MENU_DELEGATE__ = true;
+        document.addEventListener("pointerdown", handleStaticMenuPointerDown, true);
+        document.addEventListener("pointerup", handleStaticMenuPointerUp, true);
+        document.addEventListener("click", handleStaticMenuClick, true);
+    }
+
     function requestOpenLive2DMenuFromStaticCard(event) {
         if (shouldDeduplicateStaticMenuTrigger()) {
             return;
         }
 
-        if (window.console && typeof window.console.debug === "function") {
-            window.console.debug("[live2d-mobile] static card menu trigger");
-        }
+        debugStaticMenu("static card menu trigger");
 
         openStaticGanyuMenu(event);
     }
@@ -754,24 +894,21 @@
             event.preventDefault();
         }
 
-        if (window.console && typeof window.console.debug === "function") {
-            window.console.debug("[live2d-mobile] open menu from smooth mode");
-        }
+        debugStaticMenu("opening menu from smooth mode");
 
         loadSupportScripts().then(function () {
-            if (window.console && typeof window.console.debug === "function") {
-                window.console.debug("[live2d-mobile] lazy menu loaded");
-            }
+            debugStaticMenu("lazy menu ready");
 
             if (window.JunxueGanyuLazy && typeof window.JunxueGanyuLazy.openMenu === "function") {
-                window.JunxueGanyuLazy.openMenu(event);
+                window.JunxueGanyuLazy.openMenu();
                 return;
             }
 
             if (window.Live2DInteractiveMenu && typeof window.Live2DInteractiveMenu.open === "function") {
-                window.Live2DInteractiveMenu.open(event);
+                window.Live2DInteractiveMenu.open();
             }
-        }).catch(function () {
+        }).catch(function (error) {
+            debugStaticMenu("menu open failed: " + (error && error.message ? error.message : "load-failed"));
             updateStaticCardStatus("甘雨菜单暂时没有加载完成，请稍后再点一次。", "再试一次");
         });
     }
@@ -781,7 +918,7 @@
             return false;
         }
 
-        return !!target.closest(".ganyu-static-card,#ganyu-live2d-frame-shell,.live2d-hit-area,#oml2d-canvas,#oml2d-stage");
+        return !!target.closest(STATIC_OPEN_SELECTOR + "," + STATIC_CARD_SELECTOR + ",#ganyu-live2d-frame-shell,.live2d-hit-area,#oml2d-canvas,#oml2d-stage");
     }
 
     function handleGanyuMenuRequest(event) {
@@ -1137,6 +1274,7 @@
     loaderState.showStaticFallback = showStaticFallback;
     loaderState.openMenuFromStaticCard = requestOpenLive2DMenuFromStaticCard;
     loaderState.isIframeMobile = isIframeMobileMode;
+    installStaticMenuDelegate();
     window.addEventListener(MENU_REQUEST_EVENT, handleGanyuMenuRequest);
 
     if (document.readyState === "loading") {

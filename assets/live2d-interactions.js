@@ -6,7 +6,7 @@
 
     window.__JUNXUE_LIVE2D_INTERACTIONS_INSTALLED__ = true;
 
-    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260627-static-ganyu-drag-button1";
+    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260628-static-ganyu-button-menu1";
     if (typeof window.enableGanyuMemory !== "boolean") {
         window.enableGanyuMemory = true;
     }

@@ -1,6 +1,6 @@
 /* Live2D 互动模块：菜单、无奖竞答题库、英雄池转盘、咨询功能都集中在这里，方便后续继续加题。 */
 (function () {
-    const version = "20260629-live2d-tap-suppress1";
+    const version = "20260629-live2d-mobile-menu-visible1";
     if (typeof window.JunxueLive2DDebugLog !== "function") {
         window.__JUNXUE_LIVE2D_DEBUG__ = window.__JUNXUE_LIVE2D_DEBUG__ || [];
         window.JunxueLive2DDebugLog = function (message, detail) {
@@ -77,13 +77,14 @@
         return source;
     }
 
-    function debugLive2DMenu(scope, message) {
+    function debugLive2DMenu(scope, message, detail) {
         if (window.console && typeof window.console.debug === "function") {
-            window.console.debug("[" + scope + "] " + message);
+            window.console.debug("[" + scope + "] " + message, detail || "");
         }
         if (typeof window.JunxueLive2DDebugLog === "function") {
             window.JunxueLive2DDebugLog((scope === "live2d-pc" ? "pc " : "mobile ") + message, {
-                source: "live2d-interactions-lazy"
+                source: "live2d-interactions-lazy",
+                detail: detail || null
             });
         }
     }
@@ -92,6 +93,56 @@
         if (window.JunxueLive2DLoader && typeof window.JunxueLive2DLoader.setDebugStatus === "function") {
             window.JunxueLive2DLoader.setDebugStatus(message);
         }
+    }
+
+    function roundDebugNumber(value) {
+        return Math.round(Number(value || 0));
+    }
+
+    function describeDebugNode(node) {
+        if (!node || node.nodeType !== 1) {
+            return null;
+        }
+
+        return {
+            tagName: node.tagName || "",
+            id: node.id || "",
+            className: typeof node.className === "string" ? node.className : ""
+        };
+    }
+
+    function getElementDebugInfo(node) {
+        if (!node || node.nodeType !== 1) {
+            return {
+                exists: false
+            };
+        }
+
+        const style = window.getComputedStyle ? window.getComputedStyle(node) : null;
+        const rect = typeof node.getBoundingClientRect === "function" ? node.getBoundingClientRect() : null;
+
+        return {
+            exists: true,
+            className: typeof node.className === "string" ? node.className : "",
+            parentNode: describeDebugNode(node.parentNode),
+            zIndex: style ? style.zIndex : "",
+            display: style ? style.display : "",
+            visibility: style ? style.visibility : "",
+            opacity: style ? style.opacity : "",
+            position: style ? style.position : "",
+            transform: style ? style.transform : "",
+            pointerEvents: style ? style.pointerEvents : "",
+            width: rect ? roundDebugNumber(rect.width) : 0,
+            height: rect ? roundDebugNumber(rect.height) : 0,
+            rect: rect ? {
+                left: roundDebugNumber(rect.left),
+                top: roundDebugNumber(rect.top),
+                right: roundDebugNumber(rect.right),
+                bottom: roundDebugNumber(rect.bottom),
+                width: roundDebugNumber(rect.width),
+                height: roundDebugNumber(rect.height)
+            } : null
+        };
     }
 
     const quizBank = [
@@ -543,7 +594,7 @@
     function ensureOpeningBubbleStyles() {
         const existingStyle = document.getElementById("live2d-opening-bubble-style");
         if (existingStyle) {
-            if (existingStyle.textContent && existingStyle.textContent.indexOf("20260629-live2d-tap-suppress1") !== -1) {
+            if (existingStyle.textContent && existingStyle.textContent.indexOf("20260629-live2d-mobile-menu-visible1") !== -1) {
                 return;
             }
             existingStyle.remove();
@@ -552,7 +603,7 @@
         const style = document.createElement("style");
         style.id = "live2d-opening-bubble-style";
         style.textContent = [
-            "/* 20260629-live2d-tap-suppress1 */",
+            "/* 20260629-live2d-mobile-menu-visible1 */",
             ".live2d-quiz{position:fixed;left:252px;top:160px;right:auto;bottom:auto;z-index:10020;}",
             ".live2d-quiz:not(.is-open){visibility:hidden!important;opacity:0!important;pointer-events:none!important;}",
             ".live2d-quiz.is-open{visibility:visible!important;opacity:1!important;pointer-events:auto!important;}",
@@ -1511,9 +1562,37 @@
 
             positionLive2DPopup(dialog, getDialogPositionOptions());
             clampScoreGuessDialogToViewport();
+            forceMobileMainMenuViewport();
+        }
+
+        function forceMobileMainMenuViewport() {
+            const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
+            if (viewportWidth > 768 || !dialog.classList.contains("is-main-menu")) {
+                return;
+            }
+
+            dialog.style.setProperty("position", "fixed", "important");
+            dialog.style.setProperty("z-index", "10030", "important");
+            dialog.style.setProperty("left", "50%", "important");
+            dialog.style.setProperty("right", "auto", "important");
+            dialog.style.setProperty("top", "max(12px, env(safe-area-inset-top))", "important");
+            dialog.style.setProperty("bottom", "auto", "important");
+            dialog.style.setProperty("transform", "translateX(-50%)", "important");
+            dialog.style.setProperty("width", "min(92vw, 420px)", "important");
+            dialog.style.setProperty("max-width", "calc(100vw - 24px)", "important");
+            dialog.style.setProperty("max-height", "calc(100vh - 88px)", "important");
+            dialog.style.setProperty("visibility", "visible", "important");
+            dialog.style.setProperty("opacity", "1", "important");
+            dialog.style.setProperty("pointer-events", "auto", "important");
         }
 
         function showDialog() {
+            const isMainMenu = dialog.classList.contains("is-main-menu");
+            const debugScope = (window.innerWidth || 0) <= 768 ? "live2d-mobile" : "live2d-pc";
+            debugLive2DMenu(debugScope, "showDialog called");
+            if (isMainMenu && debugScope === "live2d-mobile") {
+                publishStaticDebugStatus("showDialog called");
+            }
             hideIdleTalk();
             notifyDialogOpen();
             dialog.removeAttribute("aria-hidden");
@@ -1521,15 +1600,17 @@
             positionLive2DPopup(dialog, getDialogPositionOptions());
             clampScoreGuessDialogToViewport();
             dialog.classList.add("is-open");
+            forceMobileMainMenuViewport();
             replayOpenAnimation();
-            if (dialog.classList.contains("is-main-menu")) {
+            if (isMainMenu) {
                 const menuZIndex = window.getComputedStyle ? window.getComputedStyle(dialog).zIndex : "";
-                const debugScope = (window.innerWidth || 0) <= 768 ? "live2d-mobile" : "live2d-pc";
                 debugLive2DMenu(debugScope, "menu element mounted");
                 debugLive2DMenu(debugScope, "menu z-index " + menuZIndex);
+                debugLive2DMenu(debugScope, "menu computed style", getElementDebugInfo(dialog));
                 if (debugScope === "live2d-mobile") {
                     publishStaticDebugStatus("menu mounted");
                     publishStaticDebugStatus("menu z-index: " + menuZIndex);
+                    publishStaticDebugStatus("menu computed style");
                 }
             }
             window.clearTimeout(showDialog.closeTimer);

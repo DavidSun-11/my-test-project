@@ -1,5 +1,30 @@
 /* Live2D 互动模块：菜单、无奖竞答题库、英雄池转盘、咨询功能都集中在这里，方便后续继续加题。 */
 (function () {
+    const version = "20260629-live2d-global-debug1";
+    if (typeof window.JunxueLive2DDebugLog !== "function") {
+        window.__JUNXUE_LIVE2D_DEBUG__ = window.__JUNXUE_LIVE2D_DEBUG__ || [];
+        window.JunxueLive2DDebugLog = function (message, detail) {
+            const safeMessage = String(message || "");
+            const safeDetail = detail && typeof detail === "object" ? {
+                version: detail.version || "",
+                source: detail.source || ""
+            } : null;
+            try {
+                window.__JUNXUE_LIVE2D_DEBUG__.push({
+                    time: new Date().toISOString(),
+                    message: safeMessage,
+                    detail: safeDetail
+                });
+                window.console.log("[live2d-debug] " + safeMessage, safeDetail || "");
+            } catch (error) {
+                window.console.log("[live2d-debug] " + safeMessage);
+            }
+        };
+    }
+    window.JunxueLive2DDebugLog("lazy loaded", { version: version, source: "live2d-interactions-lazy" });
+})();
+
+(function () {
     if (window.__JUNXUE_LIVE2D_LAZY_INTERACTIONS_INSTALLED__ && window.Live2DInteractiveMenu && window.Live2DInteractiveMenu.ready) {
         return;
     }
@@ -513,7 +538,7 @@
     function ensureOpeningBubbleStyles() {
         const existingStyle = document.getElementById("live2d-opening-bubble-style");
         if (existingStyle) {
-            if (existingStyle.textContent && existingStyle.textContent.indexOf("20260629-live2d-debug-observe1") !== -1) {
+            if (existingStyle.textContent && existingStyle.textContent.indexOf("20260629-live2d-global-debug1") !== -1) {
                 return;
             }
             existingStyle.remove();
@@ -522,7 +547,7 @@
         const style = document.createElement("style");
         style.id = "live2d-opening-bubble-style";
         style.textContent = [
-            "/* 20260629-live2d-debug-observe1 */",
+            "/* 20260629-live2d-global-debug1 */",
             ".live2d-quiz{position:fixed;left:252px;top:160px;right:auto;bottom:auto;z-index:10020;}",
             ".live2d-quiz:not(.is-open){visibility:hidden!important;opacity:0!important;pointer-events:none!important;}",
             ".live2d-quiz.is-open{visibility:visible!important;opacity:1!important;pointer-events:auto!important;}",

@@ -1,5 +1,30 @@
 /* Live2D direct drag: drag the Ganyu model area, while simple clicks still open the menu. */
 (function () {
+    const version = "20260629-live2d-global-debug1";
+    if (typeof window.JunxueLive2DDebugLog !== "function") {
+        window.__JUNXUE_LIVE2D_DEBUG__ = window.__JUNXUE_LIVE2D_DEBUG__ || [];
+        window.JunxueLive2DDebugLog = function (message, detail) {
+            const safeMessage = String(message || "");
+            const safeDetail = detail && typeof detail === "object" ? {
+                version: detail.version || "",
+                source: detail.source || ""
+            } : null;
+            try {
+                window.__JUNXUE_LIVE2D_DEBUG__.push({
+                    time: new Date().toISOString(),
+                    message: safeMessage,
+                    detail: safeDetail
+                });
+                window.console.log("[live2d-debug] " + safeMessage, safeDetail || "");
+            } catch (error) {
+                window.console.log("[live2d-debug] " + safeMessage);
+            }
+        };
+    }
+    window.JunxueLive2DDebugLog("drag loaded", { version: version, source: "live2d-drag" });
+})();
+
+(function () {
     if (window.__JUNXUE_LIVE2D_DRAG_INSTALLED__) {
         if (window.JunxueLive2DDrag && typeof window.JunxueLive2DDrag.scheduleSync === "function") {
             window.JunxueLive2DDrag.scheduleSync();

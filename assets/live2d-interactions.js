@@ -1,12 +1,37 @@
 /* Live2D 轻量启动脚本：首屏只保留开场提示、点击入口和懒加载控制。 */
 (function () {
+    const version = "20260629-live2d-global-debug1";
+    if (typeof window.JunxueLive2DDebugLog !== "function") {
+        window.__JUNXUE_LIVE2D_DEBUG__ = window.__JUNXUE_LIVE2D_DEBUG__ || [];
+        window.JunxueLive2DDebugLog = function (message, detail) {
+            const safeMessage = String(message || "");
+            const safeDetail = detail && typeof detail === "object" ? {
+                version: detail.version || "",
+                source: detail.source || ""
+            } : null;
+            try {
+                window.__JUNXUE_LIVE2D_DEBUG__.push({
+                    time: new Date().toISOString(),
+                    message: safeMessage,
+                    detail: safeDetail
+                });
+                window.console.log("[live2d-debug] " + safeMessage, safeDetail || "");
+            } catch (error) {
+                window.console.log("[live2d-debug] " + safeMessage);
+            }
+        };
+    }
+    window.JunxueLive2DDebugLog("interactions loaded", { version: version, source: "live2d-interactions" });
+})();
+
+(function () {
     if (window.__JUNXUE_LIVE2D_INTERACTIONS_INSTALLED__) {
         return;
     }
 
     window.__JUNXUE_LIVE2D_INTERACTIONS_INSTALLED__ = true;
 
-    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260629-live2d-debug-observe1";
+    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260629-live2d-global-debug1";
     if (typeof window.enableGanyuMemory !== "boolean") {
         window.enableGanyuMemory = true;
     }

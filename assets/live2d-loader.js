@@ -1,8 +1,32 @@
 /* Lightweight Live2D loader: desktop keeps dynamic Ganyu, mobile uses a stable static fallback first. */
 (function () {
+    const version = "20260629-live2d-global-debug1";
+    window.__JUNXUE_LIVE2D_DEBUG__ = window.__JUNXUE_LIVE2D_DEBUG__ || [];
+    window.JunxueLive2DDebugLog = window.JunxueLive2DDebugLog || function (message, detail) {
+        const safeMessage = String(message || "");
+        const safeDetail = detail && typeof detail === "object" ? {
+            version: detail.version || "",
+            source: detail.source || ""
+        } : null;
+        try {
+            window.__JUNXUE_LIVE2D_DEBUG__.push({
+                time: new Date().toISOString(),
+                message: safeMessage,
+                detail: safeDetail
+            });
+            window.console.log("[live2d-debug] " + safeMessage, safeDetail || "");
+        } catch (error) {
+            window.console.log("[live2d-debug] " + safeMessage);
+        }
+    };
+    window.JunxueLive2DDebugLog("loader loaded", { version: version, source: "live2d-loader" });
+    window.JunxueLive2DDebugLog("lazy not loaded yet", { version: version, source: "live2d-loader" });
+})();
+
+(function () {
     const WIDGET_SCRIPT = "live2d/live2d-widget.js?v=20260613-5";
-    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260629-live2d-debug-observe1";
-    const DRAG_SCRIPT = "assets/live2d-drag.js?v=20260629-live2d-debug-observe1";
+    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260629-live2d-global-debug1";
+    const DRAG_SCRIPT = "assets/live2d-drag.js?v=20260629-live2d-global-debug1";
     const FRAME_HOST_SRC = "live2d/ganyu-host.html?v=20260613-iframe1";
     const STATIC_WEBP = "assets/images/price-ganyu-showcase.webp";
     const STATIC_PNG = "assets/images/price-ganyu-showcase.png";

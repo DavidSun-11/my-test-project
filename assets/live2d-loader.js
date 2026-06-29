@@ -1,6 +1,6 @@
 /* Lightweight Live2D loader: desktop keeps dynamic Ganyu, mobile uses a stable static fallback first. */
 (function () {
-    const version = "20260629-live2d-submenu-drawer-cleanup1";
+    const version = "20260629-live2d-static-card-anchor1";
     window.__JUNXUE_LIVE2D_DEBUG__ = window.__JUNXUE_LIVE2D_DEBUG__ || [];
     window.JunxueLive2DDebugLog = window.JunxueLive2DDebugLog || function (message, detail) {
         const safeMessage = String(message || "");
@@ -25,7 +25,7 @@
 
 (function () {
     const WIDGET_SCRIPT = "live2d/live2d-widget.js?v=20260613-5";
-    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260629-live2d-submenu-drawer-cleanup1";
+    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260629-live2d-static-card-anchor1";
     const DRAG_SCRIPT = "assets/live2d-drag.js?v=20260629-live2d-mobile-right-drawer1";
     const FRAME_HOST_SRC = "live2d/ganyu-host.html?v=20260613-iframe1";
     const STATIC_WEBP = "assets/images/price-ganyu-showcase.webp";
@@ -61,6 +61,21 @@
         "menu option open admin",
         "menu option ignored",
         "menu open called",
+        "mobile menu anchored to static card",
+        "mobile menu position updated",
+        "mobile showEntertainmentPanel called",
+        "mobile showLiveInteractionPanel called",
+        "mobile showConsultPanel called",
+        "mobile showKnowJunxuePanel called",
+        "mobile submenu showDialog called: daily",
+        "mobile submenu showDialog called: live",
+        "mobile submenu showDialog called: consult",
+        "mobile submenu showDialog called: know",
+        "mobile submenu mounted: daily",
+        "mobile submenu mounted: live",
+        "mobile submenu mounted: consult",
+        "mobile submenu mounted: know",
+        "mobile menu shell removed",
         "menu open failed"
     ];
     const currentScript = document.currentScript;
@@ -327,6 +342,7 @@
         const safeStatus = String(status || "").replace(/[^\w\s:.\-]/g, "").trim().slice(0, 80);
         const isAllowed = LIVE2D_DEBUG_STATUSES.indexOf(safeStatus) !== -1 ||
             /^menu z-index: [\w.\-]+$/.test(safeStatus) ||
+            /^mobile menu shell remains: [\w\s:.\-]+$/.test(safeStatus) ||
             /^open failed: [\w.\-]+$/.test(safeStatus);
         if (!isAllowed) {
             return;

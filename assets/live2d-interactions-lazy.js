@@ -1,6 +1,6 @@
 /* Live2D 互动模块：菜单、无奖竞答题库、英雄池转盘、咨询功能都集中在这里，方便后续继续加题。 */
 (function () {
-    const version = "20260629-live2d-submenu-drawer-cleanup1";
+    const version = "20260629-live2d-static-card-anchor1";
     if (typeof window.JunxueLive2DDebugLog !== "function") {
         window.__JUNXUE_LIVE2D_DEBUG__ = window.__JUNXUE_LIVE2D_DEBUG__ || [];
         window.JunxueLive2DDebugLog = function (message, detail) {
@@ -594,7 +594,7 @@
     function ensureOpeningBubbleStyles() {
         const existingStyle = document.getElementById("live2d-opening-bubble-style");
         if (existingStyle) {
-            if (existingStyle.textContent && existingStyle.textContent.indexOf("20260629-live2d-submenu-drawer-cleanup1") !== -1) {
+            if (existingStyle.textContent && existingStyle.textContent.indexOf("20260629-live2d-static-card-anchor1") !== -1) {
                 return;
             }
             existingStyle.remove();
@@ -603,7 +603,7 @@
         const style = document.createElement("style");
         style.id = "live2d-opening-bubble-style";
         style.textContent = [
-            "/* 20260629-live2d-submenu-drawer-cleanup1 */",
+            "/* 20260629-live2d-static-card-anchor1 */",
             ".live2d-quiz{position:fixed;left:252px;top:160px;right:auto;bottom:auto;z-index:10020;}",
             ".live2d-quiz:not(.is-open){visibility:hidden!important;opacity:0!important;pointer-events:none!important;}",
             ".live2d-quiz.is-open{visibility:visible!important;opacity:1!important;pointer-events:auto!important;}",
@@ -794,7 +794,7 @@
             ".score-guess-panel__actions .score-guess-action--soft:last-child{opacity:.82;}",
             ".score-guess-panel__footer-note{padding:10px 12px;border:1px solid rgba(169,226,255,.34);border-radius:14px;background:rgba(11,31,59,.36);color:rgba(220,240,255,.88);font-size:12px;line-height:1.5;}",
             "@media (max-width:768px){.live2d-quiz.is-main-menu .live2d-quiz__menu,.score-guess-grid,.score-guess-status,.score-guess-actions{grid-template-columns:1fr;}.live2d-menu-title,.score-guess-title{font-size:18px;}.live2d-menu-user,.score-guess-account,.score-guess-pill{font-size:11px;}.score-guess-option{min-height:70px;padding-left:44px!important;}.score-guess-option::before{left:13px;top:15px;width:20px;height:20px;}.score-guess-panel__header{grid-template-columns:1fr;}.score-guess-panel__state{justify-self:start;}.score-guess-panel__meta{grid-template-columns:1fr;}.score-guess-panel__options{grid-template-columns:1fr;}.score-guess-panel__actions{display:grid;grid-template-columns:1fr;}.score-guess-panel__actions .live2d-quiz__option{width:100%;min-width:0;}.score-guess-panel__title{font-size:20px;}}",
-            "@media (max-width:768px){.live2d-quiz.is-main-menu,.live2d-quiz.is-live2d-submenu-drawer{left:auto!important;right:max(8px,env(safe-area-inset-right))!important;transform:none!important;width:clamp(240px,62vw,360px)!important;max-width:calc(100vw - 16px)!important;max-height:min(42dvh,320px)!important;padding:0!important;}.live2d-menu-panel{height:min(42dvh,320px)!important;min-height:0!important;max-height:min(42dvh,320px)!important;border-radius:26px;}.live2d-menu-panel::before{inset:8px;border-radius:20px;}.live2d-menu-panel::after{opacity:.42;height:24%;}.live2d-menu-panel__ornament{left:16%;right:16%;top:18px;}.live2d-menu-panel__moon{top:8px;width:30px;height:30px;}.live2d-menu-panel__moon::after{display:none;}.live2d-menu-beautiful-content,.live2d-menu-panel__content{min-height:0;padding:38px 18px 18px;overflow:hidden;}.live2d-quiz.is-main-menu .live2d-quiz__question,.live2d-quiz.is-live2d-submenu-drawer .live2d-quiz__question{margin-bottom:8px!important;}.live2d-quiz.is-main-menu .live2d-menu-title{font-size:18px;}.live2d-quiz.is-main-menu .live2d-menu-user{font-size:10px;padding:4px 8px;}.live2d-quiz.is-main-menu .live2d-quiz__options,.live2d-quiz.is-live2d-submenu-drawer .live2d-quiz__options{min-height:0;width:100%;}.live2d-quiz.is-main-menu .live2d-quiz__menu{grid-template-columns:1fr!important;gap:10px!important;width:100%;min-height:0;max-height:calc(min(42dvh,320px) - 126px)!important;overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch;}.live2d-quiz.is-live2d-submenu-drawer .live2d-consult-grid{display:grid!important;grid-template-columns:1fr!important;gap:8px!important;width:100%;min-height:0;max-height:calc(min(42dvh,320px) - 118px)!important;overflow-y:auto!important;overflow-x:hidden!important;padding:1px 4px 2px 1px;box-sizing:border-box;-webkit-overflow-scrolling:touch;}.live2d-quiz.is-live2d-submenu-drawer .live2d-consult-card{appearance:none;-webkit-appearance:none;display:grid!important;gap:3px;width:100%;min-width:0;min-height:42px;padding:8px 10px!important;border:1px solid rgba(183,239,255,.42)!important;border-radius:14px!important;background:linear-gradient(145deg,rgba(34,78,118,.58),rgba(27,47,91,.52))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 8px 18px rgba(0,12,38,.14)!important;color:rgba(240,252,255,.96)!important;text-align:left;pointer-events:auto!important;touch-action:manipulation;}.live2d-quiz.is-live2d-submenu-drawer .live2d-consult-card__title{font-size:12px;font-weight:840;line-height:1.2;}.live2d-quiz.is-live2d-submenu-drawer .live2d-consult-card__desc{font-size:10.5px;line-height:1.3;color:rgba(207,235,250,.82);}.live2d-quiz.is-main-menu .live2d-quiz__option{width:100%;min-width:0;min-height:42px!important;padding:8px 30px!important;font-size:12px!important;letter-spacing:.03em;}.live2d-quiz.is-main-menu .live2d-quiz__option::before{left:10px!important;width:17px!important;height:17px!important;}.live2d-quiz.is-main-menu .live2d-quiz__close,.live2d-quiz.is-live2d-submenu-drawer .live2d-quiz__close{right:13px!important;top:13px!important;width:28px!important;height:28px!important;}.live2d-quiz.is-main-menu::after,.live2d-quiz.is-live2d-submenu-drawer::after{height:42px;opacity:.42;}}",
+            "@media (max-width:768px){.live2d-quiz.is-main-menu,.live2d-quiz.is-live2d-submenu-drawer{transform:none!important;width:clamp(188px,58vw,320px)!important;max-width:calc(100vw - 16px)!important;max-height:min(42dvh,320px)!important;padding:0!important;}.live2d-menu-panel{height:min(42dvh,320px)!important;min-height:0!important;max-height:min(42dvh,320px)!important;border-radius:26px;}.live2d-menu-panel::before{inset:8px;border-radius:20px;}.live2d-menu-panel::after{opacity:.42;height:24%;}.live2d-menu-panel__ornament{left:16%;right:16%;top:18px;}.live2d-menu-panel__moon{top:8px;width:30px;height:30px;}.live2d-menu-panel__moon::after{display:none;}.live2d-menu-beautiful-content,.live2d-menu-panel__content{min-height:0;padding:38px 18px 18px;overflow:hidden;}.live2d-quiz.is-main-menu .live2d-quiz__question,.live2d-quiz.is-live2d-submenu-drawer .live2d-quiz__question{margin-bottom:8px!important;}.live2d-quiz.is-main-menu .live2d-menu-title{font-size:18px;}.live2d-quiz.is-main-menu .live2d-menu-user{font-size:10px;padding:4px 8px;}.live2d-quiz.is-main-menu .live2d-quiz__options,.live2d-quiz.is-live2d-submenu-drawer .live2d-quiz__options{min-height:0;width:100%;}.live2d-quiz.is-main-menu .live2d-quiz__menu{grid-template-columns:1fr!important;gap:10px!important;width:100%;min-height:0;max-height:calc(min(42dvh,320px) - 126px)!important;overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch;}.live2d-quiz.is-live2d-submenu-drawer .live2d-consult-grid{display:grid!important;grid-template-columns:1fr!important;gap:8px!important;width:100%;min-height:0;max-height:calc(min(42dvh,320px) - 118px)!important;overflow-y:auto!important;overflow-x:hidden!important;padding:1px 4px 2px 1px;box-sizing:border-box;-webkit-overflow-scrolling:touch;}.live2d-quiz.is-live2d-submenu-drawer .live2d-consult-card{appearance:none;-webkit-appearance:none;display:grid!important;gap:3px;width:100%;min-width:0;min-height:42px;padding:8px 10px!important;border:1px solid rgba(183,239,255,.42)!important;border-radius:14px!important;background:linear-gradient(145deg,rgba(34,78,118,.58),rgba(27,47,91,.52))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 8px 18px rgba(0,12,38,.14)!important;color:rgba(240,252,255,.96)!important;text-align:left;pointer-events:auto!important;touch-action:manipulation;}.live2d-quiz.is-live2d-submenu-drawer .live2d-consult-card__title{font-size:12px;font-weight:840;line-height:1.2;}.live2d-quiz.is-live2d-submenu-drawer .live2d-consult-card__desc{font-size:10.5px;line-height:1.3;color:rgba(207,235,250,.82);}.live2d-quiz.is-main-menu .live2d-quiz__option{width:100%;min-width:0;min-height:42px!important;padding:8px 30px!important;font-size:12px!important;letter-spacing:.03em;}.live2d-quiz.is-main-menu .live2d-quiz__option::before{left:10px!important;width:17px!important;height:17px!important;}.live2d-quiz.is-main-menu .live2d-quiz__close,.live2d-quiz.is-live2d-submenu-drawer .live2d-quiz__close{right:13px!important;top:13px!important;width:28px!important;height:28px!important;}.live2d-quiz.is-main-menu::after,.live2d-quiz.is-live2d-submenu-drawer::after{height:42px;opacity:.42;}}",
             "@media (max-width:360px){.live2d-quiz.is-main-menu,.live2d-quiz.is-live2d-submenu-drawer{width:min(74vw,300px)!important;max-width:calc(100vw - 16px)!important;}.live2d-quiz.is-main-menu .live2d-quiz__option{padding-left:28px!important;padding-right:24px!important;font-size:11.5px!important;}}",
             "@media (prefers-reduced-motion:reduce){.live2d-quiz.is-main-menu::before,.live2d-quiz.is-main-menu::after,.live2d-quiz.is-main-menu .live2d-quiz__option::after,.live2d-menu-beautiful-wave,.live2d-menu-panel::after{animation:none!important;transition:none!important;}.live2d-menu-beautiful-wave,.live2d-menu-panel::after{opacity:.22;}.live2d-quiz.is-main-menu::after{opacity:.28;}.live2d-quiz.is-main-menu .live2d-quiz__option:hover:not(:disabled){transform:none;}}",
             "html.performance-low .live2d-quiz.is-main-menu,html.performance-low .live2d-quiz.is-score-guess{box-shadow:0 12px 28px rgba(3,18,42,.38),inset 0 1px 0 rgba(255,255,255,.18);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);}",
@@ -1564,7 +1564,7 @@
 
             positionLive2DPopup(dialog, getDialogPositionOptions());
             clampScoreGuessDialogToViewport();
-            forceMobileMainMenuViewport();
+            updateMobileMenuAnchorPosition();
         }
 
         function isMobileDrawerDialog() {
@@ -1598,6 +1598,100 @@
             });
         }
 
+        function getStaticCardAnchor() {
+            const preferred = document.querySelector(".ganyu-static-card[data-live2d-static-card='true']");
+            return preferred || document.querySelector("[data-live2d-static-card='true'].ganyu-static-card") || document.querySelector(".ganyu-static-card");
+        }
+
+        function isVisibleStaticCardAnchor(node) {
+            if (!node || !node.getBoundingClientRect || !window.getComputedStyle) {
+                return false;
+            }
+
+            const style = window.getComputedStyle(node);
+            const rect = node.getBoundingClientRect();
+            return style.display !== "none" &&
+                style.visibility !== "hidden" &&
+                Number.parseFloat(style.opacity || "1") > 0.01 &&
+                rect.width > 0 &&
+                rect.height > 0 &&
+                rect.right > 0 &&
+                rect.bottom > 0 &&
+                rect.left < (window.innerWidth || document.documentElement.clientWidth || 0) &&
+                rect.top < (window.innerHeight || document.documentElement.clientHeight || 0);
+        }
+
+        function getMobileMenuPreferredWidth(cardRect, viewportWidth, margin, gap) {
+            const baseWidth = viewportWidth <= 360 ? Math.min(300, Math.max(188, viewportWidth * 0.74)) : Math.min(320, Math.max(188, viewportWidth * 0.58));
+            const rightSpace = viewportWidth - cardRect.right - gap - margin;
+            const leftSpace = cardRect.left - gap - margin;
+            const bestSideSpace = Math.max(rightSpace, leftSpace);
+            const viewportWidthLimit = viewportWidth - margin * 2;
+
+            if (bestSideSpace >= 156) {
+                return Math.floor(Math.min(baseWidth, bestSideSpace, viewportWidthLimit));
+            }
+
+            return Math.floor(Math.min(baseWidth, viewportWidthLimit));
+        }
+
+        function updateMobileMenuAnchorPosition() {
+            const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
+            if (viewportWidth > 768 || !isMobileDrawerDialog()) {
+                return;
+            }
+
+            const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+            const card = getStaticCardAnchor();
+            if (!isVisibleStaticCardAnchor(card)) {
+                forceMobileMenuViewportFallback();
+                debugLive2DMenu("live2d-mobile", "menu shell remains: static card anchor missing");
+                publishStaticDebugStatus("mobile menu shell remains: static card anchor missing");
+                return;
+            }
+
+            const cardRect = card.getBoundingClientRect();
+            const margin = 8;
+            const gap = 10;
+            const menuWidth = getMobileMenuPreferredWidth(cardRect, viewportWidth, margin, gap);
+            const fallbackHeight = Math.min(Math.max(180, viewportHeight * 0.42), 320);
+
+            dialog.style.setProperty("position", "fixed", "important");
+            dialog.style.setProperty("z-index", "10030", "important");
+            dialog.style.setProperty("width", menuWidth + "px", "important");
+            dialog.style.setProperty("max-width", "calc(100vw - 16px)", "important");
+            dialog.style.setProperty("max-height", "min(42dvh, 320px)", "important");
+            dialog.style.setProperty("transform", "none", "important");
+            dialog.style.setProperty("visibility", "visible", "important");
+            dialog.style.setProperty("opacity", "1", "important");
+            dialog.style.setProperty("pointer-events", "auto", "important");
+
+            const popupWidth = Math.min(dialog.offsetWidth || menuWidth, viewportWidth - margin * 2);
+            const popupHeight = Math.min(dialog.offsetHeight || fallbackHeight, fallbackHeight);
+            const rightCandidate = cardRect.right + gap;
+            const leftCandidate = cardRect.left - gap - popupWidth;
+            const canFitRight = rightCandidate + popupWidth <= viewportWidth - margin;
+            const canFitLeft = leftCandidate >= margin;
+            const nextLeft = canFitRight ? rightCandidate : canFitLeft ? leftCandidate : clamp(rightCandidate, margin, Math.max(margin, viewportWidth - popupWidth - margin));
+            const preferredTop = cardRect.top + Math.min(10, Math.max(0, cardRect.height * 0.08));
+            const nextTop = clamp(preferredTop, margin, Math.max(margin, viewportHeight - popupHeight - margin));
+
+            dialog.style.setProperty("left", Math.round(nextLeft) + "px", "important");
+            dialog.style.setProperty("top", Math.round(nextTop) + "px", "important");
+            dialog.style.setProperty("right", "auto", "important");
+            dialog.style.setProperty("bottom", "auto", "important");
+
+            debugLive2DMenu("live2d-mobile", "menu anchored to static card", {
+                card: getElementDebugInfo(card),
+                left: Math.round(nextLeft),
+                top: Math.round(nextTop),
+                width: Math.round(popupWidth)
+            });
+            publishStaticDebugStatus("mobile menu anchored to static card");
+            debugLive2DMenu("live2d-mobile", "menu position updated");
+            publishStaticDebugStatus("mobile menu position updated");
+        }
+
         function isVisibleLive2DShell(node) {
             if (!node || !window.getComputedStyle) {
                 return false;
@@ -1622,7 +1716,7 @@
             if (remainingShell) {
                 const reason = remainingShell.className ? String(remainingShell.className).slice(0, 80) : remainingShell.tagName;
                 debugLive2DMenu("live2d-mobile", "menu shell remains: " + reason);
-                publishStaticDebugStatus("mobile menu shell remains");
+                publishStaticDebugStatus("mobile menu shell remains: " + reason);
                 return;
             }
 
@@ -1630,7 +1724,7 @@
             publishStaticDebugStatus("mobile menu shell removed");
         }
 
-        function forceMobileMainMenuViewport() {
+        function forceMobileMenuViewportFallback() {
             const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
             if (viewportWidth > 768 || !isMobileDrawerDialog()) {
                 return;
@@ -1638,12 +1732,12 @@
 
             dialog.style.setProperty("position", "fixed", "important");
             dialog.style.setProperty("z-index", "10030", "important");
-            dialog.style.setProperty("left", "auto", "important");
-            dialog.style.setProperty("right", "max(8px, env(safe-area-inset-right))", "important");
+            dialog.style.setProperty("left", "8px", "important");
+            dialog.style.setProperty("right", "auto", "important");
             dialog.style.setProperty("top", "max(18px, env(safe-area-inset-top))", "important");
             dialog.style.setProperty("bottom", "auto", "important");
             dialog.style.setProperty("transform", "none", "important");
-            dialog.style.setProperty("width", viewportWidth <= 360 ? "min(74vw, 300px)" : "clamp(240px, 62vw, 360px)", "important");
+            dialog.style.setProperty("width", viewportWidth <= 360 ? "min(74vw, 300px)" : "clamp(188px, 58vw, 320px)", "important");
             dialog.style.setProperty("max-width", "calc(100vw - 16px)", "important");
             dialog.style.setProperty("max-height", "min(42dvh, 320px)", "important");
             dialog.style.setProperty("visibility", "visible", "important");
@@ -1666,12 +1760,15 @@
             }
             hideIdleTalk();
             notifyDialogOpen();
+            ["visibility", "opacity", "pointer-events"].forEach(function (property) {
+                dialog.style.removeProperty(property);
+            });
             dialog.removeAttribute("aria-hidden");
             dialog.style.pointerEvents = "";
             positionLive2DPopup(dialog, getDialogPositionOptions());
             clampScoreGuessDialogToViewport();
             dialog.classList.add("is-open");
-            forceMobileMainMenuViewport();
+            updateMobileMenuAnchorPosition();
             replayOpenAnimation();
             if (isMainMenu || isMobileSubmenuDrawer) {
                 const menuZIndex = window.getComputedStyle ? window.getComputedStyle(dialog).zIndex : "";
@@ -1813,7 +1910,14 @@
             clearDialog();
             setDialogMode("menu");
             resetMobileDrawerInlineState();
-            dialog.style.pointerEvents = "none";
+            dialog.style.setProperty("visibility", "hidden", "important");
+            dialog.style.setProperty("opacity", "0", "important");
+            dialog.style.setProperty("pointer-events", "none", "important");
+            dialog.style.setProperty("left", "-9999px", "important");
+            dialog.style.setProperty("top", "-9999px", "important");
+            dialog.querySelectorAll(".live2d-menu-panel").forEach(function (panel) {
+                panel.style.setProperty("pointer-events", "none", "important");
+            });
             dialog.setAttribute("aria-hidden", "true");
             notifyDialogClosed();
             debugMobileMenuShellCleanup();
@@ -2144,7 +2248,7 @@
             setDialogMode("menu");
             if ((window.innerWidth || 0) <= 768) {
                 debugLive2DMenu("live2d-mobile", "showEntertainmentPanel called");
-                publishStaticDebugStatus("showEntertainmentPanel called");
+                publishStaticDebugStatus("mobile showEntertainmentPanel called");
             }
             prepareMobileSubmenuDrawer("daily");
             meta.textContent = "日常娱乐";
@@ -2167,7 +2271,7 @@
             setDialogMode("menu");
             if ((window.innerWidth || 0) <= 768) {
                 debugLive2DMenu("live2d-mobile", "showLiveInteractionPanel called");
-                publishStaticDebugStatus("showLiveInteractionPanel called");
+                publishStaticDebugStatus("mobile showLiveInteractionPanel called");
             }
             prepareMobileSubmenuDrawer("live");
             meta.textContent = "直播互动";
@@ -2198,7 +2302,7 @@
             setDialogMode("menu");
             if ((window.innerWidth || 0) <= 768) {
                 debugLive2DMenu("live2d-mobile", "showKnowJunxuePanel called");
-                publishStaticDebugStatus("showKnowJunxuePanel called");
+                publishStaticDebugStatus("mobile showKnowJunxuePanel called");
             }
             prepareMobileSubmenuDrawer("know");
             meta.textContent = "认识君雪";
@@ -4435,7 +4539,7 @@
             setDialogMode("menu");
             if ((window.innerWidth || 0) <= 768) {
                 debugLive2DMenu("live2d-mobile", "showConsultPanel called");
-                publishStaticDebugStatus("showConsultPanel called");
+                publishStaticDebugStatus("mobile showConsultPanel called");
             }
             prepareMobileSubmenuDrawer("consult");
             meta.textContent = "咨询";
@@ -5372,7 +5476,10 @@
         }
 
         window.addEventListener("live2d-stage-position-changed", scheduleLive2DPopupPositions);
+        window.addEventListener("live2d-stage-drag-finished", scheduleLive2DPopupPositions);
         window.addEventListener("resize", scheduleLive2DPopupPositions);
+        window.addEventListener("orientationchange", scheduleLive2DPopupPositions);
+        window.addEventListener("scroll", scheduleLive2DPopupPositions, { passive: true });
         document.addEventListener("visibilitychange", function () {
             if (!document.hidden) {
                 scheduleLive2DPopupPositions();

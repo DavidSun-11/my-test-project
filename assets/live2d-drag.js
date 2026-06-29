@@ -1,6 +1,6 @@
 /* Live2D direct drag: drag the Ganyu model area, while simple clicks still open the menu. */
 (function () {
-    const version = "20260629-live2d-pc-bind-debug1";
+    const version = "20260629-live2d-tap-suppress1";
     if (typeof window.JunxueLive2DDebugLog !== "function") {
         window.__JUNXUE_LIVE2D_DEBUG__ = window.__JUNXUE_LIVE2D_DEBUG__ || [];
         window.JunxueLive2DDebugLog = function (message, detail) {
@@ -414,6 +414,10 @@
             return;
         }
 
+        if (!target.closest || !target.closest(STATIC_CARD_SELECTOR)) {
+            return;
+        }
+
         if (event && typeof event.preventDefault === "function") {
             event.preventDefault();
         }
@@ -422,12 +426,6 @@
             event.stopPropagation();
         }
 
-        markSuppressNextClick();
-        if (!target.closest || !target.closest(STATIC_CARD_SELECTOR)) {
-            if (window.console && typeof window.console.debug === "function") {
-                window.console.debug("[live2d-pc] model click");
-            }
-        }
         target.dispatchEvent(new CustomEvent(MENU_REQUEST_EVENT, {
             bubbles: true,
             detail: {
@@ -445,7 +443,20 @@
     }
 
     function shouldIgnoreMenuEvent(event) {
+        if (!event) {
+            return false;
+        }
+
         if (Date.now() > suppressNextClickUntil) {
+            return false;
+        }
+
+        if (event.type && event.type !== "click") {
+            return false;
+        }
+
+        const target = event.target;
+        if (target && target.closest && target.closest("[data-live2d-action='open-menu']")) {
             return false;
         }
 

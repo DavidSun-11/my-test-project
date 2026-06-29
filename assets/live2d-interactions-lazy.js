@@ -1,6 +1,6 @@
 /* Live2D 互动模块：菜单、无奖竞答题库、英雄池转盘、咨询功能都集中在这里，方便后续继续加题。 */
 (function () {
-    const version = "20260629-live2d-pc-bind-debug1";
+    const version = "20260629-live2d-tap-suppress1";
     if (typeof window.JunxueLive2DDebugLog !== "function") {
         window.__JUNXUE_LIVE2D_DEBUG__ = window.__JUNXUE_LIVE2D_DEBUG__ || [];
         window.JunxueLive2DDebugLog = function (message, detail) {
@@ -80,6 +80,11 @@
     function debugLive2DMenu(scope, message) {
         if (window.console && typeof window.console.debug === "function") {
             window.console.debug("[" + scope + "] " + message);
+        }
+        if (typeof window.JunxueLive2DDebugLog === "function") {
+            window.JunxueLive2DDebugLog((scope === "live2d-pc" ? "pc " : "mobile ") + message, {
+                source: "live2d-interactions-lazy"
+            });
         }
     }
 
@@ -538,7 +543,7 @@
     function ensureOpeningBubbleStyles() {
         const existingStyle = document.getElementById("live2d-opening-bubble-style");
         if (existingStyle) {
-            if (existingStyle.textContent && existingStyle.textContent.indexOf("20260629-live2d-pc-bind-debug1") !== -1) {
+            if (existingStyle.textContent && existingStyle.textContent.indexOf("20260629-live2d-tap-suppress1") !== -1) {
                 return;
             }
             existingStyle.remove();
@@ -547,7 +552,7 @@
         const style = document.createElement("style");
         style.id = "live2d-opening-bubble-style";
         style.textContent = [
-            "/* 20260629-live2d-pc-bind-debug1 */",
+            "/* 20260629-live2d-tap-suppress1 */",
             ".live2d-quiz{position:fixed;left:252px;top:160px;right:auto;bottom:auto;z-index:10020;}",
             ".live2d-quiz:not(.is-open){visibility:hidden!important;opacity:0!important;pointer-events:none!important;}",
             ".live2d-quiz.is-open{visibility:visible!important;opacity:1!important;pointer-events:auto!important;}",

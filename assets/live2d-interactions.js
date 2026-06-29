@@ -6,7 +6,7 @@
 
     window.__JUNXUE_LIVE2D_INTERACTIONS_INSTALLED__ = true;
 
-    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260628-static-ganyu-button-menu1";
+    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260629-pc-live2d-menu1";
     if (typeof window.enableGanyuMemory !== "boolean") {
         window.enableGanyuMemory = true;
     }
@@ -1315,6 +1315,10 @@
     }
 
     function openLazyMenu(event) {
+        if (window.console && typeof window.console.debug === "function") {
+            window.console.debug("[live2d-pc] open lazy menu");
+        }
+
         if (window.JunxueLive2DDrag && typeof window.JunxueLive2DDrag.shouldIgnoreMenuEvent === "function" && window.JunxueLive2DDrag.shouldIgnoreMenuEvent(event)) {
             return;
         }
@@ -1330,6 +1334,9 @@
         retryOpeningVoiceFromGesture();
         loadLazyInteractions().then(function (menu) {
             menu.open(event);
+            if (window.console && typeof window.console.debug === "function") {
+                window.console.debug("[live2d-pc] menu open called");
+            }
         }).catch(function () {});
     }
 

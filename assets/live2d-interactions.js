@@ -1,6 +1,6 @@
 /* Live2D 轻量启动脚本：首屏只保留开场提示、点击入口和懒加载控制。 */
 (function () {
-    const version = "20260629-live2d-global-debug1";
+    const version = "20260629-live2d-pc-bind-debug1";
     if (typeof window.JunxueLive2DDebugLog !== "function") {
         window.__JUNXUE_LIVE2D_DEBUG__ = window.__JUNXUE_LIVE2D_DEBUG__ || [];
         window.JunxueLive2DDebugLog = function (message, detail) {
@@ -31,7 +31,7 @@
 
     window.__JUNXUE_LIVE2D_INTERACTIONS_INSTALLED__ = true;
 
-    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260629-live2d-global-debug1";
+    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260629-live2d-pc-bind-debug1";
     if (typeof window.enableGanyuMemory !== "boolean") {
         window.enableGanyuMemory = true;
     }
@@ -146,6 +146,29 @@
     let lastDragStartDialogueAt = 0;
     let popupSyncFrame = 0;
     const boundNodes = new WeakSet();
+    const live2dBindSelectors = [
+        "#oml2d-stage",
+        ".oml2d-stage",
+        "#oml2d-main",
+        ".oml2d-main",
+        "#oml2d",
+        ".oml2d",
+        "#live2d-widget",
+        "#live2d-widget canvas",
+        "#oml2d-canvas",
+        ".oml2d-canvas",
+        "#oml2d-stage canvas",
+        "canvas#live2d",
+        "canvas[id*='live2d']",
+        "canvas[class*='live2d']",
+        "#ganyu-live2d-frame-shell",
+        "#ganyu-live2d-frame",
+        ".live2d-hit-area",
+        ".ganyu-static-card"
+    ];
+    let lastBindCandidateSignature = "";
+    let bindSelectorLogged = false;
+    let hitDiagnosticInstalled = false;
     const ganyuUIState = installGanyuUIState();
 
     function installGanyuUIState() {
@@ -201,6 +224,103 @@
         }
 
         callback();
+    }
+
+    function isLive2DDebugEnabled() {
+        return /(?:^|[?&])live2dDebug=1(?:&|$)/.test(window.location.search || "");
+    }
+
+    function describeDomNode(node) {
+        if (!node) {
+            return null;
+        }
+
+        return {
+            tagName: node.tagName || "",
+            id: node.id || "",
+            className: typeof node.className === "string" ? node.className : (node.className && node.className.baseVal ? node.className.baseVal : "")
+        };
+    }
+
+    function sanitizeLive2DDebugDetail(detail) {
+        if (!detail || typeof detail !== "object") {
+            return null;
+        }
+
+        const safe = {};
+        if (typeof detail.count === "number") {
+            safe.count = detail.count;
+        }
+        if (detail.selector) {
+            safe.selector = String(detail.selector).slice(0, 120);
+        }
+        if (detail.selectors && Array.isArray(detail.selectors)) {
+            safe.selectors = detail.selectors.map(function (selector) {
+                return String(selector).slice(0, 120);
+            }).slice(0, 24);
+        }
+        if (detail.node) {
+            safe.node = describeDomNode(detail.node);
+        }
+        if (detail.nodes && Array.isArray(detail.nodes)) {
+            safe.nodes = detail.nodes.map(describeDomNode).filter(Boolean).slice(0, 8);
+        }
+        if (detail.path && Array.isArray(detail.path)) {
+            safe.path = detail.path.map(describeDomNode).filter(Boolean).slice(0, 3);
+        }
+        if (detail.reason) {
+            safe.reason = String(detail.reason).slice(0, 80);
+        }
+        return safe;
+    }
+
+    function pushLive2DDebug(message, detail) {
+        const safeMessage = String(message || "");
+        const safeDetail = sanitizeLive2DDebugDetail(detail);
+        try {
+            window.__JUNXUE_LIVE2D_DEBUG__ = window.__JUNXUE_LIVE2D_DEBUG__ || [];
+            window.__JUNXUE_LIVE2D_DEBUG__.push({
+                time: new Date().toISOString(),
+                message: safeMessage,
+                detail: safeDetail
+            });
+            window.console.log("[live2d-debug] " + safeMessage, safeDetail || "");
+        } catch (error) {
+            window.console.log("[live2d-debug] " + safeMessage);
+        }
+    }
+
+    function debugLive2DEntry(scope, message, detail) {
+        if (window.console && typeof window.console.debug === "function") {
+            window.console.debug("[" + scope + "] " + message, sanitizeLive2DDebugDetail(detail) || "");
+        }
+        pushLive2DDebug((scope === "live2d-pc" ? "pc " : "mobile ") + message, detail);
+    }
+
+    function logBindSelectorsOnce() {
+        if (bindSelectorLogged) {
+            return;
+        }
+
+        bindSelectorLogged = true;
+        debugLive2DEntry("live2d-pc", "bind selectors", {
+            selectors: live2dBindSelectors
+        });
+    }
+
+    function installClickHitDiagnostic() {
+        if (hitDiagnosticInstalled || !isLive2DDebugEnabled()) {
+            return;
+        }
+
+        hitDiagnosticInstalled = true;
+        document.addEventListener("click", function (event) {
+            const path = event.composedPath ? event.composedPath() : [];
+            const nodes = path.length ? path : [event.target];
+            debugLive2DEntry("live2d-pc", "click hit path", {
+                path: nodes.slice(0, 3)
+            });
+        }, true);
     }
 
     function playOpeningVoice() {
@@ -588,7 +708,16 @@
             const audio = new Audio(file);
 
             audio.volume = 0.8;
-            audio.play().catch(function () {});
+            audio.addEventListener("error", function () {
+                pushLive2DDebug("optional voice load failed", {
+                    reason: "audio error"
+                });
+            }, { once: true });
+            audio.play().catch(function () {
+                pushLive2DDebug("optional voice play skipped", {
+                    reason: "play rejected"
+                });
+            });
         } catch (error) {}
     }
 
@@ -1250,18 +1379,9 @@
     }
 
     function findLive2DRoots() {
-        const selectors = [
-            "#live2d-widget",
-            "#ganyu-live2d-frame-shell",
-            "#ganyu-live2d-frame",
-            ".ganyu-static-card",
-            "#oml2d-stage",
-            "#oml2d-canvas",
-            ".live2d-hit-area"
-        ];
         const roots = [];
 
-        selectors.forEach(function (selector) {
+        live2dBindSelectors.forEach(function (selector) {
             document.querySelectorAll(selector).forEach(function (node) {
                 if (!roots.includes(node)) {
                     roots.push(node);
@@ -1342,17 +1462,19 @@
     function openLazyMenu(event) {
         const isStaticButtonOpen = window.__JUNXUE_LIVE2D_OPEN_SOURCE__ === "static-open-button";
         const debugScope = isStaticButtonOpen ? "live2d-mobile" : "live2d-pc";
-        if (window.console && typeof window.console.debug === "function") {
-            if (!isStaticButtonOpen) {
-                window.console.debug("[live2d-pc] model click");
-            }
-            window.console.debug("[" + debugScope + "] openLazyMenu start");
+        if (!isStaticButtonOpen) {
+            debugLive2DEntry("live2d-pc", "model click", {
+                node: event && event.currentTarget ? event.currentTarget : null
+            });
         }
+        debugLive2DEntry(debugScope, "openLazyMenu start", {
+            node: event && event.currentTarget ? event.currentTarget : null
+        });
 
         if (window.JunxueLive2DDrag && typeof window.JunxueLive2DDrag.shouldIgnoreMenuEvent === "function" && window.JunxueLive2DDrag.shouldIgnoreMenuEvent(event)) {
-            if (window.console && typeof window.console.debug === "function") {
-                window.console.debug("[" + debugScope + "] open ignored: drag suppress");
-            }
+            debugLive2DEntry(debugScope, "open ignored: drag suppress", {
+                reason: "drag suppress"
+            });
             return;
         }
 
@@ -1366,28 +1488,54 @@
 
         retryOpeningVoiceFromGesture();
         loadLazyInteractions().then(function (menu) {
-            if (window.console && typeof window.console.debug === "function" && menu && typeof menu.open === "function") {
-                window.console.debug("[" + debugScope + "] Live2DInteractiveMenu.open exists");
+            if (menu && typeof menu.open === "function") {
+                debugLive2DEntry(debugScope, "Live2DInteractiveMenu.open exists");
             }
             menu.open(event);
-            if (window.console && typeof window.console.debug === "function") {
-                window.console.debug("[" + debugScope + "] menu open called");
-            }
+            debugLive2DEntry(debugScope, "menu open called");
         }).catch(function () {});
     }
 
     function bindNode(node) {
-        if (!node || boundNodes.has(node)) {
+        if (!node || !(node instanceof Element)) {
+            debugLive2DEntry("live2d-pc", "bindNode skipped", {
+                reason: "invalid node"
+            });
+            return;
+        }
+
+        debugLive2DEntry("live2d-pc", "bindNode called", {
+            node: node
+        });
+
+        if (boundNodes.has(node)) {
             return;
         }
 
         boundNodes.add(node);
         node.style.pointerEvents = "auto";
         node.addEventListener("click", openLazyMenu, true);
+        debugLive2DEntry("live2d-pc", "bindNode attached", {
+            node: node
+        });
     }
 
     function bindLive2DRoots() {
-        findLive2DRoots().forEach(bindNode);
+        const roots = findLive2DRoots();
+        const signature = roots.map(function (node) {
+            const info = describeDomNode(node);
+            return [info.tagName, info.id, info.className].join(".");
+        }).join("|");
+
+        if (signature !== lastBindCandidateSignature) {
+            lastBindCandidateSignature = signature;
+            debugLive2DEntry("live2d-pc", roots.length ? "bind candidates found" : "bind target not found", {
+                count: roots.length,
+                nodes: roots
+            });
+        }
+
+        roots.forEach(bindNode);
     }
 
     function initBootstrap() {
@@ -1396,6 +1544,8 @@
         }
 
         bootstrapReady = true;
+        logBindSelectorsOnce();
+        installClickHitDiagnostic();
         openingBubble = createOpeningBubble();
         hitArea = createHitArea();
         bindNode(hitArea);

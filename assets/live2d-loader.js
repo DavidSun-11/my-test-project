@@ -1,6 +1,6 @@
 /* Lightweight Live2D loader: desktop keeps dynamic Ganyu, mobile uses a stable static fallback first. */
 (function () {
-    const version = "20260629-live2d-mobile-menu-visible1";
+    const version = "20260629-live2d-mobile-menu-compact1";
     window.__JUNXUE_LIVE2D_DEBUG__ = window.__JUNXUE_LIVE2D_DEBUG__ || [];
     window.JunxueLive2DDebugLog = window.JunxueLive2DDebugLog || function (message, detail) {
         const safeMessage = String(message || "");
@@ -25,8 +25,8 @@
 
 (function () {
     const WIDGET_SCRIPT = "live2d/live2d-widget.js?v=20260613-5";
-    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260629-live2d-mobile-menu-visible1";
-    const DRAG_SCRIPT = "assets/live2d-drag.js?v=20260629-live2d-mobile-menu-visible1";
+    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260629-live2d-mobile-menu-compact1";
+    const DRAG_SCRIPT = "assets/live2d-drag.js?v=20260629-live2d-mobile-menu-compact1";
     const FRAME_HOST_SRC = "live2d/ganyu-host.html?v=20260613-iframe1";
     const STATIC_WEBP = "assets/images/price-ganyu-showcase.webp";
     const STATIC_PNG = "assets/images/price-ganyu-showcase.png";
@@ -54,6 +54,10 @@
         "showDialog called",
         "menu mounted",
         "menu computed style",
+        "menu option pointerup",
+        "menu option click",
+        "menu option open group",
+        "menu option ignored",
         "menu open called",
         "menu open failed"
     ];

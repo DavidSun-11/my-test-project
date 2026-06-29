@@ -6,7 +6,7 @@
 
     window.__JUNXUE_LIVE2D_INTERACTIONS_INSTALLED__ = true;
 
-    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260629-pc-live2d-menu1";
+    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260629-live2d-menu-reopen1";
     if (typeof window.enableGanyuMemory !== "boolean") {
         window.enableGanyuMemory = true;
     }
@@ -1316,10 +1316,13 @@
 
     function openLazyMenu(event) {
         if (window.console && typeof window.console.debug === "function") {
-            window.console.debug("[live2d-pc] open lazy menu");
+            window.console.debug("[live2d-pc] openLazyMenu start");
         }
 
         if (window.JunxueLive2DDrag && typeof window.JunxueLive2DDrag.shouldIgnoreMenuEvent === "function" && window.JunxueLive2DDrag.shouldIgnoreMenuEvent(event)) {
+            if (window.console && typeof window.console.debug === "function") {
+                window.console.debug("[live2d-pc] open ignored: drag suppress");
+            }
             return;
         }
 
@@ -1333,6 +1336,9 @@
 
         retryOpeningVoiceFromGesture();
         loadLazyInteractions().then(function (menu) {
+            if (window.console && typeof window.console.debug === "function" && menu && typeof menu.open === "function") {
+                window.console.debug("[live2d-pc] Live2DInteractiveMenu.open exists");
+            }
             menu.open(event);
             if (window.console && typeof window.console.debug === "function") {
                 window.console.debug("[live2d-pc] menu open called");

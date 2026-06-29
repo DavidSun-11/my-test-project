@@ -42,6 +42,22 @@
     };
     let live2dMainMenuRenderToken = 0;
 
+    function getLive2DOpenSource() {
+        return window.__JUNXUE_LIVE2D_OPEN_SOURCE__ || "";
+    }
+
+    function consumeLive2DOpenSource() {
+        const source = getLive2DOpenSource();
+        window.__JUNXUE_LIVE2D_OPEN_SOURCE__ = "";
+        return source;
+    }
+
+    function debugLive2DMenu(scope, message) {
+        if (window.console && typeof window.console.debug === "function") {
+            window.console.debug("[" + scope + "] " + message);
+        }
+    }
+
     const quizBank = [
         {
             question: "你觉得君雪是怎么样的人？",
@@ -491,7 +507,7 @@
     function ensureOpeningBubbleStyles() {
         const existingStyle = document.getElementById("live2d-opening-bubble-style");
         if (existingStyle) {
-            if (existingStyle.textContent && existingStyle.textContent.indexOf("20260629-pc-live2d-menu1") !== -1) {
+            if (existingStyle.textContent && existingStyle.textContent.indexOf("20260629-live2d-menu-reopen1") !== -1) {
                 return;
             }
             existingStyle.remove();
@@ -500,8 +516,10 @@
         const style = document.createElement("style");
         style.id = "live2d-opening-bubble-style";
         style.textContent = [
-            "/* 20260629-pc-live2d-menu1 */",
-            ".live2d-quiz{position:fixed;left:252px;top:160px;right:auto;bottom:auto;z-index:63;}",
+            "/* 20260629-live2d-menu-reopen1 */",
+            ".live2d-quiz{position:fixed;left:252px;top:160px;right:auto;bottom:auto;z-index:10020;}",
+            ".live2d-quiz:not(.is-open){visibility:hidden!important;opacity:0!important;pointer-events:none!important;}",
+            ".live2d-quiz.is-open{visibility:visible!important;opacity:1!important;pointer-events:auto!important;}",
             ".live2d-opening-bubble{position:fixed;left:252px;top:160px;z-index:61;width:min(328px,calc(100vw - 32px));padding:12px 14px;border:1px solid rgba(255,236,245,.88);border-radius:16px;background:rgba(255,178,211,.76);box-shadow:0 0 22px rgba(255,142,196,.38),inset 0 0 14px rgba(255,255,255,.16);backdrop-filter:blur(10px);color:rgba(92,28,58,.96);font-size:14px;line-height:1.55;letter-spacing:0;pointer-events:none;opacity:0;transform:translateY(8px);transition:opacity .35s ease,transform .35s ease;}",
             ".live2d-opening-bubble.is-open{opacity:1;transform:translateY(0);}",
             ".live2d-opening-bubble.is-fading{opacity:0;transform:translateY(-6px);}",
@@ -527,7 +545,7 @@
             "#ganyu-live2d-frame-shell,#ganyu-live2d-frame,#ganyu-live2d-frame-shell>.live2d-hit-area{outline:none!important;-webkit-tap-highlight-color:transparent!important;}",
             "#ganyu-live2d-frame-shell:focus,#ganyu-live2d-frame:focus,#ganyu-live2d-frame-shell>.live2d-hit-area:focus{outline:none!important;box-shadow:none!important;}",
             "#ganyu-live2d-frame-shell>.live2d-hit-area{pointer-events:auto!important;z-index:59!important;}",
-            ".live2d-quiz.is-main-menu{position:fixed!important;z-index:63!important;isolation:isolate;width:min(430px,calc(100vw - 32px))!important;max-width:calc(100vw - 32px)!important;max-height:calc(100vh - 36px)!important;padding:0!important;border:0!important;border-radius:0!important;overflow:visible!important;pointer-events:auto!important;background:transparent!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;filter:drop-shadow(0 22px 42px rgba(0,8,30,.44)) drop-shadow(0 0 28px rgba(101,210,255,.22));}",
+            ".live2d-quiz.is-main-menu{position:fixed!important;z-index:10020!important;isolation:isolate;width:min(430px,calc(100vw - 32px))!important;max-width:calc(100vw - 32px)!important;max-height:calc(100vh - 36px)!important;padding:0!important;border:0!important;border-radius:0!important;overflow:visible!important;pointer-events:auto!important;background:transparent!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;filter:drop-shadow(0 22px 42px rgba(0,8,30,.44)) drop-shadow(0 0 28px rgba(101,210,255,.22));}",
             ".live2d-quiz.is-main-menu::before{content:\"\"!important;position:absolute;z-index:0!important;left:10%!important;right:10%!important;top:-7px!important;height:24px!important;background:radial-gradient(ellipse at 50% 100%,rgba(204,244,255,.32),transparent 66%),linear-gradient(90deg,transparent,rgba(220,250,255,.58),rgba(179,218,255,.3),transparent)!important;box-shadow:0 0 16px rgba(120,210,245,.18);animation:live2d-menu-starglint 14s ease-in-out infinite;pointer-events:none!important;}",
             ".live2d-quiz.is-main-menu::after{content:\"\";position:absolute;z-index:0!important;left:7%;right:7%;bottom:-16px;height:88px;background:linear-gradient(90deg,rgba(170,224,255,0),rgba(170,224,255,.15),rgba(170,224,255,0)) 0 18px/128px 1px repeat-x,linear-gradient(90deg,rgba(215,236,255,0),rgba(215,236,255,.1),rgba(215,236,255,0)) 42px 38px/168px 1px repeat-x,radial-gradient(ellipse at 50% 100%,rgba(91,183,236,.18),transparent 70%);opacity:.62;filter:blur(.15px);mask-image:linear-gradient(to top,rgba(0,0,0,.76),rgba(0,0,0,.22),transparent);-webkit-mask-image:linear-gradient(to top,rgba(0,0,0,.76),rgba(0,0,0,.22),transparent);animation:live2d-nightlake-ripple 24s linear infinite;pointer-events:none!important;}",
             ".live2d-menu-beautiful-shell,.live2d-menu-shell--replica{position:relative;width:100%;box-sizing:border-box;pointer-events:auto;}",
@@ -1462,10 +1480,19 @@
         function showDialog() {
             hideIdleTalk();
             notifyDialogOpen();
+            dialog.removeAttribute("aria-hidden");
+            dialog.style.pointerEvents = "";
             positionLive2DPopup(dialog, getDialogPositionOptions());
             clampScoreGuessDialogToViewport();
             dialog.classList.add("is-open");
             replayOpenAnimation();
+            if (dialog.classList.contains("is-main-menu")) {
+                const menuZIndex = window.getComputedStyle ? window.getComputedStyle(dialog).zIndex : "";
+                if ((window.innerWidth || 0) <= 768) {
+                    debugLive2DMenu("live2d-mobile", "menu element mounted");
+                    debugLive2DMenu("live2d-mobile", "menu z-index " + menuZIndex);
+                }
+            }
             window.clearTimeout(showDialog.closeTimer);
         }
 
@@ -1578,9 +1605,17 @@
             if (dialog.classList.contains("is-score-guess")) {
                 cleanupScoreGuessRealtime();
             }
+            debugLive2DMenu("live2d-pc", "menu close");
             dialog.classList.remove("is-open", "is-opening");
             window.clearTimeout(showDialog.closeTimer);
+            firstClickVoicePlaying = false;
+            live2dMainMenuRenderToken++;
+            clearDialog();
+            setDialogMode("menu");
+            dialog.style.pointerEvents = "none";
+            dialog.setAttribute("aria-hidden", "true");
             notifyDialogClosed();
+            debugLive2DMenu("live2d-pc", "menu state reset");
         }
 
         function hideIdleTalk() {
@@ -1654,7 +1689,15 @@
 
         function showMenu(event) {
             if (window.JunxueLive2DDrag && typeof window.JunxueLive2DDrag.shouldIgnoreMenuEvent === "function" && window.JunxueLive2DDrag.shouldIgnoreMenuEvent(event)) {
+                debugLive2DMenu("live2d-pc", "open ignored: drag suppress");
                 return;
+            }
+
+            const openSource = consumeLive2DOpenSource();
+            const isStaticButtonOpen = openSource === "static-open-button";
+            debugLive2DMenu(isStaticButtonOpen ? "live2d-mobile" : "live2d-pc", "showMenu called");
+            if (!dialog.classList.contains("is-open")) {
+                debugLive2DMenu("live2d-pc", "second open allowed");
             }
 
             if (event && typeof event.preventDefault === "function") {
@@ -1662,6 +1705,7 @@
             }
 
             if (firstClickVoicePlaying) {
+                debugLive2DMenu(isStaticButtonOpen ? "live2d-mobile" : "live2d-pc", "open ignored: first voice playing");
                 return;
             }
 
@@ -1669,7 +1713,7 @@
                 retryOpeningVoiceFromGesture();
             }
 
-            if (event && !openingVoicePlaying && !hasPlayedFirstClickVoice()) {
+            if (event && !isStaticButtonOpen && !openingVoicePlaying && !hasPlayedFirstClickVoice()) {
                 firstClickVoicePlaying = true;
                 markFirstClickVoicePlayed();
                 clearDialog();

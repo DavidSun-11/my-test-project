@@ -1,8 +1,8 @@
 /* Lightweight Live2D loader: desktop keeps dynamic Ganyu, mobile uses a stable static fallback first. */
 (function () {
     const WIDGET_SCRIPT = "live2d/live2d-widget.js?v=20260613-5";
-    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260629-pc-live2d-menu1";
-    const DRAG_SCRIPT = "assets/live2d-drag.js?v=20260629-pc-live2d-menu1";
+    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260629-live2d-menu-reopen1";
+    const DRAG_SCRIPT = "assets/live2d-drag.js?v=20260629-live2d-menu-reopen1";
     const FRAME_HOST_SRC = "live2d/ganyu-host.html?v=20260613-iframe1";
     const STATIC_WEBP = "assets/images/price-ganyu-showcase.webp";
     const STATIC_PNG = "assets/images/price-ganyu-showcase.png";
@@ -21,8 +21,8 @@
         "button click duplicate ignored",
         "open from static button",
         "loading menu scripts",
-        "JunxueGanyuLazy.openMenu found",
-        "Live2DInteractiveMenu.open found",
+        "JunxueGanyuLazy.openMenu exists",
+        "Live2DInteractiveMenu.open exists",
         "menu open called",
         "menu open failed"
     ];
@@ -338,6 +338,7 @@
         }
 
         stopStaticButtonEvent(event);
+        debugStaticMenu("static button clicked");
 
         if (event.type === "click" && Date.now() - lastStaticButtonOpenAt < STATIC_BUTTON_OPEN_DEDUPE_MS) {
             debugStaticMenu("button click duplicate ignored");
@@ -1006,7 +1007,7 @@
         }
 
         lastStaticButtonOpenAt = Date.now();
-        debugStaticMenu("open menu from static button");
+        debugStaticMenu("open from static button");
         setStaticDebugStatus("open from static button");
         openStaticGanyuMenu(event, {
             source: "static-open-button",
@@ -1016,7 +1017,7 @@
 
     function callExistingStaticMenuOpen() {
         if (window.JunxueGanyuLazy && typeof window.JunxueGanyuLazy.openMenu === "function") {
-            setStaticDebugStatus("JunxueGanyuLazy.openMenu found");
+            setStaticDebugStatus("JunxueGanyuLazy.openMenu exists");
             window.JunxueGanyuLazy.openMenu();
             setStaticDebugStatus("menu open called");
             debugStaticMenu("static menu opened");
@@ -1024,7 +1025,8 @@
         }
 
         if (window.Live2DInteractiveMenu && typeof window.Live2DInteractiveMenu.open === "function") {
-            setStaticDebugStatus("Live2DInteractiveMenu.open found");
+            debugStaticMenu("Live2DInteractiveMenu.open exists");
+            setStaticDebugStatus("Live2DInteractiveMenu.open exists");
             window.Live2DInteractiveMenu.open();
             setStaticDebugStatus("menu open called");
             debugStaticMenu("static menu opened");
@@ -1042,6 +1044,8 @@
             debugStaticMenu(settings.source === "static-open-button" ? "bypass suppress for static button" : "bypass suppress for drag tap");
         }
 
+        window.__JUNXUE_LIVE2D_OPEN_SOURCE__ = settings.source || "";
+
         if (!bypassSuppress && window.JunxueLive2DDrag && typeof window.JunxueLive2DDrag.shouldIgnoreMenuEvent === "function" && window.JunxueLive2DDrag.shouldIgnoreMenuEvent(event)) {
             debugStaticMenu("static menu open ignored: drag/ghost click");
             return;
@@ -1057,6 +1061,7 @@
             return;
         }
 
+        debugStaticMenu("loading menu scripts");
         setStaticDebugStatus("loading menu scripts");
         loadSupportScripts().then(function () {
             debugStaticMenu("lazy menu ready");

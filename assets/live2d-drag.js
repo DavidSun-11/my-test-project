@@ -1,6 +1,6 @@
 /* Live2D direct drag: drag the Ganyu model area, while simple clicks still open the menu. */
 (function () {
-    const version = "20260629-live2d-mobile-menu-narrow1";
+    const version = "20260629-live2d-mobile-right-drawer1";
     if (typeof window.JunxueLive2DDebugLog !== "function") {
         window.__JUNXUE_LIVE2D_DEBUG__ = window.__JUNXUE_LIVE2D_DEBUG__ || [];
         window.JunxueLive2DDebugLog = function (message, detail) {

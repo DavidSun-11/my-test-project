@@ -1,8 +1,8 @@
 /* Lightweight Live2D loader: desktop keeps dynamic Ganyu, mobile uses a stable static fallback first. */
 (function () {
     const WIDGET_SCRIPT = "live2d/live2d-widget.js?v=20260613-5";
-    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260629-live2d-menu-reopen1";
-    const DRAG_SCRIPT = "assets/live2d-drag.js?v=20260629-live2d-menu-reopen1";
+    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260629-live2d-debug-observe1";
+    const DRAG_SCRIPT = "assets/live2d-drag.js?v=20260629-live2d-debug-observe1";
     const FRAME_HOST_SRC = "live2d/ganyu-host.html?v=20260613-iframe1";
     const STATIC_WEBP = "assets/images/price-ganyu-showcase.webp";
     const STATIC_PNG = "assets/images/price-ganyu-showcase.png";
@@ -17,12 +17,17 @@
     const STATIC_TAP_DISTANCE_PX = 8;
     const STATIC_BUTTON_OPEN_DEDUPE_MS = 520;
     const LIVE2D_DEBUG_STATUSES = [
+        "button clicked",
         "button pointerup",
         "button click duplicate ignored",
         "open from static button",
+        "loading scripts",
         "loading menu scripts",
+        "openMenu exists",
         "JunxueGanyuLazy.openMenu exists",
         "Live2DInteractiveMenu.open exists",
+        "showMenu called",
+        "menu mounted",
         "menu open called",
         "menu open failed"
     ];
@@ -280,16 +285,26 @@
     }
 
     function setStaticDebugStatus(status) {
-        if (!isLive2DDebugEnabled() || LIVE2D_DEBUG_STATUSES.indexOf(status) === -1) {
+        if (!isLive2DDebugEnabled()) {
+            return;
+        }
+
+        const safeStatus = String(status || "").replace(/[^\w\s:.\-]/g, "").trim().slice(0, 80);
+        const isAllowed = LIVE2D_DEBUG_STATUSES.indexOf(safeStatus) !== -1 ||
+            /^menu z-index: [\w.\-]+$/.test(safeStatus) ||
+            /^open failed: [\w.\-]+$/.test(safeStatus);
+        if (!isAllowed) {
             return;
         }
 
         const card = getStaticCard();
         const statusNode = card ? card.querySelector(".ganyu-static-card__status") : null;
         if (statusNode) {
-            statusNode.textContent = status;
+            statusNode.textContent = safeStatus;
         }
     }
+
+    loaderState.setDebugStatus = setStaticDebugStatus;
 
     function isStaticOpenButton(node) {
         return !!(node && node.matches && node.matches(".ganyu-static-card__dynamic" + STATIC_OPEN_SELECTOR));
@@ -339,6 +354,7 @@
 
         stopStaticButtonEvent(event);
         debugStaticMenu("static button clicked");
+        setStaticDebugStatus("button clicked");
 
         if (event.type === "click" && Date.now() - lastStaticButtonOpenAt < STATIC_BUTTON_OPEN_DEDUPE_MS) {
             debugStaticMenu("button click duplicate ignored");
@@ -1017,7 +1033,9 @@
 
     function callExistingStaticMenuOpen() {
         if (window.JunxueGanyuLazy && typeof window.JunxueGanyuLazy.openMenu === "function") {
+            debugStaticMenu("JunxueGanyuLazy.openMenu exists");
             setStaticDebugStatus("JunxueGanyuLazy.openMenu exists");
+            setStaticDebugStatus("openMenu exists");
             window.JunxueGanyuLazy.openMenu();
             setStaticDebugStatus("menu open called");
             debugStaticMenu("static menu opened");
@@ -1027,6 +1045,7 @@
         if (window.Live2DInteractiveMenu && typeof window.Live2DInteractiveMenu.open === "function") {
             debugStaticMenu("Live2DInteractiveMenu.open exists");
             setStaticDebugStatus("Live2DInteractiveMenu.open exists");
+            setStaticDebugStatus("openMenu exists");
             window.Live2DInteractiveMenu.open();
             setStaticDebugStatus("menu open called");
             debugStaticMenu("static menu opened");
@@ -1063,6 +1082,7 @@
 
         debugStaticMenu("loading menu scripts");
         setStaticDebugStatus("loading menu scripts");
+        setStaticDebugStatus("loading scripts");
         loadSupportScripts().then(function () {
             debugStaticMenu("lazy menu ready");
 
@@ -1072,8 +1092,10 @@
 
             throw new Error("menu-open-unavailable");
         }).catch(function (error) {
+            const reason = error && error.message ? error.message : "load-failed";
             setStaticDebugStatus("menu open failed");
-            debugStaticMenu("menu open failed: " + (error && error.message ? error.message : "load-failed"));
+            setStaticDebugStatus("open failed: " + reason);
+            debugStaticMenu("menu open failed: " + reason);
             updateStaticCardStatus("甘雨菜单暂时没唤醒，请刷新后再试。", "再试一次");
         });
     }

@@ -58,6 +58,12 @@
         }
     }
 
+    function publishStaticDebugStatus(message) {
+        if (window.JunxueLive2DLoader && typeof window.JunxueLive2DLoader.setDebugStatus === "function") {
+            window.JunxueLive2DLoader.setDebugStatus(message);
+        }
+    }
+
     const quizBank = [
         {
             question: "你觉得君雪是怎么样的人？",
@@ -507,7 +513,7 @@
     function ensureOpeningBubbleStyles() {
         const existingStyle = document.getElementById("live2d-opening-bubble-style");
         if (existingStyle) {
-            if (existingStyle.textContent && existingStyle.textContent.indexOf("20260629-live2d-menu-reopen1") !== -1) {
+            if (existingStyle.textContent && existingStyle.textContent.indexOf("20260629-live2d-debug-observe1") !== -1) {
                 return;
             }
             existingStyle.remove();
@@ -516,7 +522,7 @@
         const style = document.createElement("style");
         style.id = "live2d-opening-bubble-style";
         style.textContent = [
-            "/* 20260629-live2d-menu-reopen1 */",
+            "/* 20260629-live2d-debug-observe1 */",
             ".live2d-quiz{position:fixed;left:252px;top:160px;right:auto;bottom:auto;z-index:10020;}",
             ".live2d-quiz:not(.is-open){visibility:hidden!important;opacity:0!important;pointer-events:none!important;}",
             ".live2d-quiz.is-open{visibility:visible!important;opacity:1!important;pointer-events:auto!important;}",
@@ -1488,9 +1494,12 @@
             replayOpenAnimation();
             if (dialog.classList.contains("is-main-menu")) {
                 const menuZIndex = window.getComputedStyle ? window.getComputedStyle(dialog).zIndex : "";
-                if ((window.innerWidth || 0) <= 768) {
-                    debugLive2DMenu("live2d-mobile", "menu element mounted");
-                    debugLive2DMenu("live2d-mobile", "menu z-index " + menuZIndex);
+                const debugScope = (window.innerWidth || 0) <= 768 ? "live2d-mobile" : "live2d-pc";
+                debugLive2DMenu(debugScope, "menu element mounted");
+                debugLive2DMenu(debugScope, "menu z-index " + menuZIndex);
+                if (debugScope === "live2d-mobile") {
+                    publishStaticDebugStatus("menu mounted");
+                    publishStaticDebugStatus("menu z-index: " + menuZIndex);
                 }
             }
             window.clearTimeout(showDialog.closeTimer);
@@ -1696,6 +1705,9 @@
             const openSource = consumeLive2DOpenSource();
             const isStaticButtonOpen = openSource === "static-open-button";
             debugLive2DMenu(isStaticButtonOpen ? "live2d-mobile" : "live2d-pc", "showMenu called");
+            if (isStaticButtonOpen) {
+                publishStaticDebugStatus("showMenu called");
+            }
             if (!dialog.classList.contains("is-open")) {
                 debugLive2DMenu("live2d-pc", "second open allowed");
             }

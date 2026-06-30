@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>è€æ¿è¯„ä»· - å›é›ªå’¨è¯¢</title>
+    <title>老板评价 - 君雪咨询</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <script src="assets/performance-mode.js?v=20260613-2"></script>
     <style>
@@ -406,7 +406,7 @@
         }
 
         .hero::before {
-            content: "âœ¦";
+            content: "✦";
             display: block;
             margin-bottom: 16px;
             color: rgba(242, 232, 255, 0.86);
@@ -601,7 +601,7 @@
         }
 
         .section-tabs span::before {
-            content: "âœ£";
+            content: "✣";
             margin-right: 10px;
             color: rgba(228, 210, 255, 0.78);
         }
@@ -639,6 +639,8 @@
         }
 
         .reviews-grid.is-dynamic-review-list {
+            width: min(980px, 94%);
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             align-items: start;
         }
 
@@ -708,7 +710,7 @@
         }
 
         .review-page .price-review-item::after {
-            content: "â€";
+            content: "”";
             position: absolute;
             top: 10px;
             right: 22px;
@@ -859,7 +861,7 @@
         }
 
         .review-card::after {
-            content: "â€";
+            content: "”";
             position: absolute;
             top: 10px;
             right: 22px;
@@ -1220,6 +1222,11 @@
                 grid-template-columns: 1fr;
             }
 
+            .reviews-grid.is-dynamic-review-list {
+                width: 100%;
+                grid-template-columns: 1fr;
+            }
+
             .review-page .price-review-global-status {
                 width: 100%;
                 margin: -18px auto 18px;
@@ -1411,55 +1418,55 @@
     </div>
 
     <main class="review-shell" id="top">
-        <nav class="review-nav" aria-label="å›é›ªå’¨è¯¢å¯¼èˆª">
-            <a class="brand" href="index.html" aria-label="è¿”å›žå›é›ªç½‘ç«™é¦–é¡µ">
+        <nav class="review-nav" aria-label="君雪咨询导航">
+            <a class="brand" href="index.html" aria-label="返回君雪网站首页">
                 <span class="brand-mark" aria-hidden="true"></span>
                 <span>
-                    <strong>å›é›ªå’¨è¯¢</strong>
+                    <strong>君雪咨询</strong>
                     <span>JUNXUE CONSULTATION</span>
                 </span>
             </a>
-            <div class="nav-links" aria-label="é¡µé¢å¯¼èˆª">
-                <a href="index.html">é¦–é¡µ</a>
-                <a href="price.html">å’¨è¯¢æœåŠ¡</a>
-                <a class="is-active" href="boss-reviews.html">è€æ¿è¯„ä»·</a>
-                <a href="price.html#service-flow">æœåŠ¡æµç¨‹</a>
-                <a href="about.html">å…³äºŽæˆ‘ä»¬</a>
+            <div class="nav-links" aria-label="页面导航">
+                <a href="index.html">首页</a>
+                <a href="price.html">咨询服务</a>
+                <a class="is-active" href="boss-reviews.html">老板评价</a>
+                <a href="price.html#service-prices">服务流程</a>
+                <a href="about.html">关于我们</a>
             </div>
-            <a class="nav-cta" href="contact.html">è”ç³»å›é›ª</a>
+            <a class="nav-cta" href="contact.html">联系君雪</a>
         </nav>
 
         <section class="hero" aria-labelledby="boss-review-title">
-            <h1 id="boss-review-title">è€æ¿è¯„ä»·</h1>
-            <p>è®¤çœŸæœåŠ¡ï¼Œä¹Ÿæƒ³æŠŠæ¯ä¸€ä»½æ„Ÿå—æ”¶è—ä¸‹æ¥</p>
+            <h1 id="boss-review-title">老板评价</h1>
+            <p>认真服务，也想把每一份感受收藏下来</p>
         </section>
 
-        <section class="glass-panel stats-panel" id="price-review-stats" aria-label="è€æ¿è¯„ä»·ç»Ÿè®¡">
+        <section class="glass-panel stats-panel" id="price-review-stats" aria-label="老板评价统计">
             <div class="stat-block">
-                <span class="stat-label">ç»¼åˆè¯„åˆ†</span>
+                <span class="stat-label">综合评分</span>
                 <strong class="score">0.0</strong>
-                <span class="stars" aria-label="äº”æ˜Ÿè¯„åˆ†">â˜…â˜…â˜…â˜…â˜…</span>
-                <span class="stat-note">æ­£åœ¨åŒæ­¥çœŸå®žè¯„ä»·</span>
+                <span class="stars" aria-label="五星评分">★★★★★</span>
+                <span class="stat-note">正在同步真实评价</span>
             </div>
             <div class="stat-block">
-                <span class="stat-label">è¯„ä»·æ€»æ•°</span>
+                <span class="stat-label">评价总数</span>
                 <strong class="stat-number">0</strong>
-                <span class="stat-note">æ¡çœŸå®žè¯„ä»·</span>
+                <span class="stat-note">条真实评价</span>
             </div>
             <div class="stat-block">
-                <span class="stat-label">æ»¡æ„åº¦æ ‡ç­¾</span>
+                <span class="stat-label">最受欢迎服务</span>
                 <div class="tag-cloud">
-                    <span>æš‚æ— </span>
+                    <span>暂无</span>
                 </div>
             </div>
         </section>
 
         <div class="price-status price-review-global-status" id="price-review-status" role="status" aria-live="polite"></div>
 
-        <div class="section-tabs" aria-label="è¯„ä»·åˆ†ç»„">
-            <span class="is-active">è€æ¿ä»¬çš„åé¦ˆ</span>
-            <span>æœåŠ¡ä½“éªŒ</span>
-            <span>æœ€æ–°è¯„ä»·</span>
+        <div class="section-tabs" aria-label="评价分组">
+            <span class="is-active">老板们的反馈</span>
+            <span>服务体验</span>
+            <span>最新评价</span>
         </div>
 
         <section class="reviews-grid is-dynamic-review-list" id="price-review-list" aria-label="老板评价列表">
@@ -1469,28 +1476,28 @@
         <section class="summary-card" aria-labelledby="summary-title">
             <div class="summary-flower" aria-hidden="true"></div>
             <div class="summary-copy">
-                <span class="eyebrow">â€œ æ¥è‡ªè€æ¿çš„çœŸå¿ƒè¯ â€</span>
-                <h2 id="summary-title">ä½ ä»¬çš„ç”¨å¿ƒï¼Œæˆ‘ä»¬éƒ½çœ‹åœ¨çœ¼é‡Œã€‚<br>æ¯ä¸€æ¬¡çœŸè¯šçš„åé¦ˆï¼Œéƒ½æ˜¯æˆ‘ä»¬ç»§ç»­å‰è¡Œçš„å…‰ã€‚</h2>
-                <div class="summary-features" aria-label="æœåŠ¡ä¿éšœ">
+                <span class="eyebrow">“ 来自老板的真心话 ”</span>
+                <h2 id="summary-title">你们的用心，我们都看在眼里。<br>每一次真诚的反馈，都是我们继续前行的光。</h2>
+                <div class="summary-features" aria-label="服务保障">
                     <div class="summary-feature">
-                        <span>â™¡</span>
-                        <strong>ç”¨å¿ƒæœåŠ¡</strong>
-                        <small>å§‹ç»ˆå¦‚ä¸€</small>
+                        <span>♡</span>
+                        <strong>用心服务</strong>
+                        <small>始终如一</small>
                     </div>
                     <div class="summary-feature">
-                        <span>â™š</span>
-                        <strong>ä¸“ä¸šå›¢é˜Ÿ</strong>
-                        <small>ä¸¥æ ¼ç­›é€‰</small>
+                        <span>♚</span>
+                        <strong>专业团队</strong>
+                        <small>严格筛选</small>
                     </div>
                     <div class="summary-feature">
-                        <span>â—‡</span>
-                        <strong>éšç§ä¿æŠ¤</strong>
-                        <small>å®‰å…¨æ”¾å¿ƒ</small>
+                        <span>◇</span>
+                        <strong>隐私保护</strong>
+                        <small>安全放心</small>
                     </div>
                     <div class="summary-feature">
-                        <span>â˜</span>
-                        <strong>å”®åŽä¿éšœ</strong>
-                        <small>è´´å¿ƒæ— å¿§</small>
+                        <span>☏</span>
+                        <strong>售后保障</strong>
+                        <small>贴心无忧</small>
                     </div>
                 </div>
             </div>
@@ -1498,14 +1505,14 @@
         </section>
 
         <footer class="review-footer">
-            <strong>æ„Ÿè°¢æ¯ä¸€ä½è€æ¿çš„ä¿¡ä»»ä¸Žæ”¯æŒ</strong><br>
-            æˆ‘ä»¬ä¼šç»§ç»­åŠªåŠ›ï¼Œå¸¦æ¥æ›´å¥½çš„æœåŠ¡ä¸Žä½“éªŒ
+            <strong>感谢每一位老板的信任与支持</strong><br>
+            我们会继续努力，带来更好的服务与体验
         </footer>
     </main>
 </div>
-<button class="price-review-empty-action" id="price-open-ganyu-review" type="button" hidden>æ‰¾ç”˜é›¨å‘å¸ƒè¯„ä»·</button>
+<button class="price-review-empty-action" id="price-open-ganyu-review" type="button" hidden>找甘雨发布评价</button>
 <script src="assets/supabase-client.js?v=20260627-home-performance1"></script>
 <script src="assets/vendor/supabase-js-2.min.js?v=20260616-1"></script>
-<script src="assets/price-reviews.js?v=20260630-boss-review-real-data-mobile1"></script>
+<script src="assets/price-reviews.js?v=20260630-boss-review-page-fix1"></script>
 </body>
 </html>

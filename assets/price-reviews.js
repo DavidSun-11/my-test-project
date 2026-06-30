@@ -1,5 +1,5 @@
 (function () {
-    const SCRIPT_VERSION = "20260630-boss-review-real-data-mobile1";
+    const SCRIPT_VERSION = "20260630-boss-review-page-fix1";
     const REVIEW_QUERY_TIMEOUT_MS = 9000;
     const OPTIONAL_QUERY_TIMEOUT_MS = 3500;
     const REVIEW_LOADING_TEXT = "\u6b63\u5728\u8bfb\u53d6\u8001\u677f\u8bc4\u4ef7...";
@@ -654,7 +654,7 @@
             debugBossProfile("boss metadata update unavailable");
             return {
                 saved: false,
-                warning: "è€æ¿æ˜µç§°å·²å°è¯•ä¿å­˜ï¼Œä½†è´¦å·èµ„æ–™æš‚æ—¶åŒæ­¥å¤±è´¥ã€‚"
+                warning: "老板昵称已尝试保存，但账号资料暂时同步失败。"
             };
         }
 
@@ -775,7 +775,7 @@
                 return {
                     displayName: fallbackName,
                     warning: isMissingBossProfilesError(response.error) ?
-                        "è€æ¿æ˜µç§°åŠŸèƒ½è¿˜éœ€è¦æ‰§è¡Œæ•°æ®åº“å‡çº§ SQLã€‚" :
+                        "老板昵称功能还需要执行数据库升级 SQL。" :
                         ""
                 };
             }
@@ -1267,7 +1267,10 @@
             return;
         }
 
-        reviewList.innerHTML = reviews.map(renderReviewItem).join("");
+        const rawLimit = Number(reviewList.getAttribute("data-review-limit") || 0);
+        const visibleReviews = rawLimit > 0 ? reviews.slice(0, rawLimit) : reviews;
+
+        reviewList.innerHTML = visibleReviews.map(renderReviewItem).join("");
         syncExpandableReviews();
     }
 

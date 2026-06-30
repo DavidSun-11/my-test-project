@@ -1,6 +1,6 @@
 /* Lightweight Live2D loader: desktop keeps dynamic Ganyu, mobile uses a stable static fallback first. */
 (function () {
-    const version = "20260629-live2d-mobile-submenu-expand1";
+    const version = "20260630-live2d-mobile-feature-state1";
     window.__JUNXUE_LIVE2D_DEBUG__ = window.__JUNXUE_LIVE2D_DEBUG__ || [];
     window.JunxueLive2DDebugLog = window.JunxueLive2DDebugLog || function (message, detail) {
         const safeMessage = String(message || "");
@@ -25,7 +25,7 @@
 
 (function () {
     const WIDGET_SCRIPT = "live2d/live2d-widget.js?v=20260613-5";
-    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260629-live2d-mobile-submenu-expand1";
+    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260630-live2d-mobile-feature-state1";
     const DRAG_SCRIPT = "assets/live2d-drag.js?v=20260629-live2d-mobile-right-drawer1";
     const FRAME_HOST_SRC = "live2d/ganyu-host.html?v=20260613-iframe1";
     const STATIC_WEBP = "assets/images/price-ganyu-showcase.webp";
@@ -84,6 +84,20 @@
         "mobile submenu mounted: know",
         "mobile input autofocus prevented",
         "mobile menu shell removed",
+        "mobile feature option clicked: hero-wheel",
+        "mobile feature option clicked: score-guess",
+        "mobile feature option clicked: punishment",
+        "mobile feature open start: hero-wheel",
+        "mobile feature open start: score-guess",
+        "mobile feature mounted: hero-wheel",
+        "mobile feature mounted: score-guess",
+        "mobile feature open failed: hero-wheel",
+        "mobile feature open failed: score-guess",
+        "mobile feature open failed: punishment",
+        "mobile static card restored after feature",
+        "mobile static card restore skipped: no hidden submenu card",
+        "mobile show ganyu button clicked",
+        "mobile show ganyu restored",
         "menu open failed"
     ];
     const currentScript = document.currentScript;
@@ -223,6 +237,11 @@
 
     function handleMainButtonClick() {
         if (isIframeMobileMode()) {
+            debugStaticMenu("show ganyu button clicked");
+            setStaticDebugStatus("mobile show ganyu button clicked");
+        }
+
+        if (isIframeMobileMode()) {
             if (loaderState.loading) {
                 return;
             }
@@ -282,6 +301,12 @@
         const card = getStaticCard();
         if (card) {
             card.classList.toggle("is-hidden", !visible);
+            if (visible) {
+                card.classList.remove("is-hidden-for-submenu");
+                card.removeAttribute("aria-hidden");
+                debugStaticMenu("show ganyu restored");
+                setStaticDebugStatus("mobile show ganyu restored");
+            }
             loaderState.staticVisible = visible;
         }
 
@@ -352,6 +377,11 @@
         const isAllowed = LIVE2D_DEBUG_STATUSES.indexOf(safeStatus) !== -1 ||
             /^menu z-index: [\w.\-]+$/.test(safeStatus) ||
             /^mobile menu shell remains: [\w\s:.\-]+$/.test(safeStatus) ||
+            /^mobile feature option clicked: [\w\s:.\-]+$/.test(safeStatus) ||
+            /^mobile feature open start: [\w\s:.\-]+$/.test(safeStatus) ||
+            /^mobile feature mounted: [\w\s:.\-]+$/.test(safeStatus) ||
+            /^mobile feature open failed: [\w\s:.\-]+$/.test(safeStatus) ||
+            /^mobile static card restore skipped: [\w\s:.\-]+$/.test(safeStatus) ||
             /^open failed: [\w.\-]+$/.test(safeStatus);
         if (!isAllowed) {
             return;
@@ -553,6 +583,8 @@
         removeInlineRuntimeNodes();
         const card = ensureStaticCard();
         card.classList.remove("is-hidden");
+        card.classList.remove("is-hidden-for-submenu");
+        card.removeAttribute("aria-hidden");
         loaderState.staticVisible = true;
         loaderState.visible = true;
         loaderState.loaded = false;
@@ -561,6 +593,8 @@
         updateStaticCardStatus("", loaderState.dynamicAttempted ? "再试一次对话甘雨" : "尝试对话甘雨");
         updateRenderInfo();
         setControlState("loaded");
+        debugStaticMenu("show ganyu restored");
+        setStaticDebugStatus("mobile show ganyu restored");
         loadStaticGanyuDrag();
         window.setTimeout(notifyLive2DVisible, 0);
     }

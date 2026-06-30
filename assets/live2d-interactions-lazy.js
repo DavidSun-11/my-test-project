@@ -1,6 +1,6 @@
 /* Live2D 互动模块：菜单、无奖竞答题库、英雄池转盘、咨询功能都集中在这里，方便后续继续加题。 */
 (function () {
-    const version = "20260629-live2d-mobile-submenu-expand1";
+    const version = "20260630-live2d-mobile-feature-state1";
     if (typeof window.JunxueLive2DDebugLog !== "function") {
         window.__JUNXUE_LIVE2D_DEBUG__ = window.__JUNXUE_LIVE2D_DEBUG__ || [];
         window.JunxueLive2DDebugLog = function (message, detail) {
@@ -594,7 +594,7 @@
     function ensureOpeningBubbleStyles() {
         const existingStyle = document.getElementById("live2d-opening-bubble-style");
         if (existingStyle) {
-            if (existingStyle.textContent && existingStyle.textContent.indexOf("20260629-live2d-mobile-submenu-expand1") !== -1) {
+            if (existingStyle.textContent && existingStyle.textContent.indexOf("20260630-live2d-mobile-feature-state1") !== -1) {
                 return;
             }
             existingStyle.remove();
@@ -603,7 +603,7 @@
         const style = document.createElement("style");
         style.id = "live2d-opening-bubble-style";
         style.textContent = [
-            "/* 20260629-live2d-mobile-submenu-expand1 */",
+            "/* 20260630-live2d-mobile-feature-state1 */",
             ".live2d-quiz{position:fixed;left:252px;top:160px;right:auto;bottom:auto;z-index:10020;}",
             ".live2d-quiz:not(.is-open){visibility:hidden!important;opacity:0!important;pointer-events:none!important;}",
             ".live2d-quiz.is-open{visibility:visible!important;opacity:1!important;pointer-events:auto!important;}",
@@ -796,6 +796,7 @@
             "@media (max-width:768px){.live2d-quiz.is-main-menu .live2d-quiz__menu,.score-guess-grid,.score-guess-status,.score-guess-actions{grid-template-columns:1fr;}.live2d-menu-title,.score-guess-title{font-size:18px;}.live2d-menu-user,.score-guess-account,.score-guess-pill{font-size:11px;}.score-guess-option{min-height:70px;padding-left:44px!important;}.score-guess-option::before{left:13px;top:15px;width:20px;height:20px;}.score-guess-panel__header{grid-template-columns:1fr;}.score-guess-panel__state{justify-self:start;}.score-guess-panel__meta{grid-template-columns:1fr;}.score-guess-panel__options{grid-template-columns:1fr;}.score-guess-panel__actions{display:grid;grid-template-columns:1fr;}.score-guess-panel__actions .live2d-quiz__option{width:100%;min-width:0;}.score-guess-panel__title{font-size:20px;}}",
             "@media (max-width:768px){.live2d-quiz.is-main-menu,.live2d-quiz.is-live2d-submenu-drawer{transform:none!important;width:clamp(188px,58vw,320px)!important;max-width:calc(100vw - 16px)!important;max-height:min(42dvh,320px)!important;padding:0!important;}.live2d-menu-panel{height:min(42dvh,320px)!important;min-height:0!important;max-height:min(42dvh,320px)!important;border-radius:26px;}.live2d-menu-panel::before{inset:8px;border-radius:20px;}.live2d-menu-panel::after{opacity:.42;height:24%;}.live2d-menu-panel__ornament{left:16%;right:16%;top:18px;}.live2d-menu-panel__moon{top:8px;width:30px;height:30px;}.live2d-menu-panel__moon::after{display:none;}.live2d-menu-beautiful-content,.live2d-menu-panel__content{min-height:0;padding:38px 18px 18px;overflow:hidden;}.live2d-quiz.is-main-menu .live2d-quiz__question,.live2d-quiz.is-live2d-submenu-drawer .live2d-quiz__question{margin-bottom:8px!important;}.live2d-quiz.is-main-menu .live2d-menu-title{font-size:18px;}.live2d-quiz.is-main-menu .live2d-menu-user{font-size:10px;padding:4px 8px;}.live2d-quiz.is-main-menu .live2d-quiz__options,.live2d-quiz.is-live2d-submenu-drawer .live2d-quiz__options{min-height:0;width:100%;}.live2d-quiz.is-main-menu .live2d-quiz__menu{grid-template-columns:1fr!important;gap:10px!important;width:100%;min-height:0;max-height:calc(min(42dvh,320px) - 126px)!important;overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch;}.live2d-quiz.is-live2d-submenu-drawer .live2d-consult-grid{display:grid!important;grid-template-columns:1fr!important;gap:8px!important;width:100%;min-height:0;max-height:calc(min(42dvh,320px) - 118px)!important;overflow-y:auto!important;overflow-x:hidden!important;padding:1px 4px 2px 1px;box-sizing:border-box;-webkit-overflow-scrolling:touch;}.live2d-quiz.is-live2d-submenu-drawer .live2d-consult-card{appearance:none;-webkit-appearance:none;display:grid!important;gap:3px;width:100%;min-width:0;min-height:42px;padding:8px 10px!important;border:1px solid rgba(183,239,255,.42)!important;border-radius:14px!important;background:linear-gradient(145deg,rgba(34,78,118,.58),rgba(27,47,91,.52))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 8px 18px rgba(0,12,38,.14)!important;color:rgba(240,252,255,.96)!important;text-align:left;pointer-events:auto!important;touch-action:manipulation;}.live2d-quiz.is-live2d-submenu-drawer .live2d-consult-card__title{font-size:12px;font-weight:840;line-height:1.2;}.live2d-quiz.is-live2d-submenu-drawer .live2d-consult-card__desc{font-size:10.5px;line-height:1.3;color:rgba(207,235,250,.82);}.live2d-quiz.is-main-menu .live2d-quiz__option{width:100%;min-width:0;min-height:42px!important;padding:8px 30px!important;font-size:12px!important;letter-spacing:.03em;}.live2d-quiz.is-main-menu .live2d-quiz__option::before{left:10px!important;width:17px!important;height:17px!important;}.live2d-quiz.is-main-menu .live2d-quiz__close,.live2d-quiz.is-live2d-submenu-drawer .live2d-quiz__close{right:13px!important;top:13px!important;width:28px!important;height:28px!important;}.live2d-quiz.is-main-menu::after,.live2d-quiz.is-live2d-submenu-drawer::after{height:42px;opacity:.42;}}",
             "@media (max-width:768px){.live2d-quiz.is-live2d-submenu-drawer{width:min(88vw,390px)!important;max-width:calc(100vw - 16px)!important;max-height:min(52dvh,420px)!important;}.live2d-quiz.is-live2d-submenu-drawer .live2d-menu-panel{height:min(52dvh,420px)!important;max-height:min(52dvh,420px)!important;}.live2d-quiz.is-live2d-submenu-drawer .live2d-menu-beautiful-content,.live2d-quiz.is-live2d-submenu-drawer .live2d-menu-panel__content{padding:40px 18px 18px;overflow:hidden;}.live2d-quiz.is-live2d-submenu-drawer .live2d-consult-grid{max-height:calc(min(52dvh,420px) - 122px)!important;overflow-y:auto!important;overflow-x:hidden!important;}.live2d-quiz.is-live2d-submenu-drawer .live2d-consult-card{min-height:48px;padding:9px 11px!important;}}",
+            "@media (max-width:768px){.live2d-quiz.is-wheel,.live2d-quiz.is-score-guess,.live2d-quiz.is-weather,.live2d-quiz.is-music,.live2d-quiz.is-fortune,.live2d-quiz.is-memory,.live2d-quiz.is-checkin,.live2d-quiz.is-boss-auth,.live2d-quiz.is-boss-review{width:min(92vw,520px)!important;max-width:calc(100vw - 24px)!important;max-height:calc(100vh - 88px)!important;overflow-y:auto!important;overflow-x:hidden!important;box-sizing:border-box;z-index:10035!important;}.live2d-quiz.is-wheel .live2d-quiz__options,.live2d-quiz.is-weather .live2d-quiz__options,.live2d-quiz.is-music .live2d-quiz__options,.live2d-quiz.is-fortune .live2d-quiz__options,.live2d-quiz.is-memory .live2d-quiz__options,.live2d-quiz.is-checkin .live2d-quiz__options,.live2d-quiz.is-boss-auth .live2d-quiz__options,.live2d-quiz.is-boss-review .live2d-quiz__options{max-width:100%;overflow-x:hidden;}}",
             "@media (max-width:360px){.live2d-quiz.is-main-menu{width:min(74vw,300px)!important;max-width:calc(100vw - 16px)!important;}.live2d-quiz.is-main-menu .live2d-quiz__option{padding-left:28px!important;padding-right:24px!important;font-size:11.5px!important;}}",
             "@media (prefers-reduced-motion:reduce){.live2d-quiz.is-main-menu::before,.live2d-quiz.is-main-menu::after,.live2d-quiz.is-main-menu .live2d-quiz__option::after,.live2d-menu-beautiful-wave,.live2d-menu-panel::after{animation:none!important;transition:none!important;}.live2d-menu-beautiful-wave,.live2d-menu-panel::after{opacity:.22;}.live2d-quiz.is-main-menu::after{opacity:.28;}.live2d-quiz.is-main-menu .live2d-quiz__option:hover:not(:disabled){transform:none;}}",
             "html.performance-low .live2d-quiz.is-main-menu,html.performance-low .live2d-quiz.is-score-guess{box-shadow:0 12px 28px rgba(3,18,42,.38),inset 0 1px 0 rgba(255,255,255,.18);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);}",
@@ -1566,7 +1567,11 @@
 
             positionLive2DPopup(dialog, getDialogPositionOptions());
             clampScoreGuessDialogToViewport();
-            updateMobileMenuAnchorPosition();
+            if (isMobileFeatureDialog()) {
+                updateMobileFeatureViewportPosition();
+            } else {
+                updateMobileMenuAnchorPosition();
+            }
         }
 
         function isMobileDrawerDialog() {
@@ -1633,6 +1638,10 @@
         function restoreStaticCardAfterMobileSubmenu() {
             const card = getStaticCardAnchor();
             if (!card || !card.classList.contains("is-hidden-for-submenu")) {
+                if (isMobileViewport() && mobileMenuStage === "feature") {
+                    debugLive2DMenu("live2d-mobile", "static card restore skipped: no hidden submenu card");
+                    publishStaticDebugStatus("mobile static card restore skipped: no hidden submenu card");
+                }
                 return;
             }
 
@@ -1640,6 +1649,10 @@
             card.removeAttribute("aria-hidden");
             debugLive2DMenu("live2d-mobile", "static card restored");
             publishStaticDebugStatus("mobile static card restored");
+            if (mobileMenuStage === "feature") {
+                debugLive2DMenu("live2d-mobile", "static card restored after feature");
+                publishStaticDebugStatus("mobile static card restored after feature");
+            }
         }
 
         function preventMobileInputAutofocus() {
@@ -1782,6 +1795,85 @@
             });
         }
 
+        function isMobileFeatureDialog() {
+            return mobileMenuStage === "feature" ||
+                dialog.classList.contains("is-wheel") ||
+                dialog.classList.contains("is-score-guess") ||
+                dialog.classList.contains("is-weather") ||
+                dialog.classList.contains("is-music") ||
+                dialog.classList.contains("is-fortune") ||
+                dialog.classList.contains("is-memory") ||
+                dialog.classList.contains("is-checkin") ||
+                dialog.classList.contains("is-boss-auth") ||
+                dialog.classList.contains("is-boss-review");
+        }
+
+        function updateMobileFeatureViewportPosition() {
+            const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
+            if (viewportWidth > 768 || !isMobileFeatureDialog()) {
+                return;
+            }
+
+            const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+            const margin = 12;
+            const width = Math.min(Math.round(viewportWidth * 0.92), 520, Math.max(180, viewportWidth - margin * 2));
+            const maxHeight = Math.max(220, viewportHeight - 88);
+            const left = Math.max(margin, Math.floor((viewportWidth - width) / 2));
+            const top = clamp(44, margin, Math.max(margin, viewportHeight - Math.min(maxHeight, viewportHeight - margin * 2) - margin));
+
+            dialog.style.setProperty("position", "fixed", "important");
+            dialog.style.setProperty("z-index", "10035", "important");
+            dialog.style.setProperty("left", left + "px", "important");
+            dialog.style.setProperty("top", top + "px", "important");
+            dialog.style.setProperty("right", "auto", "important");
+            dialog.style.setProperty("bottom", "auto", "important");
+            dialog.style.setProperty("width", width + "px", "important");
+            dialog.style.setProperty("max-width", "calc(100vw - 24px)", "important");
+            dialog.style.setProperty("max-height", "calc(100vh - 88px)", "important");
+            dialog.style.setProperty("overflow-y", "auto", "important");
+            dialog.style.setProperty("overflow-x", "hidden", "important");
+            dialog.style.setProperty("visibility", "visible", "important");
+            dialog.style.setProperty("opacity", "1", "important");
+            dialog.style.setProperty("pointer-events", "auto", "important");
+            dialog.removeAttribute("aria-hidden");
+        }
+
+        function openMobileFeature(key, parentKey, callback) {
+            if (!isMobileViewport()) {
+                callback();
+                return;
+            }
+
+            const parentPanel = parentKey === "live" ? showLiveInteractionPanel :
+                parentKey === "daily" ? showEntertainmentPanel :
+                parentKey === "consult" ? showConsultPanel :
+                parentKey === "know" ? showKnowJunxuePanel :
+                showMenu;
+
+            debugLive2DMenu("live2d-mobile", "feature option clicked: " + key);
+            publishStaticDebugStatus("mobile feature option clicked: " + key);
+            debugLive2DMenu("live2d-mobile", "feature open start: " + key);
+            publishStaticDebugStatus("mobile feature open start: " + key);
+            mobileMenuStage = "feature";
+            dialog.classList.remove("is-live2d-submenu-drawer");
+            dialog.removeAttribute("data-live2d-submenu-key");
+            restoreStaticCardAfterMobileSubmenu();
+
+            try {
+                callback();
+                updateMobileFeatureViewportPosition();
+                debugLive2DMenu("live2d-mobile", "feature mounted: " + key);
+                publishStaticDebugStatus("mobile feature mounted: " + key);
+            } catch (error) {
+                const reason = error && error.message ? error.message : "unknown";
+                debugLive2DMenu("live2d-mobile", "feature open failed: " + key, { reason: reason });
+                publishStaticDebugStatus("mobile feature open failed: " + key);
+                parentPanel();
+                result.textContent = "这个功能暂时没唤醒，请稍后再试。";
+                result.className = "live2d-quiz__result is-warning";
+            }
+        }
+
         function isVisibleLive2DShell(node) {
             if (!node || !window.getComputedStyle) {
                 return false;
@@ -1858,7 +1950,11 @@
             positionLive2DPopup(dialog, getDialogPositionOptions());
             clampScoreGuessDialogToViewport();
             dialog.classList.add("is-open");
-            updateMobileMenuAnchorPosition();
+            if (isMobileFeatureDialog()) {
+                updateMobileFeatureViewportPosition();
+            } else {
+                updateMobileMenuAnchorPosition();
+            }
             replayOpenAnimation();
             if (isMainMenu || isMobileSubmenuDrawer) {
                 const menuZIndex = window.getComputedStyle ? window.getComputedStyle(dialog).zIndex : "";
@@ -2357,10 +2453,18 @@
             meta.textContent = "日常娱乐";
             question.textContent = "今天想和甘雨轻松一下吗？";
             options.classList.add("live2d-consult-grid");
-            addConsultCard("无奖竞答", "题目挑战", false, startQuiz);
-            addConsultCard("查看天气", "天气查询", false, showWeatherInput);
-            addConsultCard("占卜", "今日运势", false, showFortunePanel);
-            addConsultCard("听歌", "甘雨歌单", false, showMusicPlayer);
+            addConsultCard("无奖竞答", "题目挑战", false, function () {
+                openMobileFeature("quiz", "daily", startQuiz);
+            });
+            addConsultCard("查看天气", "天气查询", false, function () {
+                openMobileFeature("weather", "daily", showWeatherInput);
+            });
+            addConsultCard("占卜", "今日运势", false, function () {
+                openMobileFeature("fortune", "daily", showFortunePanel);
+            });
+            addConsultCard("听歌", "甘雨歌单", false, function () {
+                openMobileFeature("music", "daily", showMusicPlayer);
+            });
             addConsultCard("返回", "回到主菜单", false, function () {
                 showMenu();
             });
@@ -2380,14 +2484,21 @@
             meta.textContent = "直播互动";
             question.textContent = "直播时可以一起玩的内容都放在这里。";
             options.classList.add("live2d-consult-grid");
-            addConsultCard("英雄池转盘", "今天玩谁？", false, showHeroWheel);
-            addConsultCard("评分竞猜", "猜猜这局评分", false, showScoreGuessPanel);
+            addConsultCard("英雄池转盘", "今天玩谁？", false, function () {
+                openMobileFeature("hero-wheel", "live", showHeroWheel);
+            });
+            addConsultCard("评分竞猜", "猜猜这局评分", false, function () {
+                openMobileFeature("score-guess", "live", showScoreGuessPanel);
+            });
             addConsultCard("直播惩罚", "敬请期待", false, function () {
+                debugLive2DMenu("live2d-mobile", "feature option clicked: punishment");
+                publishStaticDebugStatus("mobile feature option clicked: punishment");
                 recordGanyuFeature("直播惩罚");
                 result.textContent = "直播惩罚玩法还在设计中，先欠着你一局～";
                 result.className = "live2d-quiz__result is-neutral";
             });
             addConsultCard("更多互动", "敬请期待", false, function () {
+                debugLive2DMenu("live2d-mobile", "feature option clicked: more-live");
                 recordGanyuFeature("更多互动");
                 result.textContent = "更多直播互动还在慢慢准备中，之后会补上～";
                 result.className = "live2d-quiz__result is-neutral";
@@ -2421,15 +2532,19 @@
                 }
             });
             addConsultCard("甘雨记得你", "看看甘雨记住的小事", false, function () {
-                showMemoryPanel();
+                openMobileFeature("memory", "know", showMemoryPanel);
             });
             addConsultCard("星湖签到", "每日签到领积分", false, function () {
-                recordGanyuFeature("星湖签到");
-                showBossDailyCheckinPanel();
+                openMobileFeature("checkin", "know", function () {
+                    recordGanyuFeature("星湖签到");
+                    showBossDailyCheckinPanel();
+                });
             });
             addConsultCard("联系君雪", "想咨询陪玩、复盘或互动合作，可以从这里找到我。", false, function () {
-                recordGanyuFeature("联系君雪");
-                showJunxueContactPanel();
+                openMobileFeature("contact", "know", function () {
+                    recordGanyuFeature("联系君雪");
+                    showJunxueContactPanel();
+                });
             });
             addConsultCard("返回", "回到主菜单", false, function () {
                 showMenu();
@@ -2450,6 +2565,7 @@
             options.classList.add("live2d-consult-grid");
             addConsultCard("查看联系方式", "联系方式需按页面提示付款后手动查看，请不要重复支付。", false, function () {
                 recordGanyuFeature("查看联系方式");
+                restoreStaticCardAfterMobileSubmenu();
                 window.location.href = "contact.html";
             });
             addConsultCard("返回", "回到认识君雪", false, function () {
@@ -2631,6 +2747,7 @@
         }
 
         function openBossRegisterPage() {
+            restoreStaticCardAfterMobileSubmenu();
             window.location.href = "boss-register.html";
         }
 
@@ -4039,6 +4156,7 @@
                     return;
                 }
 
+                restoreStaticCardAfterMobileSubmenu();
                 window.location.href = "price.html#boss-reviews";
             });
             addConsultCard("登录/注册", "老板账号", false, function () {
@@ -4050,6 +4168,11 @@
                 showBossReviewSubmitPanel();
             });
             addConsultCard("返回", "回到主菜单", false, function () {
+                if (isMobileViewport() && mobileMenuStage === "feature") {
+                    showConsultPanel();
+                    return;
+                }
+
                 showMenu();
             });
             const safeMessage = safeText(message, "老板评价会展示在收费咨询页的评价墙里。");
@@ -4550,6 +4673,11 @@
             options.classList.add("live2d-quiz__menu");
             addOption("继续挑战", startQuiz);
             addOption("回到菜单", function () {
+                if (isMobileViewport() && mobileMenuStage === "feature") {
+                    showEntertainmentPanel();
+                    return;
+                }
+
                 showMenu();
             });
             result.textContent = quizState.correct >= quizState.wrong ? "不错嘛，君雪记下这次成绩了" : "下次再来，君雪等你反超";
@@ -4626,6 +4754,11 @@
                     }
 
                     if (action === "menu") {
+                        if (isMobileViewport() && mobileMenuStage === "feature") {
+                            showKnowJunxuePanel();
+                            return;
+                        }
+
                         showMenu();
                     }
                 });
@@ -4650,18 +4783,23 @@
             options.classList.add("live2d-consult-grid");
             addConsultCard("收费咨询", "价目与服务", false, function () {
                 recordGanyuFeature("收费咨询");
+                restoreStaticCardAfterMobileSubmenu();
                 window.location.href = "price.html";
             });
             addConsultCard("老板号注册", "注册老板账号", false, function () {
-                recordGanyuFeature("老板号注册");
-                showBossRegisterPanel();
+                openMobileFeature("boss-register", "consult", function () {
+                    recordGanyuFeature("老板号注册");
+                    showBossRegisterPanel();
+                });
             });
             addConsultCard("老板资料", "修改老板昵称", false, function () {
-                recordGanyuFeature("老板资料");
-                showBossProfilePanel();
+                openMobileFeature("boss-profile", "consult", function () {
+                    recordGanyuFeature("老板资料");
+                    showBossProfilePanel();
+                });
             });
             addConsultCard("老板评价", "查看与发布", false, function () {
-                showBossReviewsPanel();
+                openMobileFeature("boss-reviews", "consult", showBossReviewsPanel);
             });
             addConsultCard("敬请期待", "更多咨询", false, function () {
                 recordGanyuFeature("更多咨询");
@@ -5555,7 +5693,7 @@
             });
             backButton.addEventListener("click", function (event) {
                 event.stopPropagation();
-                showMenu();
+                showLiveInteractionPanel();
             });
 
             updateLaneButtons();

@@ -1960,6 +1960,7 @@ document.addEventListener("click", function (event) {
         window.JunxuePerformanceMode.applyLive2DConfig(window.Live2DWidgetConfig);
     }
 </script>
+<script src="assets/vendor/supabase-js-2.min.js?v=20260616-1" data-price-supabase-sdk="true" onload="this.dataset.loaded='true'" onerror="this.dataset.loadFailed='true'"></script>
 <script>
 (function loadPriceReviewScripts() {
     const priceReviewLoadErrorText = "\u8001\u677f\u8bc4\u4ef7\u6682\u65f6\u52a0\u8f7d\u5931\u8d25\uff0c\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002";
@@ -1977,10 +1978,16 @@ document.addEventListener("click", function (event) {
                     resolve(true);
                     return;
                 }
+                if (existing.dataset.loadFailed === "true") {
+                    resolve(false);
+                    return;
+                }
                 existing.addEventListener("load", function () {
+                    existing.dataset.loaded = "true";
                     resolve(true);
                 }, { once: true });
                 existing.addEventListener("error", function () {
+                    existing.dataset.loadFailed = "true";
                     resolve(false);
                 }, { once: true });
                 return;
@@ -2038,15 +2045,17 @@ document.addEventListener("click", function (event) {
     }
 
     loadScript("assets/supabase-client.js?v=20260627-home-performance1").then(function () {
+        debugPriceReviewScript("boss reviews supabase sdk load start");
         return loadScript(supabaseSdkSrc);
     }).then(function (loaded) {
         debugPriceReviewScript("boss reviews supabase sdk loaded: " + String(!!loaded && hasSupabaseSdk()));
         if (!loaded || !hasSupabaseSdk()) {
+            debugPriceReviewScript("boss reviews supabase sdk load failed: " + (!loaded ? "script-load-failed" : "missing-global"));
             debugPriceReviewScript("boss reviews query failed: sdk-load-failed");
             showPriceReviewScriptFailure();
             return false;
         }
-        return loadScript("assets/price-reviews.js?v=20260630-price-reviews-sdk-load1");
+        return loadScript("assets/price-reviews.js?v=20260630-price-reviews-sdk-load2");
     }).then(function (loaded) {
         if (!loaded) {
             showPriceReviewScriptFailure();

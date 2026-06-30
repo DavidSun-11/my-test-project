@@ -1,5 +1,5 @@
 (function () {
-    const SCRIPT_VERSION = "20260630-price-reviews-sdk-load1";
+    const SCRIPT_VERSION = "20260630-price-reviews-sdk-load2";
     const REVIEW_QUERY_TIMEOUT_MS = 9000;
     const OPTIONAL_QUERY_TIMEOUT_MS = 3500;
     const REVIEW_LOADING_TEXT = "\u6b63\u5728\u8bfb\u53d6\u8001\u677f\u8bc4\u4ef7...";
@@ -449,6 +449,7 @@
     }
 
     async function loadSupabaseSdk() {
+        debugBossReviews("boss reviews supabase sdk load start");
         if (window.supabase && typeof window.supabase.createClient === "function") {
             debugBossReviews("boss reviews supabase sdk loaded: true");
             return;
@@ -463,12 +464,14 @@
             } catch (cdnError) {
                 console.error("[JunxueBossReviews] Supabase SDK load failed.", cdnError);
                 debugBossReviews("boss reviews supabase sdk loaded: false");
+                debugBossReviews("boss reviews supabase sdk load failed: script-load-failed");
                 throw new Error(SUPABASE_SDK_LOAD_ERROR_TEXT);
             }
         }
 
         if (!window.supabase || typeof window.supabase.createClient !== "function") {
             debugBossReviews("boss reviews supabase sdk loaded: false");
+            debugBossReviews("boss reviews supabase sdk load failed: missing-global");
             throw new Error(SUPABASE_SDK_LOAD_ERROR_TEXT);
         }
         debugBossReviews("boss reviews supabase sdk loaded: true");

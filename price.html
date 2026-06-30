@@ -2008,7 +2008,7 @@ document.addEventListener("click", function (event) {
     }
 
     loadScript("assets/supabase-client.js?v=20260627-home-performance1").then(function () {
-        return loadScript("assets/price-reviews.js?v=20260630-price-reviews-loading-fix1");
+        return loadScript("assets/price-reviews.js?v=20260630-price-reviews-public-read1");
     }).then(function (loaded) {
         if (!loaded) {
             showPriceReviewScriptFailure();

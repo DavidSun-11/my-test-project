@@ -1,7 +1,11 @@
 (function () {
-    const SCRIPT_VERSION = "20260630-price-reviews-loading-fix1";
+    const SCRIPT_VERSION = "20260630-price-reviews-public-read1";
     const REVIEW_QUERY_TIMEOUT_MS = 9000;
+    const OPTIONAL_QUERY_TIMEOUT_MS = 3500;
     const REVIEW_LOADING_TEXT = "\u6b63\u5728\u8bfb\u53d6\u8001\u677f\u8bc4\u4ef7...";
+    const BOSS_REVIEW_TABLE = "boss_reviews";
+    const BOSS_REVIEW_QUERY_FIELDS = "id, nickname, service_type, rating, message, created_at";
+    const BOSS_REVIEW_QUERY_FILTERS = "none";
     const CONFIG_MISSING_TEXT = "老板评价连接暂时不可用，请稍后再来～";
     const REVIEW_EMPTY_TEXT = "还没有老板评价，欢迎第一位老板来写下反馈～";
     const REVIEW_LOAD_ERROR_TEXT = "老板评价暂时加载失败，请稍后再试。";
@@ -122,6 +126,15 @@
         if (message === "boss-reviews-timeout") {
             return "timeout";
         }
+        if (message === "boss-reviews-auth-session-timeout") {
+            return "auth-session-timeout";
+        }
+        if (message === "boss-reviews-likes-timeout") {
+            return "likes-timeout";
+        }
+        if (message === "boss-reviews-comments-timeout") {
+            return "comments-timeout";
+        }
         if (/row-level security|violates row-level security|permission|not authorized|forbidden|denied|42501|403/i.test(message + " " + code + " " + status)) {
             return "permission-denied";
         }
@@ -140,11 +153,11 @@
         return "unknown-error";
     }
 
-    function withTimeout(promise, timeoutMs) {
+    function withTimeout(promise, timeoutMs, timeoutMessage) {
         let timer = null;
         const timeout = new Promise(function (resolve, reject) {
             timer = window.setTimeout(function () {
-                reject(new Error("boss-reviews-timeout"));
+                reject(new Error(timeoutMessage || "boss-reviews-timeout"));
             }, timeoutMs);
         });
 
@@ -511,9 +524,10 @@
 
     async function syncOptionalSession() {
         try {
-            await getSession();
+            await withTimeout(getSession(), OPTIONAL_QUERY_TIMEOUT_MS, "boss-reviews-auth-session-timeout");
         } catch (error) {
             currentUser = null;
+            debugBossReviews("boss reviews query failed: " + getSafeErrorReason(error));
             logSupabaseError("boss review session sync skipped", error);
         }
     }
@@ -521,6 +535,10 @@
     async function getSession() {
         const activeClient = await ensureClient();
         const sessionResponse = await activeClient.auth.getSession();
+
+        if (sessionResponse.error) {
+            throw sessionResponse.error;
+        }
 
         currentUser = sessionResponse.data && sessionResponse.data.session ? sessionResponse.data.session.user : null;
         return sessionResponse.data ? sessionResponse.data.session : null;
@@ -773,7 +791,7 @@
         }
 
         const response = await client
-            .from("boss_reviews")
+            .from(BOSS_REVIEW_TABLE)
             .update({ nickname: safeDisplayName })
             .eq("user_id", currentUser.id);
 
@@ -933,20 +951,24 @@
         let commentsResponse = null;
 
         try {
-            likesResponse = await client
-                .from("boss_review_likes")
-                .select("review_id, user_id")
-                .in("review_id", reviewIds);
+            likesResponse = await withTimeout(
+                client
+                    .from("boss_review_likes")
+                    .select("review_id, user_id")
+                    .in("review_id", reviewIds),
+                OPTIONAL_QUERY_TIMEOUT_MS,
+                "boss-reviews-likes-timeout"
+            );
         } catch (error) {
             likesResponse = { error: error };
         }
 
         if (likesResponse.error) {
+            debugBossReviews("boss reviews query failed: " + getSafeErrorReason(likesResponse.error));
             logSupabaseError("boss_review_likes load failed", likesResponse.error);
             reviewIds.forEach(function (reviewId) {
                 ensureInteraction(reviewId).likesFailed = true;
             });
-            setStatus(reviewStatus, "点赞数据暂时加载失败：" + (likesResponse.error.message || INTERACTION_LOAD_ERROR_TEXT), "warning");
         } else {
             (likesResponse.data || []).forEach(function (like) {
                 const interaction = ensureInteraction(like.review_id);
@@ -959,21 +981,25 @@
         }
 
         try {
-            commentsResponse = await client
-                .from("boss_review_comments")
-                .select("id, review_id, user_id, nickname, message, created_at")
-                .in("review_id", reviewIds)
-                .order("created_at", { ascending: true });
+            commentsResponse = await withTimeout(
+                client
+                    .from("boss_review_comments")
+                    .select("id, review_id, user_id, nickname, message, created_at")
+                    .in("review_id", reviewIds)
+                    .order("created_at", { ascending: true }),
+                OPTIONAL_QUERY_TIMEOUT_MS,
+                "boss-reviews-comments-timeout"
+            );
         } catch (error) {
             commentsResponse = { error: error };
         }
 
         if (commentsResponse.error) {
+            debugBossReviews("boss reviews query failed: " + getSafeErrorReason(commentsResponse.error));
             logSupabaseError("boss_review_comments load failed", commentsResponse.error);
             reviewIds.forEach(function (reviewId) {
                 ensureInteraction(reviewId).commentsFailed = true;
             });
-            setStatus(reviewStatus, "评论数据暂时加载失败：" + (commentsResponse.error.message || INTERACTION_LOAD_ERROR_TEXT), "warning");
             return;
         }
 
@@ -984,11 +1010,10 @@
 
     async function loadReviews() {
         await ensureClient();
-        await syncOptionalSession();
 
         const response = await client
-            .from("boss_reviews")
-            .select("id, nickname, service_type, rating, message, created_at")
+            .from(BOSS_REVIEW_TABLE)
+            .select(BOSS_REVIEW_QUERY_FIELDS)
             .order("created_at", { ascending: false });
 
         if (response.error) {
@@ -1024,7 +1049,7 @@
 
         await ensureNotBlocked();
 
-        const response = await client.from("boss_reviews").insert({
+        const response = await client.from(BOSS_REVIEW_TABLE).insert({
             user_id: currentUser.id,
             nickname: nickname,
             service_type: serviceType,
@@ -1229,7 +1254,12 @@
             return;
         }
 
-        loadReviewInteractions(reviewIds).then(function () {
+        syncOptionalSession().then(function () {
+            if (token !== refreshReviewWallToken) {
+                return null;
+            }
+            return loadReviewInteractions(reviewIds);
+        }).then(function () {
             if (token !== refreshReviewWallToken) {
                 return;
             }
@@ -1538,6 +1568,10 @@
         reviewWallInitStarted = true;
         debugBossReviews("boss reviews init");
         debugBossReviews("boss reviews script version", { version: SCRIPT_VERSION });
+        debugBossReviews("boss reviews publish table: " + BOSS_REVIEW_TABLE);
+        debugBossReviews("boss reviews read table: " + BOSS_REVIEW_TABLE);
+        debugBossReviews("boss reviews query fields: " + BOSS_REVIEW_QUERY_FIELDS.replace(/\s+/g, ""));
+        debugBossReviews("boss reviews query filters: " + BOSS_REVIEW_QUERY_FILTERS);
         getReviewWallDomState();
         bindReviewWallEvents();
 

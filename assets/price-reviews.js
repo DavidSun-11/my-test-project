@@ -1,6 +1,7 @@
 (function () {
-    const CONFIG_MISSING_TEXT = "老板评价系统暂未配置，请稍后再来～";
-    const REVIEW_EMPTY_TEXT = "这里还没有老板留下评价哦～";
+    const CONFIG_MISSING_TEXT = "老板评价连接暂时不可用，请稍后再来～";
+    const REVIEW_EMPTY_TEXT = "还没有老板评价，欢迎第一位老板来写下反馈～";
+    const REVIEW_LOAD_ERROR_TEXT = "老板评价暂时加载失败，请稍后再试。";
     const INTERACTION_LOAD_ERROR_TEXT = "暂时加载失败";
     const SUPABASE_LOCAL_SDK = "assets/vendor/supabase-js-2.min.js?v=20260616-1";
     const SUPABASE_CDN = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.108.2/dist/umd/supabase.min.js";
@@ -56,12 +57,24 @@
         node.className = "price-status" + (type ? " is-" + type : "");
     }
 
+    function summarizeSupabaseError(error) {
+        if (!error) {
+            return {};
+        }
+
+        return {
+            message: error.message ? String(error.message).slice(0, 180) : "unknown",
+            code: error.code ? String(error.code).slice(0, 40) : "",
+            status: error.status ? String(error.status).slice(0, 20) : ""
+        };
+    }
+
     function logSupabaseError(context, error) {
         if (!error) {
             return;
         }
 
-        console.error("[JunxueBossReviews] " + context, error);
+        console.warn("[JunxueBossReviews] " + context, summarizeSupabaseError(error));
     }
 
     function debugBossProfile(context) {
@@ -340,16 +353,25 @@
     async function ensureClient() {
         await loadScript("assets/supabase-config.js?v=20260611-1").catch(function () {});
 
-        if (!hasUsableConfig()) {
-            throw new Error(CONFIG_MISSING_TEXT);
-        }
-
         if (!client) {
             if (window.JunxueSupabaseClient && typeof window.JunxueSupabaseClient.getClient === "function") {
-                client = await window.JunxueSupabaseClient.getClient();
-            } else if (window.__JUNXUE_SUPABASE_CLIENT_STATE__ && window.__JUNXUE_SUPABASE_CLIENT_STATE__.client) {
+                try {
+                    client = await window.JunxueSupabaseClient.getClient();
+                } catch (error) {
+                    logSupabaseError("shared Supabase client unavailable", error);
+                    client = null;
+                }
+            }
+
+            if (!client && window.__JUNXUE_SUPABASE_CLIENT_STATE__ && window.__JUNXUE_SUPABASE_CLIENT_STATE__.client) {
                 client = window.__JUNXUE_SUPABASE_CLIENT_STATE__.client;
-            } else {
+            }
+
+            if (!client) {
+                if (!hasUsableConfig()) {
+                    throw new Error(CONFIG_MISSING_TEXT);
+                }
+
                 await loadSupabaseSdk();
                 client = window.supabase.createClient(getConfigValue("SUPABASE_URL"), getConfigValue("SUPABASE_ANON_KEY"));
                 rememberSharedSupabaseClient(client);
@@ -372,6 +394,15 @@
         }
 
         return client;
+    }
+
+    async function syncOptionalSession() {
+        try {
+            await getSession();
+        } catch (error) {
+            currentUser = null;
+            logSupabaseError("boss review session sync skipped", error);
+        }
     }
 
     async function getSession() {
@@ -840,7 +871,7 @@
 
     async function loadReviews() {
         await ensureClient();
-        await getSession();
+        await syncOptionalSession();
 
         const response = await client
             .from("boss_reviews")
@@ -1099,12 +1130,12 @@
         } catch (error) {
             renderStatsError();
             if (reviewList) {
+                logSupabaseError("boss_reviews load failed", error);
                 if (isConfigMissingError(error)) {
                     setStatus(reviewStatus, CONFIG_MISSING_TEXT, "warning");
-                    reviewList.innerHTML = '<div class="price-empty">' + CONFIG_MISSING_TEXT + '</div>';
+                    reviewList.innerHTML = '<div class="price-empty">' + escapeHtml(CONFIG_MISSING_TEXT) + '</div>';
                 } else {
-                    logSupabaseError("boss_reviews load failed", error);
-                    const message = isSdkLoadError(error) ? SUPABASE_SDK_LOAD_ERROR_TEXT : "老板评价加载失败：" + (error.message || "请稍后再试");
+                    const message = isSdkLoadError(error) ? SUPABASE_SDK_LOAD_ERROR_TEXT : REVIEW_LOAD_ERROR_TEXT;
 
                     setStatus(reviewStatus, message, "warning");
                     reviewList.innerHTML = '<div class="price-empty">' + escapeHtml(message) + '</div>';

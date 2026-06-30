@@ -862,6 +862,8 @@
             display: grid;
             gap: 12px;
             margin-top: 12px;
+            max-width: 100%;
+            min-width: 0;
         }
 
         .price-review-heading {
@@ -882,9 +884,11 @@
             grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 10px;
             margin-top: 14px;
+            min-width: 0;
         }
 
         .price-review-stat {
+            min-width: 0;
             padding: 12px 14px;
             border: 1px solid rgba(210, 248, 255, 0.62);
             border-radius: 14px;
@@ -1016,10 +1020,13 @@
             grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
             align-items: start;
             gap: 12px;
+            max-width: 100%;
+            min-width: 0;
         }
 
         .price-review-item,
         .price-empty {
+            min-width: 0;
             padding: 13px 14px;
             border: 1px solid rgba(205, 244, 255, 0.58);
             border-radius: 14px;
@@ -1796,7 +1803,7 @@
         <div class="price-status price-review-global-status" id="price-review-status" role="status" aria-live="polite"></div>
         <div class="price-review-layout">
             <div class="price-review-list" id="price-review-list">
-                <div class="price-empty">老板评价系统暂未配置，请稍后再来～</div>
+                <div class="price-empty">正在读取老板评价…</div>
             </div>
         </div>
     </section>
@@ -1973,7 +1980,7 @@ document.addEventListener("click", function (event) {
     }
 
     loadScript("assets/supabase-client.js?v=20260627-home-performance1").then(function () {
-        return loadScript("assets/price-reviews.js?v=20260627-home-performance1");
+        return loadScript("assets/price-reviews.js?v=20260630-price-reviews-sync1");
     }).then(function () {
         return loadScript("assets/boss-visit.js?v=20260627-home-performance1");
     });

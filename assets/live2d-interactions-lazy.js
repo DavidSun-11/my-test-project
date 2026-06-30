@@ -1,6 +1,6 @@
 /* Live2D 互动模块：菜单、无奖竞答题库、英雄池转盘、咨询功能都集中在这里，方便后续继续加题。 */
 (function () {
-    const version = "20260630-live2d-mobile-feature-state1";
+    const version = "20260630-mobile-live2d-menu-height1";
     if (typeof window.JunxueLive2DDebugLog !== "function") {
         window.__JUNXUE_LIVE2D_DEBUG__ = window.__JUNXUE_LIVE2D_DEBUG__ || [];
         window.JunxueLive2DDebugLog = function (message, detail) {
@@ -594,7 +594,7 @@
     function ensureOpeningBubbleStyles() {
         const existingStyle = document.getElementById("live2d-opening-bubble-style");
         if (existingStyle) {
-            if (existingStyle.textContent && existingStyle.textContent.indexOf("20260630-live2d-mobile-feature-state1") !== -1) {
+            if (existingStyle.textContent && existingStyle.textContent.indexOf("20260630-mobile-live2d-menu-height1") !== -1) {
                 return;
             }
             existingStyle.remove();
@@ -603,7 +603,7 @@
         const style = document.createElement("style");
         style.id = "live2d-opening-bubble-style";
         style.textContent = [
-            "/* 20260630-live2d-mobile-feature-state1 */",
+            "/* 20260630-mobile-live2d-menu-height1 */",
             ".live2d-quiz{position:fixed;left:252px;top:160px;right:auto;bottom:auto;z-index:10020;}",
             ".live2d-quiz:not(.is-open){visibility:hidden!important;opacity:0!important;pointer-events:none!important;}",
             ".live2d-quiz.is-open{visibility:visible!important;opacity:1!important;pointer-events:auto!important;}",
@@ -796,6 +796,7 @@
             "@media (max-width:768px){.live2d-quiz.is-main-menu .live2d-quiz__menu,.score-guess-grid,.score-guess-status,.score-guess-actions{grid-template-columns:1fr;}.live2d-menu-title,.score-guess-title{font-size:18px;}.live2d-menu-user,.score-guess-account,.score-guess-pill{font-size:11px;}.score-guess-option{min-height:70px;padding-left:44px!important;}.score-guess-option::before{left:13px;top:15px;width:20px;height:20px;}.score-guess-panel__header{grid-template-columns:1fr;}.score-guess-panel__state{justify-self:start;}.score-guess-panel__meta{grid-template-columns:1fr;}.score-guess-panel__options{grid-template-columns:1fr;}.score-guess-panel__actions{display:grid;grid-template-columns:1fr;}.score-guess-panel__actions .live2d-quiz__option{width:100%;min-width:0;}.score-guess-panel__title{font-size:20px;}}",
             "@media (max-width:768px){.live2d-quiz.is-main-menu,.live2d-quiz.is-live2d-submenu-drawer{transform:none!important;width:clamp(188px,58vw,320px)!important;max-width:calc(100vw - 16px)!important;max-height:min(42dvh,320px)!important;padding:0!important;}.live2d-menu-panel{height:min(42dvh,320px)!important;min-height:0!important;max-height:min(42dvh,320px)!important;border-radius:26px;}.live2d-menu-panel::before{inset:8px;border-radius:20px;}.live2d-menu-panel::after{opacity:.42;height:24%;}.live2d-menu-panel__ornament{left:16%;right:16%;top:18px;}.live2d-menu-panel__moon{top:8px;width:30px;height:30px;}.live2d-menu-panel__moon::after{display:none;}.live2d-menu-beautiful-content,.live2d-menu-panel__content{min-height:0;padding:38px 18px 18px;overflow:hidden;}.live2d-quiz.is-main-menu .live2d-quiz__question,.live2d-quiz.is-live2d-submenu-drawer .live2d-quiz__question{margin-bottom:8px!important;}.live2d-quiz.is-main-menu .live2d-menu-title{font-size:18px;}.live2d-quiz.is-main-menu .live2d-menu-user{font-size:10px;padding:4px 8px;}.live2d-quiz.is-main-menu .live2d-quiz__options,.live2d-quiz.is-live2d-submenu-drawer .live2d-quiz__options{min-height:0;width:100%;}.live2d-quiz.is-main-menu .live2d-quiz__menu{grid-template-columns:1fr!important;gap:10px!important;width:100%;min-height:0;max-height:calc(min(42dvh,320px) - 126px)!important;overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch;}.live2d-quiz.is-live2d-submenu-drawer .live2d-consult-grid{display:grid!important;grid-template-columns:1fr!important;gap:8px!important;width:100%;min-height:0;max-height:calc(min(42dvh,320px) - 118px)!important;overflow-y:auto!important;overflow-x:hidden!important;padding:1px 4px 2px 1px;box-sizing:border-box;-webkit-overflow-scrolling:touch;}.live2d-quiz.is-live2d-submenu-drawer .live2d-consult-card{appearance:none;-webkit-appearance:none;display:grid!important;gap:3px;width:100%;min-width:0;min-height:42px;padding:8px 10px!important;border:1px solid rgba(183,239,255,.42)!important;border-radius:14px!important;background:linear-gradient(145deg,rgba(34,78,118,.58),rgba(27,47,91,.52))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 8px 18px rgba(0,12,38,.14)!important;color:rgba(240,252,255,.96)!important;text-align:left;pointer-events:auto!important;touch-action:manipulation;}.live2d-quiz.is-live2d-submenu-drawer .live2d-consult-card__title{font-size:12px;font-weight:840;line-height:1.2;}.live2d-quiz.is-live2d-submenu-drawer .live2d-consult-card__desc{font-size:10.5px;line-height:1.3;color:rgba(207,235,250,.82);}.live2d-quiz.is-main-menu .live2d-quiz__option{width:100%;min-width:0;min-height:42px!important;padding:8px 30px!important;font-size:12px!important;letter-spacing:.03em;}.live2d-quiz.is-main-menu .live2d-quiz__option::before{left:10px!important;width:17px!important;height:17px!important;}.live2d-quiz.is-main-menu .live2d-quiz__close,.live2d-quiz.is-live2d-submenu-drawer .live2d-quiz__close{right:13px!important;top:13px!important;width:28px!important;height:28px!important;}.live2d-quiz.is-main-menu::after,.live2d-quiz.is-live2d-submenu-drawer::after{height:42px;opacity:.42;}}",
             "@media (max-width:768px){.live2d-quiz.is-live2d-submenu-drawer{width:min(88vw,390px)!important;max-width:calc(100vw - 16px)!important;max-height:min(52dvh,420px)!important;}.live2d-quiz.is-live2d-submenu-drawer .live2d-menu-panel{height:min(52dvh,420px)!important;max-height:min(52dvh,420px)!important;}.live2d-quiz.is-live2d-submenu-drawer .live2d-menu-beautiful-content,.live2d-quiz.is-live2d-submenu-drawer .live2d-menu-panel__content{padding:40px 18px 18px;overflow:hidden;}.live2d-quiz.is-live2d-submenu-drawer .live2d-consult-grid{max-height:calc(min(52dvh,420px) - 122px)!important;overflow-y:auto!important;overflow-x:hidden!important;}.live2d-quiz.is-live2d-submenu-drawer .live2d-consult-card{min-height:48px;padding:9px 11px!important;}}",
+            "@media (max-width:768px){.live2d-quiz.is-main-menu{--mobile-main-menu-height:min(52.5dvh,400px);max-height:var(--mobile-main-menu-height)!important;}.live2d-quiz.is-main-menu .live2d-menu-panel{height:var(--mobile-main-menu-height)!important;max-height:var(--mobile-main-menu-height)!important;}.live2d-quiz.is-main-menu .live2d-quiz__menu{max-height:calc(var(--mobile-main-menu-height) - 126px)!important;}}",
             "@media (max-width:768px){.live2d-quiz.is-wheel,.live2d-quiz.is-score-guess,.live2d-quiz.is-weather,.live2d-quiz.is-music,.live2d-quiz.is-fortune,.live2d-quiz.is-memory,.live2d-quiz.is-checkin,.live2d-quiz.is-boss-auth,.live2d-quiz.is-boss-review{width:min(92vw,520px)!important;max-width:calc(100vw - 24px)!important;max-height:calc(100vh - 88px)!important;overflow-y:auto!important;overflow-x:hidden!important;box-sizing:border-box;z-index:10035!important;}.live2d-quiz.is-wheel .live2d-quiz__options,.live2d-quiz.is-weather .live2d-quiz__options,.live2d-quiz.is-music .live2d-quiz__options,.live2d-quiz.is-fortune .live2d-quiz__options,.live2d-quiz.is-memory .live2d-quiz__options,.live2d-quiz.is-checkin .live2d-quiz__options,.live2d-quiz.is-boss-auth .live2d-quiz__options,.live2d-quiz.is-boss-review .live2d-quiz__options{max-width:100%;overflow-x:hidden;}}",
             "@media (max-width:360px){.live2d-quiz.is-main-menu{width:min(74vw,300px)!important;max-width:calc(100vw - 16px)!important;}.live2d-quiz.is-main-menu .live2d-quiz__option{padding-left:28px!important;padding-right:24px!important;font-size:11.5px!important;}}",
             "@media (prefers-reduced-motion:reduce){.live2d-quiz.is-main-menu::before,.live2d-quiz.is-main-menu::after,.live2d-quiz.is-main-menu .live2d-quiz__option::after,.live2d-menu-beautiful-wave,.live2d-menu-panel::after{animation:none!important;transition:none!important;}.live2d-menu-beautiful-wave,.live2d-menu-panel::after{opacity:.22;}.live2d-quiz.is-main-menu::after{opacity:.28;}.live2d-quiz.is-main-menu .live2d-quiz__option:hover:not(:disabled){transform:none;}}",
@@ -1726,13 +1727,14 @@
             const margin = 8;
             const gap = 10;
             const menuWidth = getMobileMenuPreferredWidth(cardRect, viewportWidth, margin, gap);
-            const fallbackHeight = Math.min(Math.max(180, viewportHeight * 0.42), 320);
+            const fallbackHeight = Math.min(Math.max(180, viewportHeight * 0.525), 400);
 
             dialog.style.setProperty("position", "fixed", "important");
             dialog.style.setProperty("z-index", "10030", "important");
             dialog.style.setProperty("width", menuWidth + "px", "important");
             dialog.style.setProperty("max-width", "calc(100vw - 16px)", "important");
-            dialog.style.setProperty("max-height", "min(42dvh, 320px)", "important");
+            dialog.style.setProperty("--mobile-main-menu-height", "min(52.5dvh, 400px)");
+            dialog.style.setProperty("max-height", "var(--mobile-main-menu-height, min(52.5dvh, 400px))", "important");
             dialog.style.setProperty("transform", "none", "important");
             dialog.style.setProperty("visibility", "visible", "important");
             dialog.style.setProperty("opacity", "1", "important");
@@ -1921,7 +1923,8 @@
             dialog.style.setProperty("transform", "none", "important");
             dialog.style.setProperty("width", viewportWidth <= 360 ? "min(74vw, 300px)" : "clamp(188px, 58vw, 320px)", "important");
             dialog.style.setProperty("max-width", "calc(100vw - 16px)", "important");
-            dialog.style.setProperty("max-height", "min(42dvh, 320px)", "important");
+            dialog.style.setProperty("--mobile-main-menu-height", "min(52.5dvh, 400px)");
+            dialog.style.setProperty("max-height", "var(--mobile-main-menu-height, min(52.5dvh, 400px))", "important");
             dialog.style.setProperty("visibility", "visible", "important");
             dialog.style.setProperty("opacity", "1", "important");
             dialog.style.setProperty("pointer-events", "auto", "important");

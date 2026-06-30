@@ -1,5 +1,5 @@
 (function () {
-    const SCRIPT_VERSION = "20260630-price-reviews-public-read1";
+    const SCRIPT_VERSION = "20260630-price-reviews-sdk-load1";
     const REVIEW_QUERY_TIMEOUT_MS = 9000;
     const OPTIONAL_QUERY_TIMEOUT_MS = 3500;
     const REVIEW_LOADING_TEXT = "\u6b63\u5728\u8bfb\u53d6\u8001\u677f\u8bc4\u4ef7...";
@@ -418,8 +418,17 @@
 
     function loadScript(src) {
         return new Promise(function (resolve, reject) {
-            if (document.querySelector('script[src="' + src + '"]')) {
-                resolve();
+            const existing = document.querySelector('script[src="' + src + '"]');
+
+            if (existing) {
+                if (existing.dataset.loaded === "true" || (src === SUPABASE_LOCAL_SDK && window.supabase && typeof window.supabase.createClient === "function")) {
+                    resolve();
+                    return;
+                }
+                existing.addEventListener("load", resolve, { once: true });
+                existing.addEventListener("error", function () {
+                    reject(new Error("script-load-failed"));
+                }, { once: true });
                 return;
             }
 
@@ -427,7 +436,10 @@
 
             script.src = src;
             script.async = true;
-            script.onload = resolve;
+            script.onload = function () {
+                script.dataset.loaded = "true";
+                resolve();
+            };
             script.onerror = function () {
                 script.remove();
                 reject(new Error("script-load-failed"));
@@ -438,6 +450,7 @@
 
     async function loadSupabaseSdk() {
         if (window.supabase && typeof window.supabase.createClient === "function") {
+            debugBossReviews("boss reviews supabase sdk loaded: true");
             return;
         }
 
@@ -449,13 +462,16 @@
                 await loadScript(SUPABASE_CDN);
             } catch (cdnError) {
                 console.error("[JunxueBossReviews] Supabase SDK load failed.", cdnError);
+                debugBossReviews("boss reviews supabase sdk loaded: false");
                 throw new Error(SUPABASE_SDK_LOAD_ERROR_TEXT);
             }
         }
 
         if (!window.supabase || typeof window.supabase.createClient !== "function") {
+            debugBossReviews("boss reviews supabase sdk loaded: false");
             throw new Error(SUPABASE_SDK_LOAD_ERROR_TEXT);
         }
+        debugBossReviews("boss reviews supabase sdk loaded: true");
     }
 
     function rememberSharedSupabaseClient(activeClient) {
@@ -485,7 +501,9 @@
             if (window.JunxueSupabaseClient && typeof window.JunxueSupabaseClient.getClient === "function") {
                 try {
                     client = await window.JunxueSupabaseClient.getClient();
+                    debugBossReviews("boss reviews client created");
                 } catch (error) {
+                    debugBossReviews("boss reviews client missing");
                     logSupabaseError("shared Supabase client unavailable", error);
                     client = null;
                 }
@@ -503,7 +521,12 @@
                 await loadSupabaseSdk();
                 client = window.supabase.createClient(getConfigValue("SUPABASE_URL"), getConfigValue("SUPABASE_ANON_KEY"));
                 rememberSharedSupabaseClient(client);
+                debugBossReviews("boss reviews client created");
             }
+        }
+
+        if (!client) {
+            debugBossReviews("boss reviews client missing");
         }
 
         if (!authListenerBound && client && client.auth && typeof client.auth.onAuthStateChange === "function") {

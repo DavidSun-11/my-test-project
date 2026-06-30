@@ -1963,14 +1963,35 @@ document.addEventListener("click", function (event) {
 <script>
 (function loadPriceReviewScripts() {
     const priceReviewLoadErrorText = "\u8001\u677f\u8bc4\u4ef7\u6682\u65f6\u52a0\u8f7d\u5931\u8d25\uff0c\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002";
+    const supabaseSdkSrc = "assets/vendor/supabase-js-2.min.js?v=20260616-1";
+    let priceReviewFailureShown = false;
 
     function loadScript(src) {
         return new Promise(function (resolve) {
+            const existing = Array.prototype.find.call(document.scripts, function (script) {
+                return script.getAttribute("src") === src;
+            });
+
+            if (existing) {
+                if (existing.dataset.loaded === "true" || (src === supabaseSdkSrc && hasSupabaseSdk())) {
+                    resolve(true);
+                    return;
+                }
+                existing.addEventListener("load", function () {
+                    resolve(true);
+                }, { once: true });
+                existing.addEventListener("error", function () {
+                    resolve(false);
+                }, { once: true });
+                return;
+            }
+
             const script = document.createElement("script");
 
             script.src = src;
             script.async = false;
             script.onload = function () {
+                script.dataset.loaded = "true";
                 resolve(true);
             };
             script.onerror = function () {
@@ -1981,7 +2002,11 @@ document.addEventListener("click", function (event) {
         });
     }
 
-    function debugPriceReviewScriptFailure(message) {
+    function hasSupabaseSdk() {
+        return !!(window.supabase && typeof window.supabase.createClient === "function");
+    }
+
+    function debugPriceReviewScript(message) {
         window.__JUNXUE_BOSS_REVIEWS_DEBUG__ = window.__JUNXUE_BOSS_REVIEWS_DEBUG__ || [];
         window.__JUNXUE_BOSS_REVIEWS_DEBUG__.push({
             message: message,
@@ -1993,6 +2018,11 @@ document.addEventListener("click", function (event) {
     }
 
     function showPriceReviewScriptFailure() {
+        if (priceReviewFailureShown) {
+            return;
+        }
+
+        priceReviewFailureShown = true;
         const status = document.getElementById("price-review-status");
         const list = document.getElementById("price-review-list");
 
@@ -2003,12 +2033,20 @@ document.addEventListener("click", function (event) {
         if (list) {
             list.innerHTML = '<div class="price-empty">' + priceReviewLoadErrorText + '</div>';
         }
-        debugPriceReviewScriptFailure("boss reviews query failed: script-load-failed");
-        debugPriceReviewScriptFailure("boss reviews loading cleared");
+        debugPriceReviewScript("boss reviews query failed: script-load-failed");
+        debugPriceReviewScript("boss reviews loading cleared");
     }
 
     loadScript("assets/supabase-client.js?v=20260627-home-performance1").then(function () {
-        return loadScript("assets/price-reviews.js?v=20260630-price-reviews-public-read1");
+        return loadScript(supabaseSdkSrc);
+    }).then(function (loaded) {
+        debugPriceReviewScript("boss reviews supabase sdk loaded: " + String(!!loaded && hasSupabaseSdk()));
+        if (!loaded || !hasSupabaseSdk()) {
+            debugPriceReviewScript("boss reviews query failed: sdk-load-failed");
+            showPriceReviewScriptFailure();
+            return false;
+        }
+        return loadScript("assets/price-reviews.js?v=20260630-price-reviews-sdk-load1");
     }).then(function (loaded) {
         if (!loaded) {
             showPriceReviewScriptFailure();

@@ -1,0 +1,1344 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>老板评价 - 君雪咨询</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <script src="assets/performance-mode.js?v=20260613-2"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        :root {
+            --ink: #f7f4ff;
+            --muted: rgba(236, 236, 255, 0.78);
+            --soft: rgba(222, 226, 255, 0.6);
+            --glass: rgba(91, 119, 184, 0.26);
+            --glass-deep: rgba(22, 46, 99, 0.58);
+            --line: rgba(222, 232, 255, 0.54);
+            --glow: rgba(205, 187, 255, 0.62);
+            --pink: #ffd8f1;
+            --lavender: #d8d0ff;
+            --blue: #9ed6ff;
+            --shadow: rgba(2, 8, 31, 0.5);
+        }
+
+        html,
+        body {
+            width: 100%;
+            min-height: 100%;
+            margin: 0;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", Arial, sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at 84% 9%, rgba(255, 255, 255, 0.26) 0 4.2rem, transparent 4.4rem),
+                radial-gradient(circle at 84% 9%, rgba(188, 205, 255, 0.24) 0 7.2rem, transparent 7.6rem),
+                radial-gradient(circle at 20% 18%, rgba(151, 122, 255, 0.22), transparent 26rem),
+                radial-gradient(circle at 82% 72%, rgba(121, 160, 255, 0.24), transparent 31rem),
+                linear-gradient(180deg, #08183d 0%, #102b67 32%, #071d48 62%, #04122f 100%);
+        }
+
+        body::before,
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+        }
+
+        body::before {
+            z-index: -8;
+            background:
+                radial-gradient(circle at 11% 7%, rgba(255, 229, 255, 0.5) 0 1px, transparent 1.7px),
+                radial-gradient(circle at 28% 12%, rgba(205, 232, 255, 0.42) 0 1px, transparent 1.6px),
+                radial-gradient(circle at 71% 18%, rgba(255, 255, 255, 0.54) 0 1px, transparent 1.5px),
+                radial-gradient(circle at 93% 39%, rgba(218, 220, 255, 0.46) 0 1px, transparent 1.7px),
+                radial-gradient(circle at 52% 8%, rgba(255, 212, 248, 0.38) 0 1px, transparent 1.7px);
+            background-size: 210px 160px, 240px 180px, 260px 200px, 230px 170px, 300px 220px;
+            opacity: 0.85;
+        }
+
+        body::after {
+            z-index: -7;
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, transparent 38%, rgba(18, 49, 100, 0.4) 72%, rgba(2, 10, 30, 0.72) 100%),
+                radial-gradient(ellipse at 50% 43%, rgba(167, 193, 255, 0.18), transparent 48%),
+                repeating-linear-gradient(0deg, rgba(222, 244, 255, 0.08) 0 1px, transparent 1px 24px);
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .review-page {
+            position: relative;
+            min-height: 100vh;
+            overflow: hidden;
+            isolation: isolate;
+        }
+
+        .review-bg,
+        .review-petals,
+        .review-flowers,
+        .review-lake,
+        .review-arch {
+            position: fixed;
+            pointer-events: none;
+        }
+
+        .review-bg {
+            z-index: -6;
+            inset: 0;
+            overflow: hidden;
+        }
+
+        .review-bg::before {
+            content: "";
+            position: absolute;
+            left: -5vw;
+            right: -5vw;
+            top: 21vh;
+            height: 26vh;
+            background:
+                linear-gradient(160deg, transparent 0 14%, rgba(194, 214, 255, 0.2) 15% 16%, transparent 17%),
+                linear-gradient(25deg, transparent 0 45%, rgba(231, 225, 255, 0.2) 46% 46.6%, transparent 47.6%),
+                linear-gradient(180deg, transparent, rgba(12, 33, 76, 0.62));
+            clip-path: polygon(0 70%, 8% 48%, 15% 62%, 24% 39%, 33% 66%, 44% 36%, 54% 65%, 65% 41%, 76% 68%, 88% 43%, 100% 65%, 100% 100%, 0 100%);
+            opacity: 0.58;
+        }
+
+        .review-bg::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at 52% 31%, rgba(190, 210, 255, 0.2), transparent 28rem),
+                radial-gradient(ellipse at 50% 63%, rgba(255, 250, 255, 0.13), transparent 22rem),
+                linear-gradient(90deg, rgba(18, 40, 82, 0.9), transparent 18%, transparent 82%, rgba(6, 18, 46, 0.92));
+        }
+
+        .review-arch {
+            z-index: -5;
+            left: -38px;
+            top: 64px;
+            width: min(28vw, 270px);
+            height: 390px;
+            border: 2px solid rgba(220, 225, 255, 0.16);
+            border-radius: 48% 48% 12px 12px;
+            background:
+                linear-gradient(90deg, rgba(255, 255, 255, 0.12) 1px, transparent 1px) 50% 0 / 26% 100%,
+                linear-gradient(180deg, rgba(255, 255, 255, 0.14) 1px, transparent 1px) 0 35% / 100% 24%,
+                radial-gradient(circle at 62% 26%, rgba(243, 230, 255, 0.25), transparent 34%),
+                linear-gradient(180deg, rgba(28, 53, 108, 0.5), rgba(6, 17, 47, 0.1));
+            box-shadow: inset 0 0 34px rgba(209, 222, 255, 0.18), 0 0 52px rgba(0, 0, 0, 0.24);
+            opacity: 0.9;
+        }
+
+        .review-arch::before,
+        .review-arch::after {
+            content: "";
+            position: absolute;
+            top: 14%;
+            bottom: 9%;
+            width: 1px;
+            background: rgba(222, 232, 255, 0.18);
+        }
+
+        .review-arch::before {
+            left: 35%;
+        }
+
+        .review-arch::after {
+            right: 35%;
+        }
+
+        .review-lake {
+            z-index: -5;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 45vh;
+            background:
+                radial-gradient(ellipse at 52% 6%, rgba(255, 242, 255, 0.2), transparent 34%),
+                repeating-linear-gradient(178deg, rgba(218, 239, 255, 0.17) 0 1px, transparent 1px 18px),
+                linear-gradient(180deg, rgba(10, 38, 85, 0.18), rgba(3, 12, 33, 0.84));
+            opacity: 0.86;
+        }
+
+        .review-lake::before {
+            content: "";
+            position: absolute;
+            left: 6vw;
+            right: 6vw;
+            top: 4vh;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 241, 255, 0.75), transparent);
+            box-shadow:
+                0 12px 32px rgba(255, 225, 255, 0.24),
+                0 52px 82px rgba(144, 203, 255, 0.26);
+        }
+
+        .review-flowers {
+            z-index: -4;
+            inset: 0;
+            overflow: hidden;
+        }
+
+        .branch {
+            position: absolute;
+            width: 280px;
+            height: 210px;
+            opacity: 0.74;
+            filter: drop-shadow(0 0 14px rgba(199, 185, 255, 0.34));
+        }
+
+        .branch::before {
+            content: "";
+            position: absolute;
+            inset: 42% 0 auto;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(207, 217, 255, 0.62), transparent);
+            transform: rotate(-25deg);
+        }
+
+        .branch::after {
+            content: "";
+            position: absolute;
+            width: 42px;
+            height: 42px;
+            border-radius: 50% 50% 48% 0;
+            background: radial-gradient(circle at 34% 34%, #fff, #d7c5ff 42%, rgba(153, 139, 234, 0.12) 70%);
+            box-shadow:
+                42px 22px 0 -10px rgba(223, 207, 255, 0.72),
+                88px -10px 0 -13px rgba(255, 215, 247, 0.7),
+                136px 25px 0 -15px rgba(178, 210, 255, 0.7),
+                178px -4px 0 -13px rgba(238, 211, 255, 0.68);
+            transform: rotate(34deg);
+        }
+
+        .branch-left {
+            left: -28px;
+            top: 36%;
+        }
+
+        .branch-right {
+            right: -58px;
+            top: 15%;
+            transform: scaleX(-1) rotate(5deg);
+        }
+
+        .branch-bottom {
+            left: -20px;
+            bottom: 0;
+            transform: rotate(-13deg) scale(1.18);
+        }
+
+        .review-petals {
+            z-index: 3;
+            inset: 0;
+            overflow: hidden;
+        }
+
+        .petal {
+            position: absolute;
+            width: 18px;
+            height: 9px;
+            border-radius: 100% 0 100% 0;
+            background: linear-gradient(135deg, rgba(255, 232, 250, 0.92), rgba(177, 166, 255, 0.44));
+            box-shadow: 0 0 14px rgba(255, 207, 250, 0.34);
+            opacity: 0.72;
+            transform: rotate(var(--r, -20deg));
+        }
+
+        .petal:nth-child(1) { left: 9%; top: 7%; --r: -36deg; }
+        .petal:nth-child(2) { left: 24%; top: 3%; --r: 22deg; }
+        .petal:nth-child(3) { left: 69%; top: 12%; --r: -10deg; }
+        .petal:nth-child(4) { right: 8%; top: 18%; --r: 30deg; }
+        .petal:nth-child(5) { left: 5%; top: 58%; --r: 18deg; }
+        .petal:nth-child(6) { right: 4%; top: 54%; --r: -26deg; }
+        .petal:nth-child(7) { left: 14%; bottom: 12%; --r: 44deg; }
+        .petal:nth-child(8) { right: 11%; bottom: 6%; --r: -18deg; }
+
+        .review-shell {
+            position: relative;
+            z-index: 1;
+            width: min(1180px, calc(100% - 48px));
+            margin: 0 auto;
+            padding: 20px 0 44px;
+        }
+
+        .review-nav {
+            display: grid;
+            grid-template-columns: minmax(190px, 1fr) auto minmax(160px, 1fr);
+            align-items: center;
+            gap: 22px;
+            min-height: 78px;
+            padding: 13px 22px;
+            border: 1px solid rgba(226, 235, 255, 0.54);
+            border-radius: 18px;
+            background:
+                linear-gradient(135deg, rgba(147, 171, 226, 0.28), rgba(43, 69, 132, 0.38)),
+                rgba(19, 38, 86, 0.55);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.36),
+                inset 0 -1px 0 rgba(142, 174, 255, 0.18),
+                0 18px 52px rgba(2, 8, 28, 0.28);
+            backdrop-filter: blur(18px);
+        }
+
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .brand-mark {
+            position: relative;
+            width: 42px;
+            height: 42px;
+            flex: 0 0 auto;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.92), rgba(205, 194, 255, 0.2) 60%, transparent 62%);
+            filter: drop-shadow(0 0 14px rgba(218, 207, 255, 0.58));
+        }
+
+        .brand-mark::before,
+        .brand-mark::after {
+            content: "";
+            position: absolute;
+            inset: 9px 18px;
+            border-radius: 100% 0 100% 0;
+            background: linear-gradient(135deg, #fff, #d7c9ff);
+            transform-origin: bottom center;
+        }
+
+        .brand-mark::before {
+            transform: rotate(-38deg);
+            box-shadow:
+                10px 5px 0 -2px rgba(255, 229, 250, 0.9),
+                -8px 7px 0 -3px rgba(167, 210, 255, 0.82);
+        }
+
+        .brand-mark::after {
+            transform: rotate(38deg);
+            box-shadow: -10px 5px 0 -2px rgba(226, 211, 255, 0.86);
+        }
+
+        .brand strong {
+            display: block;
+            font-size: 1.42rem;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+        }
+
+        .brand span:last-child {
+            display: block;
+            margin-top: 2px;
+            font-size: 0.66rem;
+            color: rgba(238, 242, 255, 0.74);
+            letter-spacing: 0.13em;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: clamp(18px, 3vw, 52px);
+            color: rgba(245, 247, 255, 0.84);
+            font-size: 0.98rem;
+        }
+
+        .nav-links a {
+            position: relative;
+            padding: 10px 2px;
+            white-space: nowrap;
+        }
+
+        .nav-links a::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            bottom: 2px;
+            width: 0;
+            height: 2px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, transparent, #fff, transparent);
+            box-shadow: 0 0 16px var(--glow);
+            transform: translateX(-50%);
+            transition: width 0.2s ease;
+        }
+
+        .nav-links a:hover::after,
+        .nav-links .is-active::after {
+            width: 74px;
+        }
+
+        .nav-cta {
+            justify-self: end;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 44px;
+            padding: 0 22px;
+            border: 1px solid rgba(220, 228, 255, 0.42);
+            border-radius: 999px;
+            background: linear-gradient(135deg, rgba(169, 188, 255, 0.28), rgba(101, 126, 203, 0.18));
+            color: #fff;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24), 0 0 24px rgba(194, 188, 255, 0.18);
+            white-space: nowrap;
+        }
+
+        .hero {
+            position: relative;
+            padding: 82px 0 38px;
+            text-align: center;
+        }
+
+        .hero::before {
+            content: "✦";
+            display: block;
+            margin-bottom: 16px;
+            color: rgba(242, 232, 255, 0.86);
+            font-size: 1.7rem;
+            text-shadow: 0 0 18px rgba(222, 204, 255, 0.8);
+        }
+
+        .hero h1 {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: clamp(18px, 4vw, 42px);
+            margin: 0;
+            font-family: "STSong", "SimSun", "Microsoft YaHei", serif;
+            font-size: clamp(3.5rem, 8.4vw, 5.8rem);
+            font-weight: 400;
+            line-height: 1;
+            letter-spacing: 0.08em;
+            text-shadow: 0 0 26px rgba(234, 222, 255, 0.5);
+        }
+
+        .hero h1::before,
+        .hero h1::after {
+            content: "";
+            width: clamp(70px, 12vw, 150px);
+            height: 32px;
+            background:
+                radial-gradient(circle at 22% 60%, rgba(255, 255, 255, 0.86) 0 2px, transparent 2.6px),
+                linear-gradient(12deg, transparent 0 42%, rgba(229, 231, 255, 0.72) 43% 47%, transparent 48%),
+                linear-gradient(150deg, transparent 0 54%, rgba(197, 205, 255, 0.72) 55% 59%, transparent 60%);
+            border-radius: 999px;
+            opacity: 0.86;
+        }
+
+        .hero h1::after {
+            transform: scaleX(-1);
+        }
+
+        .hero p {
+            margin: 22px auto 0;
+            max-width: 760px;
+            color: rgba(248, 246, 255, 0.88);
+            font-size: clamp(1rem, 2vw, 1.32rem);
+            letter-spacing: 0.06em;
+            line-height: 1.7;
+            text-shadow: 0 2px 18px rgba(7, 15, 42, 0.52);
+        }
+
+        .glass-panel,
+        .review-card,
+        .summary-card {
+            position: relative;
+            border: 1px solid var(--line);
+            background:
+                linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(91, 121, 195, 0.15) 38%, rgba(24, 48, 106, 0.36)),
+                var(--glass);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.45),
+                inset 0 -1px 0 rgba(139, 170, 255, 0.18),
+                0 24px 58px var(--shadow),
+                0 0 28px rgba(164, 190, 255, 0.16);
+            backdrop-filter: blur(20px);
+        }
+
+        .glass-panel::before,
+        .review-card::before,
+        .summary-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            background:
+                linear-gradient(90deg, transparent 0 10%, rgba(255, 255, 255, 0.36) 50%, transparent 90% 100%) top / 100% 1px no-repeat,
+                radial-gradient(circle at 7% 12%, rgba(255, 235, 255, 0.26), transparent 18%),
+                radial-gradient(circle at 94% 86%, rgba(217, 209, 255, 0.2), transparent 23%);
+        }
+
+        .stats-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1.35fr;
+            gap: 0;
+            align-items: center;
+            width: min(1060px, 94%);
+            min-height: 250px;
+            margin: 0 auto 52px;
+            padding: 32px 42px;
+            border-radius: 28px;
+            overflow: hidden;
+        }
+
+        .stats-panel::after {
+            content: "";
+            position: absolute;
+            left: 2%;
+            right: 2%;
+            bottom: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 239, 255, 0.94), transparent);
+            box-shadow: 0 0 18px rgba(255, 219, 255, 0.7);
+        }
+
+        .stat-block {
+            min-height: 166px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 10px 26px;
+        }
+
+        .stat-block + .stat-block {
+            border-left: 1px solid rgba(224, 231, 255, 0.32);
+        }
+
+        .stat-label {
+            margin-bottom: 12px;
+            color: rgba(240, 242, 255, 0.78);
+            font-size: 1rem;
+            letter-spacing: 0.08em;
+        }
+
+        .score {
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: clamp(4rem, 8vw, 6.2rem);
+            line-height: 0.95;
+            color: #fff5ff;
+            text-shadow: 0 0 28px rgba(255, 206, 255, 0.48);
+        }
+
+        .stars {
+            margin: 16px 0 12px;
+            color: var(--pink);
+            font-size: 1.62rem;
+            letter-spacing: 0.18em;
+            text-shadow: 0 0 14px rgba(255, 197, 242, 0.54);
+        }
+
+        .stat-number {
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: clamp(3.1rem, 6vw, 4.9rem);
+            color: #fff;
+            letter-spacing: 0.04em;
+            text-shadow: 0 0 22px rgba(225, 231, 255, 0.45);
+        }
+
+        .stat-note {
+            color: rgba(240, 240, 255, 0.72);
+            font-size: 1rem;
+        }
+
+        .tag-cloud {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 14px;
+            max-width: 350px;
+            margin-top: 8px;
+        }
+
+        .tag-cloud span,
+        .review-tag {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 36px;
+            padding: 0 18px;
+            border: 1px solid rgba(236, 230, 255, 0.28);
+            border-radius: 999px;
+            background: rgba(225, 224, 255, 0.12);
+            color: rgba(255, 250, 255, 0.86);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+            white-space: nowrap;
+        }
+
+        .section-tabs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            width: min(1020px, 94%);
+            margin: 0 auto 26px;
+            color: rgba(235, 238, 255, 0.72);
+            text-align: center;
+            font-size: 1.15rem;
+            letter-spacing: 0.08em;
+        }
+
+        .section-tabs span {
+            position: relative;
+            padding: 0 0 16px;
+        }
+
+        .section-tabs span::before {
+            content: "✣";
+            margin-right: 10px;
+            color: rgba(228, 210, 255, 0.78);
+        }
+
+        .section-tabs span::after {
+            content: "";
+            position: absolute;
+            left: 10%;
+            right: 10%;
+            bottom: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(228, 210, 255, 0.68), transparent);
+        }
+
+        .section-tabs .is-active {
+            color: #fff;
+            text-shadow: 0 0 16px rgba(225, 210, 255, 0.5);
+        }
+
+        .section-tabs .is-active::after {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #fff, transparent);
+            box-shadow: 0 0 12px var(--glow);
+        }
+
+        .reviews-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 24px;
+            margin: 0 auto 34px;
+        }
+
+        .review-column {
+            display: grid;
+            gap: 24px;
+            align-content: start;
+        }
+
+        .review-card {
+            min-height: 274px;
+            padding: 28px 28px 24px;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .review-card::after {
+            content: "”";
+            position: absolute;
+            top: 10px;
+            right: 22px;
+            color: rgba(228, 213, 255, 0.34);
+            font-family: Georgia, serif;
+            font-size: 5.2rem;
+            line-height: 1;
+            pointer-events: none;
+        }
+
+        .review-head {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: 58px 1fr;
+            gap: 14px;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+        .avatar {
+            position: relative;
+            width: 58px;
+            height: 58px;
+            border: 1px solid rgba(240, 242, 255, 0.52);
+            border-radius: 50%;
+            background:
+                radial-gradient(circle at 58% 30%, rgba(255, 255, 255, 0.88) 0 4px, transparent 4.6px),
+                radial-gradient(circle at 42% 48%, rgba(180, 207, 255, 0.72), transparent 42%),
+                linear-gradient(135deg, rgba(29, 60, 122, 0.9), rgba(8, 20, 55, 0.92));
+            box-shadow: 0 0 20px rgba(199, 213, 255, 0.3);
+            overflow: hidden;
+        }
+
+        .avatar::before,
+        .avatar::after {
+            content: "";
+            position: absolute;
+            border-radius: 50%;
+        }
+
+        .avatar::before {
+            inset: 10px 16px auto;
+            height: 18px;
+            background: rgba(231, 226, 255, 0.74);
+        }
+
+        .avatar::after {
+            left: 10px;
+            right: 10px;
+            bottom: 8px;
+            height: 24px;
+            background: linear-gradient(135deg, rgba(87, 114, 196, 0.8), rgba(221, 206, 255, 0.42));
+        }
+
+        .avatar.is-moon {
+            background:
+                radial-gradient(circle at 66% 28%, #fff 0 8px, rgba(228, 231, 255, 0.8) 9px 15px, transparent 16px),
+                radial-gradient(circle at 42% 58%, rgba(138, 169, 237, 0.72), transparent 43%),
+                linear-gradient(145deg, #0b2459, #030e29);
+        }
+
+        .avatar.is-lake {
+            background:
+                radial-gradient(circle at 40% 28%, rgba(255, 255, 255, 0.86) 0 6px, transparent 7px),
+                repeating-linear-gradient(0deg, rgba(215, 235, 255, 0.24) 0 1px, transparent 1px 7px),
+                linear-gradient(155deg, #1d4d8d, #08142f);
+        }
+
+        .avatar.is-lake::before,
+        .avatar.is-lake::after,
+        .avatar.is-moon::before,
+        .avatar.is-moon::after {
+            display: none;
+        }
+
+        .review-name {
+            display: block;
+            color: #fff;
+            font-size: 1.14rem;
+            letter-spacing: 0.04em;
+        }
+
+        .review-stars {
+            display: block;
+            margin-top: 6px;
+            color: var(--pink);
+            letter-spacing: 0.12em;
+            text-shadow: 0 0 12px rgba(255, 195, 241, 0.48);
+        }
+
+        .review-card p {
+            position: relative;
+            z-index: 1;
+            min-height: 90px;
+            margin: 0 0 24px;
+            color: rgba(255, 255, 255, 0.88);
+            font-size: 1.05rem;
+            line-height: 1.95;
+            text-shadow: 0 1px 12px rgba(3, 9, 30, 0.32);
+        }
+
+        .review-tag {
+            position: relative;
+            z-index: 1;
+            min-height: 38px;
+            padding: 0 14px;
+            font-size: 0.96rem;
+            color: rgba(247, 247, 255, 0.86);
+        }
+
+        .featured-card {
+            min-height: 584px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 28px;
+        }
+
+        .featured-scene {
+            position: absolute;
+            inset: 110px 0 0;
+            z-index: 0;
+            border-radius: 0 0 20px 20px;
+            background:
+                radial-gradient(circle at 42% 18%, rgba(255, 255, 255, 0.92) 0 28px, rgba(223, 225, 255, 0.34) 31px 47px, transparent 49px),
+                linear-gradient(160deg, transparent 0 34%, rgba(214, 226, 255, 0.34) 35% 36%, transparent 37%),
+                linear-gradient(28deg, transparent 0 58%, rgba(239, 232, 255, 0.24) 59% 60%, transparent 61%),
+                radial-gradient(ellipse at 50% 70%, rgba(107, 155, 221, 0.55), transparent 40%),
+                repeating-linear-gradient(0deg, rgba(230, 245, 255, 0.16) 0 1px, transparent 1px 11px),
+                linear-gradient(180deg, rgba(7, 30, 72, 0.12), rgba(5, 16, 43, 0.9));
+            opacity: 0.92;
+        }
+
+        .featured-scene::before {
+            content: "";
+            position: absolute;
+            right: 34px;
+            bottom: 76px;
+            width: 94px;
+            height: 128px;
+            border: 2px solid rgba(225, 232, 255, 0.34);
+            border-radius: 48% 48% 0 0;
+            box-shadow: inset 0 0 18px rgba(255, 255, 255, 0.14), 0 0 22px rgba(197, 210, 255, 0.14);
+        }
+
+        .featured-scene::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 120px;
+            background:
+                radial-gradient(circle at 18% 78%, rgba(215, 206, 255, 0.42) 0 10px, transparent 11px),
+                radial-gradient(circle at 78% 74%, rgba(255, 220, 252, 0.32) 0 9px, transparent 10px),
+                linear-gradient(180deg, transparent, rgba(13, 34, 83, 0.86));
+        }
+
+        .featured-card .review-head,
+        .featured-card .review-tag {
+            position: relative;
+            z-index: 1;
+        }
+
+        .summary-card {
+            display: grid;
+            grid-template-columns: 190px 1fr 190px;
+            gap: 28px;
+            align-items: center;
+            min-height: 280px;
+            margin-top: 34px;
+            padding: 34px 44px;
+            border-radius: 28px;
+            overflow: hidden;
+        }
+
+        .summary-flower {
+            position: relative;
+            width: 150px;
+            height: 180px;
+            filter: drop-shadow(0 0 22px rgba(227, 210, 255, 0.44));
+        }
+
+        .summary-flower::before {
+            content: "";
+            position: absolute;
+            inset: 16px 38px;
+            border-radius: 100% 0 100% 0;
+            background: linear-gradient(135deg, #fff, rgba(209, 199, 255, 0.58));
+            transform: rotate(-22deg);
+            box-shadow:
+                28px 10px 0 -4px rgba(255, 223, 250, 0.78),
+                -24px 22px 0 -8px rgba(183, 215, 255, 0.68),
+                8px 48px 0 -6px rgba(221, 204, 255, 0.72);
+        }
+
+        .summary-flower::after {
+            content: "";
+            position: absolute;
+            left: 80px;
+            top: 56px;
+            width: 2px;
+            height: 104px;
+            background: linear-gradient(180deg, rgba(233, 238, 255, 0.76), transparent);
+            transform: rotate(26deg);
+        }
+
+        .summary-copy {
+            text-align: center;
+        }
+
+        .summary-copy .eyebrow {
+            display: inline-flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 16px;
+            color: rgba(229, 217, 255, 0.8);
+            font-size: 1rem;
+            letter-spacing: 0.08em;
+        }
+
+        .summary-copy h2 {
+            margin: 0;
+            font-family: "STSong", "SimSun", "Microsoft YaHei", serif;
+            font-size: clamp(1.9rem, 3vw, 2.8rem);
+            font-weight: 400;
+            line-height: 1.65;
+            letter-spacing: 0.08em;
+        }
+
+        .summary-features {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0;
+            margin-top: 28px;
+            padding-top: 24px;
+            border-top: 1px solid rgba(225, 232, 255, 0.24);
+        }
+
+        .summary-feature {
+            display: grid;
+            gap: 8px;
+            justify-items: center;
+            padding: 0 18px;
+            color: rgba(245, 247, 255, 0.84);
+        }
+
+        .summary-feature + .summary-feature {
+            border-left: 1px solid rgba(225, 232, 255, 0.22);
+        }
+
+        .summary-feature span {
+            display: grid;
+            place-items: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 18px;
+            background: rgba(222, 229, 255, 0.12);
+            color: #fff;
+            font-size: 1.5rem;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 0 20px rgba(192, 201, 255, 0.14);
+        }
+
+        .summary-feature strong {
+            color: #fff;
+            font-size: 1.02rem;
+            letter-spacing: 0.04em;
+        }
+
+        .summary-feature small {
+            color: rgba(229, 235, 255, 0.68);
+            font-size: 0.9rem;
+        }
+
+        .summary-seal {
+            display: grid;
+            place-items: center;
+            justify-self: end;
+            width: 142px;
+            height: 142px;
+            border: 1px solid rgba(241, 231, 255, 0.5);
+            border-radius: 50%;
+            background:
+                radial-gradient(circle, rgba(255, 246, 255, 0.52), rgba(178, 168, 255, 0.15) 45%, transparent 68%),
+                conic-gradient(from 12deg, rgba(255, 255, 255, 0.5), transparent 18%, rgba(220, 207, 255, 0.5), transparent 45%, rgba(255, 255, 255, 0.5));
+            box-shadow: 0 0 42px rgba(228, 203, 255, 0.32), inset 0 0 26px rgba(255, 255, 255, 0.18);
+            color: #fff;
+            text-align: center;
+            font-size: 0.92rem;
+            letter-spacing: 0.08em;
+        }
+
+        .review-footer {
+            margin: 34px auto 0;
+            text-align: center;
+            color: rgba(236, 238, 255, 0.74);
+            line-height: 1.9;
+            letter-spacing: 0.06em;
+        }
+
+        .review-footer::before {
+            content: "";
+            display: block;
+            width: min(360px, 70vw);
+            height: 1px;
+            margin: 0 auto 14px;
+            background: linear-gradient(90deg, transparent, rgba(233, 221, 255, 0.76), transparent);
+        }
+
+        @media (max-width: 980px) {
+            .review-shell {
+                width: min(100% - 32px, 760px);
+            }
+
+            .review-nav {
+                grid-template-columns: 1fr;
+                justify-items: center;
+                padding: 16px;
+            }
+
+            .nav-links {
+                flex-wrap: wrap;
+                gap: 10px 22px;
+            }
+
+            .nav-cta {
+                justify-self: center;
+            }
+
+            .stats-panel {
+                grid-template-columns: 1fr;
+                width: 100%;
+                padding: 24px;
+            }
+
+            .stat-block {
+                min-height: auto;
+                padding: 22px 12px;
+            }
+
+            .stat-block + .stat-block {
+                border-left: 0;
+                border-top: 1px solid rgba(224, 231, 255, 0.28);
+            }
+
+            .reviews-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .featured-card {
+                min-height: 520px;
+            }
+
+            .summary-card {
+                grid-template-columns: 1fr;
+                justify-items: center;
+                padding: 28px 22px;
+            }
+
+            .summary-seal {
+                justify-self: center;
+            }
+
+            .summary-features {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 18px 0;
+            }
+
+            .summary-feature:nth-child(3) {
+                border-left: 0;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .review-shell {
+                width: min(100% - 24px, 520px);
+                padding-top: 12px;
+            }
+
+            .review-arch {
+                opacity: 0.34;
+                width: 190px;
+            }
+
+            .branch-left,
+            .branch-right {
+                opacity: 0.34;
+            }
+
+            .review-nav {
+                border-radius: 16px;
+            }
+
+            .brand strong {
+                font-size: 1.2rem;
+            }
+
+            .nav-links {
+                width: 100%;
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                text-align: center;
+                font-size: 0.92rem;
+            }
+
+            .nav-cta {
+                width: 100%;
+            }
+
+            .hero {
+                padding: 58px 0 28px;
+            }
+
+            .hero h1 {
+                gap: 10px;
+                font-size: clamp(2.7rem, 17vw, 4rem);
+            }
+
+            .hero h1::before,
+            .hero h1::after {
+                width: 42px;
+            }
+
+            .hero p {
+                font-size: 0.98rem;
+            }
+
+            .stats-panel {
+                margin-bottom: 34px;
+                border-radius: 22px;
+            }
+
+            .section-tabs {
+                grid-template-columns: 1fr;
+                gap: 12px;
+                margin-bottom: 18px;
+            }
+
+            .review-card {
+                min-height: auto;
+                padding: 24px 22px 22px;
+            }
+
+            .review-card p {
+                min-height: 0;
+                font-size: 0.98rem;
+            }
+
+            .featured-card {
+                min-height: 490px;
+            }
+
+            .summary-features {
+                grid-template-columns: 1fr;
+                width: 100%;
+            }
+
+            .summary-feature,
+            .summary-feature + .summary-feature,
+            .summary-feature:nth-child(3) {
+                border-left: 0;
+                border-top: 1px solid rgba(225, 232, 255, 0.18);
+                padding-top: 16px;
+            }
+
+            .summary-feature:first-child {
+                border-top: 0;
+                padding-top: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="review-page">
+    <div class="review-bg" aria-hidden="true"></div>
+    <div class="review-arch" aria-hidden="true"></div>
+    <div class="review-lake" aria-hidden="true"></div>
+    <div class="review-flowers" aria-hidden="true">
+        <span class="branch branch-left"></span>
+        <span class="branch branch-right"></span>
+        <span class="branch branch-bottom"></span>
+    </div>
+    <div class="review-petals" aria-hidden="true">
+        <span class="petal"></span>
+        <span class="petal"></span>
+        <span class="petal"></span>
+        <span class="petal"></span>
+        <span class="petal"></span>
+        <span class="petal"></span>
+        <span class="petal"></span>
+        <span class="petal"></span>
+    </div>
+
+    <main class="review-shell" id="top">
+        <nav class="review-nav" aria-label="君雪咨询导航">
+            <a class="brand" href="index.html" aria-label="返回君雪网站首页">
+                <span class="brand-mark" aria-hidden="true"></span>
+                <span>
+                    <strong>君雪咨询</strong>
+                    <span>JUNXUE CONSULTATION</span>
+                </span>
+            </a>
+            <div class="nav-links" aria-label="页面导航">
+                <a href="index.html">首页</a>
+                <a href="price.html">咨询服务</a>
+                <a class="is-active" href="boss-reviews.html">老板评价</a>
+                <a href="price.html#service-flow">服务流程</a>
+                <a href="about.html">关于我们</a>
+            </div>
+            <a class="nav-cta" href="contact.html">联系君雪</a>
+        </nav>
+
+        <section class="hero" aria-labelledby="boss-review-title">
+            <h1 id="boss-review-title">老板评价</h1>
+            <p>认真服务，也想把每一份感受收藏下来</p>
+        </section>
+
+        <section class="glass-panel stats-panel" aria-label="老板评价统计">
+            <div class="stat-block">
+                <span class="stat-label">综合评分</span>
+                <strong class="score">4.9</strong>
+                <span class="stars" aria-label="五星评分">★★★★★</span>
+                <span class="stat-note">基于 1,238 条真实评价</span>
+            </div>
+            <div class="stat-block">
+                <span class="stat-label">评价总数</span>
+                <strong class="stat-number">1,238</strong>
+                <span class="stat-note">条真实评价</span>
+            </div>
+            <div class="stat-block">
+                <span class="stat-label">满意度标签</span>
+                <div class="tag-cloud">
+                    <span>服务贴心</span>
+                    <span>专业可靠</span>
+                    <span>耐心细致</span>
+                    <span>体验细腻</span>
+                    <span>响应及时</span>
+                    <span>愉快沟通</span>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-tabs" aria-label="评价分组">
+            <span class="is-active">老板们的反馈</span>
+            <span>服务体验</span>
+            <span>最新评价</span>
+        </div>
+
+        <section class="reviews-grid" aria-label="老板评价列表">
+            <div class="review-column">
+                <article class="review-card">
+                    <div class="review-head">
+                        <span class="avatar is-moon" aria-hidden="true"></span>
+                        <span>
+                            <strong class="review-name">星河入梦</strong>
+                            <span class="review-stars">★★★★★</span>
+                        </span>
+                    </div>
+                    <p>小姐姐声音好听，聊天很舒服，打游戏也超厉害，带我上了王者，体验特别棒！</p>
+                    <span class="review-tag">王者荣耀</span>
+                </article>
+
+                <article class="review-card">
+                    <div class="review-head">
+                        <span class="avatar is-lake" aria-hidden="true"></span>
+                        <span>
+                            <strong class="review-name">清风予我</strong>
+                            <span class="review-stars">★★★★★</span>
+                        </span>
+                    </div>
+                    <p>沟通特别顺畅，分析问题很到位，给了很多实用建议，交流氛围也很轻松。</p>
+                    <span class="review-tag">咨询服务</span>
+                </article>
+
+                <article class="review-card">
+                    <div class="review-head">
+                        <span class="avatar" aria-hidden="true"></span>
+                        <span>
+                            <strong class="review-name">江畔听雨</strong>
+                            <span class="review-stars">★★★★★</span>
+                        </span>
+                    </div>
+                    <p>每次心情不好都会来这里聊一聊，小姐姐总能耐心倾听，真的很治愈。</p>
+                    <span class="review-tag">语音陪伴</span>
+                </article>
+            </div>
+
+            <div class="review-column">
+                <article class="review-card featured-card">
+                    <div class="review-head">
+                        <span class="avatar" aria-hidden="true"></span>
+                        <span>
+                            <strong class="review-name">雾里看花</strong>
+                            <span class="review-stars">★★★★★</span>
+                        </span>
+                    </div>
+                    <p>技术流小姐姐，操作细节拉满，永劫无间带我三连鸡，还教了我很多小技巧！</p>
+                    <span class="review-tag">永劫无间</span>
+                    <div class="featured-scene" aria-hidden="true"></div>
+                </article>
+
+                <article class="review-card">
+                    <div class="review-head">
+                        <span class="avatar" aria-hidden="true"></span>
+                        <span>
+                            <strong class="review-name">北岛信物</strong>
+                            <span class="review-stars">★★★★★</span>
+                        </span>
+                    </div>
+                    <p>服务非常贴心，从下单到结束都很顺利，有问必答，效率超高，推荐！</p>
+                    <span class="review-tag">王者荣耀</span>
+                </article>
+            </div>
+
+            <div class="review-column">
+                <article class="review-card">
+                    <div class="review-head">
+                        <span class="avatar is-moon" aria-hidden="true"></span>
+                        <span>
+                            <strong class="review-name">月下独酌</strong>
+                            <span class="review-stars">★★★★★</span>
+                        </span>
+                    </div>
+                    <p>小姐姐不仅人美声甜，还特别有耐心，陪我打游戏、聊天，度过了很多快乐时光。</p>
+                    <span class="review-tag">语音陪伴</span>
+                </article>
+
+                <article class="review-card">
+                    <div class="review-head">
+                        <span class="avatar is-lake" aria-hidden="true"></span>
+                        <span>
+                            <strong class="review-name">晚风不晚</strong>
+                            <span class="review-stars">★★★★★</span>
+                        </span>
+                    </div>
+                    <p>分析问题很专业，思路清晰，给出的方案很有帮助，期待下次再咨询！</p>
+                    <span class="review-tag">咨询服务</span>
+                </article>
+
+                <article class="review-card">
+                    <div class="review-head">
+                        <span class="avatar" aria-hidden="true"></span>
+                        <span>
+                            <strong class="review-name">落日航班</strong>
+                            <span class="review-stars">★★★★★</span>
+                        </span>
+                    </div>
+                    <p>陪玩体验很好，节奏带得飞起，全程氛围轻松愉快，已经推荐给朋友啦！</p>
+                    <span class="review-tag">王者荣耀</span>
+                </article>
+            </div>
+        </section>
+
+        <section class="summary-card" aria-labelledby="summary-title">
+            <div class="summary-flower" aria-hidden="true"></div>
+            <div class="summary-copy">
+                <span class="eyebrow">“ 来自老板的真心话 ”</span>
+                <h2 id="summary-title">你们的用心，我们都看在眼里。<br>每一次真诚的反馈，都是我们继续前行的光。</h2>
+                <div class="summary-features" aria-label="服务保障">
+                    <div class="summary-feature">
+                        <span>♡</span>
+                        <strong>用心服务</strong>
+                        <small>始终如一</small>
+                    </div>
+                    <div class="summary-feature">
+                        <span>♚</span>
+                        <strong>专业团队</strong>
+                        <small>严格筛选</small>
+                    </div>
+                    <div class="summary-feature">
+                        <span>◇</span>
+                        <strong>隐私保护</strong>
+                        <small>安全放心</small>
+                    </div>
+                    <div class="summary-feature">
+                        <span>☏</span>
+                        <strong>售后保障</strong>
+                        <small>贴心无忧</small>
+                    </div>
+                </div>
+            </div>
+            <div class="summary-seal" aria-hidden="true">JUNXUE<br>CARE</div>
+        </section>
+
+        <footer class="review-footer">
+            <strong>感谢每一位老板的信任与支持</strong><br>
+            我们会继续努力，带来更好的服务与体验
+        </footer>
+    </main>
+</div>
+</body>
+</html>

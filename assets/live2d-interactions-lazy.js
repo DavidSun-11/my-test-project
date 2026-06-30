@@ -2878,7 +2878,7 @@
             try {
                 await loadExternalScript("assets/supabase-client.js?v=20260627-home-performance1").catch(function () {});
                 await loadExternalScript("assets/supabase-config.js?v=20260611-1").catch(function () {});
-                await loadExternalScript("assets/price-reviews.js?v=20260627-home-performance1");
+                await loadExternalScript("assets/price-reviews.js?v=20260630-boss-review-real-data-mobile1");
             } catch (error) {
                 console.warn("[JunxueBossProfile] boss profile script load failed.", error);
                 throw new Error(BOSS_PROFILE_SCRIPT_LOAD_ERROR_TEXT);

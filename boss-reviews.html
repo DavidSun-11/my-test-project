@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>老板评价 - 君雪咨询</title>
+    <title>è€æ¿è¯„ä»· - å›é›ªå’¨è¯¢</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <script src="assets/performance-mode.js?v=20260613-2"></script>
     <style>
@@ -406,7 +406,7 @@
         }
 
         .hero::before {
-            content: "✦";
+            content: "âœ¦";
             display: block;
             margin-bottom: 16px;
             color: rgba(242, 232, 255, 0.86);
@@ -601,7 +601,7 @@
         }
 
         .section-tabs span::before {
-            content: "✣";
+            content: "âœ£";
             margin-right: 10px;
             color: rgba(228, 210, 255, 0.78);
         }
@@ -634,6 +634,217 @@
             margin: 0 auto 34px;
         }
 
+        .reviews-grid.is-dynamic-review-list .review-column {
+            display: none;
+        }
+
+        .reviews-grid.is-dynamic-review-list {
+            align-items: start;
+        }
+
+        .review-page .price-review-stat {
+            min-height: 166px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 10px 26px;
+        }
+
+        .review-page .price-review-stat + .price-review-stat {
+            border-left: 1px solid rgba(224, 231, 255, 0.32);
+        }
+
+        .review-page .price-review-stat span {
+            margin-bottom: 12px;
+            color: rgba(240, 242, 255, 0.78);
+            font-size: 1rem;
+            letter-spacing: 0.08em;
+        }
+
+        .review-page .price-review-stat strong {
+            font-family: Georgia, "Times New Roman", serif;
+            color: #fff5ff;
+            font-size: clamp(3rem, 6vw, 5rem);
+            line-height: 0.95;
+            text-shadow: 0 0 28px rgba(255, 206, 255, 0.48);
+        }
+
+        .review-page .price-review-global-status {
+            width: min(1020px, 94%);
+            min-height: 26px;
+            margin: -30px auto 22px;
+            color: rgba(240, 242, 255, 0.78);
+            text-align: center;
+        }
+
+        .review-page .price-review-item,
+        .review-page .price-empty {
+            position: relative;
+            min-height: 274px;
+            padding: 28px 28px 24px;
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            overflow: hidden;
+            background:
+                linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(91, 121, 195, 0.15) 38%, rgba(24, 48, 106, 0.36)),
+                var(--glass);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.45),
+                inset 0 -1px 0 rgba(139, 170, 255, 0.18),
+                0 24px 58px var(--shadow),
+                0 0 28px rgba(164, 190, 255, 0.16);
+            color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+        }
+
+        .review-page .price-empty {
+            grid-column: 1 / -1;
+            min-height: 160px;
+            display: grid;
+            place-items: center;
+            text-align: center;
+        }
+
+        .review-page .price-review-item::after {
+            content: "â€";
+            position: absolute;
+            top: 10px;
+            right: 22px;
+            color: rgba(228, 213, 255, 0.34);
+            font-family: Georgia, serif;
+            font-size: 5.2rem;
+            line-height: 1;
+            pointer-events: none;
+        }
+
+        .review-page .price-review-head {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 12px;
+            align-items: start;
+            margin-bottom: 12px;
+        }
+
+        .review-page .price-review-head strong {
+            color: #fff;
+            font-size: 1.14rem;
+            letter-spacing: 0.04em;
+        }
+
+        .review-page .price-review-stars {
+            color: var(--pink);
+            letter-spacing: 0.08em;
+            text-shadow: 0 0 12px rgba(255, 195, 241, 0.48);
+            white-space: nowrap;
+        }
+
+        .review-page .price-review-meta,
+        .review-page .price-review-count,
+        .review-page .price-review-comment-meta,
+        .review-page .price-review-comment-empty,
+        .review-page .price-review-comment-login {
+            position: relative;
+            z-index: 1;
+            color: rgba(229, 235, 255, 0.68);
+            font-size: 0.92rem;
+        }
+
+        .review-page .price-review-message {
+            position: relative;
+            z-index: 1;
+            margin: 14px 0;
+            color: rgba(255, 255, 255, 0.88);
+            font-size: 1.02rem;
+            line-height: 1.9;
+        }
+
+        .review-page .price-review-message.is-collapsed {
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .review-page .price-review-expand {
+            position: relative;
+            z-index: 1;
+            margin: -2px 0 12px;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: rgba(214, 224, 255, 0.9);
+            font: inherit;
+            cursor: pointer;
+        }
+
+        .review-page .price-review-actions {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .review-page .price-review-action,
+        .review-page .price-review-small-button,
+        .review-page .price-review-empty-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 36px;
+            padding: 0 14px;
+            border: 1px solid rgba(236, 230, 255, 0.28);
+            border-radius: 999px;
+            background: rgba(225, 224, 255, 0.12);
+            color: rgba(255, 250, 255, 0.88);
+            font: inherit;
+            cursor: pointer;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+        }
+
+        .review-page .price-review-comments {
+            position: relative;
+            z-index: 1;
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(225, 232, 255, 0.2);
+        }
+
+        .review-page .price-review-comment {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .review-page .price-review-comment-form {
+            display: grid;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .review-page .price-review-comment-form input,
+        .review-page .price-review-comment-form textarea {
+            width: 100%;
+            border: 1px solid rgba(236, 230, 255, 0.28);
+            border-radius: 14px;
+            background: rgba(8, 21, 56, 0.44);
+            color: #fff;
+            font: inherit;
+            padding: 10px 12px;
+        }
+
+        .review-page .price-review-comment-form textarea {
+            min-height: 82px;
+            resize: vertical;
+        }
+
         .review-column {
             display: grid;
             gap: 24px;
@@ -648,7 +859,7 @@
         }
 
         .review-card::after {
-            content: "”";
+            content: "â€";
             position: absolute;
             top: 10px;
             right: 22px;
@@ -985,6 +1196,16 @@
                 padding: 24px;
             }
 
+            .review-page .price-review-stat {
+                min-height: auto;
+                padding: 22px 12px;
+            }
+
+            .review-page .price-review-stat + .price-review-stat {
+                border-left: 0;
+                border-top: 1px solid rgba(224, 231, 255, 0.28);
+            }
+
             .stat-block {
                 min-height: auto;
                 padding: 22px 12px;
@@ -997,6 +1218,11 @@
 
             .reviews-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .review-page .price-review-global-status {
+                width: 100%;
+                margin: -18px auto 18px;
             }
 
             .featured-card {
@@ -1093,9 +1319,50 @@
                 padding: 24px 22px 22px;
             }
 
+            .review-page .price-review-item {
+                min-height: auto;
+                padding: 18px 16px;
+                border-radius: 18px;
+            }
+
+            .review-page .price-review-head {
+                grid-template-columns: 1fr;
+                gap: 6px;
+            }
+
+            .review-page .price-review-head strong {
+                font-size: 1rem;
+            }
+
+            .review-page .price-review-stars {
+                font-size: 0.9rem;
+            }
+
             .review-card p {
                 min-height: 0;
                 font-size: 0.98rem;
+            }
+
+            .review-page .price-review-message {
+                margin: 10px 0;
+                font-size: 0.95rem;
+                line-height: 1.68;
+            }
+
+            .review-page .price-review-message.is-collapsed {
+                -webkit-line-clamp: 3;
+            }
+
+            .review-page .price-review-actions {
+                gap: 7px;
+            }
+
+            .review-page .price-review-action,
+            .review-page .price-review-small-button,
+            .review-page .price-review-empty-action {
+                min-height: 34px;
+                padding: 0 12px;
+                font-size: 0.9rem;
             }
 
             .featured-card {
@@ -1144,190 +1411,86 @@
     </div>
 
     <main class="review-shell" id="top">
-        <nav class="review-nav" aria-label="君雪咨询导航">
-            <a class="brand" href="index.html" aria-label="返回君雪网站首页">
+        <nav class="review-nav" aria-label="å›é›ªå’¨è¯¢å¯¼èˆª">
+            <a class="brand" href="index.html" aria-label="è¿”å›žå›é›ªç½‘ç«™é¦–é¡µ">
                 <span class="brand-mark" aria-hidden="true"></span>
                 <span>
-                    <strong>君雪咨询</strong>
+                    <strong>å›é›ªå’¨è¯¢</strong>
                     <span>JUNXUE CONSULTATION</span>
                 </span>
             </a>
-            <div class="nav-links" aria-label="页面导航">
-                <a href="index.html">首页</a>
-                <a href="price.html">咨询服务</a>
-                <a class="is-active" href="boss-reviews.html">老板评价</a>
-                <a href="price.html#service-flow">服务流程</a>
-                <a href="about.html">关于我们</a>
+            <div class="nav-links" aria-label="é¡µé¢å¯¼èˆª">
+                <a href="index.html">é¦–é¡µ</a>
+                <a href="price.html">å’¨è¯¢æœåŠ¡</a>
+                <a class="is-active" href="boss-reviews.html">è€æ¿è¯„ä»·</a>
+                <a href="price.html#service-flow">æœåŠ¡æµç¨‹</a>
+                <a href="about.html">å…³äºŽæˆ‘ä»¬</a>
             </div>
-            <a class="nav-cta" href="contact.html">联系君雪</a>
+            <a class="nav-cta" href="contact.html">è”ç³»å›é›ª</a>
         </nav>
 
         <section class="hero" aria-labelledby="boss-review-title">
-            <h1 id="boss-review-title">老板评价</h1>
-            <p>认真服务，也想把每一份感受收藏下来</p>
+            <h1 id="boss-review-title">è€æ¿è¯„ä»·</h1>
+            <p>è®¤çœŸæœåŠ¡ï¼Œä¹Ÿæƒ³æŠŠæ¯ä¸€ä»½æ„Ÿå—æ”¶è—ä¸‹æ¥</p>
         </section>
 
-        <section class="glass-panel stats-panel" aria-label="老板评价统计">
+        <section class="glass-panel stats-panel" id="price-review-stats" aria-label="è€æ¿è¯„ä»·ç»Ÿè®¡">
             <div class="stat-block">
-                <span class="stat-label">综合评分</span>
-                <strong class="score">4.9</strong>
-                <span class="stars" aria-label="五星评分">★★★★★</span>
-                <span class="stat-note">基于 1,238 条真实评价</span>
+                <span class="stat-label">ç»¼åˆè¯„åˆ†</span>
+                <strong class="score">0.0</strong>
+                <span class="stars" aria-label="äº”æ˜Ÿè¯„åˆ†">â˜…â˜…â˜…â˜…â˜…</span>
+                <span class="stat-note">æ­£åœ¨åŒæ­¥çœŸå®žè¯„ä»·</span>
             </div>
             <div class="stat-block">
-                <span class="stat-label">评价总数</span>
-                <strong class="stat-number">1,238</strong>
-                <span class="stat-note">条真实评价</span>
+                <span class="stat-label">è¯„ä»·æ€»æ•°</span>
+                <strong class="stat-number">0</strong>
+                <span class="stat-note">æ¡çœŸå®žè¯„ä»·</span>
             </div>
             <div class="stat-block">
-                <span class="stat-label">满意度标签</span>
+                <span class="stat-label">æ»¡æ„åº¦æ ‡ç­¾</span>
                 <div class="tag-cloud">
-                    <span>服务贴心</span>
-                    <span>专业可靠</span>
-                    <span>耐心细致</span>
-                    <span>体验细腻</span>
-                    <span>响应及时</span>
-                    <span>愉快沟通</span>
+                    <span>æš‚æ— </span>
                 </div>
             </div>
         </section>
 
-        <div class="section-tabs" aria-label="评价分组">
-            <span class="is-active">老板们的反馈</span>
-            <span>服务体验</span>
-            <span>最新评价</span>
+        <div class="price-status price-review-global-status" id="price-review-status" role="status" aria-live="polite"></div>
+
+        <div class="section-tabs" aria-label="è¯„ä»·åˆ†ç»„">
+            <span class="is-active">è€æ¿ä»¬çš„åé¦ˆ</span>
+            <span>æœåŠ¡ä½“éªŒ</span>
+            <span>æœ€æ–°è¯„ä»·</span>
         </div>
 
-        <section class="reviews-grid" aria-label="老板评价列表">
-            <div class="review-column">
-                <article class="review-card">
-                    <div class="review-head">
-                        <span class="avatar is-moon" aria-hidden="true"></span>
-                        <span>
-                            <strong class="review-name">星河入梦</strong>
-                            <span class="review-stars">★★★★★</span>
-                        </span>
-                    </div>
-                    <p>小姐姐声音好听，聊天很舒服，打游戏也超厉害，带我上了王者，体验特别棒！</p>
-                    <span class="review-tag">王者荣耀</span>
-                </article>
-
-                <article class="review-card">
-                    <div class="review-head">
-                        <span class="avatar is-lake" aria-hidden="true"></span>
-                        <span>
-                            <strong class="review-name">清风予我</strong>
-                            <span class="review-stars">★★★★★</span>
-                        </span>
-                    </div>
-                    <p>沟通特别顺畅，分析问题很到位，给了很多实用建议，交流氛围也很轻松。</p>
-                    <span class="review-tag">咨询服务</span>
-                </article>
-
-                <article class="review-card">
-                    <div class="review-head">
-                        <span class="avatar" aria-hidden="true"></span>
-                        <span>
-                            <strong class="review-name">江畔听雨</strong>
-                            <span class="review-stars">★★★★★</span>
-                        </span>
-                    </div>
-                    <p>每次心情不好都会来这里聊一聊，小姐姐总能耐心倾听，真的很治愈。</p>
-                    <span class="review-tag">语音陪伴</span>
-                </article>
-            </div>
-
-            <div class="review-column">
-                <article class="review-card featured-card">
-                    <div class="review-head">
-                        <span class="avatar" aria-hidden="true"></span>
-                        <span>
-                            <strong class="review-name">雾里看花</strong>
-                            <span class="review-stars">★★★★★</span>
-                        </span>
-                    </div>
-                    <p>技术流小姐姐，操作细节拉满，永劫无间带我三连鸡，还教了我很多小技巧！</p>
-                    <span class="review-tag">永劫无间</span>
-                    <div class="featured-scene" aria-hidden="true"></div>
-                </article>
-
-                <article class="review-card">
-                    <div class="review-head">
-                        <span class="avatar" aria-hidden="true"></span>
-                        <span>
-                            <strong class="review-name">北岛信物</strong>
-                            <span class="review-stars">★★★★★</span>
-                        </span>
-                    </div>
-                    <p>服务非常贴心，从下单到结束都很顺利，有问必答，效率超高，推荐！</p>
-                    <span class="review-tag">王者荣耀</span>
-                </article>
-            </div>
-
-            <div class="review-column">
-                <article class="review-card">
-                    <div class="review-head">
-                        <span class="avatar is-moon" aria-hidden="true"></span>
-                        <span>
-                            <strong class="review-name">月下独酌</strong>
-                            <span class="review-stars">★★★★★</span>
-                        </span>
-                    </div>
-                    <p>小姐姐不仅人美声甜，还特别有耐心，陪我打游戏、聊天，度过了很多快乐时光。</p>
-                    <span class="review-tag">语音陪伴</span>
-                </article>
-
-                <article class="review-card">
-                    <div class="review-head">
-                        <span class="avatar is-lake" aria-hidden="true"></span>
-                        <span>
-                            <strong class="review-name">晚风不晚</strong>
-                            <span class="review-stars">★★★★★</span>
-                        </span>
-                    </div>
-                    <p>分析问题很专业，思路清晰，给出的方案很有帮助，期待下次再咨询！</p>
-                    <span class="review-tag">咨询服务</span>
-                </article>
-
-                <article class="review-card">
-                    <div class="review-head">
-                        <span class="avatar" aria-hidden="true"></span>
-                        <span>
-                            <strong class="review-name">落日航班</strong>
-                            <span class="review-stars">★★★★★</span>
-                        </span>
-                    </div>
-                    <p>陪玩体验很好，节奏带得飞起，全程氛围轻松愉快，已经推荐给朋友啦！</p>
-                    <span class="review-tag">王者荣耀</span>
-                </article>
-            </div>
+        <section class="reviews-grid is-dynamic-review-list" id="price-review-list" aria-label="老板评价列表">
+            <div class="price-empty">正在读取老板评价...</div>
         </section>
 
         <section class="summary-card" aria-labelledby="summary-title">
             <div class="summary-flower" aria-hidden="true"></div>
             <div class="summary-copy">
-                <span class="eyebrow">“ 来自老板的真心话 ”</span>
-                <h2 id="summary-title">你们的用心，我们都看在眼里。<br>每一次真诚的反馈，都是我们继续前行的光。</h2>
-                <div class="summary-features" aria-label="服务保障">
+                <span class="eyebrow">â€œ æ¥è‡ªè€æ¿çš„çœŸå¿ƒè¯ â€</span>
+                <h2 id="summary-title">ä½ ä»¬çš„ç”¨å¿ƒï¼Œæˆ‘ä»¬éƒ½çœ‹åœ¨çœ¼é‡Œã€‚<br>æ¯ä¸€æ¬¡çœŸè¯šçš„åé¦ˆï¼Œéƒ½æ˜¯æˆ‘ä»¬ç»§ç»­å‰è¡Œçš„å…‰ã€‚</h2>
+                <div class="summary-features" aria-label="æœåŠ¡ä¿éšœ">
                     <div class="summary-feature">
-                        <span>♡</span>
-                        <strong>用心服务</strong>
-                        <small>始终如一</small>
+                        <span>â™¡</span>
+                        <strong>ç”¨å¿ƒæœåŠ¡</strong>
+                        <small>å§‹ç»ˆå¦‚ä¸€</small>
                     </div>
                     <div class="summary-feature">
-                        <span>♚</span>
-                        <strong>专业团队</strong>
-                        <small>严格筛选</small>
+                        <span>â™š</span>
+                        <strong>ä¸“ä¸šå›¢é˜Ÿ</strong>
+                        <small>ä¸¥æ ¼ç­›é€‰</small>
                     </div>
                     <div class="summary-feature">
-                        <span>◇</span>
-                        <strong>隐私保护</strong>
-                        <small>安全放心</small>
+                        <span>â—‡</span>
+                        <strong>éšç§ä¿æŠ¤</strong>
+                        <small>å®‰å…¨æ”¾å¿ƒ</small>
                     </div>
                     <div class="summary-feature">
-                        <span>☏</span>
-                        <strong>售后保障</strong>
-                        <small>贴心无忧</small>
+                        <span>â˜</span>
+                        <strong>å”®åŽä¿éšœ</strong>
+                        <small>è´´å¿ƒæ— å¿§</small>
                     </div>
                 </div>
             </div>
@@ -1335,10 +1498,14 @@
         </section>
 
         <footer class="review-footer">
-            <strong>感谢每一位老板的信任与支持</strong><br>
-            我们会继续努力，带来更好的服务与体验
+            <strong>æ„Ÿè°¢æ¯ä¸€ä½è€æ¿çš„ä¿¡ä»»ä¸Žæ”¯æŒ</strong><br>
+            æˆ‘ä»¬ä¼šç»§ç»­åŠªåŠ›ï¼Œå¸¦æ¥æ›´å¥½çš„æœåŠ¡ä¸Žä½“éªŒ
         </footer>
     </main>
 </div>
+<button class="price-review-empty-action" id="price-open-ganyu-review" type="button" hidden>æ‰¾ç”˜é›¨å‘å¸ƒè¯„ä»·</button>
+<script src="assets/supabase-client.js?v=20260627-home-performance1"></script>
+<script src="assets/vendor/supabase-js-2.min.js?v=20260616-1"></script>
+<script src="assets/price-reviews.js?v=20260630-boss-review-real-data-mobile1"></script>
 </body>
 </html>

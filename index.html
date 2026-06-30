@@ -14,6 +14,11 @@
             overflow-x: hidden;
         }
 
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 24px;
+        }
+
         body {
             --home-smooth-bg: url("assets/images/主页背景.png?v=20260626-home-smooth-mobile-bg1");
             font-family: Arial, sans-serif;
@@ -743,6 +748,265 @@
             transform: scaleX(1);
         }
 
+        .home-review-wall {
+            position: relative;
+            z-index: 2;
+            width: min(1120px, calc(100vw - 48px));
+            margin: min(8vh, 72px) auto 150px;
+            padding: 30px;
+            border: 1px solid rgba(161, 232, 255, 0.5);
+            border-radius: 28px;
+            background:
+                radial-gradient(circle at 12% 0%, rgba(135, 221, 255, 0.22), transparent 34%),
+                radial-gradient(circle at 88% 10%, rgba(201, 154, 255, 0.18), transparent 36%),
+                linear-gradient(145deg, rgba(8, 25, 55, 0.78), rgba(22, 49, 92, 0.62));
+            box-shadow:
+                0 26px 64px rgba(1, 8, 26, 0.42),
+                0 0 34px rgba(103, 212, 255, 0.18),
+                inset 0 1px 0 rgba(255, 255, 255, 0.18);
+            -webkit-backdrop-filter: blur(18px) saturate(1.12);
+            backdrop-filter: blur(18px) saturate(1.12);
+        }
+
+        .home-review-wall::before {
+            content: "";
+            position: absolute;
+            inset: 1px;
+            border-radius: inherit;
+            background:
+                linear-gradient(110deg, rgba(255, 255, 255, 0.16), transparent 44%, rgba(191, 147, 255, 0.12)),
+                linear-gradient(90deg, transparent, rgba(194, 239, 255, 0.28), transparent) top / 100% 1px no-repeat;
+            pointer-events: none;
+        }
+
+        .home-review-heading {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 18px;
+            margin-bottom: 22px;
+        }
+
+        .home-review-heading h2 {
+            margin: 0;
+            color: #f7fbff;
+            font-size: clamp(26px, 3vw, 42px);
+            letter-spacing: 0.06em;
+            text-shadow: 0 0 22px rgba(126, 222, 255, 0.28);
+        }
+
+        .home-review-heading p {
+            margin: 8px 0 0;
+            color: rgba(221, 243, 255, 0.78);
+            line-height: 1.7;
+        }
+
+        .home-review-more,
+        .price-review-empty-action,
+        .price-review-action,
+        .price-review-small-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 42px;
+            padding: 0 18px;
+            border: 1px solid rgba(159, 232, 255, 0.48);
+            border-radius: 999px;
+            background: linear-gradient(135deg, rgba(104, 207, 255, 0.28), rgba(178, 135, 255, 0.18));
+            color: rgba(248, 253, 255, 0.96);
+            font: inherit;
+            font-weight: 700;
+            text-decoration: none;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 0 20px rgba(93, 204, 255, 0.16);
+            cursor: pointer;
+        }
+
+        .home-review-more:hover,
+        .price-review-empty-action:hover,
+        .price-review-action:hover,
+        .price-review-small-button:hover {
+            border-color: rgba(207, 247, 255, 0.78);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24), 0 0 24px rgba(121, 219, 255, 0.24);
+            transform: translateY(-1px);
+        }
+
+        .price-review-stats {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .price-review-stat {
+            min-height: 92px;
+            padding: 16px;
+            border: 1px solid rgba(159, 232, 255, 0.26);
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.07);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+        }
+
+        .price-review-stat span {
+            display: block;
+            color: rgba(213, 239, 255, 0.72);
+            font-size: 13px;
+            letter-spacing: 0.06em;
+        }
+
+        .price-review-stat strong {
+            display: block;
+            margin-top: 8px;
+            color: #ffffff;
+            font-size: clamp(24px, 3vw, 34px);
+            line-height: 1.1;
+            text-shadow: 0 0 18px rgba(122, 219, 255, 0.24);
+        }
+
+        .price-review-global-status {
+            position: relative;
+            z-index: 1;
+            min-height: 24px;
+            margin-bottom: 12px;
+            color: rgba(224, 244, 255, 0.82);
+        }
+
+        .price-review-list {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+            max-height: 560px;
+            overflow: auto;
+            padding-right: 4px;
+        }
+
+        .price-review-item,
+        .price-empty {
+            border: 1px solid rgba(194, 239, 255, 0.32);
+            border-radius: 20px;
+            background:
+                radial-gradient(circle at 88% 14%, rgba(203, 160, 255, 0.18), transparent 32%),
+                linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(31, 70, 124, 0.34));
+            box-shadow:
+                0 14px 32px rgba(2, 10, 31, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.16);
+            color: rgba(240, 250, 255, 0.9);
+        }
+
+        .price-review-item {
+            padding: 18px;
+        }
+
+        .price-empty {
+            grid-column: 1 / -1;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .price-review-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .price-review-head strong {
+            color: #fff;
+            font-size: 16px;
+        }
+
+        .price-review-stars {
+            color: #ffd8f1;
+            letter-spacing: 0.08em;
+            white-space: nowrap;
+        }
+
+        .price-review-meta,
+        .price-review-count,
+        .price-review-comment-meta {
+            color: rgba(213, 239, 255, 0.68);
+            font-size: 13px;
+        }
+
+        .price-review-message {
+            margin: 12px 0;
+            color: rgba(245, 252, 255, 0.88);
+            line-height: 1.75;
+        }
+
+        .price-review-message.is-collapsed {
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .price-review-expand {
+            margin: -2px 0 12px;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: rgba(159, 232, 255, 0.92);
+            font: inherit;
+            cursor: pointer;
+        }
+
+        .price-review-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .price-review-action,
+        .price-review-small-button {
+            min-height: 34px;
+            padding: 0 12px;
+            font-size: 13px;
+        }
+
+        .price-review-comments {
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(194, 239, 255, 0.18);
+        }
+
+        .price-review-comment {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.07);
+        }
+
+        .price-review-comment-form {
+            display: grid;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .price-review-comment-form input,
+        .price-review-comment-form textarea {
+            width: 100%;
+            border: 1px solid rgba(159, 232, 255, 0.28);
+            border-radius: 14px;
+            background: rgba(3, 14, 34, 0.42);
+            color: #fff;
+            font: inherit;
+            padding: 10px 12px;
+        }
+
+        .price-review-comment-form textarea {
+            min-height: 82px;
+            resize: vertical;
+        }
+
         .cursor-light {
             position: fixed;
             width: 300px;
@@ -874,6 +1138,67 @@
 
             .home-nav a {
                 font-size: 15px;
+            }
+
+            .home-review-wall {
+                width: calc(100vw - 28px);
+                margin: 24px auto 138px;
+                padding: 18px;
+                border-radius: 22px;
+            }
+
+            .home-review-heading {
+                display: grid;
+                gap: 14px;
+                margin-bottom: 16px;
+            }
+
+            .home-review-more {
+                width: 100%;
+            }
+
+            .price-review-stats {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .price-review-stat {
+                min-height: 76px;
+                padding: 13px 14px;
+            }
+
+            .price-review-stat strong {
+                font-size: 24px;
+            }
+
+            .price-review-list {
+                grid-template-columns: 1fr;
+                max-height: 68vh;
+                gap: 12px;
+                padding-right: 0;
+            }
+
+            .price-review-item {
+                padding: 15px;
+                border-radius: 18px;
+            }
+
+            .price-review-head {
+                align-items: flex-start;
+            }
+
+            .price-review-message {
+                margin: 10px 0;
+                font-size: 14px;
+                line-height: 1.68;
+            }
+
+            .price-review-message.is-collapsed {
+                -webkit-line-clamp: 3;
+            }
+
+            .price-review-actions {
+                gap: 7px;
             }
         }
 
@@ -1289,9 +1614,30 @@
     </div>
 </header>
 
+<section class="home-review-wall" id="boss-reviews" aria-labelledby="home-review-title">
+    <div class="home-review-heading">
+        <div>
+            <h2 id="home-review-title">老板评价墙</h2>
+            <p>真实老板反馈会同步展示在这里，服务体验、平均星级和热门服务都来自评价数据。</p>
+        </div>
+        <a class="home-review-more" href="boss-reviews.html">查看更多老板评价</a>
+    </div>
+    <div class="price-review-stats" id="price-review-stats" aria-label="老板评价统计">
+        <div class="price-review-stat"><span>总评价数</span><strong>0</strong></div>
+        <div class="price-review-stat"><span>平均星级</span><strong>0.0 ★</strong></div>
+        <div class="price-review-stat"><span>最受欢迎服务</span><strong>暂无</strong></div>
+    </div>
+    <div class="price-status price-review-global-status" id="price-review-status" role="status" aria-live="polite"></div>
+    <div class="price-review-list" id="price-review-list">
+        <div class="price-empty">正在读取老板评价...</div>
+    </div>
+    <button class="price-review-empty-action" id="price-open-ganyu-review" type="button" hidden>找甘雨发布评价</button>
+</section>
+
 <nav class="home-nav" aria-label="首页快捷入口">
     <a href="boss-register.html">注册老板账号</a>
         <a href="price.html">收费咨询</a>
+    <a href="#boss-reviews">老板评价</a>
     <a href="suggest.html">意见箱</a>
 </nav>
 
@@ -1519,6 +1865,8 @@ document.addEventListener("click", (e) => {
     }
 </script>
 <script src="assets/supabase-client.js?v=20260627-home-performance1"></script>
+<script src="assets/vendor/supabase-js-2.min.js?v=20260616-1"></script>
+<script src="assets/price-reviews.js?v=20260630-boss-review-real-data-mobile1"></script>
 <script src="assets/boss-visit.js?v=20260627-home-performance1"></script>
 <script src="assets/live2d-loader.js?v=20260630-mobile-live2d-menu-height1" data-live2d-autoload="home"></script>
 <script src="assets/home-boss-status-guide.js?v=20260627-home-performance1"></script>

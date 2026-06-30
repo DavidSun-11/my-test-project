@@ -1,5 +1,5 @@
 (function () {
-    const SCRIPT_VERSION = "20260630-price-reviews-sdk-load2";
+    const SCRIPT_VERSION = "20260630-boss-review-real-data-mobile1";
     const REVIEW_QUERY_TIMEOUT_MS = 9000;
     const OPTIONAL_QUERY_TIMEOUT_MS = 3500;
     const REVIEW_LOADING_TEXT = "\u6b63\u5728\u8bfb\u53d6\u8001\u677f\u8bc4\u4ef7...";

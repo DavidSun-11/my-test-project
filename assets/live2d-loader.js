@@ -1,6 +1,6 @@
 /* Lightweight Live2D loader: desktop keeps dynamic Ganyu, mobile uses a stable static fallback first. */
 (function () {
-    const version = "20260629-live2d-static-card-anchor1";
+    const version = "20260629-live2d-mobile-submenu-expand1";
     window.__JUNXUE_LIVE2D_DEBUG__ = window.__JUNXUE_LIVE2D_DEBUG__ || [];
     window.JunxueLive2DDebugLog = window.JunxueLive2DDebugLog || function (message, detail) {
         const safeMessage = String(message || "");
@@ -25,7 +25,7 @@
 
 (function () {
     const WIDGET_SCRIPT = "live2d/live2d-widget.js?v=20260613-5";
-    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260629-live2d-static-card-anchor1";
+    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260629-live2d-mobile-submenu-expand1";
     const DRAG_SCRIPT = "assets/live2d-drag.js?v=20260629-live2d-mobile-right-drawer1";
     const FRAME_HOST_SRC = "live2d/ganyu-host.html?v=20260613-iframe1";
     const STATIC_WEBP = "assets/images/price-ganyu-showcase.webp";
@@ -67,14 +67,22 @@
         "mobile showLiveInteractionPanel called",
         "mobile showConsultPanel called",
         "mobile showKnowJunxuePanel called",
+        "mobile submenu entered: daily",
+        "mobile submenu entered: live",
+        "mobile submenu entered: consult",
+        "mobile submenu entered: know",
+        "mobile static card hidden for submenu",
+        "mobile static card restored",
         "mobile submenu showDialog called: daily",
         "mobile submenu showDialog called: live",
         "mobile submenu showDialog called: consult",
         "mobile submenu showDialog called: know",
+        "mobile submenu mounted",
         "mobile submenu mounted: daily",
         "mobile submenu mounted: live",
         "mobile submenu mounted: consult",
         "mobile submenu mounted: know",
+        "mobile input autofocus prevented",
         "mobile menu shell removed",
         "menu open failed"
     ];
@@ -125,6 +133,7 @@
             ".ganyu-static-card:focus,.ganyu-static-card:focus-visible,.ganyu-static-card__dynamic:focus,.ganyu-static-card__dynamic:focus-visible{outline:none!important;box-shadow:0 0 18px rgba(120,229,255,.26),inset 0 0 12px rgba(255,255,255,.08);}",
             ".ganyu-static-card:active{transform:scale(.985);box-shadow:0 0 28px rgba(120,229,255,.34),0 12px 26px rgba(2,10,30,.24),inset 0 0 18px rgba(255,255,255,.14);}",
             ".ganyu-static-card.is-hidden{display:none!important;}",
+            ".ganyu-static-card.is-hidden-for-submenu{visibility:hidden!important;opacity:0!important;pointer-events:none!important;}",
             ".ganyu-static-card.is-dynamic-ready .ganyu-static-card__visual{opacity:.28;filter:saturate(.75) blur(.2px);}",
             ".ganyu-static-card__visual{position:relative;display:grid;place-items:center;min-height:104px;max-height:22vh;border-radius:14px;overflow:hidden;background:radial-gradient(circle at 50% 20%,rgba(220,250,255,.24),rgba(75,160,226,.16) 50%,rgba(8,26,58,.62));}",
             ".ganyu-static-card__visual picture,.ganyu-static-card__visual img{display:block;width:100%;height:100%;min-height:104px;max-height:22vh;pointer-events:none;user-select:none;-webkit-user-select:none;-webkit-user-drag:none;}",

@@ -1,6 +1,6 @@
 /* Live2D 互动模块：菜单、无奖竞答题库、英雄池转盘、咨询功能都集中在这里，方便后续继续加题。 */
 (function () {
-    const version = "20260629-live2d-static-card-anchor1";
+    const version = "20260629-live2d-mobile-submenu-expand1";
     if (typeof window.JunxueLive2DDebugLog !== "function") {
         window.__JUNXUE_LIVE2D_DEBUG__ = window.__JUNXUE_LIVE2D_DEBUG__ || [];
         window.JunxueLive2DDebugLog = function (message, detail) {
@@ -594,7 +594,7 @@
     function ensureOpeningBubbleStyles() {
         const existingStyle = document.getElementById("live2d-opening-bubble-style");
         if (existingStyle) {
-            if (existingStyle.textContent && existingStyle.textContent.indexOf("20260629-live2d-static-card-anchor1") !== -1) {
+            if (existingStyle.textContent && existingStyle.textContent.indexOf("20260629-live2d-mobile-submenu-expand1") !== -1) {
                 return;
             }
             existingStyle.remove();
@@ -603,7 +603,7 @@
         const style = document.createElement("style");
         style.id = "live2d-opening-bubble-style";
         style.textContent = [
-            "/* 20260629-live2d-static-card-anchor1 */",
+            "/* 20260629-live2d-mobile-submenu-expand1 */",
             ".live2d-quiz{position:fixed;left:252px;top:160px;right:auto;bottom:auto;z-index:10020;}",
             ".live2d-quiz:not(.is-open){visibility:hidden!important;opacity:0!important;pointer-events:none!important;}",
             ".live2d-quiz.is-open{visibility:visible!important;opacity:1!important;pointer-events:auto!important;}",
@@ -795,7 +795,8 @@
             ".score-guess-panel__footer-note{padding:10px 12px;border:1px solid rgba(169,226,255,.34);border-radius:14px;background:rgba(11,31,59,.36);color:rgba(220,240,255,.88);font-size:12px;line-height:1.5;}",
             "@media (max-width:768px){.live2d-quiz.is-main-menu .live2d-quiz__menu,.score-guess-grid,.score-guess-status,.score-guess-actions{grid-template-columns:1fr;}.live2d-menu-title,.score-guess-title{font-size:18px;}.live2d-menu-user,.score-guess-account,.score-guess-pill{font-size:11px;}.score-guess-option{min-height:70px;padding-left:44px!important;}.score-guess-option::before{left:13px;top:15px;width:20px;height:20px;}.score-guess-panel__header{grid-template-columns:1fr;}.score-guess-panel__state{justify-self:start;}.score-guess-panel__meta{grid-template-columns:1fr;}.score-guess-panel__options{grid-template-columns:1fr;}.score-guess-panel__actions{display:grid;grid-template-columns:1fr;}.score-guess-panel__actions .live2d-quiz__option{width:100%;min-width:0;}.score-guess-panel__title{font-size:20px;}}",
             "@media (max-width:768px){.live2d-quiz.is-main-menu,.live2d-quiz.is-live2d-submenu-drawer{transform:none!important;width:clamp(188px,58vw,320px)!important;max-width:calc(100vw - 16px)!important;max-height:min(42dvh,320px)!important;padding:0!important;}.live2d-menu-panel{height:min(42dvh,320px)!important;min-height:0!important;max-height:min(42dvh,320px)!important;border-radius:26px;}.live2d-menu-panel::before{inset:8px;border-radius:20px;}.live2d-menu-panel::after{opacity:.42;height:24%;}.live2d-menu-panel__ornament{left:16%;right:16%;top:18px;}.live2d-menu-panel__moon{top:8px;width:30px;height:30px;}.live2d-menu-panel__moon::after{display:none;}.live2d-menu-beautiful-content,.live2d-menu-panel__content{min-height:0;padding:38px 18px 18px;overflow:hidden;}.live2d-quiz.is-main-menu .live2d-quiz__question,.live2d-quiz.is-live2d-submenu-drawer .live2d-quiz__question{margin-bottom:8px!important;}.live2d-quiz.is-main-menu .live2d-menu-title{font-size:18px;}.live2d-quiz.is-main-menu .live2d-menu-user{font-size:10px;padding:4px 8px;}.live2d-quiz.is-main-menu .live2d-quiz__options,.live2d-quiz.is-live2d-submenu-drawer .live2d-quiz__options{min-height:0;width:100%;}.live2d-quiz.is-main-menu .live2d-quiz__menu{grid-template-columns:1fr!important;gap:10px!important;width:100%;min-height:0;max-height:calc(min(42dvh,320px) - 126px)!important;overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch;}.live2d-quiz.is-live2d-submenu-drawer .live2d-consult-grid{display:grid!important;grid-template-columns:1fr!important;gap:8px!important;width:100%;min-height:0;max-height:calc(min(42dvh,320px) - 118px)!important;overflow-y:auto!important;overflow-x:hidden!important;padding:1px 4px 2px 1px;box-sizing:border-box;-webkit-overflow-scrolling:touch;}.live2d-quiz.is-live2d-submenu-drawer .live2d-consult-card{appearance:none;-webkit-appearance:none;display:grid!important;gap:3px;width:100%;min-width:0;min-height:42px;padding:8px 10px!important;border:1px solid rgba(183,239,255,.42)!important;border-radius:14px!important;background:linear-gradient(145deg,rgba(34,78,118,.58),rgba(27,47,91,.52))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 8px 18px rgba(0,12,38,.14)!important;color:rgba(240,252,255,.96)!important;text-align:left;pointer-events:auto!important;touch-action:manipulation;}.live2d-quiz.is-live2d-submenu-drawer .live2d-consult-card__title{font-size:12px;font-weight:840;line-height:1.2;}.live2d-quiz.is-live2d-submenu-drawer .live2d-consult-card__desc{font-size:10.5px;line-height:1.3;color:rgba(207,235,250,.82);}.live2d-quiz.is-main-menu .live2d-quiz__option{width:100%;min-width:0;min-height:42px!important;padding:8px 30px!important;font-size:12px!important;letter-spacing:.03em;}.live2d-quiz.is-main-menu .live2d-quiz__option::before{left:10px!important;width:17px!important;height:17px!important;}.live2d-quiz.is-main-menu .live2d-quiz__close,.live2d-quiz.is-live2d-submenu-drawer .live2d-quiz__close{right:13px!important;top:13px!important;width:28px!important;height:28px!important;}.live2d-quiz.is-main-menu::after,.live2d-quiz.is-live2d-submenu-drawer::after{height:42px;opacity:.42;}}",
-            "@media (max-width:360px){.live2d-quiz.is-main-menu,.live2d-quiz.is-live2d-submenu-drawer{width:min(74vw,300px)!important;max-width:calc(100vw - 16px)!important;}.live2d-quiz.is-main-menu .live2d-quiz__option{padding-left:28px!important;padding-right:24px!important;font-size:11.5px!important;}}",
+            "@media (max-width:768px){.live2d-quiz.is-live2d-submenu-drawer{width:min(88vw,390px)!important;max-width:calc(100vw - 16px)!important;max-height:min(52dvh,420px)!important;}.live2d-quiz.is-live2d-submenu-drawer .live2d-menu-panel{height:min(52dvh,420px)!important;max-height:min(52dvh,420px)!important;}.live2d-quiz.is-live2d-submenu-drawer .live2d-menu-beautiful-content,.live2d-quiz.is-live2d-submenu-drawer .live2d-menu-panel__content{padding:40px 18px 18px;overflow:hidden;}.live2d-quiz.is-live2d-submenu-drawer .live2d-consult-grid{max-height:calc(min(52dvh,420px) - 122px)!important;overflow-y:auto!important;overflow-x:hidden!important;}.live2d-quiz.is-live2d-submenu-drawer .live2d-consult-card{min-height:48px;padding:9px 11px!important;}}",
+            "@media (max-width:360px){.live2d-quiz.is-main-menu{width:min(74vw,300px)!important;max-width:calc(100vw - 16px)!important;}.live2d-quiz.is-main-menu .live2d-quiz__option{padding-left:28px!important;padding-right:24px!important;font-size:11.5px!important;}}",
             "@media (prefers-reduced-motion:reduce){.live2d-quiz.is-main-menu::before,.live2d-quiz.is-main-menu::after,.live2d-quiz.is-main-menu .live2d-quiz__option::after,.live2d-menu-beautiful-wave,.live2d-menu-panel::after{animation:none!important;transition:none!important;}.live2d-menu-beautiful-wave,.live2d-menu-panel::after{opacity:.22;}.live2d-quiz.is-main-menu::after{opacity:.28;}.live2d-quiz.is-main-menu .live2d-quiz__option:hover:not(:disabled){transform:none;}}",
             "html.performance-low .live2d-quiz.is-main-menu,html.performance-low .live2d-quiz.is-score-guess{box-shadow:0 12px 28px rgba(3,18,42,.38),inset 0 1px 0 rgba(255,255,255,.18);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);}",
             ".live2d-quiz.is-score-guess .live2d-quiz__question:empty{display:none;}",
@@ -1282,6 +1283,7 @@
         let dialogMode = "menu";
         let popupSyncFrame = 0;
         let beautifulMenuShell = null;
+        let mobileMenuStage = "closed";
 
         function disableBeautifulMenuShell() {
             if (!beautifulMenuShell) {
@@ -1579,6 +1581,10 @@
             return dialog.classList.contains("is-main-menu") ? "main" : "";
         }
 
+        function isMobileViewport() {
+            return (window.innerWidth || document.documentElement.clientWidth || 0) <= 768;
+        }
+
         function prepareMobileSubmenuDrawer(key) {
             const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
             if (viewportWidth > 768) {
@@ -1589,6 +1595,9 @@
 
             dialog.classList.add("is-live2d-submenu-drawer");
             dialog.setAttribute("data-live2d-submenu-key", key);
+            mobileMenuStage = "submenu";
+            hideStaticCardForMobileSubmenu(key);
+            preventMobileInputAutofocus();
             enableBeautifulMenuShell();
         }
 
@@ -1601,6 +1610,51 @@
         function getStaticCardAnchor() {
             const preferred = document.querySelector(".ganyu-static-card[data-live2d-static-card='true']");
             return preferred || document.querySelector("[data-live2d-static-card='true'].ganyu-static-card") || document.querySelector(".ganyu-static-card");
+        }
+
+        function hideStaticCardForMobileSubmenu(key) {
+            if (!isMobileViewport()) {
+                return;
+            }
+
+            const card = getStaticCardAnchor();
+            if (!card) {
+                return;
+            }
+
+            card.classList.add("is-hidden-for-submenu");
+            card.setAttribute("aria-hidden", "true");
+            debugLive2DMenu("live2d-mobile", "submenu entered: " + key);
+            debugLive2DMenu("live2d-mobile", "static card hidden for submenu");
+            publishStaticDebugStatus("mobile submenu entered: " + key);
+            publishStaticDebugStatus("mobile static card hidden for submenu");
+        }
+
+        function restoreStaticCardAfterMobileSubmenu() {
+            const card = getStaticCardAnchor();
+            if (!card || !card.classList.contains("is-hidden-for-submenu")) {
+                return;
+            }
+
+            card.classList.remove("is-hidden-for-submenu");
+            card.removeAttribute("aria-hidden");
+            debugLive2DMenu("live2d-mobile", "static card restored");
+            publishStaticDebugStatus("mobile static card restored");
+        }
+
+        function preventMobileInputAutofocus() {
+            if (!isMobileViewport()) {
+                return;
+            }
+
+            const active = document.activeElement;
+            if (!active || !active.matches || !active.matches("input,textarea,[contenteditable]")) {
+                return;
+            }
+
+            active.blur();
+            debugLive2DMenu("live2d-mobile", "input autofocus prevented");
+            publishStaticDebugStatus("mobile input autofocus prevented");
         }
 
         function isVisibleStaticCardAnchor(node) {
@@ -1638,6 +1692,11 @@
         function updateMobileMenuAnchorPosition() {
             const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
             if (viewportWidth > 768 || !isMobileDrawerDialog()) {
+                return;
+            }
+
+            if (dialog.classList.contains("is-live2d-submenu-drawer")) {
+                updateMobileSubmenuViewportPosition();
                 return;
             }
 
@@ -1690,6 +1749,37 @@
             publishStaticDebugStatus("mobile menu anchored to static card");
             debugLive2DMenu("live2d-mobile", "menu position updated");
             publishStaticDebugStatus("mobile menu position updated");
+        }
+
+        function updateMobileSubmenuViewportPosition() {
+            const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
+            const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+            const margin = 8;
+            const width = Math.min(Math.round(viewportWidth * 0.88), 390, Math.max(160, viewportWidth - margin * 2));
+            const maxHeight = Math.min(Math.round(viewportHeight * 0.52), 420, Math.max(180, viewportHeight - margin * 2));
+            const left = Math.max(margin, Math.floor((viewportWidth - width) / 2));
+            const top = clamp(Math.floor((viewportHeight - maxHeight) / 2), margin, Math.max(margin, viewportHeight - maxHeight - margin));
+
+            dialog.style.setProperty("position", "fixed", "important");
+            dialog.style.setProperty("z-index", "10030", "important");
+            dialog.style.setProperty("left", left + "px", "important");
+            dialog.style.setProperty("top", top + "px", "important");
+            dialog.style.setProperty("right", "auto", "important");
+            dialog.style.setProperty("bottom", "auto", "important");
+            dialog.style.setProperty("width", width + "px", "important");
+            dialog.style.setProperty("max-width", "calc(100vw - 16px)", "important");
+            dialog.style.setProperty("max-height", maxHeight + "px", "important");
+            dialog.style.setProperty("transform", "none", "important");
+            dialog.style.setProperty("visibility", "visible", "important");
+            dialog.style.setProperty("opacity", "1", "important");
+            dialog.style.setProperty("pointer-events", "auto", "important");
+
+            debugLive2DMenu("live2d-mobile", "submenu viewport position updated", {
+                left: left,
+                top: top,
+                width: width,
+                maxHeight: maxHeight
+            });
         }
 
         function isVisibleLive2DShell(node) {
@@ -1774,7 +1864,9 @@
                 const menuZIndex = window.getComputedStyle ? window.getComputedStyle(dialog).zIndex : "";
                 if (isMobileSubmenuDrawer && debugScope === "live2d-mobile") {
                     debugLive2DMenu(debugScope, "submenu mounted: " + submenuKey);
+                    debugLive2DMenu(debugScope, "submenu mounted");
                     publishStaticDebugStatus("mobile submenu mounted: " + submenuKey);
+                    publishStaticDebugStatus("mobile submenu mounted");
                 } else {
                     debugLive2DMenu(debugScope, "menu element mounted");
                 }
@@ -1903,6 +1995,8 @@
             if (debugScope === "live2d-mobile") {
                 publishStaticDebugStatus("mobile menu close");
             }
+            mobileMenuStage = "closed";
+            restoreStaticCardAfterMobileSubmenu();
             dialog.classList.remove("is-open", "is-opening");
             window.clearTimeout(showDialog.closeTimer);
             firstClickVoicePlaying = false;
@@ -1910,6 +2004,7 @@
             clearDialog();
             setDialogMode("menu");
             resetMobileDrawerInlineState();
+            dialog.removeAttribute("data-live2d-submenu-key");
             dialog.style.setProperty("visibility", "hidden", "important");
             dialog.style.setProperty("opacity", "0", "important");
             dialog.style.setProperty("pointer-events", "none", "important");
@@ -2144,6 +2239,8 @@
                 return;
             }
 
+            mobileMenuStage = "main";
+            restoreStaticCardAfterMobileSubmenu();
             clearDialog();
             setDialogMode("menu");
             dialog.classList.add("is-main-menu");
@@ -2165,6 +2262,9 @@
             if (currentAdminMenuState.loaded && currentAdminMenuState.isAdmin) {
                 addMainMenuOption("管理员后台", "admin", function () {
                     recordGanyuFeature("管理员后台");
+                    restoreStaticCardAfterMobileSubmenu();
+                    mobileMenuStage = "closed";
+                    clearDialog();
                     window.location.href = "admin.html";
                 }).setAttribute("data-menu-icon", "管");
             } else {
@@ -2172,6 +2272,9 @@
             }
             addMainMenuOption("意见箱", "suggest", function () {
                 recordGanyuFeature("意见箱");
+                restoreStaticCardAfterMobileSubmenu();
+                mobileMenuStage = "closed";
+                clearDialog();
                 window.location.href = "suggest.html";
             }).setAttribute("data-menu-icon", "信");
             updateAccountLine(".live2d-menu-user", "当前登录：");
@@ -5118,6 +5221,12 @@
             result.className = "live2d-quiz__result is-neutral";
             showDialog();
             window.setTimeout(function () {
+                if (isMobileViewport()) {
+                    debugLive2DMenu("live2d-mobile", "input autofocus prevented");
+                    publishStaticDebugStatus("mobile input autofocus prevented");
+                    return;
+                }
+
                 cityInput.focus();
             }, 80);
         }

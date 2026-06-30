@@ -1,4 +1,7 @@
 (function () {
+    const SCRIPT_VERSION = "20260630-price-reviews-loading-fix1";
+    const REVIEW_QUERY_TIMEOUT_MS = 9000;
+    const REVIEW_LOADING_TEXT = "\u6b63\u5728\u8bfb\u53d6\u8001\u677f\u8bc4\u4ef7...";
     const CONFIG_MISSING_TEXT = "老板评价连接暂时不可用，请稍后再来～";
     const REVIEW_EMPTY_TEXT = "还没有老板评价，欢迎第一位老板来写下反馈～";
     const REVIEW_LOAD_ERROR_TEXT = "老板评价暂时加载失败，请稍后再试。";
@@ -24,7 +27,35 @@
     let lastReviews = [];
     let currentBossDisplayName = "";
     let authListenerBound = false;
+    let reviewWallEventsBound = false;
+    let reviewWallInitStarted = false;
+    let refreshReviewWallToken = 0;
+    let scheduledReviewRefreshTimer = null;
+    let missingDomDebugged = false;
     const reviewInteractions = new Map();
+
+    function debugBossReviews(message, detail) {
+        const text = String(message || "").slice(0, 160);
+        const payload = detail && typeof detail === "object" ? detail : null;
+
+        window.__JUNXUE_BOSS_REVIEWS_DEBUG__ = window.__JUNXUE_BOSS_REVIEWS_DEBUG__ || [];
+        window.__JUNXUE_BOSS_REVIEWS_DEBUG__.push({
+            message: text,
+            detail: payload,
+            time: new Date().toISOString()
+        });
+        if (window.__JUNXUE_BOSS_REVIEWS_DEBUG__.length > 80) {
+            window.__JUNXUE_BOSS_REVIEWS_DEBUG__.shift();
+        }
+
+        if (window.console && typeof window.console.debug === "function") {
+            if (payload) {
+                window.console.debug("[JunxueBossReviews] " + text, payload);
+            } else {
+                window.console.debug("[JunxueBossReviews] " + text);
+            }
+        }
+    }
 
     function getConfigValue(name) {
         if (typeof window[name] === "string") {
@@ -75,6 +106,79 @@
         }
 
         console.warn("[JunxueBossReviews] " + context, summarizeSupabaseError(error));
+    }
+
+    function getSafeErrorReason(error) {
+        const message = error && error.message ? String(error.message) : "";
+        const code = error && error.code ? String(error.code) : "";
+        const status = error && error.status ? String(error.status) : "";
+
+        if (message === CONFIG_MISSING_TEXT) {
+            return "missing-config";
+        }
+        if (message === SUPABASE_SDK_LOAD_ERROR_TEXT) {
+            return "sdk-load-failed";
+        }
+        if (message === "boss-reviews-timeout") {
+            return "timeout";
+        }
+        if (/row-level security|violates row-level security|permission|not authorized|forbidden|denied|42501|403/i.test(message + " " + code + " " + status)) {
+            return "permission-denied";
+        }
+        if (/failed to fetch|network|fetch|load failed/i.test(message)) {
+            return "network-error";
+        }
+        if (/relation .* does not exist|schema cache|does not exist|42P01/i.test(message + " " + code)) {
+            return "schema-missing";
+        }
+        if (status) {
+            return "supabase-status-" + status.replace(/[^\w-]/g, "").slice(0, 24);
+        }
+        if (code) {
+            return "supabase-code-" + code.replace(/[^\w-]/g, "").slice(0, 24);
+        }
+        return "unknown-error";
+    }
+
+    function withTimeout(promise, timeoutMs) {
+        let timer = null;
+        const timeout = new Promise(function (resolve, reject) {
+            timer = window.setTimeout(function () {
+                reject(new Error("boss-reviews-timeout"));
+            }, timeoutMs);
+        });
+
+        return Promise.race([promise, timeout]).finally(function () {
+            window.clearTimeout(timer);
+        });
+    }
+
+    function getReviewWallDomState() {
+        const missing = [];
+
+        if (!reviewStatus) {
+            missing.push("price-review-status");
+        }
+        if (!reviewList) {
+            missing.push("price-review-list");
+        }
+        if (!reviewStats) {
+            missing.push("price-review-stats");
+        }
+        if (!ganyuReviewButton) {
+            missing.push("price-open-ganyu-review");
+        }
+        if (missing.length && !missingDomDebugged) {
+            missingDomDebugged = true;
+            debugBossReviews("boss reviews query failed: missing-dom", {
+                missing: missing.join(",")
+            });
+        }
+
+        return {
+            missing: missing,
+            canRenderList: !!reviewList
+        };
     }
 
     function debugBossProfile(context) {
@@ -350,6 +454,17 @@
         window.__JUNXUE_SUPABASE_CLIENT_STATE__.client = activeClient;
     }
 
+    function scheduleReviewWallRefresh() {
+        if (!reviewList) {
+            return;
+        }
+
+        window.clearTimeout(scheduledReviewRefreshTimer);
+        scheduledReviewRefreshTimer = window.setTimeout(function () {
+            refreshReviewWall();
+        }, 0);
+    }
+
     async function ensureClient() {
         await loadScript("assets/supabase-config.js?v=20260611-1").catch(function () {});
 
@@ -387,9 +502,7 @@
                         debugBossProfile("pending boss nickname apply unavailable");
                     });
                 }
-                if (reviewList) {
-                    refreshReviewWall();
-                }
+                scheduleReviewWallRefresh();
             });
         }
 
@@ -884,9 +997,6 @@
 
         currentReviews = response.data || [];
         lastReviews = currentReviews;
-        await loadReviewInteractions(currentReviews.map(function (review) {
-            return review.id;
-        }));
         return currentReviews;
     }
 
@@ -1110,24 +1220,59 @@
         syncExpandableReviews();
     }
 
+    function refreshRenderedReviewInteractions(reviews, token) {
+        const reviewIds = (reviews || []).map(function (review) {
+            return review.id;
+        }).filter(Boolean);
+
+        if (!reviewIds.length) {
+            return;
+        }
+
+        loadReviewInteractions(reviewIds).then(function () {
+            if (token !== refreshReviewWallToken) {
+                return;
+            }
+            renderReviews(currentReviews);
+        }).catch(function (error) {
+            logSupabaseError("boss review interactions load failed", error);
+        });
+    }
+
     async function refreshReviewWall() {
-        if (!reviewList) {
+        const domState = getReviewWallDomState();
+
+        if (!domState.canRenderList) {
             return [];
         }
 
+        const requestToken = refreshReviewWallToken + 1;
+        refreshReviewWallToken = requestToken;
+        debugBossReviews("boss reviews query start");
+        setStatus(reviewStatus, REVIEW_LOADING_TEXT, "neutral");
+
         try {
-            const loadingText = "正在读取老板评价…";
+            const reviews = await withTimeout(loadReviews(), REVIEW_QUERY_TIMEOUT_MS);
 
-            setStatus(reviewStatus, loadingText, "neutral");
-            const reviews = await loadReviews();
+            if (requestToken !== refreshReviewWallToken) {
+                return reviews;
+            }
 
+            debugBossReviews("boss reviews query success: count=" + reviews.length);
+            if (!reviews.length) {
+                debugBossReviews("boss reviews query empty");
+            }
             renderStats(reviews);
             renderReviews(reviews);
-            if (!reviewStatus || reviewStatus.textContent === loadingText) {
-                setStatus(reviewStatus, "", "");
-            }
+            refreshRenderedReviewInteractions(reviews, requestToken);
+            debugBossReviews("boss reviews render complete");
             return reviews;
         } catch (error) {
+            if (requestToken !== refreshReviewWallToken) {
+                return [];
+            }
+
+            debugBossReviews("boss reviews query failed: " + getSafeErrorReason(error));
             renderStatsError();
             if (reviewList) {
                 logSupabaseError("boss_reviews load failed", error);
@@ -1142,6 +1287,13 @@
                 }
             }
             return [];
+        } finally {
+            if (requestToken === refreshReviewWallToken) {
+                if (reviewStatus && reviewStatus.textContent === REVIEW_LOADING_TEXT) {
+                    setStatus(reviewStatus, "", "");
+                }
+                debugBossReviews("boss reviews loading cleared");
+            }
         }
     }
 
@@ -1278,6 +1430,12 @@
     }
 
     function bindReviewWallEvents() {
+        if (reviewWallEventsBound) {
+            return;
+        }
+
+        reviewWallEventsBound = true;
+
         if (ganyuReviewButton) {
             ganyuReviewButton.addEventListener("click", openGanyuReviewMenu);
         }
@@ -1370,6 +1528,17 @@
     };
 
     async function init() {
+        if (reviewWallInitStarted) {
+            if (reviewList) {
+                refreshReviewWall();
+            }
+            return;
+        }
+
+        reviewWallInitStarted = true;
+        debugBossReviews("boss reviews init");
+        debugBossReviews("boss reviews script version", { version: SCRIPT_VERSION });
+        getReviewWallDomState();
         bindReviewWallEvents();
 
         if (!reviewList) {

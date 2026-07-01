@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    const VERSION = "20260701-my-page-reference-polish2";
+    const VERSION = "20260701-point-redemption-mvp1";
     const AVATAR_BUCKET = "boss-avatars";
     const MAX_AVATAR_BYTES = 1024 * 1024;
     const AVATAR_SIZE = 512;
@@ -48,6 +48,7 @@
         checkinButton: $("[data-my-checkin-button]"),
         benefitCheckinButton: $("[data-my-benefit-checkin]"),
         points: $("[data-my-points]"),
+        exchangePoints: $("[data-my-exchange-points]"),
         totalCheckins: $("[data-my-total-checkins]"),
         currentStreak: $("[data-my-current-streak]"),
         monthlyCheckins: $("[data-my-monthly-checkins]"),
@@ -322,6 +323,7 @@
         const rewardText = status && status.rewardPoints ? String(status.rewardPoints) : "--";
 
         setText(nodes.points, status ? String(status.totalPoints) : "--");
+        setText(nodes.exchangePoints, status ? String(status.totalPoints) : "--");
         setText(nodes.totalCheckins, status ? String(status.totalCheckins) + " 天" : "--");
         setText(nodes.currentStreak, status ? String(status.currentStreak) + " 天" : "--");
         setText(nodes.monthlyCheckins, status ? String(status.monthlyCheckins) + " 天" : "--");
@@ -359,6 +361,7 @@
                 state.checkinUnavailable = true;
                 renderCheckinStatus(null, "签到功能还需要执行数据库升级 SQL。");
                 setText(nodes.points, "积分暂未开启");
+                setText(nodes.exchangePoints, "暂未开启");
                 setText(nodes.totalCheckins, "--");
                 setText(nodes.currentStreak, "--");
                 setText(nodes.monthlyCheckins, "--");
@@ -814,6 +817,10 @@
                 }
 
                 event.preventDefault();
+                if (action === "exchange") {
+                    window.location.href = "redeem.html";
+                    return;
+                }
                 openModal(action, node);
             });
 
@@ -823,6 +830,10 @@
                 }
 
                 event.preventDefault();
+                if (node.getAttribute("data-my-action") === "exchange") {
+                    window.location.href = "redeem.html";
+                    return;
+                }
                 openModal(node.getAttribute("data-my-action"), node);
             });
         });

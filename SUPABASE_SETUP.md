@@ -2049,3 +2049,412 @@ If this SQL is not executed yet, `my.html` will show:
 ```text
 头像上传功能还需要完成云端配置。
 ```
+
+## 15. 积分兑换申请升级 SQL
+
+用途：
+
+- 新增老板积分兑换申请表 `boss_point_redemptions`。
+- 用户提交兑换申请时不扣积分，状态默认为 `pending`。
+- `cost_points` 由服务端 RPC 根据兑换类型、段位区间、数量重新计算，前端只显示预计值。
+- 管理员同意时在同一个 RPC 事务流程内检查积分、扣除积分、更新申请状态。
+- 管理员拒绝时不扣积分，只保存状态和批注。
+- 管理员权限继续使用 `live_interaction_admins` 判断。
+
+请在 Supabase SQL Editor 执行：
+
+```sql
+create table if not exists public.boss_point_redemptions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  redeem_ref uuid not null default gen_random_uuid(),
+  redeem_type text not null,
+  rank_range text,
+  quantity numeric not null,
+  cost_points integer not null,
+  user_note text,
+  admin_note text,
+  status text not null default 'pending',
+  created_at timestamptz not null default now(),
+  processed_at timestamptz,
+  processed_by uuid references auth.users(id) on delete set null,
+  constraint boss_point_redemptions_ref_unique unique (redeem_ref),
+  constraint boss_point_redemptions_status_check check (status in ('pending', 'approved', 'rejected')),
+  constraint boss_point_redemptions_quantity_check check (quantity > 0 and quantity <= 50 and quantity = trunc(quantity)),
+  constraint boss_point_redemptions_cost_check check (cost_points >= 0),
+  constraint boss_point_redemptions_user_note_check check (user_note is null or char_length(user_note) <= 300),
+  constraint boss_point_redemptions_admin_note_check check (admin_note is null or char_length(admin_note) <= 200)
+);
+
+create index if not exists boss_point_redemptions_user_status_idx
+on public.boss_point_redemptions (user_id, status, created_at desc);
+
+create index if not exists boss_point_redemptions_status_created_idx
+on public.boss_point_redemptions (status, created_at desc);
+
+alter table public.boss_point_redemptions enable row level security;
+
+revoke all on public.boss_point_redemptions from anon, authenticated;
+
+drop policy if exists "Boss redemptions can select own rows" on public.boss_point_redemptions;
+create policy "Boss redemptions can select own rows"
+on public.boss_point_redemptions
+for select
+to authenticated
+using (user_id = auth.uid());
+
+alter table public.boss_admin_actions
+  drop constraint if exists boss_admin_actions_action_type_check;
+
+alter table public.boss_admin_actions
+  add constraint boss_admin_actions_action_type_check check (
+    action_type in (
+      'add_points',
+      'block_user',
+      'unblock_user',
+      'grant_admin',
+      'revoke_admin',
+      'approve_redemption',
+      'reject_redemption'
+    )
+  );
+
+create or replace function public.calculate_boss_redemption_cost(
+  p_redeem_type text,
+  p_rank_range text,
+  p_quantity numeric
+)
+returns integer
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_quantity integer;
+  v_unit_cost integer;
+begin
+  if p_quantity is null or p_quantity <= 0 or p_quantity > 50 or p_quantity <> trunc(p_quantity) then
+    raise exception 'quantity must be a positive integer between 1 and 50';
+  end if;
+
+  v_quantity := p_quantity::integer;
+
+  if p_redeem_type = 'king_star' then
+    v_unit_cost := case p_rank_range
+      when 'below_king' then 60
+      when 'king_0_50' then 80
+      when 'king_50_80' then 120
+      when 'king_80_100' then 160
+      when 'king_100_plus' then 200
+      else null
+    end;
+
+    if v_unit_cost is null then
+      raise exception 'invalid rank range';
+    end if;
+  elsif p_redeem_type = 'king_review' then
+    v_unit_cost := 500;
+  elsif p_redeem_type = 'naraka_companion' then
+    v_unit_cost := 350;
+  elsif p_redeem_type = 'voice_chat' then
+    v_unit_cost := 300;
+  else
+    raise exception 'invalid redemption type';
+  end if;
+
+  return v_unit_cost * v_quantity;
+end;
+$$;
+
+drop function if exists public.submit_boss_point_redemption(text, text, numeric, text);
+create or replace function public.submit_boss_point_redemption(
+  p_redeem_type text,
+  p_rank_range text,
+  p_quantity numeric,
+  p_user_note text default null
+)
+returns table (
+  redeem_ref uuid,
+  redeem_type text,
+  rank_range text,
+  quantity numeric,
+  cost_points integer,
+  status text,
+  created_at timestamptz
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_actor uuid := auth.uid();
+  v_rank_range text := nullif(trim(coalesce(p_rank_range, '')), '');
+  v_user_note text := nullif(trim(coalesce(p_user_note, '')), '');
+  v_cost integer;
+  v_pending_count integer;
+begin
+  if v_actor is null then
+    raise exception 'not authenticated';
+  end if;
+
+  if public.is_boss_account_blocked(v_actor) then
+    raise exception 'blocked account cannot submit redemption';
+  end if;
+
+  if v_user_note is not null and char_length(v_user_note) > 300 then
+    raise exception 'user note too long';
+  end if;
+
+  if p_redeem_type <> 'king_star' then
+    v_rank_range := null;
+  end if;
+
+  v_cost := public.calculate_boss_redemption_cost(p_redeem_type, v_rank_range, p_quantity);
+
+  select count(*)::integer
+  into v_pending_count
+  from public.boss_point_redemptions redemption
+  where redemption.user_id = v_actor
+    and redemption.status = 'pending';
+
+  if v_pending_count >= 5 then
+    raise exception 'pending redemption limit reached';
+  end if;
+
+  return query
+  insert into public.boss_point_redemptions (
+    user_id,
+    redeem_type,
+    rank_range,
+    quantity,
+    cost_points,
+    user_note
+  )
+  values (
+    v_actor,
+    p_redeem_type,
+    v_rank_range,
+    p_quantity,
+    v_cost,
+    v_user_note
+  )
+  returning
+    boss_point_redemptions.redeem_ref,
+    boss_point_redemptions.redeem_type,
+    boss_point_redemptions.rank_range,
+    boss_point_redemptions.quantity,
+    boss_point_redemptions.cost_points,
+    boss_point_redemptions.status,
+    boss_point_redemptions.created_at;
+end;
+$$;
+
+drop function if exists public.get_my_boss_point_redemptions();
+create or replace function public.get_my_boss_point_redemptions()
+returns table (
+  redeem_type text,
+  rank_range text,
+  quantity numeric,
+  cost_points integer,
+  user_note text,
+  admin_note text,
+  status text,
+  created_at timestamptz,
+  processed_at timestamptz
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_actor uuid := auth.uid();
+begin
+  if v_actor is null then
+    raise exception 'not authenticated';
+  end if;
+
+  return query
+  select
+    redemption.redeem_type,
+    redemption.rank_range,
+    redemption.quantity,
+    redemption.cost_points,
+    redemption.user_note,
+    redemption.admin_note,
+    redemption.status,
+    redemption.created_at,
+    redemption.processed_at
+  from public.boss_point_redemptions redemption
+  where redemption.user_id = v_actor
+  order by redemption.created_at desc
+  limit 50;
+end;
+$$;
+
+drop function if exists public.admin_get_boss_point_redemptions(text);
+create or replace function public.admin_get_boss_point_redemptions(p_status text default null)
+returns table (
+  redeem_ref uuid,
+  display_name text,
+  email_masked text,
+  redeem_type text,
+  rank_range text,
+  quantity numeric,
+  cost_points integer,
+  user_note text,
+  admin_note text,
+  status text,
+  created_at timestamptz,
+  processed_at timestamptz
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_actor uuid := auth.uid();
+  v_status text := nullif(trim(coalesce(p_status, '')), '');
+begin
+  if v_actor is null or not public.is_live_interaction_admin(v_actor) then
+    raise exception 'not authorized';
+  end if;
+
+  if v_status is not null and v_status not in ('pending', 'approved', 'rejected') then
+    raise exception 'invalid status filter';
+  end if;
+
+  return query
+  select
+    redemption.redeem_ref,
+    coalesce(nullif(trim(profile.display_name), ''), '老板用户') as display_name,
+    public.mask_admin_email(auth_user.email) as email_masked,
+    redemption.redeem_type,
+    redemption.rank_range,
+    redemption.quantity,
+    redemption.cost_points,
+    redemption.user_note,
+    redemption.admin_note,
+    redemption.status,
+    redemption.created_at,
+    redemption.processed_at
+  from public.boss_point_redemptions redemption
+  left join public.boss_profiles profile
+    on profile.user_id = redemption.user_id
+  left join auth.users auth_user
+    on auth_user.id = redemption.user_id
+  where v_status is null or redemption.status = v_status
+  order by
+    case redemption.status when 'pending' then 0 when 'approved' then 1 else 2 end,
+    redemption.created_at desc
+  limit 100;
+end;
+$$;
+
+drop function if exists public.admin_review_boss_point_redemption(uuid, text, text);
+create or replace function public.admin_review_boss_point_redemption(
+  p_redeem_ref uuid,
+  p_status text,
+  p_admin_note text default null
+)
+returns table (
+  redeem_ref uuid,
+  status text,
+  cost_points integer,
+  processed_at timestamptz
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_actor uuid := auth.uid();
+  v_redemption public.boss_point_redemptions%rowtype;
+  v_points public.boss_points%rowtype;
+  v_admin_note text := nullif(trim(coalesce(p_admin_note, '')), '');
+  v_processed_at timestamptz := now();
+begin
+  if v_actor is null or not public.is_live_interaction_admin(v_actor) then
+    raise exception 'not authorized';
+  end if;
+
+  if p_status not in ('approved', 'rejected') then
+    raise exception 'invalid review status';
+  end if;
+
+  if v_admin_note is not null and char_length(v_admin_note) > 200 then
+    raise exception 'admin note too long';
+  end if;
+
+  select *
+  into v_redemption
+  from public.boss_point_redemptions redemption
+  where redemption.redeem_ref = p_redeem_ref
+  for update;
+
+  if v_redemption.id is null then
+    raise exception 'redemption not found';
+  end if;
+
+  if v_redemption.status <> 'pending' then
+    raise exception 'redemption already processed';
+  end if;
+
+  if p_status = 'approved' then
+    insert into public.boss_points (user_id, points, total_checkins, current_streak, longest_streak, last_checkin_date)
+    values (v_redemption.user_id, 0, 0, 0, 0, null)
+    on conflict (user_id) do nothing;
+
+    select *
+    into v_points
+    from public.boss_points
+    where user_id = v_redemption.user_id
+    for update;
+
+    if v_points.points < v_redemption.cost_points then
+      raise exception 'insufficient points';
+    end if;
+
+    update public.boss_points
+    set
+      points = points - v_redemption.cost_points,
+      updated_at = now()
+    where user_id = v_redemption.user_id;
+  end if;
+
+  update public.boss_point_redemptions
+  set
+    status = p_status,
+    admin_note = v_admin_note,
+    processed_at = v_processed_at,
+    processed_by = v_actor
+  where id = v_redemption.id;
+
+  insert into public.boss_admin_actions (actor_user_id, target_user_id, action_type, amount, reason)
+  values (
+    v_actor,
+    v_redemption.user_id,
+    case when p_status = 'approved' then 'approve_redemption' else 'reject_redemption' end,
+    case when p_status = 'approved' then -v_redemption.cost_points else null end,
+    nullif(left(coalesce(v_admin_note, ''), 120), '')
+  );
+
+  return query
+  select
+    v_redemption.redeem_ref,
+    p_status,
+    v_redemption.cost_points,
+    v_processed_at;
+end;
+$$;
+
+revoke all on function public.calculate_boss_redemption_cost(text, text, numeric) from public;
+revoke all on function public.submit_boss_point_redemption(text, text, numeric, text) from public;
+revoke all on function public.get_my_boss_point_redemptions() from public;
+revoke all on function public.admin_get_boss_point_redemptions(text) from public;
+revoke all on function public.admin_review_boss_point_redemption(uuid, text, text) from public;
+
+grant execute on function public.submit_boss_point_redemption(text, text, numeric, text) to authenticated;
+grant execute on function public.get_my_boss_point_redemptions() to authenticated;
+grant execute on function public.admin_get_boss_point_redemptions(text) to authenticated;
+grant execute on function public.admin_review_boss_point_redemption(uuid, text, text) to authenticated;
+```

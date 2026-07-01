@@ -190,6 +190,28 @@
         .admin-panel {
             border-radius: 24px;
             overflow: hidden;
+            margin-top: 18px;
+        }
+
+        .admin-panel-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            padding: 16px 18px 0;
+        }
+
+        .admin-panel-title {
+            margin: 0;
+            color: #fff;
+            font-size: 1.16rem;
+        }
+
+        .admin-filter-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
         }
 
         .admin-table-wrap {
@@ -247,6 +269,21 @@
         .admin-pill.is-admin {
             border-color: rgba(218, 235, 255, .48);
             color: rgba(242, 250, 255, .98);
+        }
+
+        .admin-pill.is-pending {
+            border-color: rgba(255, 218, 131, .46);
+            color: #ffe6a6;
+        }
+
+        .admin-pill.is-approved {
+            border-color: rgba(123, 239, 198, .46);
+            color: #a8ffe2;
+        }
+
+        .admin-pill.is-rejected {
+            border-color: rgba(255, 143, 174, .46);
+            color: #ffc2d3;
         }
 
         .admin-empty {
@@ -337,6 +374,15 @@
                 padding: 18px;
             }
 
+            .admin-panel-head {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .admin-filter-group .admin-button {
+                flex: 1 1 auto;
+            }
+
             .admin-table {
                 min-width: 0;
             }
@@ -401,6 +447,9 @@
         </section>
 
         <section class="admin-panel" data-admin-table-wrap hidden>
+            <div class="admin-panel-head">
+                <h2 class="admin-panel-title">老板账号列表</h2>
+            </div>
             <div class="admin-table-wrap">
                 <table class="admin-table">
                     <thead>
@@ -423,6 +472,40 @@
             </div>
         </section>
 
+        <section class="admin-panel" data-admin-redemption-panel hidden>
+            <div class="admin-panel-head">
+                <h2 class="admin-panel-title">兑换申请管理</h2>
+                <div class="admin-filter-group" aria-label="兑换申请筛选">
+                    <button class="admin-button admin-button--primary" type="button" data-admin-redemption-filter="pending">待审核</button>
+                    <button class="admin-button" type="button" data-admin-redemption-filter="approved">已同意</button>
+                    <button class="admin-button" type="button" data-admin-redemption-filter="rejected">已拒绝</button>
+                    <button class="admin-button" type="button" data-admin-redemption-filter="all">全部</button>
+                </div>
+            </div>
+            <div class="admin-table-wrap" data-admin-redemption-table-wrap hidden>
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>老板昵称</th>
+                            <th>脱敏邮箱</th>
+                            <th>兑换类型</th>
+                            <th>数量</th>
+                            <th>消耗积分</th>
+                            <th>状态</th>
+                            <th>用户备注</th>
+                            <th>管理员批注</th>
+                            <th>提交时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody data-admin-redemption-body></tbody>
+                </table>
+            </div>
+            <section class="admin-empty" data-admin-redemption-empty>
+                <strong>正在读取兑换申请...</strong>
+            </section>
+        </section>
+
         <section class="admin-empty" data-admin-empty>
             <strong>正在载入后台...</strong>
         </section>
@@ -439,6 +522,6 @@
 
     <script src="assets/supabase-client.js?v=20260627-home-performance1"></script>
     <script src="assets/boss-visit.js?v=20260627-home-performance1"></script>
-    <script src="assets/admin.js?v=20260626-boss-admin1"></script>
+    <script src="assets/admin.js?v=20260701-point-redemption-mvp1"></script>
 </body>
 </html>

@@ -644,6 +644,26 @@
             height: 58px;
         }
 
+        .my-exchange-summary {
+            display: grid;
+            gap: 8px;
+            margin: 12px 0 14px;
+            color: rgba(235, 248, 255, 0.78);
+            font-size: 0.82rem;
+            line-height: 1.55;
+        }
+
+        .my-exchange-summary span {
+            display: block;
+        }
+
+        .my-exchange-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
         .my-lower-panel {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1120,7 +1140,12 @@
                             </svg>
                         </span>
                     </div>
-                    <span class="my-feature-label">兑换礼物 / 小权益</span>
+                    <span class="my-feature-label">当前积分</span>
+                    <strong class="my-feature-value" data-my-exchange-points>--</strong>
+                    <div class="my-exchange-summary">
+                        <span>10 积分 = 1 元服务额度，仅用于兑换本站游戏服务。</span>
+                        <span>支持王者星星、王者复盘、永劫娱乐陪和语音聊天。</span>
+                    </div>
                     <span class="my-gift-visual" aria-hidden="true">
                         <svg class="my-line-icon" viewBox="0 0 90 76">
                             <path d="M20 32h50v33H20V32Z"></path>
@@ -1128,7 +1153,10 @@
                             <path d="M44 24C32 21 27 15 31 10c5-6 12 1 13 14ZM46 24c12-3 17-9 13-14-5-6-12 1-13 14Z"></path>
                         </svg>
                     </span>
-                    <span class="my-card-link">点击查看可兑换内容</span>
+                    <div class="my-exchange-actions">
+                        <a class="my-button my-button--primary" href="redeem.html" data-my-exchange-link>兑换</a>
+                    </div>
+                    <span class="my-card-link">查看我的兑换记录</span>
                 </section>
             </div>
 
@@ -1233,6 +1261,6 @@
 </div>
 
 <script src="assets/supabase-client.js?v=20260627-home-performance1"></script>
-<script src="assets/my.js?v=20260701-my-page-reference-polish2"></script>
+<script src="assets/my.js?v=20260701-point-redemption-mvp1"></script>
 </body>
 </html>

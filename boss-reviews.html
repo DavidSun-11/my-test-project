@@ -401,16 +401,16 @@
 
         .hero {
             position: relative;
-            padding: 82px 0 38px;
+            padding: 42px 0 22px;
             text-align: center;
         }
 
         .hero::before {
             content: "✦";
             display: block;
-            margin-bottom: 16px;
+            margin-bottom: 8px;
             color: rgba(242, 232, 255, 0.86);
-            font-size: 1.7rem;
+            font-size: 1.22rem;
             text-shadow: 0 0 18px rgba(222, 204, 255, 0.8);
         }
 
@@ -421,7 +421,7 @@
             gap: clamp(18px, 4vw, 42px);
             margin: 0;
             font-family: "STSong", "SimSun", "Microsoft YaHei", serif;
-            font-size: clamp(3.5rem, 8.4vw, 5.8rem);
+            font-size: clamp(2.7rem, 6.2vw, 4.35rem);
             font-weight: 400;
             line-height: 1;
             letter-spacing: 0.08em;
@@ -431,8 +431,8 @@
         .hero h1::before,
         .hero h1::after {
             content: "";
-            width: clamp(70px, 12vw, 150px);
-            height: 32px;
+            width: clamp(52px, 9vw, 104px);
+            height: 24px;
             background:
                 radial-gradient(circle at 22% 60%, rgba(255, 255, 255, 0.86) 0 2px, transparent 2.6px),
                 linear-gradient(12deg, transparent 0 42%, rgba(229, 231, 255, 0.72) 43% 47%, transparent 48%),
@@ -446,12 +446,12 @@
         }
 
         .hero p {
-            margin: 22px auto 0;
+            margin: 12px auto 0;
             max-width: 760px;
             color: rgba(248, 246, 255, 0.88);
-            font-size: clamp(1rem, 2vw, 1.32rem);
+            font-size: clamp(0.95rem, 1.45vw, 1.12rem);
             letter-spacing: 0.06em;
-            line-height: 1.7;
+            line-height: 1.55;
             text-shadow: 0 2px 18px rgba(7, 15, 42, 0.52);
         }
 
@@ -490,11 +490,11 @@
             grid-template-columns: 1fr 1fr 1.35fr;
             gap: 0;
             align-items: center;
-            width: min(1060px, 94%);
-            min-height: 250px;
-            margin: 0 auto 52px;
-            padding: 32px 42px;
-            border-radius: 28px;
+            width: min(1040px, 94%);
+            min-height: 142px;
+            margin: 0 auto 24px;
+            padding: 18px 28px;
+            border-radius: 22px;
             overflow: hidden;
         }
 
@@ -510,13 +510,13 @@
         }
 
         .stat-block {
-            min-height: 166px;
+            min-height: 96px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             text-align: center;
-            padding: 10px 26px;
+            padding: 6px 20px;
         }
 
         .stat-block + .stat-block {
@@ -524,31 +524,31 @@
         }
 
         .stat-label {
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             color: rgba(240, 242, 255, 0.78);
-            font-size: 1rem;
+            font-size: 0.9rem;
             letter-spacing: 0.08em;
         }
 
         .score {
             font-family: Georgia, "Times New Roman", serif;
-            font-size: clamp(4rem, 8vw, 6.2rem);
+            font-size: clamp(2.45rem, 4.8vw, 3.7rem);
             line-height: 0.95;
             color: #fff5ff;
             text-shadow: 0 0 28px rgba(255, 206, 255, 0.48);
         }
 
         .stars {
-            margin: 16px 0 12px;
+            margin: 8px 0 6px;
             color: var(--pink);
-            font-size: 1.62rem;
-            letter-spacing: 0.18em;
+            font-size: 1.12rem;
+            letter-spacing: 0.12em;
             text-shadow: 0 0 14px rgba(255, 197, 242, 0.54);
         }
 
         .stat-number {
             font-family: Georgia, "Times New Roman", serif;
-            font-size: clamp(3.1rem, 6vw, 4.9rem);
+            font-size: clamp(2.35rem, 4.2vw, 3.45rem);
             color: #fff;
             letter-spacing: 0.04em;
             text-shadow: 0 0 22px rgba(225, 231, 255, 0.45);
@@ -556,16 +556,16 @@
 
         .stat-note {
             color: rgba(240, 240, 255, 0.72);
-            font-size: 1rem;
+            font-size: 0.88rem;
         }
 
         .tag-cloud {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 14px;
+            gap: 8px;
             max-width: 350px;
-            margin-top: 8px;
+            margin-top: 4px;
         }
 
         .tag-cloud span,
@@ -573,8 +573,8 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            min-height: 36px;
-            padding: 0 18px;
+            min-height: 30px;
+            padding: 0 14px;
             border: 1px solid rgba(236, 230, 255, 0.28);
             border-radius: 999px;
             background: rgba(225, 224, 255, 0.12);
@@ -583,55 +583,76 @@
             white-space: nowrap;
         }
 
-        .section-tabs {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 24px;
-            width: min(1020px, 94%);
-            margin: 0 auto 26px;
-            color: rgba(235, 238, 255, 0.72);
-            text-align: center;
-            font-size: 1.15rem;
-            letter-spacing: 0.08em;
+        .review-list-section {
+            width: min(1120px, 96%);
+            margin: 0 auto 24px;
         }
 
-        .section-tabs span {
-            position: relative;
-            padding: 0 0 16px;
+        .review-list-heading {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 18px;
+            margin: 0 0 16px;
         }
 
-        .section-tabs span::before {
-            content: "✣";
-            margin-right: 10px;
-            color: rgba(228, 210, 255, 0.78);
+        .review-list-kicker {
+            display: inline-flex;
+            align-items: center;
+            min-height: 26px;
+            padding: 0 12px;
+            border: 1px solid rgba(228, 221, 255, 0.24);
+            border-radius: 999px;
+            background: rgba(229, 232, 255, 0.1);
+            color: rgba(240, 242, 255, 0.72);
+            font-size: 0.78rem;
+            letter-spacing: 0.12em;
         }
 
-        .section-tabs span::after {
-            content: "";
-            position: absolute;
-            left: 10%;
-            right: 10%;
-            bottom: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(228, 210, 255, 0.68), transparent);
-        }
-
-        .section-tabs .is-active {
+        .review-list-heading h2 {
+            margin: 8px 0 0;
             color: #fff;
-            text-shadow: 0 0 16px rgba(225, 210, 255, 0.5);
+            font-family: "STSong", "SimSun", "Microsoft YaHei", serif;
+            font-size: clamp(1.72rem, 3vw, 2.55rem);
+            font-weight: 400;
+            letter-spacing: 0.08em;
+            text-shadow: 0 0 18px rgba(225, 210, 255, 0.42);
         }
 
-        .section-tabs .is-active::after {
-            height: 2px;
-            background: linear-gradient(90deg, transparent, #fff, transparent);
-            box-shadow: 0 0 12px var(--glow);
+        .section-tabs {
+            display: inline-flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .section-tabs button {
+            min-height: 38px;
+            padding: 0 15px;
+            border: 1px solid rgba(226, 236, 255, 0.32);
+            border-radius: 999px;
+            background: linear-gradient(135deg, rgba(230, 237, 255, 0.16), rgba(115, 146, 221, 0.12));
+            color: rgba(241, 245, 255, 0.78);
+            font: inherit;
+            font-size: 0.92rem;
+            letter-spacing: 0.04em;
+            cursor: pointer;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+        }
+
+        .section-tabs button:hover,
+        .section-tabs button.is-active {
+            border-color: rgba(241, 234, 255, 0.62);
+            color: #fff;
+            background: linear-gradient(135deg, rgba(239, 235, 255, 0.28), rgba(125, 171, 255, 0.18));
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 0 18px rgba(185, 196, 255, 0.18);
         }
 
         .reviews-grid {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 24px;
-            margin: 0 auto 34px;
+            margin: 0 auto 18px;
         }
 
         .reviews-grid.is-dynamic-review-list .review-column {
@@ -639,19 +660,19 @@
         }
 
         .reviews-grid.is-dynamic-review-list {
-            width: min(980px, 94%);
+            width: 100%;
             grid-template-columns: repeat(2, minmax(0, 1fr));
             align-items: start;
         }
 
         .review-page .price-review-stat {
-            min-height: 166px;
+            min-height: 96px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             text-align: center;
-            padding: 10px 26px;
+            padding: 6px 20px;
         }
 
         .review-page .price-review-stat + .price-review-stat {
@@ -659,24 +680,24 @@
         }
 
         .review-page .price-review-stat span {
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             color: rgba(240, 242, 255, 0.78);
-            font-size: 1rem;
+            font-size: 0.9rem;
             letter-spacing: 0.08em;
         }
 
         .review-page .price-review-stat strong {
             font-family: Georgia, "Times New Roman", serif;
             color: #fff5ff;
-            font-size: clamp(3rem, 6vw, 5rem);
+            font-size: clamp(2.25rem, 4vw, 3.35rem);
             line-height: 0.95;
             text-shadow: 0 0 28px rgba(255, 206, 255, 0.48);
         }
 
         .review-page .price-review-global-status {
-            width: min(1020px, 94%);
-            min-height: 26px;
-            margin: -30px auto 22px;
+            width: min(1040px, 94%);
+            min-height: 22px;
+            margin: -12px auto 16px;
             color: rgba(240, 242, 255, 0.78);
             text-align: center;
         }
@@ -684,8 +705,8 @@
         .review-page .price-review-item,
         .review-page .price-empty {
             position: relative;
-            min-height: 274px;
-            padding: 28px 28px 24px;
+            min-height: 232px;
+            padding: 22px 24px 20px;
             border: 1px solid var(--line);
             border-radius: 20px;
             overflow: hidden;
@@ -699,6 +720,19 @@
                 0 0 28px rgba(164, 190, 255, 0.16);
             color: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(20px);
+            cursor: pointer;
+            transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+        }
+
+        .review-page .price-review-item:hover,
+        .review-page .price-review-item:focus-visible,
+        .review-page .price-review-item.is-expanded {
+            border-color: rgba(245, 238, 255, 0.68);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.5),
+                inset 0 -1px 0 rgba(154, 186, 255, 0.2),
+                0 26px 62px rgba(2, 8, 28, 0.28),
+                0 0 30px rgba(207, 202, 255, 0.22);
         }
 
         .review-page .price-empty {
@@ -762,13 +796,20 @@
             color: rgba(255, 255, 255, 0.88);
             font-size: 1.02rem;
             line-height: 1.9;
+            max-height: 210px;
+            overflow: auto;
         }
 
         .review-page .price-review-message.is-collapsed {
             display: -webkit-box;
             -webkit-line-clamp: 4;
             -webkit-box-orient: vertical;
+            max-height: none;
             overflow: hidden;
+        }
+
+        .review-page .price-review-item.is-expanded .price-review-message {
+            padding-right: 4px;
         }
 
         .review-page .price-review-expand {
@@ -845,6 +886,46 @@
         .review-page .price-review-comment-form textarea {
             min-height: 82px;
             resize: vertical;
+        }
+
+        .review-pagination {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 10px auto 8px;
+        }
+
+        .review-pagination[hidden] {
+            display: none;
+        }
+
+        .review-pagination button,
+        .review-pagination span {
+            min-height: 38px;
+            padding: 0 14px;
+            border: 1px solid rgba(226, 236, 255, 0.3);
+            border-radius: 999px;
+            background: rgba(229, 232, 255, 0.1);
+            color: rgba(244, 247, 255, 0.82);
+            font: inherit;
+            font-size: 0.9rem;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.13);
+        }
+
+        .review-pagination button {
+            cursor: pointer;
+        }
+
+        .review-pagination button:not(:disabled):hover {
+            border-color: rgba(241, 234, 255, 0.58);
+            color: #fff;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 0 16px rgba(185, 196, 255, 0.16);
+        }
+
+        .review-pagination button:disabled {
+            opacity: 0.48;
+            cursor: not-allowed;
         }
 
         .review-column {
@@ -1029,20 +1110,20 @@
 
         .summary-card {
             display: grid;
-            grid-template-columns: 190px 1fr 190px;
-            gap: 28px;
+            grid-template-columns: 112px 1fr 112px;
+            gap: 18px;
             align-items: center;
-            min-height: 280px;
-            margin-top: 34px;
-            padding: 34px 44px;
-            border-radius: 28px;
+            min-height: 142px;
+            margin-top: 18px;
+            padding: 20px 28px;
+            border-radius: 22px;
             overflow: hidden;
         }
 
         .summary-flower {
             position: relative;
-            width: 150px;
-            height: 180px;
+            width: 92px;
+            height: 108px;
             filter: drop-shadow(0 0 22px rgba(227, 210, 255, 0.44));
         }
 
@@ -1062,10 +1143,10 @@
         .summary-flower::after {
             content: "";
             position: absolute;
-            left: 80px;
-            top: 56px;
+            left: 52px;
+            top: 42px;
             width: 2px;
-            height: 104px;
+            height: 58px;
             background: linear-gradient(180deg, rgba(233, 238, 255, 0.76), transparent);
             transform: rotate(26deg);
         }
@@ -1078,18 +1159,18 @@
             display: inline-flex;
             gap: 10px;
             align-items: center;
-            margin-bottom: 16px;
+            margin-bottom: 8px;
             color: rgba(229, 217, 255, 0.8);
-            font-size: 1rem;
+            font-size: 0.84rem;
             letter-spacing: 0.08em;
         }
 
         .summary-copy h2 {
             margin: 0;
             font-family: "STSong", "SimSun", "Microsoft YaHei", serif;
-            font-size: clamp(1.9rem, 3vw, 2.8rem);
+            font-size: clamp(1.15rem, 2vw, 1.72rem);
             font-weight: 400;
-            line-height: 1.65;
+            line-height: 1.45;
             letter-spacing: 0.08em;
         }
 
@@ -1097,14 +1178,14 @@
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 0;
-            margin-top: 28px;
-            padding-top: 24px;
+            margin-top: 14px;
+            padding-top: 14px;
             border-top: 1px solid rgba(225, 232, 255, 0.24);
         }
 
         .summary-feature {
             display: grid;
-            gap: 8px;
+            gap: 5px;
             justify-items: center;
             padding: 0 18px;
             color: rgba(245, 247, 255, 0.84);
@@ -1117,32 +1198,32 @@
         .summary-feature span {
             display: grid;
             place-items: center;
-            width: 48px;
-            height: 48px;
-            border-radius: 18px;
+            width: 34px;
+            height: 34px;
+            border-radius: 12px;
             background: rgba(222, 229, 255, 0.12);
             color: #fff;
-            font-size: 1.5rem;
+            font-size: 1.05rem;
             box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 0 20px rgba(192, 201, 255, 0.14);
         }
 
         .summary-feature strong {
             color: #fff;
-            font-size: 1.02rem;
+            font-size: 0.9rem;
             letter-spacing: 0.04em;
         }
 
         .summary-feature small {
             color: rgba(229, 235, 255, 0.68);
-            font-size: 0.9rem;
+            font-size: 0.78rem;
         }
 
         .summary-seal {
             display: grid;
             place-items: center;
             justify-self: end;
-            width: 142px;
-            height: 142px;
+            width: 94px;
+            height: 94px;
             border: 1px solid rgba(241, 231, 255, 0.5);
             border-radius: 50%;
             background:
@@ -1151,12 +1232,12 @@
             box-shadow: 0 0 42px rgba(228, 203, 255, 0.32), inset 0 0 26px rgba(255, 255, 255, 0.18);
             color: #fff;
             text-align: center;
-            font-size: 0.92rem;
+            font-size: 0.76rem;
             letter-spacing: 0.08em;
         }
 
         .review-footer {
-            margin: 34px auto 0;
+            margin: 18px auto 0;
             text-align: center;
             color: rgba(236, 238, 255, 0.74);
             line-height: 1.9;
@@ -1195,12 +1276,12 @@
             .stats-panel {
                 grid-template-columns: 1fr;
                 width: 100%;
-                padding: 24px;
+                padding: 16px;
             }
 
             .review-page .price-review-stat {
                 min-height: auto;
-                padding: 22px 12px;
+                padding: 14px 10px;
             }
 
             .review-page .price-review-stat + .price-review-stat {
@@ -1210,7 +1291,7 @@
 
             .stat-block {
                 min-height: auto;
-                padding: 22px 12px;
+                padding: 14px 10px;
             }
 
             .stat-block + .stat-block {
@@ -1227,6 +1308,15 @@
                 grid-template-columns: 1fr;
             }
 
+            .review-list-heading {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .section-tabs {
+                justify-content: flex-start;
+            }
+
             .review-page .price-review-global-status {
                 width: 100%;
                 margin: -18px auto 18px;
@@ -1239,7 +1329,7 @@
             .summary-card {
                 grid-template-columns: 1fr;
                 justify-items: center;
-                padding: 28px 22px;
+                padding: 18px 16px;
             }
 
             .summary-seal {
@@ -1293,12 +1383,12 @@
             }
 
             .hero {
-                padding: 58px 0 28px;
+                padding: 32px 0 18px;
             }
 
             .hero h1 {
                 gap: 10px;
-                font-size: clamp(2.7rem, 17vw, 4rem);
+                font-size: clamp(2.25rem, 14vw, 3.3rem);
             }
 
             .hero h1::before,
@@ -1307,18 +1397,16 @@
             }
 
             .hero p {
-                font-size: 0.98rem;
+                font-size: 0.92rem;
             }
 
             .stats-panel {
-                margin-bottom: 34px;
+                margin-bottom: 22px;
                 border-radius: 22px;
             }
 
             .section-tabs {
-                grid-template-columns: 1fr;
-                gap: 12px;
-                margin-bottom: 18px;
+                gap: 8px;
             }
 
             .review-card {
@@ -1354,6 +1442,7 @@
                 margin: 10px 0;
                 font-size: 0.95rem;
                 line-height: 1.68;
+                max-height: 180px;
             }
 
             .review-page .price-review-message.is-collapsed {
@@ -1463,14 +1552,24 @@
 
         <div class="price-status price-review-global-status" id="price-review-status" role="status" aria-live="polite"></div>
 
-        <div class="section-tabs" aria-label="评价分组">
-            <span class="is-active">老板们的反馈</span>
-            <span>服务体验</span>
-            <span>最新评价</span>
-        </div>
+        <section class="review-list-section" aria-labelledby="review-list-title">
+            <div class="review-list-heading" id="boss-review-list-top">
+                <div>
+                    <span class="review-list-kicker">真实反馈</span>
+                    <h2 id="review-list-title">老板评价墙</h2>
+                </div>
+                <div class="section-tabs" id="price-review-sort-controls" role="tablist" aria-label="评价排序">
+                    <button class="is-active" type="button" role="tab" aria-selected="true" data-review-sort="latest">最新评价</button>
+                    <button type="button" role="tab" aria-selected="false" data-review-sort="likes">最高点赞数</button>
+                    <button type="button" role="tab" aria-selected="false" data-review-sort="all">全部评价</button>
+                </div>
+            </div>
 
-        <section class="reviews-grid is-dynamic-review-list" id="price-review-list" aria-label="老板评价列表">
-            <div class="price-empty">正在读取老板评价...</div>
+            <section class="reviews-grid is-dynamic-review-list" id="price-review-list" data-review-pagination="true" aria-label="老板评价列表">
+                <div class="price-empty">正在读取老板评价...</div>
+            </section>
+
+            <nav class="review-pagination" id="price-review-pagination" hidden aria-label="老板评价分页"></nav>
         </section>
 
         <section class="summary-card" aria-labelledby="summary-title">
@@ -1513,6 +1612,6 @@
 <button class="price-review-empty-action" id="price-open-ganyu-review" type="button" hidden>找甘雨发布评价</button>
 <script src="assets/supabase-client.js?v=20260627-home-performance1"></script>
 <script src="assets/vendor/supabase-js-2.min.js?v=20260616-1"></script>
-<script src="assets/price-reviews.js?v=20260630-boss-review-page-fix1"></script>
+<script src="assets/price-reviews.js?v=20260701-boss-review-tabs-pagination1"></script>
 </body>
 </html>

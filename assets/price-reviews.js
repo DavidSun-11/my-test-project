@@ -1,5 +1,5 @@
 (function () {
-    const SCRIPT_VERSION = "20260630-boss-review-page-fix1";
+    const SCRIPT_VERSION = "20260701-boss-review-tabs-pagination1";
     const REVIEW_QUERY_TIMEOUT_MS = 9000;
     const OPTIONAL_QUERY_TIMEOUT_MS = 3500;
     const REVIEW_LOADING_TEXT = "\u6b63\u5728\u8bfb\u53d6\u8001\u677f\u8bc4\u4ef7...";
@@ -14,6 +14,11 @@
     const SUPABASE_CDN = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.108.2/dist/umd/supabase.min.js";
     const SUPABASE_SDK_LOAD_ERROR_TEXT = "老板评价功能加载失败，可能是网络暂时不稳定，请稍后再试。";
     const BLOCKED_INTERACTION_TEXT = "当前账号暂时不能参与互动，如有疑问可以联系君雪。";
+    const REVIEW_SORT_LATEST = "latest";
+    const REVIEW_SORT_LIKES = "likes";
+    const REVIEW_SORT_ALL = "all";
+    const REVIEW_PAGE_SIZE_DESKTOP = 6;
+    const REVIEW_PAGE_SIZE_MOBILE = 4;
     const VALID_SERVICE_TYPES = ["王者荣耀", "永劫无间", "语音聊天", "其它"];
 
     const PENDING_BOSS_REGISTER_KEY = "junxuePendingBossRegistration";
@@ -24,6 +29,9 @@
     const reviewList = document.getElementById("price-review-list");
     const reviewStats = document.getElementById("price-review-stats");
     const ganyuReviewButton = document.getElementById("price-open-ganyu-review");
+    const reviewSortControls = document.getElementById("price-review-sort-controls");
+    const reviewPagination = document.getElementById("price-review-pagination");
+    const reviewListTop = document.getElementById("boss-review-list-top");
 
     let client = null;
     let currentUser = null;
@@ -36,6 +44,11 @@
     let refreshReviewWallToken = 0;
     let scheduledReviewRefreshTimer = null;
     let missingDomDebugged = false;
+    let activeReviewSort = REVIEW_SORT_LATEST;
+    let currentReviewPage = 1;
+    let lastReviewPageSize = 0;
+    let reviewResizeTimer = null;
+    const expandedReviewIds = new Set();
     const reviewInteractions = new Map();
 
     function debugBossReviews(message, detail) {
@@ -414,6 +427,111 @@
 
         reviewInteractions.set(reviewId, next);
         return next;
+    }
+
+    function isFullReviewPageMode() {
+        return !!(
+            reviewList &&
+            reviewList.getAttribute("data-review-pagination") === "true" &&
+            !reviewList.getAttribute("data-review-limit")
+        );
+    }
+
+    function getReviewPageSize() {
+        if (window.matchMedia && window.matchMedia("(max-width: 640px)").matches) {
+            return REVIEW_PAGE_SIZE_MOBILE;
+        }
+
+        return REVIEW_PAGE_SIZE_DESKTOP;
+    }
+
+    function getReviewTimeValue(review) {
+        const value = review && review.created_at ? Date.parse(review.created_at) : 0;
+
+        return Number.isFinite(value) ? value : 0;
+    }
+
+    function getReviewLikeCount(reviewId) {
+        return ensureInteraction(reviewId).likesCount || 0;
+    }
+
+    function sortReviewsForDisplay(reviews) {
+        const items = (reviews || []).slice();
+
+        items.sort(function (left, right) {
+            if (activeReviewSort === REVIEW_SORT_LIKES) {
+                const likeDelta = getReviewLikeCount(right.id) - getReviewLikeCount(left.id);
+
+                if (likeDelta !== 0) {
+                    return likeDelta;
+                }
+            }
+
+            return getReviewTimeValue(right) - getReviewTimeValue(left);
+        });
+
+        return items;
+    }
+
+    function syncReviewSortControls() {
+        if (!reviewSortControls) {
+            return;
+        }
+
+        const enabled = isFullReviewPageMode();
+
+        reviewSortControls.hidden = !enabled;
+        reviewSortControls.querySelectorAll("[data-review-sort]").forEach(function (button) {
+            const active = button.getAttribute("data-review-sort") === activeReviewSort;
+
+            button.classList.toggle("is-active", active);
+            button.setAttribute("aria-selected", active ? "true" : "false");
+        });
+    }
+
+    function scrollToReviewListTop() {
+        if (!isFullReviewPageMode()) {
+            return;
+        }
+
+        const target = reviewListTop || reviewList;
+
+        if (target && typeof target.scrollIntoView === "function") {
+            target.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+    }
+
+    function renderReviewPagination(totalItems, pageSize) {
+        if (!reviewPagination || !isFullReviewPageMode()) {
+            return;
+        }
+
+        const pageCount = Math.max(1, Math.ceil(totalItems / pageSize));
+
+        if (totalItems <= pageSize) {
+            reviewPagination.hidden = true;
+            reviewPagination.innerHTML = "";
+            return;
+        }
+
+        reviewPagination.hidden = false;
+        reviewPagination.innerHTML = [
+            '<button type="button" data-review-page="prev"' + (currentReviewPage <= 1 ? " disabled" : "") + '>上一页</button>',
+            '<span>第 ' + currentReviewPage + ' / ' + pageCount + ' 页</span>',
+            '<button type="button" data-review-page="next"' + (currentReviewPage >= pageCount ? " disabled" : "") + '>下一页</button>'
+        ].join("");
+    }
+
+    function toggleReviewExpanded(reviewId) {
+        if (!reviewId) {
+            return;
+        }
+
+        if (expandedReviewIds.has(reviewId)) {
+            expandedReviewIds.delete(reviewId);
+        } else {
+            expandedReviewIds.add(reviewId);
+        }
     }
 
     function loadScript(src) {
@@ -1115,7 +1233,7 @@
 
         return {
             total: items.length,
-            averageRating: items.length ? (totalRating / items.length).toFixed(1) : "0.0",
+            averageRating: items.length ? (totalRating / items.length).toFixed(1) : "--",
             topService: topService
         };
     }
@@ -1126,10 +1244,11 @@
         }
 
         const stats = calculateStats(reviews);
+        const ratingText = stats.averageRating === "--" ? "--" : stats.averageRating + " ★";
 
         reviewStats.innerHTML = [
             '<div class="price-review-stat"><span>总评价数</span><strong>' + stats.total + '</strong></div>',
-            '<div class="price-review-stat"><span>平均星级</span><strong>' + stats.averageRating + ' ★</strong></div>',
+            '<div class="price-review-stat"><span>平均星级</span><strong>' + ratingText + '</strong></div>',
             '<div class="price-review-stat"><span>最受欢迎服务</span><strong>' + escapeHtml(stats.topService) + '</strong></div>'
         ].join("");
     }
@@ -1161,13 +1280,16 @@
                 return;
             }
 
-            message.classList.add("is-collapsed");
+            const isExpanded = item && item.classList.contains("is-expanded");
+
+            message.classList.toggle("is-collapsed", !isExpanded);
+            button.textContent = isExpanded ? "收起" : "展开全文";
             button.hidden = true;
 
             window.requestAnimationFrame(function () {
                 const isOverflowing = message.scrollHeight > message.clientHeight + 1;
 
-                button.hidden = !isOverflowing;
+                button.hidden = !isExpanded && !isOverflowing;
                 if (!isOverflowing) {
                     message.classList.remove("is-collapsed");
                 }
@@ -1227,16 +1349,19 @@
         const commentsCount = interaction.comments.length;
         const likeCountText = interaction.likesFailed ? INTERACTION_LOAD_ERROR_TEXT : interaction.likesCount + ' 赞';
         const commentCountText = interaction.commentsFailed ? INTERACTION_LOAD_ERROR_TEXT : commentsCount + ' 条评论';
+        const fullPageMode = isFullReviewPageMode();
+        const isExpanded = fullPageMode && expandedReviewIds.has(review.id);
+        const interactiveAttrs = fullPageMode ? ' tabindex="0" aria-expanded="' + (isExpanded ? "true" : "false") + '"' : "";
 
         return [
-            '<article class="price-review-item" data-review-id="' + escapeHtml(review.id) + '">',
+            '<article class="price-review-item' + (isExpanded ? ' is-expanded' : '') + '" data-review-id="' + escapeHtml(review.id) + '"' + interactiveAttrs + '>',
                 '<div class="price-review-head">',
                     '<strong>' + escapeHtml(review.nickname) + '</strong>',
                     '<span class="price-review-stars">' + "★".repeat(rating) + "☆".repeat(5 - rating) + '</span>',
                 '</div>',
                 '<div class="price-review-meta">' + escapeHtml(review.service_type) + ' · ' + escapeHtml(formatTime(review.created_at)) + '</div>',
-                '<p class="price-review-message is-collapsed">' + escapeHtml(review.message) + '</p>',
-                '<button class="price-review-expand" type="button" hidden>展开全文</button>',
+                '<p class="price-review-message' + (isExpanded ? '' : ' is-collapsed') + '">' + escapeHtml(review.message) + '</p>',
+                '<button class="price-review-expand" type="button" hidden>' + (isExpanded ? "收起" : "展开全文") + '</button>',
                 '<div class="price-review-actions">',
                     '<button class="price-review-action' + (interaction.userLiked ? ' is-liked' : '') + '" type="button" data-action="toggle-like">' +
                         (interaction.userLiked ? "♥ 已赞" : "♡ 点赞") +
@@ -1257,6 +1382,8 @@
             return;
         }
 
+        syncReviewSortControls();
+
         if (!reviews || !reviews.length) {
             reviewList.innerHTML = [
                 '<div class="price-empty">',
@@ -1264,13 +1391,42 @@
                     '<button class="price-button price-review-empty-action" type="button" data-action="open-ganyu-review">找甘雨发布第一条评价</button>',
                 '</div>'
             ].join("");
+            renderReviewPagination(0, getReviewPageSize());
             return;
         }
 
         const rawLimit = Number(reviewList.getAttribute("data-review-limit") || 0);
-        const visibleReviews = rawLimit > 0 ? reviews.slice(0, rawLimit) : reviews;
 
-        reviewList.innerHTML = visibleReviews.map(renderReviewItem).join("");
+        if (rawLimit > 0) {
+            const visibleReviews = reviews.slice(0, rawLimit);
+
+            if (reviewPagination) {
+                reviewPagination.hidden = true;
+                reviewPagination.innerHTML = "";
+            }
+            reviewList.innerHTML = visibleReviews.map(renderReviewItem).join("");
+            syncExpandableReviews();
+            return;
+        }
+
+        if (isFullReviewPageMode()) {
+            const sortedReviews = sortReviewsForDisplay(reviews);
+            const pageSize = getReviewPageSize();
+            const pageCount = Math.max(1, Math.ceil(sortedReviews.length / pageSize));
+
+            currentReviewPage = Math.min(Math.max(1, currentReviewPage), pageCount);
+            lastReviewPageSize = pageSize;
+
+            const start = (currentReviewPage - 1) * pageSize;
+            const visibleReviews = sortedReviews.slice(start, start + pageSize);
+
+            reviewList.innerHTML = visibleReviews.map(renderReviewItem).join("");
+            renderReviewPagination(sortedReviews.length, pageSize);
+            syncExpandableReviews();
+            return;
+        }
+
+        reviewList.innerHTML = reviews.map(renderReviewItem).join("");
         syncExpandableReviews();
     }
 
@@ -1333,6 +1489,10 @@
 
             debugBossReviews("boss reviews query failed: " + getSafeErrorReason(error));
             renderStatsError();
+            if (reviewPagination) {
+                reviewPagination.hidden = true;
+                reviewPagination.innerHTML = "";
+            }
             if (reviewList) {
                 logSupabaseError("boss_reviews load failed", error);
                 if (isConfigMissingError(error)) {
@@ -1364,6 +1524,11 @@
     function updateReviewCard(reviewId) {
         const review = getReviewById(reviewId);
         const card = reviewList ? reviewList.querySelector('[data-review-id="' + reviewId + '"]') : null;
+
+        if (isFullReviewPageMode() && activeReviewSort === REVIEW_SORT_LIKES) {
+            renderReviews(currentReviews);
+            return;
+        }
 
         if (!review || !card) {
             renderReviews(currentReviews);
@@ -1488,6 +1653,47 @@
         setStatus(reviewStatus, "甘雨菜单暂时不可用，请稍后再试～", "warning");
     }
 
+    function setReviewSort(sortKey) {
+        if (!isFullReviewPageMode()) {
+            return;
+        }
+
+        if ([REVIEW_SORT_LATEST, REVIEW_SORT_LIKES, REVIEW_SORT_ALL].indexOf(sortKey) === -1) {
+            return;
+        }
+
+        activeReviewSort = sortKey;
+        currentReviewPage = 1;
+        renderReviews(currentReviews);
+        scrollToReviewListTop();
+    }
+
+    function setReviewPage(direction) {
+        if (!isFullReviewPageMode()) {
+            return;
+        }
+
+        const pageSize = getReviewPageSize();
+        const totalItems = sortReviewsForDisplay(currentReviews).length;
+        const pageCount = Math.max(1, Math.ceil(totalItems / pageSize));
+
+        if (direction === "prev") {
+            currentReviewPage = Math.max(1, currentReviewPage - 1);
+        } else if (direction === "next") {
+            currentReviewPage = Math.min(pageCount, currentReviewPage + 1);
+        }
+
+        renderReviews(currentReviews);
+        scrollToReviewListTop();
+    }
+
+    function isInteractiveReviewTarget(target) {
+        return !!(
+            target &&
+            target.closest("button, a, input, textarea, select, label, .price-review-comments")
+        );
+    }
+
     function bindReviewWallEvents() {
         if (reviewWallEventsBound) {
             return;
@@ -1498,6 +1704,46 @@
         if (ganyuReviewButton) {
             ganyuReviewButton.addEventListener("click", openGanyuReviewMenu);
         }
+
+        if (reviewSortControls) {
+            reviewSortControls.addEventListener("click", function (event) {
+                const button = event.target.closest("[data-review-sort]");
+
+                if (!button) {
+                    return;
+                }
+
+                setReviewSort(button.getAttribute("data-review-sort"));
+            });
+        }
+
+        if (reviewPagination) {
+            reviewPagination.addEventListener("click", function (event) {
+                const button = event.target.closest("[data-review-page]");
+
+                if (!button || button.disabled) {
+                    return;
+                }
+
+                setReviewPage(button.getAttribute("data-review-page"));
+            });
+        }
+
+        window.addEventListener("resize", function () {
+            if (!isFullReviewPageMode()) {
+                return;
+            }
+
+            window.clearTimeout(reviewResizeTimer);
+            reviewResizeTimer = window.setTimeout(function () {
+                const nextPageSize = getReviewPageSize();
+
+                if (nextPageSize !== lastReviewPageSize) {
+                    currentReviewPage = 1;
+                    renderReviews(currentReviews);
+                }
+            }, 120);
+        });
 
         if (!reviewList) {
             return;
@@ -1516,19 +1762,16 @@
             }
 
             if (expandButton) {
-                const item = expandButton.closest(".price-review-item");
-                const message = item ? item.querySelector(".price-review-message") : null;
-
-                if (!message) {
-                    return;
-                }
-
-                const isCollapsed = message.classList.toggle("is-collapsed");
-                expandButton.textContent = isCollapsed ? "展开全文" : "收起";
+                toggleReviewExpanded(reviewId);
+                updateReviewCard(reviewId);
                 return;
             }
 
             if (!actionButton || !reviewId) {
+                if (card && reviewId && isFullReviewPageMode() && !isInteractiveReviewTarget(event.target)) {
+                    toggleReviewExpanded(reviewId);
+                    updateReviewCard(reviewId);
+                }
                 return;
             }
 
@@ -1551,6 +1794,22 @@
                 interaction.commentsExpanded = !interaction.commentsExpanded;
                 updateReviewCard(reviewId);
             }
+        });
+
+        reviewList.addEventListener("keydown", function (event) {
+            if (event.key !== "Enter" && event.key !== " ") {
+                return;
+            }
+
+            const card = event.target.closest(".price-review-item");
+
+            if (!card || !isFullReviewPageMode() || isInteractiveReviewTarget(event.target)) {
+                return;
+            }
+
+            event.preventDefault();
+            toggleReviewExpanded(card.getAttribute("data-review-id"));
+            updateReviewCard(card.getAttribute("data-review-id"));
         });
 
         reviewList.addEventListener("submit", function (event) {

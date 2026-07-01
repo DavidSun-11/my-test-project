@@ -11,17 +11,34 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --glass-border: rgba(190, 225, 255, 0.46);
+            --glass-border-strong: rgba(220, 238, 255, 0.72);
+            --glass-bg: rgba(32, 55, 112, 0.48);
+            --glass-bg-deep: rgba(9, 26, 68, 0.6);
+            --text-main: #f7fbff;
+            --text-soft: rgba(220, 236, 255, 0.78);
+            --text-muted: rgba(186, 211, 237, 0.68);
+            --glow-blue: rgba(118, 193, 255, 0.34);
+            --glow-purple: rgba(174, 128, 255, 0.36);
+        }
+
+        html {
+            min-height: 100%;
+            background: #061634;
+        }
+
         body {
             min-height: 100vh;
             margin: 0;
-            font-family: Arial, "Microsoft YaHei", sans-serif;
-            color: #f5fbff;
-            background:
-                radial-gradient(circle at 16% 12%, rgba(112, 208, 255, 0.22), transparent 30%),
-                radial-gradient(circle at 86% 18%, rgba(180, 130, 255, 0.18), transparent 32%),
-                radial-gradient(ellipse at 50% 100%, rgba(75, 142, 220, 0.2), transparent 44%),
-                linear-gradient(145deg, #020713 0%, #07152b 48%, #0a1d38 100%);
             overflow-x: hidden;
+            color: var(--text-main);
+            font-family: Arial, "Microsoft YaHei", sans-serif;
+            background:
+                radial-gradient(circle at 14% 10%, rgba(226, 238, 255, 0.74) 0 3.1rem, rgba(155, 193, 255, 0.2) 3.2rem 6.8rem, transparent 7rem),
+                radial-gradient(circle at 85% 12%, rgba(147, 105, 255, 0.2), transparent 18rem),
+                radial-gradient(ellipse at 50% 100%, rgba(84, 168, 235, 0.26), transparent 32rem),
+                linear-gradient(180deg, #071738 0%, #0b1c42 48%, #061833 100%);
         }
 
         body::before,
@@ -33,97 +50,275 @@
         }
 
         body::before {
-            z-index: -2;
-            background-image:
-                radial-gradient(circle at 28px 42px, rgba(255,255,255,0.48) 0 1px, transparent 1.8px),
-                radial-gradient(circle at 144px 118px, rgba(166,214,255,0.34) 0 0.9px, transparent 1.7px),
-                radial-gradient(circle at 260px 72px, rgba(255,255,255,0.28) 0 0.8px, transparent 1.6px);
-            background-size: 320px 220px;
+            z-index: -3;
+            background:
+                radial-gradient(circle at 10% 94%, rgba(204, 178, 255, 0.38) 0 2px, transparent 4px),
+                radial-gradient(circle at 29% 16%, rgba(255, 255, 255, 0.58) 0 1px, transparent 2px),
+                radial-gradient(circle at 48% 9%, rgba(173, 216, 255, 0.42) 0 1px, transparent 2px),
+                radial-gradient(circle at 70% 22%, rgba(255, 255, 255, 0.44) 0 1px, transparent 2px),
+                radial-gradient(circle at 82% 64%, rgba(188, 165, 255, 0.4) 0 1px, transparent 3px);
+            background-size: 34rem 22rem;
             opacity: 0.72;
         }
 
         body::after {
-            z-index: -1;
+            z-index: -2;
             background:
-                linear-gradient(115deg, transparent 6%, rgba(112, 210, 255, 0.1) 36%, rgba(184, 142, 255, 0.08) 52%, transparent 74%);
+                radial-gradient(ellipse at 21% 105%, rgba(111, 190, 255, 0.28), transparent 24rem),
+                radial-gradient(ellipse at 79% 96%, rgba(153, 112, 255, 0.2), transparent 22rem),
+                linear-gradient(to top, rgba(4, 13, 33, 0.48), transparent 36%),
+                linear-gradient(100deg, transparent 4%, rgba(118, 172, 255, 0.08) 38%, transparent 66%);
+        }
+
+        a {
+            color: inherit;
+        }
+
+        body.is-my-modal-open {
+            overflow: hidden;
+        }
+
+        [hidden] {
+            display: none !important;
         }
 
         .my-page {
-            width: min(1040px, calc(100vw - 32px));
+            position: relative;
+            width: min(1440px, calc(100vw - 96px));
+            min-height: 100vh;
             margin: 0 auto;
-            padding: 56px 0 48px;
+            padding: 56px 0 64px;
+        }
+
+        .my-page::before,
+        .my-page::after {
+            content: "";
+            position: fixed;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .my-page::before {
+            right: -34px;
+            top: -20px;
+            width: 360px;
+            height: 230px;
+            opacity: 0.72;
+            background:
+                radial-gradient(ellipse at 76% 20%, rgba(198, 171, 255, 0.72) 0 8px, transparent 9px),
+                radial-gradient(ellipse at 84% 34%, rgba(150, 213, 255, 0.62) 0 7px, transparent 8px),
+                radial-gradient(ellipse at 64% 42%, rgba(218, 183, 255, 0.72) 0 9px, transparent 10px),
+                linear-gradient(145deg, transparent 46%, rgba(157, 183, 255, 0.3) 47% 49%, transparent 50%);
+            filter: drop-shadow(0 0 18px rgba(170, 151, 255, 0.36));
+            transform: rotate(-10deg);
+        }
+
+        .my-page::after {
+            left: 0;
+            right: 0;
+            bottom: -42px;
+            height: 230px;
+            background:
+                radial-gradient(ellipse at 11% 70%, rgba(205, 188, 255, 0.32), transparent 12rem),
+                radial-gradient(ellipse at 92% 66%, rgba(255, 215, 170, 0.22), transparent 10rem),
+                repeating-linear-gradient(178deg, rgba(166, 217, 255, 0.12) 0 1px, transparent 1px 28px);
+            opacity: 0.78;
+        }
+
+        .my-settings-pill {
+            position: fixed;
+            top: 42px;
+            right: max(42px, calc((100vw - 1440px) / 2 + 22px));
+            z-index: 10;
+            gap: 8px;
+            min-height: 42px;
+            padding: 8px 18px;
+            border-radius: 999px;
         }
 
         .my-hero {
             display: grid;
-            gap: 10px;
-            margin-bottom: 22px;
+            justify-items: center;
+            gap: 12px;
+            margin-bottom: 30px;
             text-align: center;
         }
 
         .my-kicker {
-            justify-self: center;
-            padding: 5px 13px;
-            border: 1px solid rgba(164, 226, 255, 0.34);
+            padding: 9px 28px;
+            border: 1px solid var(--glass-border);
             border-radius: 999px;
-            background: rgba(79, 183, 255, 0.1);
-            color: rgba(194, 232, 255, 0.82);
-            font-size: 12px;
-            font-weight: 800;
+            background: linear-gradient(180deg, rgba(156, 195, 255, 0.22), rgba(55, 83, 156, 0.22));
+            color: rgba(231, 241, 255, 0.86);
+            font-size: 15px;
+            font-weight: 900;
+            letter-spacing: 0;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.28), 0 0 22px rgba(126, 187, 255, 0.2);
         }
 
         .my-title {
             margin: 0;
-            color: #f6fdff;
-            font-size: clamp(32px, 6vw, 56px);
-            line-height: 1.1;
-            text-shadow: 0 0 28px rgba(124, 220, 255, 0.28);
+            font-size: clamp(52px, 7vw, 80px);
+            line-height: 1;
+            letter-spacing: 0;
+            text-shadow: 0 0 28px rgba(167, 209, 255, 0.42), 0 10px 36px rgba(7, 12, 30, 0.3);
         }
 
         .my-subtitle {
             margin: 0;
-            color: rgba(218, 239, 255, 0.78);
-            font-size: 15px;
+            color: rgba(232, 242, 255, 0.88);
+            font-size: clamp(16px, 1.7vw, 20px);
             line-height: 1.7;
+        }
+
+        .my-card,
+        .my-feature-card,
+        .my-lower-panel,
+        .my-modal-panel {
+            position: relative;
+            min-width: 0;
+            border: 1px solid var(--glass-border);
+            background:
+                radial-gradient(circle at 18% 10%, rgba(182, 220, 255, 0.16), transparent 34%),
+                linear-gradient(145deg, rgba(50, 75, 139, 0.52), rgba(18, 34, 82, 0.56));
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.24),
+                inset 0 -1px 0 rgba(160, 210, 255, 0.1),
+                0 24px 70px rgba(0, 8, 30, 0.36),
+                0 0 34px rgba(107, 181, 255, 0.12);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+        }
+
+        .my-card::before,
+        .my-feature-card::before,
+        .my-lower-panel::before {
+            content: "";
+            position: absolute;
+            inset: 1px;
+            border-radius: inherit;
+            pointer-events: none;
+            background:
+                linear-gradient(135deg, rgba(255,255,255,0.18), transparent 28%, transparent 70%, rgba(186, 157, 255, 0.16));
+            opacity: 0.8;
+        }
+
+        .my-button,
+        .my-pill-button {
+            padding: 8px 16px;
+            appearance: none;
+            -webkit-appearance: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 42px;
+            border: 1px solid rgba(204, 232, 255, 0.5);
+            border-radius: 999px;
+            color: rgba(247, 252, 255, 0.96);
+            font: inherit;
+            font-size: 14px;
+            font-weight: 800;
+            text-decoration: none;
+            cursor: pointer;
+            background: linear-gradient(135deg, rgba(81, 122, 204, 0.42), rgba(50, 65, 138, 0.45));
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.22), 0 0 18px rgba(104, 194, 255, 0.14);
+            transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+        }
+
+        .my-button {
+            padding: 10px 18px;
+        }
+
+        .my-button:hover,
+        .my-button:focus-visible,
+        .my-pill-button:hover,
+        .my-pill-button:focus-visible,
+        .my-feature-card:hover,
+        .my-feature-card:focus-visible,
+        .my-quick-link:hover,
+        .my-quick-link:focus-visible {
+            border-color: rgba(232, 244, 255, 0.88);
+            box-shadow: 0 0 26px rgba(121, 201, 255, 0.28), inset 0 1px 0 rgba(255,255,255,0.34);
+            transform: translateY(-1px);
+            outline: none;
+        }
+
+        .my-button:active,
+        .my-pill-button:active,
+        .my-feature-card:active,
+        .my-quick-link:active {
+            transform: translateY(1px) scale(0.99);
+        }
+
+        .my-button--primary {
+            border-color: rgba(224, 239, 255, 0.82);
+            background: linear-gradient(135deg, rgba(126, 196, 255, 0.92), rgba(175, 119, 255, 0.88));
+            box-shadow: 0 0 28px rgba(122, 205, 255, 0.32), inset 0 1px 0 rgba(255,255,255,0.36);
+        }
+
+        .my-button:disabled {
+            cursor: wait;
+            opacity: 0.68;
+            transform: none;
+        }
+
+        .my-logged-out {
+            max-width: 700px;
+            margin: 34px auto 0;
+            padding: 28px;
+            border-radius: 30px;
+            text-align: center;
         }
 
         .my-shell {
             display: grid;
-            grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
-            gap: 18px;
-            align-items: start;
-        }
-
-        .my-card {
-            position: relative;
-            min-width: 0;
-            padding: 20px;
-            border: 1px solid rgba(168, 226, 255, 0.28);
-            border-radius: 24px;
-            background:
-                radial-gradient(circle at 12% 8%, rgba(154, 232, 255, 0.16), transparent 34%),
-                linear-gradient(145deg, rgba(13, 38, 78, 0.72), rgba(20, 27, 62, 0.72));
-            box-shadow: 0 18px 48px rgba(0, 8, 30, 0.34), inset 0 1px 0 rgba(255,255,255,0.12);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            grid-template-columns: minmax(360px, 430px) minmax(0, 1fr);
+            gap: 26px;
+            align-items: stretch;
         }
 
         .my-profile-card {
             display: grid;
-            gap: 16px;
-            justify-items: center;
-            text-align: center;
+            align-content: space-between;
+            min-height: 478px;
+            padding: 42px 34px 34px;
+            border-radius: 28px;
+            overflow: hidden;
+        }
+
+        .my-profile-card::after {
+            content: "";
+            position: absolute;
+            right: 12px;
+            bottom: 18px;
+            width: 170px;
+            height: 150px;
+            pointer-events: none;
+            opacity: 0.42;
+            background:
+                radial-gradient(ellipse at 24% 72%, rgba(204, 180, 255, 0.5) 0 11px, transparent 12px),
+                radial-gradient(ellipse at 54% 54%, rgba(158, 218, 255, 0.42) 0 8px, transparent 9px),
+                linear-gradient(130deg, transparent 42%, rgba(220, 238, 255, 0.22) 43% 45%, transparent 46%);
+            transform: rotate(-14deg);
+        }
+
+        .my-profile-main {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+            min-width: 0;
         }
 
         .my-avatar-frame {
             position: relative;
-            width: 136px;
-            height: 136px;
+            flex: 0 0 auto;
+            width: 142px;
+            height: 142px;
             padding: 5px;
-            border: 1px solid rgba(190, 236, 255, 0.64);
+            border: 2px solid rgba(224, 241, 255, 0.76);
             border-radius: 50%;
-            background: linear-gradient(145deg, rgba(115, 214, 255, 0.3), rgba(181, 130, 255, 0.28));
-            box-shadow: 0 0 24px rgba(111, 214, 255, 0.28), inset 0 0 16px rgba(255,255,255,0.14);
+            background: linear-gradient(145deg, rgba(127, 201, 255, 0.32), rgba(178, 124, 255, 0.34));
+            box-shadow: 0 0 32px rgba(127, 202, 255, 0.28), inset 0 0 18px rgba(255,255,255,0.22);
         }
 
         .my-avatar-frame img,
@@ -134,181 +329,580 @@
             place-items: center;
             border-radius: 50%;
             object-fit: cover;
-            background: radial-gradient(circle at 40% 28%, rgba(255,255,255,0.22), transparent 28%), rgba(7, 26, 62, 0.86);
-            color: rgba(229, 247, 255, 0.74);
-            font-size: 42px;
+            background:
+                radial-gradient(circle at 34% 26%, rgba(255,255,255,0.24), transparent 28%),
+                linear-gradient(150deg, rgba(42, 38, 111, 0.96), rgba(83, 72, 172, 0.92));
+            color: rgba(238, 242, 255, 0.92);
+            font-size: 58px;
             font-weight: 900;
+            text-shadow: 0 0 16px rgba(196, 224, 255, 0.5);
         }
 
         .my-avatar-frame img[hidden],
-        .my-avatar-placeholder[hidden],
-        [hidden] {
+        .my-avatar-placeholder[hidden] {
             display: none !important;
         }
 
-        .my-profile-name {
-            margin: 0;
-            color: rgba(247, 253, 255, 0.98);
-            font-size: 24px;
+        .my-profile-info {
+            min-width: 0;
         }
 
-        .my-muted {
+        .my-profile-name {
+            margin: 0 0 9px;
+            color: rgba(249, 253, 255, 0.98);
+            font-size: clamp(26px, 3vw, 34px);
+            line-height: 1.2;
+            word-break: break-word;
+        }
+
+        .my-account-badge,
+        .my-soft-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(204, 231, 255, 0.36);
+            border-radius: 999px;
+            background: rgba(111, 139, 218, 0.22);
+            color: rgba(233, 242, 255, 0.82);
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .my-account-badge {
+            padding: 5px 10px;
+        }
+
+        .my-soft-badge {
+            padding: 6px 11px;
+        }
+
+        .my-muted,
+        .my-card-copy {
             margin: 0;
-            color: rgba(203, 229, 246, 0.76);
+            color: var(--text-soft);
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        .my-profile-note {
+            margin: 26px 0 0;
+            max-width: 310px;
+        }
+
+        .my-profile-meta {
+            display: grid;
+            gap: 11px;
+            margin: 34px 0;
+        }
+
+        .my-meta-row,
+        .my-record-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            min-height: 46px;
+            padding: 11px 14px;
+            border: 1px solid rgba(190, 224, 255, 0.2);
+            border-radius: 16px;
+            background: rgba(17, 37, 86, 0.34);
+        }
+
+        .my-meta-row span,
+        .my-record-row span,
+        .my-stat-label {
+            color: var(--text-muted);
             font-size: 13px;
-            line-height: 1.6;
+        }
+
+        .my-meta-row strong,
+        .my-record-row strong {
+            color: rgba(247, 252, 255, 0.94);
+            font-size: 14px;
+            text-align: right;
         }
 
         .my-actions {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
-            justify-content: center;
-        }
-
-        .my-button {
-            appearance: none;
-            -webkit-appearance: none;
-            display: inline-flex;
+            gap: 14px;
             align-items: center;
-            justify-content: center;
-            min-height: 42px;
-            padding: 10px 16px;
-            border: 1px solid rgba(174, 230, 255, 0.42);
-            border-radius: 999px;
-            background: linear-gradient(135deg, rgba(35, 95, 158, 0.62), rgba(55, 53, 124, 0.62));
-            color: rgba(243, 252, 255, 0.96);
-            font: inherit;
-            font-size: 14px;
-            font-weight: 800;
-            text-decoration: none;
-            cursor: pointer;
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.16), 0 0 16px rgba(96, 204, 255, 0.12);
         }
 
-        .my-button--primary {
-            border-color: rgba(196, 240, 255, 0.72);
-            background: linear-gradient(135deg, rgba(83, 202, 255, 0.88), rgba(174, 122, 255, 0.78));
-            box-shadow: 0 0 24px rgba(103, 213, 255, 0.28), inset 0 1px 0 rgba(255,255,255,0.28);
-        }
-
-        .my-button:disabled {
-            cursor: wait;
-            opacity: 0.68;
+        .my-profile-card .my-actions .my-button {
+            min-width: 160px;
         }
 
         .my-status {
             min-height: 22px;
-            color: rgba(164, 238, 255, 0.9);
+            margin-top: 14px;
+            color: rgba(174, 237, 255, 0.92);
             font-size: 13px;
             line-height: 1.55;
-            text-align: center;
         }
 
         .my-main {
             display: grid;
-            gap: 18px;
+            gap: 22px;
         }
 
-        .my-card-head {
+        .my-feature-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 22px;
+        }
+
+        .my-feature-card {
+            display: grid;
+            min-height: 232px;
+            padding: 30px 28px;
+            border-radius: 24px;
+            overflow: hidden;
+            color: inherit;
+            cursor: pointer;
+            text-align: left;
+        }
+
+        .my-feature-card > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .my-feature-top {
             display: flex;
             align-items: flex-start;
             justify-content: space-between;
-            gap: 14px;
-            margin-bottom: 14px;
+            gap: 16px;
+            margin-bottom: 22px;
         }
 
         .my-card-title {
             margin: 0;
             color: rgba(248, 253, 255, 0.98);
-            font-size: 22px;
+            font-size: clamp(22px, 2.1vw, 28px);
+            line-height: 1.25;
         }
 
-        .my-card-copy {
-            margin: 6px 0 0;
-            color: rgba(202, 229, 246, 0.78);
-            font-size: 13px;
-            line-height: 1.6;
+        .my-feature-icon,
+        .my-quick-icon,
+        .my-benefit-icon {
+            display: grid;
+            flex: 0 0 auto;
+            place-items: center;
+            border: 1px solid rgba(208, 232, 255, 0.34);
+            border-radius: 50%;
+            background: linear-gradient(145deg, rgba(120, 154, 242, 0.32), rgba(69, 82, 168, 0.38));
+            color: rgba(231, 240, 255, 0.92);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.22), 0 0 22px rgba(151, 128, 255, 0.2);
         }
 
-        .my-stats {
+        .my-feature-icon {
+            width: 54px;
+            height: 54px;
+            font-size: 26px;
+        }
+
+        .my-feature-label {
+            display: block;
+            margin-bottom: 10px;
+            color: rgba(222, 236, 255, 0.84);
+            font-size: 14px;
+        }
+
+        .my-feature-value {
+            display: block;
+            color: rgba(249, 253, 255, 0.98);
+            font-size: clamp(30px, 3.2vw, 42px);
+            font-weight: 900;
+            line-height: 1.1;
+            text-shadow: 0 0 20px rgba(166, 214, 255, 0.25);
+        }
+
+        .my-card-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: auto;
+            color: rgba(226, 239, 255, 0.86);
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        .my-card-link::after {
+            content: "›";
+            font-size: 20px;
+            line-height: 1;
+        }
+
+        .my-checkin-card .my-button,
+        .my-benefit-card .my-button {
+            width: min(220px, 100%);
+            margin-top: 18px;
+        }
+
+        .my-gift-visual {
+            position: relative;
+            display: grid;
+            place-items: center;
+            width: 90px;
+            height: 76px;
+            margin: 6px auto 10px;
+            font-size: 58px;
+            filter: drop-shadow(0 0 20px rgba(183, 143, 255, 0.42));
+        }
+
+        .my-lower-panel {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
+            min-height: 218px;
+            border-radius: 24px;
+            overflow: hidden;
+        }
+
+        .my-lower-section {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            align-content: start;
+            gap: 16px;
+            padding: 28px 30px;
+        }
+
+        .my-lower-section + .my-lower-section {
+            border-left: 1px solid rgba(198, 225, 255, 0.28);
+        }
+
+        .my-lower-title {
+            margin: 0;
+            font-size: 24px;
+            line-height: 1.25;
+        }
+
+        .my-record-list {
+            display: grid;
             gap: 10px;
         }
 
-        .my-stat {
-            min-width: 0;
-            padding: 14px;
-            border: 1px solid rgba(164, 223, 255, 0.24);
-            border-radius: 18px;
-            background: rgba(10, 32, 68, 0.35);
-        }
-
-        .my-stat span {
-            display: block;
-            margin-bottom: 6px;
-            color: rgba(190, 224, 244, 0.74);
-            font-size: 12px;
-        }
-
-        .my-stat strong {
-            color: rgba(247, 253, 255, 0.98);
-            font-size: 22px;
-        }
-
-        .my-checkin-state {
+        .my-quick-grid {
             display: grid;
-            gap: 12px;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .my-quick-link {
+            display: grid;
+            justify-items: center;
+            gap: 9px;
+            min-height: 92px;
+            padding: 8px 4px;
+            border: 0;
+            border-radius: 18px;
+            color: rgba(232, 242, 255, 0.86);
+            font: inherit;
+            font-size: 13px;
+            text-align: center;
+            text-decoration: none;
+            cursor: pointer;
+            background: transparent;
+            transition: transform 160ms ease, color 160ms ease, box-shadow 160ms ease;
+        }
+
+        .my-quick-icon {
+            width: 54px;
+            height: 54px;
+            font-size: 25px;
+        }
+
+        .my-benefit-card {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr);
+            gap: 16px;
+            align-items: center;
+        }
+
+        .my-benefit-icon {
+            width: 70px;
+            height: 70px;
+            font-size: 34px;
         }
 
         .my-alert {
             padding: 12px 14px;
-            border: 1px solid rgba(255, 222, 146, 0.28);
+            border: 1px solid rgba(255, 227, 165, 0.3);
             border-radius: 16px;
-            background: rgba(114, 79, 29, 0.16);
-            color: rgba(255, 237, 190, 0.9);
+            background: rgba(108, 78, 32, 0.14);
+            color: rgba(255, 237, 202, 0.92);
             font-size: 13px;
+            line-height: 1.65;
+        }
+
+        .my-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            display: grid;
+            place-items: center;
+            padding: 22px;
+            background: rgba(3, 10, 28, 0.56);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .my-modal[hidden] {
+            display: none !important;
+        }
+
+        .my-modal-panel {
+            width: min(560px, calc(100vw - 36px));
+            max-height: min(78vh, 620px);
+            display: grid;
+            grid-template-rows: auto minmax(0, 1fr) auto;
+            border-radius: 26px;
+            overflow: hidden;
+        }
+
+        .my-modal-head,
+        .my-modal-body,
+        .my-modal-actions {
+            position: relative;
+            z-index: 1;
+        }
+
+        .my-modal-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 18px;
+            padding: 24px 24px 14px;
+        }
+
+        .my-modal-title {
+            margin: 0;
+            font-size: 26px;
+        }
+
+        .my-modal-subtitle {
+            margin: 6px 0 0;
+            color: var(--text-soft);
+            font-size: 14px;
             line-height: 1.6;
         }
 
-        .my-logged-out {
-            max-width: 620px;
-            margin: 0 auto;
-            text-align: center;
+        .my-modal-close {
+            flex: 0 0 auto;
+            width: 42px;
+            height: 42px;
+            padding: 0;
+            border-radius: 50%;
         }
 
-        @media (max-width: 760px) {
+        .my-modal-body {
+            overflow: auto;
+            padding: 8px 24px 18px;
+        }
+
+        .my-modal-actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 0 24px 24px;
+        }
+
+        .my-modal-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .my-empty-state {
+            display: grid;
+            gap: 12px;
+            padding: 20px;
+            border: 1px dashed rgba(203, 231, 255, 0.36);
+            border-radius: 18px;
+            background: rgba(14, 34, 76, 0.32);
+            color: rgba(224, 238, 255, 0.86);
+            line-height: 1.7;
+        }
+
+        @media (max-width: 1180px) {
+            .my-page {
+                width: min(1120px, calc(100vw - 52px));
+            }
+
+            .my-shell {
+                grid-template-columns: minmax(330px, 390px) minmax(0, 1fr);
+                gap: 20px;
+            }
+
+            .my-feature-grid {
+                gap: 16px;
+            }
+
+            .my-feature-card {
+                padding: 24px 22px;
+            }
+        }
+
+        @media (max-width: 920px) {
             .my-page {
                 width: min(100%, calc(100vw - 28px));
-                padding: 36px 0 34px;
+                padding: 36px 0 42px;
+            }
+
+            .my-settings-pill {
+                position: static;
+                justify-self: center;
+                margin: 0 auto 16px;
+            }
+
+            .my-hero {
+                margin-bottom: 22px;
+            }
+
+            .my-title {
+                font-size: clamp(42px, 15vw, 62px);
             }
 
             .my-shell {
                 grid-template-columns: 1fr;
             }
 
-            .my-card {
-                padding: 16px;
-                border-radius: 22px;
+            .my-profile-card {
+                order: 1;
+                min-height: auto;
             }
 
-            .my-stats {
+            .my-main {
+                order: 2;
+            }
+
+            .my-feature-grid,
+            .my-lower-panel {
                 grid-template-columns: 1fr;
             }
 
-            .my-card-head {
-                display: grid;
+            .my-lower-section + .my-lower-section {
+                border-left: 0;
+                border-top: 1px solid rgba(198, 225, 255, 0.24);
             }
 
-            .my-button {
+            .my-feature-card {
+                min-height: 190px;
+            }
+        }
+
+        @media (max-width: 620px) {
+            body {
+                background:
+                    radial-gradient(circle at 13% 8%, rgba(226, 238, 255, 0.72) 0 2.1rem, rgba(155, 193, 255, 0.16) 2.2rem 4.8rem, transparent 5rem),
+                    radial-gradient(circle at 87% 14%, rgba(147, 105, 255, 0.18), transparent 12rem),
+                    linear-gradient(180deg, #071738 0%, #0b1c42 54%, #061833 100%);
+            }
+
+            .my-page {
+                padding-top: 26px;
+            }
+
+            .my-kicker {
+                padding: 7px 18px;
+                font-size: 12px;
+            }
+
+            .my-subtitle {
+                max-width: 320px;
+                font-size: 14px;
+            }
+
+            .my-logged-out,
+            .my-profile-card,
+            .my-feature-card,
+            .my-lower-section {
+                padding: 20px;
+            }
+
+            .my-profile-main {
+                display: grid;
+                justify-items: center;
+                gap: 16px;
+                text-align: center;
+            }
+
+            .my-avatar-frame {
+                width: 118px;
+                height: 118px;
+            }
+
+            .my-avatar-placeholder {
+                font-size: 46px;
+            }
+
+            .my-profile-note {
+                margin: 18px auto 0;
+                text-align: center;
+            }
+
+            .my-profile-meta {
+                margin: 22px 0;
+            }
+
+            .my-actions,
+            .my-modal-actions {
+                display: grid;
+                grid-template-columns: 1fr;
                 width: 100%;
+            }
+
+            .my-button,
+            .my-profile-card .my-actions .my-button {
+                width: 100%;
+                min-width: 0;
+            }
+
+            .my-feature-top {
+                margin-bottom: 14px;
+            }
+
+            .my-card-title,
+            .my-lower-title {
+                font-size: 22px;
+            }
+
+            .my-feature-value {
+                font-size: 34px;
+            }
+
+            .my-quick-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .my-benefit-card {
+                grid-template-columns: 1fr;
+                justify-items: start;
+            }
+
+            .my-modal {
+                padding: 14px;
+            }
+
+            .my-modal-panel {
+                width: calc(100vw - 28px);
+                max-height: 82vh;
+                border-radius: 22px;
+            }
+
+            .my-modal-head,
+            .my-modal-body,
+            .my-modal-actions {
+                padding-left: 18px;
+                padding-right: 18px;
             }
         }
     </style>
 </head>
 <body>
 <main class="my-page" aria-labelledby="my-title">
+    <button class="my-pill-button my-settings-pill" type="button" data-my-action="settings" aria-label="账号设置">⚙ 账号设置</button>
+
     <header class="my-hero">
         <span class="my-kicker">JUNXUE ACCOUNT</span>
         <h1 class="my-title" id="my-title">我的</h1>
@@ -318,7 +912,7 @@
     <section class="my-card my-logged-out" data-my-logged-out hidden>
         <h2 class="my-card-title">登录老板账号后，可以查看你的头像、昵称、积分和签到记录。</h2>
         <p class="my-card-copy">登录后这里会同步你的老板资料，也可以上传云端头像。</p>
-        <div class="my-actions" style="margin-top:16px">
+        <div class="my-actions" style="margin-top:18px">
             <a class="my-button my-button--primary" href="index.html?bossLogin=1&redirect=my.html">登录老板账号</a>
             <a class="my-button" href="boss-register.html">注册老板账号</a>
             <a class="my-button" href="index.html">返回首页</a>
@@ -327,60 +921,149 @@
 
     <section class="my-shell" data-my-app hidden>
         <aside class="my-card my-profile-card">
-            <div class="my-avatar-frame" aria-label="老板头像">
-                <img data-my-avatar-img alt="老板头像" hidden>
-                <div class="my-avatar-placeholder" data-my-avatar-placeholder aria-hidden="true">雪</div>
-            </div>
             <div>
-                <h2 class="my-profile-name" data-my-display-name>老板：已登录</h2>
-                <p class="my-muted">头像会保存到云端，换设备登录后也能看到。</p>
+                <div class="my-profile-main">
+                    <div class="my-avatar-frame" aria-label="老板头像">
+                        <img data-my-avatar-img alt="老板头像" hidden>
+                        <div class="my-avatar-placeholder" data-my-avatar-placeholder aria-hidden="true">雪</div>
+                    </div>
+                    <div class="my-profile-info">
+                        <h2 class="my-profile-name" data-my-display-name>老板：已登录</h2>
+                        <span class="my-account-badge">老板账号</span>
+                        <p class="my-muted my-profile-note">头像会保存到云端，换设备登录后也能看到。</p>
+                    </div>
+                </div>
+
+                <div class="my-profile-meta" aria-label="账号资料">
+                    <div class="my-meta-row">
+                        <span>账号类型</span>
+                        <strong data-my-account-type>老板账号</strong>
+                    </div>
+                    <div class="my-meta-row">
+                        <span>注册时间</span>
+                        <strong data-my-registered-at>--</strong>
+                    </div>
+                </div>
             </div>
-            <input data-my-avatar-input type="file" accept="image/jpeg,image/png,image/webp" hidden>
-            <div class="my-actions">
-                <button class="my-button my-button--primary" type="button" data-my-avatar-button>添加 / 修改头像</button>
-                <a class="my-button" href="index.html">返回首页</a>
+
+            <div>
+                <input data-my-avatar-input type="file" accept="image/jpeg,image/png,image/webp" hidden>
+                <div class="my-actions">
+                    <button class="my-button my-button--primary" type="button" data-my-avatar-button>添加 / 修改头像</button>
+                    <a class="my-button" href="index.html">返回首页</a>
+                </div>
+                <div class="my-status" data-my-avatar-status aria-live="polite"></div>
             </div>
-            <div class="my-status" data-my-avatar-status aria-live="polite"></div>
         </aside>
 
         <div class="my-main">
-            <section class="my-card" aria-labelledby="my-points-title">
-                <div class="my-card-head">
-                    <div>
+            <div class="my-feature-grid" aria-label="核心功能">
+                <section class="my-feature-card" tabindex="0" role="button" data-my-action="points" aria-labelledby="my-points-title">
+                    <div class="my-feature-top">
                         <h2 class="my-card-title" id="my-points-title">个人积分</h2>
-                        <p class="my-card-copy">积分来自星湖签到，规则沿用现有签到系统。</p>
+                        <span class="my-feature-icon" aria-hidden="true">★</span>
                     </div>
-                    <button class="my-button" type="button" data-my-refresh>刷新状态</button>
-                </div>
-                <div class="my-stats">
-                    <div class="my-stat"><span>当前积分</span><strong data-my-points>--</strong></div>
-                    <div class="my-stat"><span>总签到</span><strong data-my-total-checkins>--</strong></div>
-                    <div class="my-stat"><span>连续签到</span><strong data-my-current-streak>--</strong></div>
-                </div>
-            </section>
+                    <span class="my-feature-label">当前积分</span>
+                    <strong class="my-feature-value" data-my-points>--</strong>
+                    <span class="my-card-link">点击查看积分明细</span>
+                </section>
 
-            <section class="my-card" aria-labelledby="my-checkin-title">
-                <div class="my-card-head">
-                    <div>
+                <section class="my-feature-card my-checkin-card" tabindex="0" role="button" data-my-action="checkin" aria-labelledby="my-checkin-title">
+                    <div class="my-feature-top">
                         <h2 class="my-card-title" id="my-checkin-title">星湖签到</h2>
-                        <p class="my-card-copy">每天来见甘雨一次，积一点温柔的小积分。</p>
+                        <span class="my-feature-icon" aria-hidden="true">☑</span>
                     </div>
+                    <span class="my-feature-label">今日状态</span>
+                    <strong class="my-feature-value" data-my-today-status>--</strong>
                     <button class="my-button my-button--primary" type="button" data-my-checkin-button>立即签到</button>
+                </section>
+
+                <section class="my-feature-card" tabindex="0" role="button" data-my-action="exchange" data-my-exchange-card aria-labelledby="my-exchange-title">
+                    <div class="my-feature-top">
+                        <h2 class="my-card-title" id="my-exchange-title">积分兑换</h2>
+                        <span class="my-feature-icon" aria-hidden="true">🎁</span>
+                    </div>
+                    <span class="my-feature-label">兑换礼物 / 小权益</span>
+                    <span class="my-gift-visual" aria-hidden="true">🎁</span>
+                    <span class="my-card-link">点击查看可兑换内容</span>
+                </section>
+            </div>
+
+            <section class="my-lower-panel" aria-label="账号概览">
+                <div class="my-lower-section">
+                    <h2 class="my-lower-title">最近记录</h2>
+                    <div class="my-record-list">
+                        <div class="my-record-row">
+                            <span>连续签到</span>
+                            <strong data-my-current-streak>--</strong>
+                        </div>
+                        <div class="my-record-row">
+                            <span>本月签到</span>
+                            <strong data-my-monthly-checkins>--</strong>
+                        </div>
+                        <div class="my-record-row">
+                            <span>总签到</span>
+                            <strong data-my-total-checkins>--</strong>
+                        </div>
+                    </div>
+                    <button class="my-pill-button" type="button" data-my-action="checkin">查看全部记录</button>
                 </div>
-                <div class="my-checkin-state">
-                    <div class="my-stats">
-                        <div class="my-stat"><span>本月累计签到</span><strong data-my-monthly-checkins>--</strong></div>
-                        <div class="my-stat"><span>今日状态</span><strong data-my-today-status>--</strong></div>
-                        <div class="my-stat"><span>今日日期</span><strong data-my-today-date>--</strong></div>
+
+                <div class="my-lower-section">
+                    <h2 class="my-lower-title">快捷入口</h2>
+                    <div class="my-quick-grid" aria-label="快捷入口">
+                        <a class="my-quick-link" href="boss-reviews.html">
+                            <span class="my-quick-icon" aria-hidden="true">☆</span>
+                            <span>我的评价</span>
+                        </a>
+                        <button class="my-quick-link" type="button" data-my-action="checkin">
+                            <span class="my-quick-icon" aria-hidden="true">☑</span>
+                            <span>签到记录</span>
+                        </button>
+                        <button class="my-quick-link" type="button" data-my-action="exchange">
+                            <span class="my-quick-icon" aria-hidden="true">🎁</span>
+                            <span>积分兑换</span>
+                        </button>
+                        <button class="my-quick-link" type="button" data-my-action="settings">
+                            <span class="my-quick-icon" aria-hidden="true">⚙</span>
+                            <span>账号设置</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="my-lower-section">
+                    <h2 class="my-lower-title">专属福利</h2>
+                    <div class="my-benefit-card">
+                        <span class="my-benefit-icon" aria-hidden="true">◆</span>
+                        <div>
+                            <span class="my-soft-badge" data-my-today-status-copy>今日状态读取中</span>
+                            <p class="my-muted" style="margin-top:10px">签到可获得 <strong data-my-reward-points>--</strong> 积分</p>
+                            <button class="my-button my-button--primary" type="button" data-my-benefit-checkin>确认签到</button>
+                        </div>
                     </div>
                     <div class="my-alert" data-my-checkin-message>正在读取签到状态...</div>
+                    <strong class="my-stat-label">今日日期：<span data-my-today-date>--</span></strong>
                 </div>
             </section>
         </div>
     </section>
 </main>
 
+<div class="my-modal" data-my-modal hidden>
+    <section class="my-modal-panel" role="dialog" aria-modal="true" aria-labelledby="my-modal-title" aria-describedby="my-modal-subtitle">
+        <header class="my-modal-head">
+            <div>
+                <h2 class="my-modal-title" id="my-modal-title" data-my-modal-title>星湖签到</h2>
+                <p class="my-modal-subtitle" id="my-modal-subtitle" data-my-modal-subtitle>查看当前状态。</p>
+            </div>
+            <button class="my-button my-modal-close" type="button" data-my-modal-close aria-label="关闭">×</button>
+        </header>
+        <div class="my-modal-body" data-my-modal-body></div>
+        <footer class="my-modal-actions" data-my-modal-actions></footer>
+    </section>
+</div>
+
 <script src="assets/supabase-client.js?v=20260627-home-performance1"></script>
-<script src="assets/my.js?v=20260701-my-page-mvp1"></script>
+<script src="assets/my.js?v=20260701-my-page-reference-polish1"></script>
 </body>
 </html>

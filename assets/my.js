@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    const VERSION = "20260701-my-page-mvp1";
+    const VERSION = "20260701-my-page-reference-polish1";
     const AVATAR_BUCKET = "boss-avatars";
     const MAX_AVATAR_BYTES = 1024 * 1024;
     const AVATAR_SIZE = 512;
@@ -18,17 +18,27 @@
         profile: null,
         avatarPath: "",
         checkinStatus: null,
-        loadingToken: 0
+        loadingToken: 0,
+        checkinInFlight: false,
+        checkinUnavailable: false,
+        activeModal: "",
+        lastModalTrigger: null
     };
 
     function $(selector) {
         return document.querySelector(selector);
     }
 
+    function $$(selector) {
+        return Array.prototype.slice.call(document.querySelectorAll(selector));
+    }
+
     const nodes = {
         loggedOut: $("[data-my-logged-out]"),
         app: $("[data-my-app]"),
         displayName: $("[data-my-display-name]"),
+        accountType: $("[data-my-account-type]"),
+        registeredAt: $("[data-my-registered-at]"),
         avatarImg: $("[data-my-avatar-img]"),
         avatarPlaceholder: $("[data-my-avatar-placeholder]"),
         avatarInput: $("[data-my-avatar-input]"),
@@ -36,13 +46,23 @@
         avatarStatus: $("[data-my-avatar-status]"),
         refreshButton: $("[data-my-refresh]"),
         checkinButton: $("[data-my-checkin-button]"),
+        benefitCheckinButton: $("[data-my-benefit-checkin]"),
         points: $("[data-my-points]"),
         totalCheckins: $("[data-my-total-checkins]"),
         currentStreak: $("[data-my-current-streak]"),
         monthlyCheckins: $("[data-my-monthly-checkins]"),
         todayStatus: $("[data-my-today-status]"),
+        todayStatusCopy: $("[data-my-today-status-copy]"),
         todayDate: $("[data-my-today-date]"),
-        checkinMessage: $("[data-my-checkin-message]")
+        rewardPoints: $("[data-my-reward-points]"),
+        checkinMessage: $("[data-my-checkin-message]"),
+        actionNodes: $$("[data-my-action]"),
+        modal: $("[data-my-modal]"),
+        modalTitle: $("[data-my-modal-title]"),
+        modalSubtitle: $("[data-my-modal-subtitle]"),
+        modalBody: $("[data-my-modal-body]"),
+        modalActions: $("[data-my-modal-actions]"),
+        modalClose: $("[data-my-modal-close]")
     };
 
     function onReady(callback) {
@@ -87,6 +107,35 @@
         if (label) {
             button.textContent = label;
         }
+    }
+
+    function escapeHtml(value) {
+        return String(value == null ? "" : value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+    }
+
+    function formatDate(value) {
+        if (!value) {
+            return "--";
+        }
+
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) {
+            return "--";
+        }
+
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return year + "-" + month + "-" + day;
+    }
+
+    function isSigned(status) {
+        return !!(status && (status.signedToday || status.alreadySigned));
     }
 
     function getErrorMessage(error) {
@@ -188,6 +237,8 @@
     function renderProfile(profile) {
         const displayName = safeTrim(profile && profile.display_name);
         setText(nodes.displayName, displayName ? "老板：" + displayName : "老板：已登录");
+        setText(nodes.accountType, "老板账号");
+        setText(nodes.registeredAt, state.session && state.session.user ? formatDate(state.session.user.created_at) : "--");
     }
 
     function renderEmptyAvatar() {
@@ -266,20 +317,31 @@
 
     function renderCheckinStatus(status, message) {
         state.checkinStatus = status || null;
+        const signed = isSigned(status);
+        const todayText = status ? (signed ? "今日已签到" : "今日未签到") : "--";
+        const rewardText = status && status.rewardPoints ? String(status.rewardPoints) : "--";
 
         setText(nodes.points, status ? String(status.totalPoints) : "--");
         setText(nodes.totalCheckins, status ? String(status.totalCheckins) + " 天" : "--");
         setText(nodes.currentStreak, status ? String(status.currentStreak) + " 天" : "--");
         setText(nodes.monthlyCheckins, status ? String(status.monthlyCheckins) + " 天" : "--");
-        setText(nodes.todayStatus, status ? (status.signedToday || status.alreadySigned ? "今日已签到" : "今日未签到") : "--");
+        setText(nodes.todayStatus, todayText);
+        setText(nodes.todayStatusCopy, todayText);
         setText(nodes.todayDate, status && status.todayDate ? String(status.todayDate).slice(0, 10) : "--");
+        setText(nodes.rewardPoints, rewardText);
 
         if (nodes.checkinButton) {
-            nodes.checkinButton.disabled = !!(status && (status.signedToday || status.alreadySigned));
-            nodes.checkinButton.textContent = status && (status.signedToday || status.alreadySigned) ? "今日已签到" : "立即签到";
+            nodes.checkinButton.disabled = !!signed;
+            nodes.checkinButton.textContent = signed ? "今日已签到" : "立即签到";
         }
 
-        setCheckinMessage(message || (status && (status.signedToday || status.alreadySigned) ? "今日已完成签到。" : "今日还可以签到。"));
+        if (nodes.benefitCheckinButton) {
+            nodes.benefitCheckinButton.disabled = !!signed;
+            nodes.benefitCheckinButton.textContent = signed ? "今日已签到" : "确认签到";
+        }
+
+        setCheckinMessage(message || (signed ? "今日已完成签到。" : "今日还可以签到。"));
+        updateOpenModal();
     }
 
     async function loadCheckinStatus(message) {
@@ -290,9 +352,11 @@
                 throw response.error;
             }
 
+            state.checkinUnavailable = false;
             renderCheckinStatus(normalizeCheckinRow(response.data), message);
         } catch (error) {
             if (isCheckinSetupError(error)) {
+                state.checkinUnavailable = true;
                 renderCheckinStatus(null, "签到功能还需要执行数据库升级 SQL。");
                 setText(nodes.points, "积分暂未开启");
                 setText(nodes.totalCheckins, "--");
@@ -302,10 +366,25 @@
                     nodes.checkinButton.disabled = true;
                     nodes.checkinButton.textContent = "暂未开启";
                 }
+                if (nodes.benefitCheckinButton) {
+                    nodes.benefitCheckinButton.disabled = true;
+                    nodes.benefitCheckinButton.textContent = "暂未开启";
+                }
+                updateOpenModal();
                 return;
             }
 
             renderCheckinStatus(null, "签到状态暂时读取失败，请稍后再试。");
+        }
+    }
+
+    function setCheckinButtonsBusy(busy, label) {
+        setBusy(nodes.checkinButton, busy, label);
+        setBusy(nodes.benefitCheckinButton, busy, label);
+
+        const modalCheckinButton = $("[data-my-modal-checkin]");
+        if (modalCheckinButton) {
+            setBusy(modalCheckinButton, busy, label);
         }
     }
 
@@ -314,7 +393,13 @@
             return;
         }
 
-        setBusy(nodes.checkinButton, true, "签到中...");
+        if (state.checkinInFlight) {
+            return;
+        }
+
+        state.checkinInFlight = true;
+        setCheckinButtonsBusy(true, "签到中...");
+        let setupFailed = false;
 
         try {
             const response = await state.client.rpc("claim_boss_daily_checkin", {});
@@ -327,16 +412,175 @@
             renderCheckinStatus(status, status.message || (status.alreadySigned ? "今天已经签到过啦。" : "签到成功。"));
         } catch (error) {
             if (isCheckinSetupError(error)) {
+                setupFailed = true;
+                state.checkinUnavailable = true;
                 renderCheckinStatus(null, "签到功能还需要执行数据库升级 SQL。");
+                if (nodes.checkinButton) {
+                    nodes.checkinButton.disabled = true;
+                    nodes.checkinButton.textContent = "暂未开启";
+                }
+                if (nodes.benefitCheckinButton) {
+                    nodes.benefitCheckinButton.disabled = true;
+                    nodes.benefitCheckinButton.textContent = "暂未开启";
+                }
+                updateOpenModal();
                 return;
             }
 
             setCheckinMessage("签到暂时失败，请稍后再试。");
+            updateOpenModal();
         } finally {
-            if (nodes.checkinButton && !(state.checkinStatus && (state.checkinStatus.signedToday || state.checkinStatus.alreadySigned))) {
-                setBusy(nodes.checkinButton, false, "立即签到");
+            state.checkinInFlight = false;
+            if (!setupFailed && !(state.checkinStatus && (state.checkinStatus.signedToday || state.checkinStatus.alreadySigned))) {
+                setCheckinButtonsBusy(false, "立即签到");
             }
         }
+    }
+
+    function renderRows(rows) {
+        return rows.map(function (row) {
+            return "<div class=\"my-meta-row\"><span>" + escapeHtml(row.label) + "</span><strong>" + escapeHtml(row.value) + "</strong></div>";
+        }).join("");
+    }
+
+    function setModalContent(title, subtitle, body, actions) {
+        setText(nodes.modalTitle, title);
+        setText(nodes.modalSubtitle, subtitle);
+        if (nodes.modalBody) {
+            nodes.modalBody.innerHTML = body || "";
+        }
+        if (nodes.modalActions) {
+            nodes.modalActions.innerHTML = actions || "<button class=\"my-button\" type=\"button\" data-my-modal-close>关闭</button>";
+        }
+    }
+
+    function getStatusRows() {
+        const status = state.checkinStatus;
+        const signed = isSigned(status);
+
+        return [
+            { label: "当前积分", value: status ? String(status.totalPoints) : "--" },
+            { label: "总签到", value: status ? String(status.totalCheckins) + " 天" : "--" },
+            { label: "连续签到", value: status ? String(status.currentStreak) + " 天" : "--" },
+            { label: "本月签到", value: status ? String(status.monthlyCheckins) + " 天" : "--" },
+            { label: "今日状态", value: status ? (signed ? "今日已签到" : "今日未签到") : "--" },
+            { label: "签到奖励", value: status && status.rewardPoints ? String(status.rewardPoints) + " 积分" : "--" }
+        ];
+    }
+
+    function renderPointsModal() {
+        setModalContent(
+            "个人积分",
+            "这里展示星湖签到带来的积分概览，明细系统后续可以继续接入。",
+            "<div class=\"my-modal-grid\">" +
+                renderRows(getStatusRows().slice(0, 4)) +
+                "<div class=\"my-empty-state\">积分明细列表正在准备中。当前页面会先同步你的真实积分、签到次数和连续签到状态。</div>" +
+            "</div>",
+            "<button class=\"my-button\" type=\"button\" data-my-modal-refresh>刷新状态</button><button class=\"my-button my-button--primary\" type=\"button\" data-my-modal-close>知道了</button>"
+        );
+    }
+
+    function renderCheckinModal() {
+        const status = state.checkinStatus;
+        const signed = isSigned(status);
+        const disabled = signed || state.checkinInFlight || state.checkinUnavailable ? " disabled" : "";
+        const buttonLabel = state.checkinUnavailable ? "暂未开启" : (state.checkinInFlight ? "签到中..." : (signed ? "今日已签到" : "立即签到"));
+        const message = nodes.checkinMessage ? nodes.checkinMessage.textContent : "";
+
+        setModalContent(
+            "星湖签到",
+            "每天来星湖报到一次，积一点温柔的小积分。",
+            "<div class=\"my-modal-grid\">" +
+                renderRows(getStatusRows()) +
+                "<div class=\"my-alert\">" + escapeHtml(message || (signed ? "今日已完成签到。" : "今日还可以签到。")) + "</div>" +
+            "</div>",
+            "<button class=\"my-button\" type=\"button\" data-my-modal-refresh>刷新状态</button><button class=\"my-button my-button--primary\" type=\"button\" data-my-modal-checkin" + disabled + ">" + escapeHtml(buttonLabel) + "</button>"
+        );
+    }
+
+    function renderExchangeModal() {
+        const points = state.checkinStatus ? String(state.checkinStatus.totalPoints) : "--";
+
+        setModalContent(
+            "积分兑换",
+            "兑换礼物 / 小权益的入口已经预留，后续可以继续接入兑换列表。",
+            "<div class=\"my-modal-grid\" data-my-exchange-panel>" +
+                renderRows([{ label: "当前积分", value: points }, { label: "可兑换内容", value: "准备中" }]) +
+                "<div class=\"my-empty-state\" data-my-exchange-empty>兑换内容正在准备中。这里会保留后续接入兑换列表、权益说明和兑换按钮的位置。</div>" +
+            "</div>",
+            "<button class=\"my-button my-button--primary\" type=\"button\" data-my-modal-close>知道了</button>"
+        );
+    }
+
+    function renderSettingsModal() {
+        const displayName = nodes.displayName ? nodes.displayName.textContent : "老板：已登录";
+
+        setModalContent(
+            "账号设置",
+            "账号设置入口已预留，当前可先维护云端头像并查看账号基础信息。",
+            "<div class=\"my-modal-grid\">" +
+                renderRows([
+                    { label: "当前账号", value: displayName.replace(/^老板：/, "") || "已登录" },
+                    { label: "账号类型", value: "老板账号" },
+                    { label: "注册时间", value: nodes.registeredAt ? nodes.registeredAt.textContent : "--" }
+                ]) +
+                "<div class=\"my-empty-state\">更多账号设置正在准备中。头像修改仍使用当前页面的云端头像上传功能。</div>" +
+            "</div>",
+            "<button class=\"my-button\" type=\"button\" data-my-modal-avatar>添加 / 修改头像</button><button class=\"my-button my-button--primary\" type=\"button\" data-my-modal-close>关闭</button>"
+        );
+    }
+
+    function updateOpenModal() {
+        if (!state.activeModal || !nodes.modal || nodes.modal.hidden) {
+            return;
+        }
+
+        if (state.activeModal === "points") {
+            renderPointsModal();
+            return;
+        }
+        if (state.activeModal === "checkin") {
+            renderCheckinModal();
+            return;
+        }
+        if (state.activeModal === "exchange") {
+            renderExchangeModal();
+            return;
+        }
+        if (state.activeModal === "settings") {
+            renderSettingsModal();
+        }
+    }
+
+    function openModal(type, trigger) {
+        if (!nodes.modal) {
+            return;
+        }
+
+        state.activeModal = type;
+        state.lastModalTrigger = trigger || document.activeElement;
+        nodes.modal.hidden = false;
+        updateOpenModal();
+        document.body.classList.add("is-my-modal-open");
+
+        if (nodes.modalClose) {
+            nodes.modalClose.focus({ preventScroll: true });
+        }
+    }
+
+    function closeModal() {
+        if (!nodes.modal) {
+            return;
+        }
+
+        nodes.modal.hidden = true;
+        document.body.classList.remove("is-my-modal-open");
+        state.activeModal = "";
+
+        if (state.lastModalTrigger && typeof state.lastModalTrigger.focus === "function") {
+            state.lastModalTrigger.focus({ preventScroll: true });
+        }
+        state.lastModalTrigger = null;
     }
 
     function validateAvatarFile(file) {
@@ -526,6 +770,13 @@
     }
 
     onReady(function () {
+        if (nodes.avatarImg) {
+            nodes.avatarImg.addEventListener("error", function () {
+                renderEmptyAvatar();
+                setAvatarStatus("头像暂时读取失败，已显示默认头像。");
+            });
+        }
+
         if (nodes.avatarButton && nodes.avatarInput) {
             nodes.avatarButton.addEventListener("click", function () {
                 nodes.avatarInput.click();
@@ -544,6 +795,69 @@
         if (nodes.checkinButton) {
             nodes.checkinButton.addEventListener("click", claimCheckin);
         }
+
+        if (nodes.benefitCheckinButton) {
+            nodes.benefitCheckinButton.addEventListener("click", claimCheckin);
+        }
+
+        nodes.actionNodes.forEach(function (node) {
+            node.addEventListener("click", function (event) {
+                const interactive = event.target.closest("a,button,input,select,textarea,label");
+                const action = node.getAttribute("data-my-action");
+
+                if (interactive && interactive !== node) {
+                    return;
+                }
+
+                if (!action) {
+                    return;
+                }
+
+                event.preventDefault();
+                openModal(action, node);
+            });
+
+            node.addEventListener("keydown", function (event) {
+                if (event.key !== "Enter" && event.key !== " ") {
+                    return;
+                }
+
+                event.preventDefault();
+                openModal(node.getAttribute("data-my-action"), node);
+            });
+        });
+
+        if (nodes.modal) {
+            nodes.modal.addEventListener("click", function (event) {
+                if (event.target === nodes.modal || event.target.closest("[data-my-modal-close]")) {
+                    closeModal();
+                    return;
+                }
+
+                if (event.target.closest("[data-my-modal-refresh]")) {
+                    refreshAll("状态已刷新。");
+                    return;
+                }
+
+                if (event.target.closest("[data-my-modal-checkin]")) {
+                    claimCheckin();
+                    return;
+                }
+
+                if (event.target.closest("[data-my-modal-avatar]")) {
+                    closeModal();
+                    if (nodes.avatarInput) {
+                        nodes.avatarInput.click();
+                    }
+                }
+            });
+        }
+
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape" && nodes.modal && !nodes.modal.hidden) {
+                closeModal();
+            }
+        });
 
         init();
     });

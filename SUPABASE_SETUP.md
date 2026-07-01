@@ -1947,3 +1947,105 @@ grant execute on function public.admin_set_boss_blocked(uuid, boolean, text) to 
 grant execute on function public.admin_set_live_interaction_admin(uuid, boolean) to authenticated;
 grant execute on function public.claim_boss_daily_checkin() to authenticated;
 ```
+
+## 14. “我的”页面老板头像 Storage 升级 SQL
+
+Run this SQL manually in Supabase SQL Editor to enable cloud avatars for `my.html`.
+
+The frontend still uses only the publishable / anon key. Do not use a service role key in frontend code.
+
+This upgrade:
+
+- Creates a private Supabase Storage bucket named `boss-avatars`.
+- Adds `avatar_path` and `avatar_updated_at` to `public.boss_profiles`.
+- Allows each authenticated user to read, upload, update, and delete only avatar objects owned by their own auth session.
+- Keeps avatar display cross-device by storing the object path in `boss_profiles.avatar_path`.
+
+```sql
+insert into storage.buckets (
+  id,
+  name,
+  public,
+  file_size_limit,
+  allowed_mime_types
+)
+values (
+  'boss-avatars',
+  'boss-avatars',
+  false,
+  1048576,
+  array['image/jpeg', 'image/png', 'image/webp']
+)
+on conflict (id) do update
+set
+  public = excluded.public,
+  file_size_limit = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
+
+alter table public.boss_profiles
+  add column if not exists avatar_path text;
+
+alter table public.boss_profiles
+  add column if not exists avatar_updated_at timestamptz;
+
+drop policy if exists "Boss avatars can select own objects" on storage.objects;
+create policy "Boss avatars can select own objects"
+on storage.objects
+for select
+to authenticated
+using (
+  bucket_id = 'boss-avatars'
+  and owner_id = auth.uid()::text
+);
+
+drop policy if exists "Boss avatars can insert own objects" on storage.objects;
+create policy "Boss avatars can insert own objects"
+on storage.objects
+for insert
+to authenticated
+with check (
+  bucket_id = 'boss-avatars'
+  and owner_id = auth.uid()::text
+  and storage.extension(name) in ('jpg', 'jpeg', 'png', 'webp')
+);
+
+drop policy if exists "Boss avatars can update own objects" on storage.objects;
+create policy "Boss avatars can update own objects"
+on storage.objects
+for update
+to authenticated
+using (
+  bucket_id = 'boss-avatars'
+  and owner_id = auth.uid()::text
+)
+with check (
+  bucket_id = 'boss-avatars'
+  and owner_id = auth.uid()::text
+  and storage.extension(name) in ('jpg', 'jpeg', 'png', 'webp')
+);
+
+drop policy if exists "Boss avatars can delete own objects" on storage.objects;
+create policy "Boss avatars can delete own objects"
+on storage.objects
+for delete
+to authenticated
+using (
+  bucket_id = 'boss-avatars'
+  and owner_id = auth.uid()::text
+);
+```
+
+If you prefer the Supabase Dashboard:
+
+1. Go to **Storage -> New bucket**.
+2. Bucket name: `boss-avatars`.
+3. Keep it private, not public.
+4. Set file size limit to `1 MB`.
+5. Allow MIME types: `image/jpeg`, `image/png`, `image/webp`.
+6. Then run the `boss_profiles` column SQL and the `storage.objects` policies above.
+
+If this SQL is not executed yet, `my.html` will show:
+
+```text
+头像上传功能还需要完成云端配置。
+```

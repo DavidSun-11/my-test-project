@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的 - 君雪</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <script src="assets/performance-mode.js?v=20260613-2"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            font-family: Arial, "Microsoft YaHei", sans-serif;
+            color: #f5fbff;
+            background:
+                radial-gradient(circle at 16% 12%, rgba(112, 208, 255, 0.22), transparent 30%),
+                radial-gradient(circle at 86% 18%, rgba(180, 130, 255, 0.18), transparent 32%),
+                radial-gradient(ellipse at 50% 100%, rgba(75, 142, 220, 0.2), transparent 44%),
+                linear-gradient(145deg, #020713 0%, #07152b 48%, #0a1d38 100%);
+            overflow-x: hidden;
+        }
+
+        body::before,
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+        }
+
+        body::before {
+            z-index: -2;
+            background-image:
+                radial-gradient(circle at 28px 42px, rgba(255,255,255,0.48) 0 1px, transparent 1.8px),
+                radial-gradient(circle at 144px 118px, rgba(166,214,255,0.34) 0 0.9px, transparent 1.7px),
+                radial-gradient(circle at 260px 72px, rgba(255,255,255,0.28) 0 0.8px, transparent 1.6px);
+            background-size: 320px 220px;
+            opacity: 0.72;
+        }
+
+        body::after {
+            z-index: -1;
+            background:
+                linear-gradient(115deg, transparent 6%, rgba(112, 210, 255, 0.1) 36%, rgba(184, 142, 255, 0.08) 52%, transparent 74%);
+        }
+
+        .my-page {
+            width: min(1040px, calc(100vw - 32px));
+            margin: 0 auto;
+            padding: 56px 0 48px;
+        }
+
+        .my-hero {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 22px;
+            text-align: center;
+        }
+
+        .my-kicker {
+            justify-self: center;
+            padding: 5px 13px;
+            border: 1px solid rgba(164, 226, 255, 0.34);
+            border-radius: 999px;
+            background: rgba(79, 183, 255, 0.1);
+            color: rgba(194, 232, 255, 0.82);
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .my-title {
+            margin: 0;
+            color: #f6fdff;
+            font-size: clamp(32px, 6vw, 56px);
+            line-height: 1.1;
+            text-shadow: 0 0 28px rgba(124, 220, 255, 0.28);
+        }
+
+        .my-subtitle {
+            margin: 0;
+            color: rgba(218, 239, 255, 0.78);
+            font-size: 15px;
+            line-height: 1.7;
+        }
+
+        .my-shell {
+            display: grid;
+            grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+            gap: 18px;
+            align-items: start;
+        }
+
+        .my-card {
+            position: relative;
+            min-width: 0;
+            padding: 20px;
+            border: 1px solid rgba(168, 226, 255, 0.28);
+            border-radius: 24px;
+            background:
+                radial-gradient(circle at 12% 8%, rgba(154, 232, 255, 0.16), transparent 34%),
+                linear-gradient(145deg, rgba(13, 38, 78, 0.72), rgba(20, 27, 62, 0.72));
+            box-shadow: 0 18px 48px rgba(0, 8, 30, 0.34), inset 0 1px 0 rgba(255,255,255,0.12);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+
+        .my-profile-card {
+            display: grid;
+            gap: 16px;
+            justify-items: center;
+            text-align: center;
+        }
+
+        .my-avatar-frame {
+            position: relative;
+            width: 136px;
+            height: 136px;
+            padding: 5px;
+            border: 1px solid rgba(190, 236, 255, 0.64);
+            border-radius: 50%;
+            background: linear-gradient(145deg, rgba(115, 214, 255, 0.3), rgba(181, 130, 255, 0.28));
+            box-shadow: 0 0 24px rgba(111, 214, 255, 0.28), inset 0 0 16px rgba(255,255,255,0.14);
+        }
+
+        .my-avatar-frame img,
+        .my-avatar-placeholder {
+            display: grid;
+            width: 100%;
+            height: 100%;
+            place-items: center;
+            border-radius: 50%;
+            object-fit: cover;
+            background: radial-gradient(circle at 40% 28%, rgba(255,255,255,0.22), transparent 28%), rgba(7, 26, 62, 0.86);
+            color: rgba(229, 247, 255, 0.74);
+            font-size: 42px;
+            font-weight: 900;
+        }
+
+        .my-avatar-frame img[hidden],
+        .my-avatar-placeholder[hidden],
+        [hidden] {
+            display: none !important;
+        }
+
+        .my-profile-name {
+            margin: 0;
+            color: rgba(247, 253, 255, 0.98);
+            font-size: 24px;
+        }
+
+        .my-muted {
+            margin: 0;
+            color: rgba(203, 229, 246, 0.76);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .my-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .my-button {
+            appearance: none;
+            -webkit-appearance: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 42px;
+            padding: 10px 16px;
+            border: 1px solid rgba(174, 230, 255, 0.42);
+            border-radius: 999px;
+            background: linear-gradient(135deg, rgba(35, 95, 158, 0.62), rgba(55, 53, 124, 0.62));
+            color: rgba(243, 252, 255, 0.96);
+            font: inherit;
+            font-size: 14px;
+            font-weight: 800;
+            text-decoration: none;
+            cursor: pointer;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.16), 0 0 16px rgba(96, 204, 255, 0.12);
+        }
+
+        .my-button--primary {
+            border-color: rgba(196, 240, 255, 0.72);
+            background: linear-gradient(135deg, rgba(83, 202, 255, 0.88), rgba(174, 122, 255, 0.78));
+            box-shadow: 0 0 24px rgba(103, 213, 255, 0.28), inset 0 1px 0 rgba(255,255,255,0.28);
+        }
+
+        .my-button:disabled {
+            cursor: wait;
+            opacity: 0.68;
+        }
+
+        .my-status {
+            min-height: 22px;
+            color: rgba(164, 238, 255, 0.9);
+            font-size: 13px;
+            line-height: 1.55;
+            text-align: center;
+        }
+
+        .my-main {
+            display: grid;
+            gap: 18px;
+        }
+
+        .my-card-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+
+        .my-card-title {
+            margin: 0;
+            color: rgba(248, 253, 255, 0.98);
+            font-size: 22px;
+        }
+
+        .my-card-copy {
+            margin: 6px 0 0;
+            color: rgba(202, 229, 246, 0.78);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .my-stats {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .my-stat {
+            min-width: 0;
+            padding: 14px;
+            border: 1px solid rgba(164, 223, 255, 0.24);
+            border-radius: 18px;
+            background: rgba(10, 32, 68, 0.35);
+        }
+
+        .my-stat span {
+            display: block;
+            margin-bottom: 6px;
+            color: rgba(190, 224, 244, 0.74);
+            font-size: 12px;
+        }
+
+        .my-stat strong {
+            color: rgba(247, 253, 255, 0.98);
+            font-size: 22px;
+        }
+
+        .my-checkin-state {
+            display: grid;
+            gap: 12px;
+        }
+
+        .my-alert {
+            padding: 12px 14px;
+            border: 1px solid rgba(255, 222, 146, 0.28);
+            border-radius: 16px;
+            background: rgba(114, 79, 29, 0.16);
+            color: rgba(255, 237, 190, 0.9);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .my-logged-out {
+            max-width: 620px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        @media (max-width: 760px) {
+            .my-page {
+                width: min(100%, calc(100vw - 28px));
+                padding: 36px 0 34px;
+            }
+
+            .my-shell {
+                grid-template-columns: 1fr;
+            }
+
+            .my-card {
+                padding: 16px;
+                border-radius: 22px;
+            }
+
+            .my-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .my-card-head {
+                display: grid;
+            }
+
+            .my-button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+<main class="my-page" aria-labelledby="my-title">
+    <header class="my-hero">
+        <span class="my-kicker">JUNXUE ACCOUNT</span>
+        <h1 class="my-title" id="my-title">我的</h1>
+        <p class="my-subtitle">查看老板账号昵称、头像、积分和星湖签到状态。</p>
+    </header>
+
+    <section class="my-card my-logged-out" data-my-logged-out hidden>
+        <h2 class="my-card-title">登录老板账号后，可以查看你的头像、昵称、积分和签到记录。</h2>
+        <p class="my-card-copy">登录后这里会同步你的老板资料，也可以上传云端头像。</p>
+        <div class="my-actions" style="margin-top:16px">
+            <a class="my-button my-button--primary" href="index.html?bossLogin=1&redirect=my.html">登录老板账号</a>
+            <a class="my-button" href="boss-register.html">注册老板账号</a>
+            <a class="my-button" href="index.html">返回首页</a>
+        </div>
+    </section>
+
+    <section class="my-shell" data-my-app hidden>
+        <aside class="my-card my-profile-card">
+            <div class="my-avatar-frame" aria-label="老板头像">
+                <img data-my-avatar-img alt="老板头像" hidden>
+                <div class="my-avatar-placeholder" data-my-avatar-placeholder aria-hidden="true">雪</div>
+            </div>
+            <div>
+                <h2 class="my-profile-name" data-my-display-name>老板：已登录</h2>
+                <p class="my-muted">头像会保存到云端，换设备登录后也能看到。</p>
+            </div>
+            <input data-my-avatar-input type="file" accept="image/jpeg,image/png,image/webp" hidden>
+            <div class="my-actions">
+                <button class="my-button my-button--primary" type="button" data-my-avatar-button>添加 / 修改头像</button>
+                <a class="my-button" href="index.html">返回首页</a>
+            </div>
+            <div class="my-status" data-my-avatar-status aria-live="polite"></div>
+        </aside>
+
+        <div class="my-main">
+            <section class="my-card" aria-labelledby="my-points-title">
+                <div class="my-card-head">
+                    <div>
+                        <h2 class="my-card-title" id="my-points-title">个人积分</h2>
+                        <p class="my-card-copy">积分来自星湖签到，规则沿用现有签到系统。</p>
+                    </div>
+                    <button class="my-button" type="button" data-my-refresh>刷新状态</button>
+                </div>
+                <div class="my-stats">
+                    <div class="my-stat"><span>当前积分</span><strong data-my-points>--</strong></div>
+                    <div class="my-stat"><span>总签到</span><strong data-my-total-checkins>--</strong></div>
+                    <div class="my-stat"><span>连续签到</span><strong data-my-current-streak>--</strong></div>
+                </div>
+            </section>
+
+            <section class="my-card" aria-labelledby="my-checkin-title">
+                <div class="my-card-head">
+                    <div>
+                        <h2 class="my-card-title" id="my-checkin-title">星湖签到</h2>
+                        <p class="my-card-copy">每天来见甘雨一次，积一点温柔的小积分。</p>
+                    </div>
+                    <button class="my-button my-button--primary" type="button" data-my-checkin-button>立即签到</button>
+                </div>
+                <div class="my-checkin-state">
+                    <div class="my-stats">
+                        <div class="my-stat"><span>本月累计签到</span><strong data-my-monthly-checkins>--</strong></div>
+                        <div class="my-stat"><span>今日状态</span><strong data-my-today-status>--</strong></div>
+                        <div class="my-stat"><span>今日日期</span><strong data-my-today-date>--</strong></div>
+                    </div>
+                    <div class="my-alert" data-my-checkin-message>正在读取签到状态...</div>
+                </div>
+            </section>
+        </div>
+    </section>
+</main>
+
+<script src="assets/supabase-client.js?v=20260627-home-performance1"></script>
+<script src="assets/my.js?v=20260701-my-page-mvp1"></script>
+</body>
+</html>

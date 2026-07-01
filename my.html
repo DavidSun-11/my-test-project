@@ -12,10 +12,10 @@
         }
 
         :root {
-            --glass-border: rgba(190, 225, 255, 0.46);
-            --glass-border-strong: rgba(220, 238, 255, 0.72);
-            --glass-bg: rgba(32, 55, 112, 0.48);
-            --glass-bg-deep: rgba(9, 26, 68, 0.6);
+            --glass-border: rgba(218, 238, 255, 0.5);
+            --glass-border-strong: rgba(235, 244, 255, 0.78);
+            --glass-bg: rgba(31, 55, 115, 0.42);
+            --glass-bg-deep: rgba(8, 25, 67, 0.54);
             --text-main: #f7fbff;
             --text-soft: rgba(220, 236, 255, 0.78);
             --text-muted: rgba(186, 211, 237, 0.68);
@@ -35,10 +35,14 @@
             color: var(--text-main);
             font-family: Arial, "Microsoft YaHei", sans-serif;
             background:
-                radial-gradient(circle at 14% 10%, rgba(226, 238, 255, 0.74) 0 3.1rem, rgba(155, 193, 255, 0.2) 3.2rem 6.8rem, transparent 7rem),
-                radial-gradient(circle at 85% 12%, rgba(147, 105, 255, 0.2), transparent 18rem),
-                radial-gradient(ellipse at 50% 100%, rgba(84, 168, 235, 0.26), transparent 32rem),
-                linear-gradient(180deg, #071738 0%, #0b1c42 48%, #061833 100%);
+                radial-gradient(circle at 13.5% 8.5%, rgba(246, 250, 255, 0.92) 0 1.55rem, rgba(196, 216, 246, 0.62) 1.6rem 2.55rem, rgba(142, 178, 237, 0.16) 2.65rem 5.2rem, transparent 5.45rem),
+                radial-gradient(circle at 13.1% 8.1%, rgba(86, 113, 165, 0.26) 0 0.34rem, transparent 0.38rem),
+                radial-gradient(circle at 14.5% 7.35%, rgba(87, 112, 163, 0.22) 0 0.24rem, transparent 0.28rem),
+                radial-gradient(ellipse at 15% 9%, rgba(170, 204, 255, 0.22), transparent 14rem),
+                radial-gradient(ellipse at 83% 12%, rgba(151, 102, 255, 0.18), transparent 22rem),
+                radial-gradient(ellipse at 52% 88%, rgba(58, 144, 208, 0.18), transparent 30rem),
+                linear-gradient(180deg, #071634 0%, #0b1a44 42%, #071631 100%);
+            isolation: isolate;
         }
 
         body::before,
@@ -52,22 +56,27 @@
         body::before {
             z-index: -3;
             background:
-                radial-gradient(circle at 10% 94%, rgba(204, 178, 255, 0.38) 0 2px, transparent 4px),
+                radial-gradient(circle at 10% 94%, rgba(204, 178, 255, 0.34) 0 2px, transparent 4px),
                 radial-gradient(circle at 29% 16%, rgba(255, 255, 255, 0.58) 0 1px, transparent 2px),
                 radial-gradient(circle at 48% 9%, rgba(173, 216, 255, 0.42) 0 1px, transparent 2px),
                 radial-gradient(circle at 70% 22%, rgba(255, 255, 255, 0.44) 0 1px, transparent 2px),
-                radial-gradient(circle at 82% 64%, rgba(188, 165, 255, 0.4) 0 1px, transparent 3px);
-            background-size: 34rem 22rem;
-            opacity: 0.72;
+                radial-gradient(circle at 82% 64%, rgba(188, 165, 255, 0.34) 0 1px, transparent 3px),
+                linear-gradient(132deg, transparent 0 76%, rgba(170, 193, 255, 0.14) 76.2% 76.6%, transparent 77%),
+                linear-gradient(148deg, transparent 0 78%, rgba(203, 180, 255, 0.12) 78.2% 78.55%, transparent 79%);
+            background-size: 34rem 22rem, 34rem 22rem, 34rem 22rem, 34rem 22rem, 34rem 22rem, 100% 100%, 100% 100%;
+            opacity: 0.7;
         }
 
         body::after {
             z-index: -2;
             background:
-                radial-gradient(ellipse at 21% 105%, rgba(111, 190, 255, 0.28), transparent 24rem),
-                radial-gradient(ellipse at 79% 96%, rgba(153, 112, 255, 0.2), transparent 22rem),
-                linear-gradient(to top, rgba(4, 13, 33, 0.48), transparent 36%),
-                linear-gradient(100deg, transparent 4%, rgba(118, 172, 255, 0.08) 38%, transparent 66%);
+                radial-gradient(ellipse at 88% 92%, rgba(255, 202, 139, 0.22), transparent 9rem),
+                radial-gradient(ellipse at 9% 86%, rgba(205, 182, 255, 0.24), transparent 16rem),
+                linear-gradient(178deg, transparent 0 64%, rgba(105, 174, 227, 0.09) 64.2% 64.7%, transparent 65.1% 68%, rgba(112, 184, 239, 0.08) 68.2% 68.55%, transparent 69%),
+                repeating-linear-gradient(178deg, transparent 0 24px, rgba(154, 211, 255, 0.075) 25px 26px, transparent 27px 42px),
+                linear-gradient(to top, rgba(3, 10, 27, 0.46), transparent 42%),
+                linear-gradient(100deg, rgba(5, 14, 35, 0.16) 0%, transparent 24%, rgba(118, 172, 255, 0.06) 48%, transparent 72%, rgba(5, 14, 35, 0.12));
+            opacity: 0.96;
         }
 
         a {
@@ -99,35 +108,38 @@
         }
 
         .my-page::before {
-            right: -34px;
-            top: -20px;
-            width: 360px;
-            height: 230px;
-            opacity: 0.72;
+            right: -42px;
+            top: -26px;
+            width: 390px;
+            height: 250px;
+            opacity: 0.66;
             background:
-                radial-gradient(ellipse at 76% 20%, rgba(198, 171, 255, 0.72) 0 8px, transparent 9px),
-                radial-gradient(ellipse at 84% 34%, rgba(150, 213, 255, 0.62) 0 7px, transparent 8px),
-                radial-gradient(ellipse at 64% 42%, rgba(218, 183, 255, 0.72) 0 9px, transparent 10px),
-                linear-gradient(145deg, transparent 46%, rgba(157, 183, 255, 0.3) 47% 49%, transparent 50%);
-            filter: drop-shadow(0 0 18px rgba(170, 151, 255, 0.36));
-            transform: rotate(-10deg);
+                radial-gradient(ellipse at 78% 24%, rgba(214, 185, 255, 0.74) 0 7px, transparent 8px),
+                radial-gradient(ellipse at 88% 36%, rgba(154, 217, 255, 0.54) 0 6px, transparent 7px),
+                radial-gradient(ellipse at 63% 44%, rgba(221, 189, 255, 0.7) 0 8px, transparent 9px),
+                radial-gradient(ellipse at 72% 58%, rgba(139, 201, 255, 0.44) 0 5px, transparent 6px),
+                linear-gradient(142deg, transparent 41%, rgba(196, 216, 255, 0.28) 41.6% 42.2%, transparent 42.8%),
+                linear-gradient(158deg, transparent 52%, rgba(175, 199, 255, 0.22) 52.5% 52.95%, transparent 53.4%);
+            filter: drop-shadow(0 0 18px rgba(170, 151, 255, 0.28));
+            transform: rotate(-8deg);
         }
 
         .my-page::after {
-            left: 0;
-            right: 0;
-            bottom: -42px;
-            height: 230px;
+            left: -6vw;
+            right: -6vw;
+            bottom: -52px;
+            height: 260px;
             background:
-                radial-gradient(ellipse at 11% 70%, rgba(205, 188, 255, 0.32), transparent 12rem),
-                radial-gradient(ellipse at 92% 66%, rgba(255, 215, 170, 0.22), transparent 10rem),
-                repeating-linear-gradient(178deg, rgba(166, 217, 255, 0.12) 0 1px, transparent 1px 28px);
-            opacity: 0.78;
+                radial-gradient(ellipse at 94% 57%, rgba(255, 209, 158, 0.24), transparent 8rem),
+                radial-gradient(ellipse at 11% 62%, rgba(205, 188, 255, 0.28), transparent 12rem),
+                linear-gradient(90deg, transparent 0 7%, rgba(38, 42, 68, 0.24) 7.2% 8%, transparent 8.3% 89%, rgba(45, 43, 68, 0.22) 89.2% 90%, transparent 90.3%),
+                repeating-linear-gradient(178deg, rgba(166, 217, 255, 0.11) 0 1px, transparent 1px 28px);
+            opacity: 0.72;
         }
 
         .my-settings-pill {
             position: fixed;
-            top: 42px;
+            top: 92px;
             right: max(42px, calc((100vw - 1440px) / 2 + 22px));
             z-index: 10;
             gap: 8px;
@@ -179,15 +191,17 @@
             min-width: 0;
             border: 1px solid var(--glass-border);
             background:
-                radial-gradient(circle at 18% 10%, rgba(182, 220, 255, 0.16), transparent 34%),
-                linear-gradient(145deg, rgba(50, 75, 139, 0.52), rgba(18, 34, 82, 0.56));
+                radial-gradient(circle at 16% 8%, rgba(222, 239, 255, 0.14), transparent 30%),
+                radial-gradient(circle at 82% 88%, rgba(180, 134, 255, 0.12), transparent 34%),
+                linear-gradient(145deg, rgba(56, 82, 148, 0.42), rgba(13, 29, 76, 0.5));
             box-shadow:
-                inset 0 1px 0 rgba(255,255,255,0.24),
-                inset 0 -1px 0 rgba(160, 210, 255, 0.1),
-                0 24px 70px rgba(0, 8, 30, 0.36),
-                0 0 34px rgba(107, 181, 255, 0.12);
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
+                inset 0 1px 0 rgba(255,255,255,0.28),
+                inset 0 -1px 0 rgba(160, 210, 255, 0.13),
+                inset 0 0 34px rgba(147, 188, 255, 0.055),
+                0 22px 58px rgba(0, 8, 30, 0.31),
+                0 0 24px rgba(107, 181, 255, 0.1);
+            backdrop-filter: blur(20px) saturate(1.12);
+            -webkit-backdrop-filter: blur(20px) saturate(1.12);
         }
 
         .my-card::before,
@@ -200,7 +214,29 @@
             pointer-events: none;
             background:
                 linear-gradient(135deg, rgba(255,255,255,0.18), transparent 28%, transparent 70%, rgba(186, 157, 255, 0.16));
-            opacity: 0.8;
+            opacity: 0.68;
+        }
+
+        .my-card::after,
+        .my-feature-card::after,
+        .my-lower-panel::after,
+        .my-modal-panel::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            background:
+                radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.18) 0 1px, transparent 1.5px),
+                radial-gradient(circle at 78% 24%, rgba(197, 183, 255, 0.16) 0 1px, transparent 1.5px),
+                linear-gradient(138deg, transparent 0 73%, rgba(224, 239, 255, 0.09) 73.4% 73.75%, transparent 74.1%);
+            opacity: 0.45;
+        }
+
+        .my-logged-out > *,
+        .my-profile-card > * {
+            position: relative;
+            z-index: 1;
         }
 
         .my-button,
@@ -243,6 +279,23 @@
             outline: none;
         }
 
+        .my-line-icon {
+            display: block;
+            width: 1em;
+            height: 1em;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 1.85;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            filter: drop-shadow(0 0 8px rgba(174, 211, 255, 0.32));
+        }
+
+        .my-settings-pill .my-line-icon {
+            width: 18px;
+            height: 18px;
+        }
+
         .my-button:active,
         .my-pill-button:active,
         .my-feature-card:active,
@@ -280,8 +333,8 @@
         .my-profile-card {
             display: grid;
             align-content: space-between;
-            min-height: 478px;
-            padding: 42px 34px 34px;
+            min-height: 452px;
+            padding: 36px 34px 32px;
             border-radius: 28px;
             overflow: hidden;
         }
@@ -289,16 +342,18 @@
         .my-profile-card::after {
             content: "";
             position: absolute;
-            right: 12px;
-            bottom: 18px;
-            width: 170px;
-            height: 150px;
+            right: 8px;
+            bottom: 14px;
+            width: 190px;
+            height: 166px;
             pointer-events: none;
-            opacity: 0.42;
+            opacity: 0.34;
             background:
-                radial-gradient(ellipse at 24% 72%, rgba(204, 180, 255, 0.5) 0 11px, transparent 12px),
-                radial-gradient(ellipse at 54% 54%, rgba(158, 218, 255, 0.42) 0 8px, transparent 9px),
-                linear-gradient(130deg, transparent 42%, rgba(220, 238, 255, 0.22) 43% 45%, transparent 46%);
+                radial-gradient(ellipse at 22% 72%, rgba(204, 180, 255, 0.46) 0 10px, transparent 11px),
+                radial-gradient(ellipse at 54% 54%, rgba(158, 218, 255, 0.38) 0 7px, transparent 8px),
+                radial-gradient(ellipse at 70% 42%, rgba(226, 194, 255, 0.32) 0 5px, transparent 6px),
+                linear-gradient(130deg, transparent 42%, rgba(220, 238, 255, 0.2) 43% 45%, transparent 46%),
+                linear-gradient(156deg, transparent 55%, rgba(181, 210, 255, 0.16) 55.4% 55.8%, transparent 56.2%);
             transform: rotate(-14deg);
         }
 
@@ -312,13 +367,18 @@
         .my-avatar-frame {
             position: relative;
             flex: 0 0 auto;
-            width: 142px;
-            height: 142px;
-            padding: 5px;
-            border: 2px solid rgba(224, 241, 255, 0.76);
+            width: 132px;
+            height: 132px;
+            padding: 6px;
+            border: 1px solid rgba(232, 244, 255, 0.86);
             border-radius: 50%;
-            background: linear-gradient(145deg, rgba(127, 201, 255, 0.32), rgba(178, 124, 255, 0.34));
-            box-shadow: 0 0 32px rgba(127, 202, 255, 0.28), inset 0 0 18px rgba(255,255,255,0.22);
+            background:
+                radial-gradient(circle at 34% 18%, rgba(255,255,255,0.42), transparent 28%),
+                linear-gradient(145deg, rgba(126, 201, 255, 0.38), rgba(181, 128, 255, 0.4));
+            box-shadow:
+                0 0 34px rgba(127, 202, 255, 0.32),
+                0 0 18px rgba(183, 135, 255, 0.22),
+                inset 0 0 18px rgba(255,255,255,0.28);
         }
 
         .my-avatar-frame img,
@@ -333,7 +393,7 @@
                 radial-gradient(circle at 34% 26%, rgba(255,255,255,0.24), transparent 28%),
                 linear-gradient(150deg, rgba(42, 38, 111, 0.96), rgba(83, 72, 172, 0.92));
             color: rgba(238, 242, 255, 0.92);
-            font-size: 58px;
+            font-size: 52px;
             font-weight: 900;
             text-shadow: 0 0 16px rgba(196, 224, 255, 0.5);
         }
@@ -385,14 +445,14 @@
         }
 
         .my-profile-note {
-            margin: 26px 0 0;
+            margin: 18px 0 0;
             max-width: 310px;
         }
 
         .my-profile-meta {
             display: grid;
             gap: 11px;
-            margin: 34px 0;
+            margin: 28px 0;
         }
 
         .my-meta-row,
@@ -402,7 +462,7 @@
             justify-content: space-between;
             gap: 14px;
             min-height: 46px;
-            padding: 11px 14px;
+            padding: 10px 14px;
             border: 1px solid rgba(190, 224, 255, 0.2);
             border-radius: 16px;
             background: rgba(17, 37, 86, 0.34);
@@ -499,7 +559,8 @@
         .my-feature-icon {
             width: 54px;
             height: 54px;
-            font-size: 26px;
+            color: rgba(235, 243, 255, 0.94);
+            font-size: 27px;
         }
 
         .my-feature-label {
@@ -547,8 +608,40 @@
             width: 90px;
             height: 76px;
             margin: 6px auto 10px;
-            font-size: 58px;
-            filter: drop-shadow(0 0 20px rgba(183, 143, 255, 0.42));
+            color: rgba(238, 244, 255, 0.92);
+            filter: drop-shadow(0 0 20px rgba(183, 143, 255, 0.36));
+        }
+
+        .my-gift-visual::before {
+            content: "";
+            position: absolute;
+            inset: 14px 18px 8px;
+            border: 1px solid rgba(224, 238, 255, 0.46);
+            border-radius: 16px;
+            background:
+                linear-gradient(90deg, transparent 42%, rgba(194, 163, 255, 0.46) 42% 58%, transparent 58%),
+                linear-gradient(145deg, rgba(126, 196, 255, 0.34), rgba(155, 105, 255, 0.28));
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.24), 0 0 22px rgba(144, 171, 255, 0.22);
+        }
+
+        .my-gift-visual::after {
+            content: "";
+            position: absolute;
+            top: 5px;
+            width: 40px;
+            height: 28px;
+            border: 2px solid rgba(222, 236, 255, 0.56);
+            border-bottom: 0;
+            border-radius: 50% 50% 10px 10px;
+            transform: rotate(-7deg);
+            box-shadow: 20px 0 0 -2px rgba(122, 176, 255, 0.12);
+        }
+
+        .my-gift-visual .my-line-icon {
+            position: relative;
+            z-index: 1;
+            width: 70px;
+            height: 58px;
         }
 
         .my-lower-panel {
@@ -610,7 +703,8 @@
         .my-quick-icon {
             width: 54px;
             height: 54px;
-            font-size: 25px;
+            color: rgba(232, 242, 255, 0.9);
+            font-size: 24px;
         }
 
         .my-benefit-card {
@@ -623,6 +717,7 @@
         .my-benefit-icon {
             width: 70px;
             height: 70px;
+            color: rgba(231, 242, 255, 0.92);
             font-size: 34px;
         }
 
@@ -752,7 +847,7 @@
             .my-settings-pill {
                 position: static;
                 justify-self: center;
-                margin: 0 auto 16px;
+                margin: 54px auto 16px;
             }
 
             .my-hero {
@@ -794,13 +889,34 @@
         @media (max-width: 620px) {
             body {
                 background:
-                    radial-gradient(circle at 13% 8%, rgba(226, 238, 255, 0.72) 0 2.1rem, rgba(155, 193, 255, 0.16) 2.2rem 4.8rem, transparent 5rem),
-                    radial-gradient(circle at 87% 14%, rgba(147, 105, 255, 0.18), transparent 12rem),
+                    radial-gradient(circle at 15% 7%, rgba(246, 250, 255, 0.82) 0 1.1rem, rgba(196, 216, 246, 0.5) 1.15rem 1.85rem, rgba(142, 178, 237, 0.14) 1.95rem 4rem, transparent 4.25rem),
+                    radial-gradient(ellipse at 13% 8%, rgba(170, 204, 255, 0.16), transparent 9rem),
+                    radial-gradient(circle at 87% 14%, rgba(147, 105, 255, 0.16), transparent 12rem),
+                    radial-gradient(ellipse at 50% 95%, rgba(78, 163, 225, 0.14), transparent 19rem),
                     linear-gradient(180deg, #071738 0%, #0b1c42 54%, #061833 100%);
+            }
+
+            body::before {
+                opacity: 0.42;
+            }
+
+            body::after {
+                opacity: 0.66;
             }
 
             .my-page {
                 padding-top: 26px;
+            }
+
+            .my-page::before {
+                right: -170px;
+                top: 20px;
+                opacity: 0.42;
+                transform: rotate(-14deg) scale(0.82);
+            }
+
+            .my-page::after {
+                opacity: 0.46;
             }
 
             .my-kicker {
@@ -901,7 +1017,13 @@
 </head>
 <body>
 <main class="my-page" aria-labelledby="my-title">
-    <button class="my-pill-button my-settings-pill" type="button" data-my-action="settings" aria-label="账号设置">⚙ 账号设置</button>
+    <button class="my-pill-button my-settings-pill" type="button" data-my-action="settings" aria-label="账号设置">
+        <svg class="my-line-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 8.2a3.8 3.8 0 1 1 0 7.6 3.8 3.8 0 0 1 0-7.6Z"></path>
+            <path d="M19.1 13.5c.08-.5.08-1 0-1.5l2-1.55-2-3.45-2.42.98a7.7 7.7 0 0 0-1.3-.76L15 4.6h-4l-.38 2.62c-.46.2-.9.45-1.3.76L6.9 7l-2 3.45L6.9 12a9 9 0 0 0 0 1.5l-2 1.55 2 3.45 2.42-.98c.4.31.84.56 1.3.76L11 20.9h4l.38-2.62c.46-.2.9-.45 1.3-.76l2.42.98 2-3.45-2-1.55Z"></path>
+        </svg>
+        <span>账号设置</span>
+    </button>
 
     <header class="my-hero">
         <span class="my-kicker">JUNXUE ACCOUNT</span>
@@ -961,7 +1083,11 @@
                 <section class="my-feature-card" tabindex="0" role="button" data-my-action="points" aria-labelledby="my-points-title">
                     <div class="my-feature-top">
                         <h2 class="my-card-title" id="my-points-title">个人积分</h2>
-                        <span class="my-feature-icon" aria-hidden="true">★</span>
+                        <span class="my-feature-icon" aria-hidden="true">
+                            <svg class="my-line-icon" viewBox="0 0 24 24">
+                                <path d="m12 3.6 2.35 4.76 5.25.76-3.8 3.7.9 5.22L12 15.56l-4.7 2.48.9-5.22-3.8-3.7 5.25-.76L12 3.6Z"></path>
+                            </svg>
+                        </span>
                     </div>
                     <span class="my-feature-label">当前积分</span>
                     <strong class="my-feature-value" data-my-points>--</strong>
@@ -971,7 +1097,12 @@
                 <section class="my-feature-card my-checkin-card" tabindex="0" role="button" data-my-action="checkin" aria-labelledby="my-checkin-title">
                     <div class="my-feature-top">
                         <h2 class="my-card-title" id="my-checkin-title">星湖签到</h2>
-                        <span class="my-feature-icon" aria-hidden="true">☑</span>
+                        <span class="my-feature-icon" aria-hidden="true">
+                            <svg class="my-line-icon" viewBox="0 0 24 24">
+                                <path d="M7 3.8v3M17 3.8v3M5.5 6h13A2.5 2.5 0 0 1 21 8.5v10A2.5 2.5 0 0 1 18.5 21h-13A2.5 2.5 0 0 1 3 18.5v-10A2.5 2.5 0 0 1 5.5 6Z"></path>
+                                <path d="M8 13.2 10.8 16 16.5 10"></path>
+                            </svg>
+                        </span>
                     </div>
                     <span class="my-feature-label">今日状态</span>
                     <strong class="my-feature-value" data-my-today-status>--</strong>
@@ -981,10 +1112,22 @@
                 <section class="my-feature-card" tabindex="0" role="button" data-my-action="exchange" data-my-exchange-card aria-labelledby="my-exchange-title">
                     <div class="my-feature-top">
                         <h2 class="my-card-title" id="my-exchange-title">积分兑换</h2>
-                        <span class="my-feature-icon" aria-hidden="true">🎁</span>
+                        <span class="my-feature-icon" aria-hidden="true">
+                            <svg class="my-line-icon" viewBox="0 0 24 24">
+                                <path d="M4.5 10h15v10h-15V10Z"></path>
+                                <path d="M3.5 7h17v3h-17V7ZM12 7v13"></path>
+                                <path d="M12 7c-2.8-.7-4.2-2-3.6-3.1.7-1.2 2.8-.4 3.6 3.1ZM12 7c2.8-.7 4.2-2 3.6-3.1C14.9 2.7 12.8 3.5 12 7Z"></path>
+                            </svg>
+                        </span>
                     </div>
                     <span class="my-feature-label">兑换礼物 / 小权益</span>
-                    <span class="my-gift-visual" aria-hidden="true">🎁</span>
+                    <span class="my-gift-visual" aria-hidden="true">
+                        <svg class="my-line-icon" viewBox="0 0 90 76">
+                            <path d="M20 32h50v33H20V32Z"></path>
+                            <path d="M16 24h58v10H16V24ZM45 24v41"></path>
+                            <path d="M44 24C32 21 27 15 31 10c5-6 12 1 13 14ZM46 24c12-3 17-9 13-14-5-6-12 1-13 14Z"></path>
+                        </svg>
+                    </span>
                     <span class="my-card-link">点击查看可兑换内容</span>
                 </section>
             </div>
@@ -1013,19 +1156,40 @@
                     <h2 class="my-lower-title">快捷入口</h2>
                     <div class="my-quick-grid" aria-label="快捷入口">
                         <a class="my-quick-link" href="boss-reviews.html">
-                            <span class="my-quick-icon" aria-hidden="true">☆</span>
+                            <span class="my-quick-icon" aria-hidden="true">
+                                <svg class="my-line-icon" viewBox="0 0 24 24">
+                                    <path d="M5.5 5.2h13A2.3 2.3 0 0 1 20.8 7.5v8.2a2.3 2.3 0 0 1-2.3 2.3h-8.1L6 20.5V18H5.5a2.3 2.3 0 0 1-2.3-2.3V7.5a2.3 2.3 0 0 1 2.3-2.3Z"></path>
+                                    <path d="m12 8.1.95 1.92 2.12.31-1.53 1.5.36 2.1L12 12.93l-1.9 1 .36-2.1-1.53-1.5 2.12-.31L12 8.1Z"></path>
+                                </svg>
+                            </span>
                             <span>我的评价</span>
                         </a>
                         <button class="my-quick-link" type="button" data-my-action="checkin">
-                            <span class="my-quick-icon" aria-hidden="true">☑</span>
+                            <span class="my-quick-icon" aria-hidden="true">
+                                <svg class="my-line-icon" viewBox="0 0 24 24">
+                                    <path d="M7 3.8v3M17 3.8v3M5.5 6h13A2.5 2.5 0 0 1 21 8.5v10A2.5 2.5 0 0 1 18.5 21h-13A2.5 2.5 0 0 1 3 18.5v-10A2.5 2.5 0 0 1 5.5 6Z"></path>
+                                    <path d="M8 13.2 10.8 16 16.5 10"></path>
+                                </svg>
+                            </span>
                             <span>签到记录</span>
                         </button>
                         <button class="my-quick-link" type="button" data-my-action="exchange">
-                            <span class="my-quick-icon" aria-hidden="true">🎁</span>
+                            <span class="my-quick-icon" aria-hidden="true">
+                                <svg class="my-line-icon" viewBox="0 0 24 24">
+                                    <path d="M4.5 10h15v10h-15V10Z"></path>
+                                    <path d="M3.5 7h17v3h-17V7ZM12 7v13"></path>
+                                    <path d="M12 7c-2.8-.7-4.2-2-3.6-3.1.7-1.2 2.8-.4 3.6 3.1ZM12 7c2.8-.7 4.2-2 3.6-3.1C14.9 2.7 12.8 3.5 12 7Z"></path>
+                                </svg>
+                            </span>
                             <span>积分兑换</span>
                         </button>
                         <button class="my-quick-link" type="button" data-my-action="settings">
-                            <span class="my-quick-icon" aria-hidden="true">⚙</span>
+                            <span class="my-quick-icon" aria-hidden="true">
+                                <svg class="my-line-icon" viewBox="0 0 24 24">
+                                    <path d="M12 8.2a3.8 3.8 0 1 1 0 7.6 3.8 3.8 0 0 1 0-7.6Z"></path>
+                                    <path d="M19.1 13.5c.08-.5.08-1 0-1.5l2-1.55-2-3.45-2.42.98a7.7 7.7 0 0 0-1.3-.76L15 4.6h-4l-.38 2.62c-.46.2-.9.45-1.3.76L6.9 7l-2 3.45L6.9 12a9 9 0 0 0 0 1.5l-2 1.55 2 3.45 2.42-.98c.4.31.84.56 1.3.76L11 20.9h4l.38-2.62c.46-.2.9-.45 1.3-.76l2.42.98 2-3.45-2-1.55Z"></path>
+                                </svg>
+                            </span>
                             <span>账号设置</span>
                         </button>
                     </div>
@@ -1034,7 +1198,12 @@
                 <div class="my-lower-section">
                     <h2 class="my-lower-title">专属福利</h2>
                     <div class="my-benefit-card">
-                        <span class="my-benefit-icon" aria-hidden="true">◆</span>
+                        <span class="my-benefit-icon" aria-hidden="true">
+                            <svg class="my-line-icon" viewBox="0 0 24 24">
+                                <path d="M12 3.5 20.5 12 12 20.5 3.5 12 12 3.5Z"></path>
+                                <path d="m8.5 12 2.4 2.4 4.9-5"></path>
+                            </svg>
+                        </span>
                         <div>
                             <span class="my-soft-badge" data-my-today-status-copy>今日状态读取中</span>
                             <p class="my-muted" style="margin-top:10px">签到可获得 <strong data-my-reward-points>--</strong> 积分</p>
@@ -1064,6 +1233,6 @@
 </div>
 
 <script src="assets/supabase-client.js?v=20260627-home-performance1"></script>
-<script src="assets/my.js?v=20260701-my-page-reference-polish1"></script>
+<script src="assets/my.js?v=20260701-my-page-reference-polish2"></script>
 </body>
 </html>

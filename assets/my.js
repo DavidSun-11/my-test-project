@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    const VERSION = "20260701-my-page-reference-polish1";
+    const VERSION = "20260701-my-page-reference-polish2";
     const AVATAR_BUCKET = "boss-avatars";
     const MAX_AVATAR_BYTES = 1024 * 1024;
     const AVATAR_SIZE = 512;

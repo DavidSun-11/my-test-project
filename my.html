@@ -96,7 +96,7 @@
             width: min(1440px, calc(100vw - 96px));
             min-height: 100vh;
             margin: 0 auto;
-            padding: 56px 0 64px;
+            padding: 24px 0 28px;
         }
 
         .my-page::before,
@@ -139,30 +139,30 @@
 
         .my-settings-pill {
             position: fixed;
-            top: 92px;
+            top: 40px;
             right: max(42px, calc((100vw - 1440px) / 2 + 22px));
             z-index: 10;
             gap: 8px;
-            min-height: 42px;
-            padding: 8px 18px;
+            min-height: 38px;
+            padding: 7px 15px;
             border-radius: 999px;
         }
 
         .my-hero {
             display: grid;
             justify-items: center;
-            gap: 12px;
-            margin-bottom: 30px;
+            gap: 7px;
+            margin-bottom: 16px;
             text-align: center;
         }
 
         .my-kicker {
-            padding: 9px 28px;
+            padding: 6px 20px;
             border: 1px solid var(--glass-border);
             border-radius: 999px;
             background: linear-gradient(180deg, rgba(156, 195, 255, 0.22), rgba(55, 83, 156, 0.22));
             color: rgba(231, 241, 255, 0.86);
-            font-size: 15px;
+            font-size: 12px;
             font-weight: 900;
             letter-spacing: 0;
             box-shadow: inset 0 1px 0 rgba(255,255,255,0.28), 0 0 22px rgba(126, 187, 255, 0.2);
@@ -170,7 +170,7 @@
 
         .my-title {
             margin: 0;
-            font-size: clamp(52px, 7vw, 80px);
+            font-size: clamp(40px, 5vw, 58px);
             line-height: 1;
             letter-spacing: 0;
             text-shadow: 0 0 28px rgba(167, 209, 255, 0.42), 0 10px 36px rgba(7, 12, 30, 0.3);
@@ -179,8 +179,8 @@
         .my-subtitle {
             margin: 0;
             color: rgba(232, 242, 255, 0.88);
-            font-size: clamp(16px, 1.7vw, 20px);
-            line-height: 1.7;
+            font-size: clamp(14px, 1.25vw, 17px);
+            line-height: 1.38;
         }
 
         .my-card,
@@ -241,13 +241,13 @@
 
         .my-button,
         .my-pill-button {
-            padding: 8px 16px;
+            padding: 7px 14px;
             appearance: none;
             -webkit-appearance: none;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            min-height: 42px;
+            min-height: 38px;
             border: 1px solid rgba(204, 232, 255, 0.5);
             border-radius: 999px;
             color: rgba(247, 252, 255, 0.96);
@@ -262,7 +262,7 @@
         }
 
         .my-button {
-            padding: 10px 18px;
+            padding: 8px 16px;
         }
 
         .my-button:hover,
@@ -325,17 +325,17 @@
 
         .my-shell {
             display: grid;
-            grid-template-columns: minmax(360px, 430px) minmax(0, 1fr);
-            gap: 26px;
+            grid-template-columns: minmax(320px, 380px) minmax(0, 1fr);
+            gap: 18px;
             align-items: stretch;
         }
 
         .my-profile-card {
             display: grid;
             align-content: space-between;
-            min-height: 452px;
-            padding: 36px 34px 32px;
-            border-radius: 28px;
+            min-height: 374px;
+            padding: 24px 24px 22px;
+            border-radius: 24px;
             overflow: hidden;
         }
 
@@ -360,16 +360,16 @@
         .my-profile-main {
             display: flex;
             align-items: center;
-            gap: 28px;
+            gap: 20px;
             min-width: 0;
         }
 
         .my-avatar-frame {
             position: relative;
             flex: 0 0 auto;
-            width: 132px;
-            height: 132px;
-            padding: 6px;
+            width: 96px;
+            height: 96px;
+            padding: 5px;
             border: 1px solid rgba(232, 244, 255, 0.86);
             border-radius: 50%;
             background:
@@ -393,7 +393,7 @@
                 radial-gradient(circle at 34% 26%, rgba(255,255,255,0.24), transparent 28%),
                 linear-gradient(150deg, rgba(42, 38, 111, 0.96), rgba(83, 72, 172, 0.92));
             color: rgba(238, 242, 255, 0.92);
-            font-size: 52px;
+            font-size: 38px;
             font-weight: 900;
             text-shadow: 0 0 16px rgba(196, 224, 255, 0.5);
         }
@@ -408,9 +408,9 @@
         }
 
         .my-profile-name {
-            margin: 0 0 9px;
+            margin: 0 0 7px;
             color: rgba(249, 253, 255, 0.98);
-            font-size: clamp(26px, 3vw, 34px);
+            font-size: clamp(22px, 2.2vw, 28px);
             line-height: 1.2;
             word-break: break-word;
         }
@@ -445,14 +445,14 @@
         }
 
         .my-profile-note {
-            margin: 18px 0 0;
+            margin: 12px 0 0;
             max-width: 310px;
         }
 
         .my-profile-meta {
             display: grid;
-            gap: 11px;
-            margin: 28px 0;
+            gap: 8px;
+            margin: 18px 0;
         }
 
         .my-meta-row,
@@ -461,8 +461,8 @@
             align-items: center;
             justify-content: space-between;
             gap: 14px;
-            min-height: 46px;
-            padding: 10px 14px;
+            min-height: 38px;
+            padding: 8px 12px;
             border: 1px solid rgba(190, 224, 255, 0.2);
             border-radius: 16px;
             background: rgba(17, 37, 86, 0.34);
@@ -485,17 +485,17 @@
         .my-actions {
             display: flex;
             flex-wrap: wrap;
-            gap: 14px;
+            gap: 10px;
             align-items: center;
         }
 
         .my-profile-card .my-actions .my-button {
-            min-width: 160px;
+            min-width: 138px;
         }
 
         .my-status {
-            min-height: 22px;
-            margin-top: 14px;
+            min-height: 18px;
+            margin-top: 8px;
             color: rgba(174, 237, 255, 0.92);
             font-size: 13px;
             line-height: 1.55;
@@ -503,20 +503,20 @@
 
         .my-main {
             display: grid;
-            gap: 22px;
+            gap: 16px;
         }
 
         .my-feature-grid {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 22px;
+            gap: 16px;
         }
 
         .my-feature-card {
             display: grid;
-            min-height: 232px;
-            padding: 30px 28px;
-            border-radius: 24px;
+            min-height: 180px;
+            padding: 20px 18px;
+            border-radius: 22px;
             overflow: hidden;
             color: inherit;
             cursor: pointer;
@@ -532,14 +532,14 @@
             display: flex;
             align-items: flex-start;
             justify-content: space-between;
-            gap: 16px;
-            margin-bottom: 22px;
+            gap: 12px;
+            margin-bottom: 12px;
         }
 
         .my-card-title {
             margin: 0;
             color: rgba(248, 253, 255, 0.98);
-            font-size: clamp(22px, 2.1vw, 28px);
+            font-size: clamp(19px, 1.65vw, 23px);
             line-height: 1.25;
         }
 
@@ -557,15 +557,15 @@
         }
 
         .my-feature-icon {
-            width: 54px;
-            height: 54px;
+            width: 44px;
+            height: 44px;
             color: rgba(235, 243, 255, 0.94);
-            font-size: 27px;
+            font-size: 22px;
         }
 
         .my-feature-label {
             display: block;
-            margin-bottom: 10px;
+            margin-bottom: 6px;
             color: rgba(222, 236, 255, 0.84);
             font-size: 14px;
         }
@@ -573,7 +573,7 @@
         .my-feature-value {
             display: block;
             color: rgba(249, 253, 255, 0.98);
-            font-size: clamp(30px, 3.2vw, 42px);
+            font-size: clamp(25px, 2.55vw, 34px);
             font-weight: 900;
             line-height: 1.1;
             text-shadow: 0 0 20px rgba(166, 214, 255, 0.25);
@@ -585,7 +585,7 @@
             gap: 6px;
             margin-top: auto;
             color: rgba(226, 239, 255, 0.86);
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 800;
         }
 
@@ -598,16 +598,16 @@
         .my-checkin-card .my-button,
         .my-benefit-card .my-button {
             width: min(220px, 100%);
-            margin-top: 18px;
+            margin-top: 12px;
         }
 
         .my-gift-visual {
             position: relative;
             display: grid;
             place-items: center;
-            width: 90px;
-            height: 76px;
-            margin: 6px auto 10px;
+            width: 64px;
+            height: 52px;
+            margin: 2px auto 6px;
             color: rgba(238, 244, 255, 0.92);
             filter: drop-shadow(0 0 20px rgba(183, 143, 255, 0.36));
         }
@@ -615,7 +615,7 @@
         .my-gift-visual::before {
             content: "";
             position: absolute;
-            inset: 14px 18px 8px;
+            inset: 10px 13px 6px;
             border: 1px solid rgba(224, 238, 255, 0.46);
             border-radius: 16px;
             background:
@@ -627,9 +627,9 @@
         .my-gift-visual::after {
             content: "";
             position: absolute;
-            top: 5px;
-            width: 40px;
-            height: 28px;
+            top: 3px;
+            width: 28px;
+            height: 20px;
             border: 2px solid rgba(222, 236, 255, 0.56);
             border-bottom: 0;
             border-radius: 50% 50% 10px 10px;
@@ -640,17 +640,17 @@
         .my-gift-visual .my-line-icon {
             position: relative;
             z-index: 1;
-            width: 70px;
-            height: 58px;
+            width: 50px;
+            height: 42px;
         }
 
         .my-exchange-summary {
             display: grid;
-            gap: 8px;
-            margin: 12px 0 14px;
+            gap: 4px;
+            margin: 8px 0 10px;
             color: rgba(235, 248, 255, 0.78);
-            font-size: 0.82rem;
-            line-height: 1.55;
+            font-size: 0.76rem;
+            line-height: 1.42;
         }
 
         .my-exchange-summary span {
@@ -667,8 +667,8 @@
         .my-lower-panel {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
-            min-height: 218px;
-            border-radius: 24px;
+            min-height: 166px;
+            border-radius: 22px;
             overflow: hidden;
         }
 
@@ -677,8 +677,8 @@
             z-index: 1;
             display: grid;
             align-content: start;
-            gap: 16px;
-            padding: 28px 30px;
+            gap: 10px;
+            padding: 18px 20px;
         }
 
         .my-lower-section + .my-lower-section {
@@ -687,27 +687,27 @@
 
         .my-lower-title {
             margin: 0;
-            font-size: 24px;
+            font-size: 20px;
             line-height: 1.25;
         }
 
         .my-record-list {
             display: grid;
-            gap: 10px;
+            gap: 8px;
         }
 
         .my-quick-grid {
             display: grid;
             grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 14px;
+            gap: 9px;
         }
 
         .my-quick-link {
             display: grid;
             justify-items: center;
-            gap: 9px;
-            min-height: 92px;
-            padding: 8px 4px;
+            gap: 6px;
+            min-height: 70px;
+            padding: 6px 3px;
             border: 0;
             border-radius: 18px;
             color: rgba(232, 242, 255, 0.86);
@@ -721,34 +721,34 @@
         }
 
         .my-quick-icon {
-            width: 54px;
-            height: 54px;
+            width: 42px;
+            height: 42px;
             color: rgba(232, 242, 255, 0.9);
-            font-size: 24px;
+            font-size: 20px;
         }
 
         .my-benefit-card {
             display: grid;
             grid-template-columns: auto minmax(0, 1fr);
-            gap: 16px;
+            gap: 12px;
             align-items: center;
         }
 
         .my-benefit-icon {
-            width: 70px;
-            height: 70px;
+            width: 52px;
+            height: 52px;
             color: rgba(231, 242, 255, 0.92);
-            font-size: 34px;
+            font-size: 26px;
         }
 
         .my-alert {
-            padding: 12px 14px;
+            padding: 9px 11px;
             border: 1px solid rgba(255, 227, 165, 0.3);
             border-radius: 16px;
             background: rgba(108, 78, 32, 0.14);
             color: rgba(255, 237, 202, 0.92);
             font-size: 13px;
-            line-height: 1.65;
+            line-height: 1.45;
         }
 
         .my-modal {
@@ -845,16 +845,16 @@
             }
 
             .my-shell {
-                grid-template-columns: minmax(330px, 390px) minmax(0, 1fr);
-                gap: 20px;
-            }
-
-            .my-feature-grid {
+                grid-template-columns: minmax(310px, 360px) minmax(0, 1fr);
                 gap: 16px;
             }
 
+            .my-feature-grid {
+                gap: 14px;
+            }
+
             .my-feature-card {
-                padding: 24px 22px;
+                padding: 19px 17px;
             }
         }
 
@@ -1261,6 +1261,6 @@
 </div>
 
 <script src="assets/supabase-client.js?v=20260627-home-performance1"></script>
-<script src="assets/my.js?v=20260701-point-redemption-mvp1"></script>
+<script src="assets/my.js?v=20260701-my-page-one-screen-layout1"></script>
 </body>
 </html>

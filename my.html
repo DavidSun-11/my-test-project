@@ -12,10 +12,10 @@
         }
 
         :root {
-            --glass-border: rgba(218, 238, 255, 0.5);
-            --glass-border-strong: rgba(235, 244, 255, 0.78);
-            --glass-bg: rgba(31, 55, 115, 0.42);
-            --glass-bg-deep: rgba(8, 25, 67, 0.54);
+            --glass-border: rgba(226, 239, 255, 0.54);
+            --glass-border-strong: rgba(243, 248, 255, 0.8);
+            --glass-bg: rgba(30, 47, 108, 0.48);
+            --glass-bg-deep: rgba(8, 19, 55, 0.56);
             --text-main: #f7fbff;
             --text-soft: rgba(220, 236, 255, 0.78);
             --text-muted: rgba(186, 211, 237, 0.68);
@@ -34,14 +34,15 @@
             overflow-x: hidden;
             color: var(--text-main);
             font-family: Arial, "Microsoft YaHei", sans-serif;
-            background:
-                radial-gradient(circle at 13.5% 8.5%, rgba(246, 250, 255, 0.92) 0 1.55rem, rgba(196, 216, 246, 0.62) 1.6rem 2.55rem, rgba(142, 178, 237, 0.16) 2.65rem 5.2rem, transparent 5.45rem),
-                radial-gradient(circle at 13.1% 8.1%, rgba(86, 113, 165, 0.26) 0 0.34rem, transparent 0.38rem),
-                radial-gradient(circle at 14.5% 7.35%, rgba(87, 112, 163, 0.22) 0 0.24rem, transparent 0.28rem),
-                radial-gradient(ellipse at 15% 9%, rgba(170, 204, 255, 0.22), transparent 14rem),
-                radial-gradient(ellipse at 83% 12%, rgba(151, 102, 255, 0.18), transparent 22rem),
-                radial-gradient(ellipse at 52% 88%, rgba(58, 144, 208, 0.18), transparent 30rem),
-                linear-gradient(180deg, #071634 0%, #0b1a44 42%, #071631 100%);
+            background-color: #061634;
+            background-image:
+                linear-gradient(180deg, rgba(4, 9, 28, 0.08) 0%, rgba(4, 10, 30, 0.18) 58%, rgba(3, 7, 23, 0.34) 100%),
+                linear-gradient(90deg, rgba(2, 6, 20, 0.12), rgba(6, 12, 34, 0.03) 28%, rgba(6, 12, 34, 0.03) 70%, rgba(2, 6, 20, 0.13)),
+                url("assets/images/月夜湖泊.png?v=20260702-my-page-bg-image1");
+            background-position: center, center, center;
+            background-size: cover, cover, cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed, fixed, fixed;
             isolation: isolate;
         }
 
@@ -56,27 +57,18 @@
         body::before {
             z-index: -3;
             background:
-                radial-gradient(circle at 10% 94%, rgba(204, 178, 255, 0.34) 0 2px, transparent 4px),
-                radial-gradient(circle at 29% 16%, rgba(255, 255, 255, 0.58) 0 1px, transparent 2px),
-                radial-gradient(circle at 48% 9%, rgba(173, 216, 255, 0.42) 0 1px, transparent 2px),
-                radial-gradient(circle at 70% 22%, rgba(255, 255, 255, 0.44) 0 1px, transparent 2px),
-                radial-gradient(circle at 82% 64%, rgba(188, 165, 255, 0.34) 0 1px, transparent 3px),
-                linear-gradient(132deg, transparent 0 76%, rgba(170, 193, 255, 0.14) 76.2% 76.6%, transparent 77%),
-                linear-gradient(148deg, transparent 0 78%, rgba(203, 180, 255, 0.12) 78.2% 78.55%, transparent 79%);
-            background-size: 34rem 22rem, 34rem 22rem, 34rem 22rem, 34rem 22rem, 34rem 22rem, 100% 100%, 100% 100%;
-            opacity: 0.7;
+                radial-gradient(ellipse at 50% 34%, rgba(4, 11, 33, 0.18), transparent 44rem),
+                radial-gradient(ellipse at 50% 62%, rgba(7, 13, 40, 0.2), transparent 38rem),
+                linear-gradient(180deg, rgba(6, 12, 35, 0.02), rgba(4, 9, 26, 0.2));
+            opacity: 1;
         }
 
         body::after {
             z-index: -2;
             background:
-                radial-gradient(ellipse at 88% 92%, rgba(255, 202, 139, 0.22), transparent 9rem),
-                radial-gradient(ellipse at 9% 86%, rgba(205, 182, 255, 0.24), transparent 16rem),
-                linear-gradient(178deg, transparent 0 64%, rgba(105, 174, 227, 0.09) 64.2% 64.7%, transparent 65.1% 68%, rgba(112, 184, 239, 0.08) 68.2% 68.55%, transparent 69%),
-                repeating-linear-gradient(178deg, transparent 0 24px, rgba(154, 211, 255, 0.075) 25px 26px, transparent 27px 42px),
-                linear-gradient(to top, rgba(3, 10, 27, 0.46), transparent 42%),
-                linear-gradient(100deg, rgba(5, 14, 35, 0.16) 0%, transparent 24%, rgba(118, 172, 255, 0.06) 48%, transparent 72%, rgba(5, 14, 35, 0.12));
-            opacity: 0.96;
+                linear-gradient(90deg, rgba(3, 8, 27, 0.18) 0%, transparent 18%, transparent 82%, rgba(3, 8, 27, 0.2) 100%),
+                linear-gradient(to top, rgba(2, 7, 23, 0.26), transparent 40%);
+            opacity: 1;
         }
 
         a {
@@ -108,20 +100,15 @@
         }
 
         .my-page::before {
-            right: -42px;
-            top: -26px;
-            width: 390px;
-            height: 250px;
-            opacity: 0.66;
+            left: 50%;
+            top: 0;
+            width: min(1320px, calc(100vw - 32px));
+            height: 100vh;
+            opacity: 0.78;
             background:
-                radial-gradient(ellipse at 78% 24%, rgba(214, 185, 255, 0.74) 0 7px, transparent 8px),
-                radial-gradient(ellipse at 88% 36%, rgba(154, 217, 255, 0.54) 0 6px, transparent 7px),
-                radial-gradient(ellipse at 63% 44%, rgba(221, 189, 255, 0.7) 0 8px, transparent 9px),
-                radial-gradient(ellipse at 72% 58%, rgba(139, 201, 255, 0.44) 0 5px, transparent 6px),
-                linear-gradient(142deg, transparent 41%, rgba(196, 216, 255, 0.28) 41.6% 42.2%, transparent 42.8%),
-                linear-gradient(158deg, transparent 52%, rgba(175, 199, 255, 0.22) 52.5% 52.95%, transparent 53.4%);
-            filter: drop-shadow(0 0 18px rgba(170, 151, 255, 0.28));
-            transform: rotate(-8deg);
+                radial-gradient(ellipse at 50% 36%, rgba(9, 18, 49, 0.28), transparent 42rem),
+                linear-gradient(180deg, rgba(7, 14, 39, 0.12), rgba(6, 13, 38, 0.2) 72%, rgba(3, 8, 25, 0.24));
+            transform: translateX(-50%);
         }
 
         .my-page::after {
@@ -130,16 +117,14 @@
             bottom: -52px;
             height: 260px;
             background:
-                radial-gradient(ellipse at 94% 57%, rgba(255, 209, 158, 0.24), transparent 8rem),
-                radial-gradient(ellipse at 11% 62%, rgba(205, 188, 255, 0.28), transparent 12rem),
-                linear-gradient(90deg, transparent 0 7%, rgba(38, 42, 68, 0.24) 7.2% 8%, transparent 8.3% 89%, rgba(45, 43, 68, 0.22) 89.2% 90%, transparent 90.3%),
-                repeating-linear-gradient(178deg, rgba(166, 217, 255, 0.11) 0 1px, transparent 1px 28px);
-            opacity: 0.72;
+                radial-gradient(ellipse at 50% 62%, rgba(26, 42, 92, 0.16), transparent 34rem),
+                linear-gradient(to top, rgba(2, 7, 22, 0.24), transparent 72%);
+            opacity: 0.7;
         }
 
         .my-settings-pill {
             position: fixed;
-            top: 40px;
+            top: 64px;
             right: max(42px, calc((100vw - 1440px) / 2 + 22px));
             z-index: 10;
             gap: 8px;
@@ -191,15 +176,15 @@
             min-width: 0;
             border: 1px solid var(--glass-border);
             background:
-                radial-gradient(circle at 16% 8%, rgba(222, 239, 255, 0.14), transparent 30%),
-                radial-gradient(circle at 82% 88%, rgba(180, 134, 255, 0.12), transparent 34%),
-                linear-gradient(145deg, rgba(56, 82, 148, 0.42), rgba(13, 29, 76, 0.5));
+                radial-gradient(circle at 16% 8%, rgba(230, 242, 255, 0.16), transparent 30%),
+                radial-gradient(circle at 82% 88%, rgba(190, 143, 255, 0.14), transparent 34%),
+                linear-gradient(145deg, rgba(31, 48, 108, 0.5), rgba(8, 19, 55, 0.58));
             box-shadow:
                 inset 0 1px 0 rgba(255,255,255,0.28),
                 inset 0 -1px 0 rgba(160, 210, 255, 0.13),
-                inset 0 0 34px rgba(147, 188, 255, 0.055),
-                0 22px 58px rgba(0, 8, 30, 0.31),
-                0 0 24px rgba(107, 181, 255, 0.1);
+                inset 0 0 34px rgba(170, 204, 255, 0.07),
+                0 22px 58px rgba(0, 8, 30, 0.34),
+                0 0 24px rgba(139, 190, 255, 0.13);
             backdrop-filter: blur(20px) saturate(1.12);
             -webkit-backdrop-filter: blur(20px) saturate(1.12);
         }
@@ -908,20 +893,21 @@
 
         @media (max-width: 620px) {
             body {
-                background:
-                    radial-gradient(circle at 15% 7%, rgba(246, 250, 255, 0.82) 0 1.1rem, rgba(196, 216, 246, 0.5) 1.15rem 1.85rem, rgba(142, 178, 237, 0.14) 1.95rem 4rem, transparent 4.25rem),
-                    radial-gradient(ellipse at 13% 8%, rgba(170, 204, 255, 0.16), transparent 9rem),
-                    radial-gradient(circle at 87% 14%, rgba(147, 105, 255, 0.16), transparent 12rem),
-                    radial-gradient(ellipse at 50% 95%, rgba(78, 163, 225, 0.14), transparent 19rem),
-                    linear-gradient(180deg, #071738 0%, #0b1c42 54%, #061833 100%);
+                background-image:
+                    linear-gradient(180deg, rgba(4, 9, 28, 0.2) 0%, rgba(4, 9, 28, 0.34) 58%, rgba(3, 7, 23, 0.48) 100%),
+                    linear-gradient(90deg, rgba(2, 6, 20, 0.1), rgba(6, 12, 34, 0.06) 38%, rgba(2, 6, 20, 0.16)),
+                    url("assets/images/月夜湖泊.png?v=20260702-my-page-bg-image1");
+                background-position: center, center, 42% top;
+                background-size: cover, cover, auto 100%;
+                background-attachment: scroll, scroll, fixed;
             }
 
             body::before {
-                opacity: 0.42;
+                opacity: 0.9;
             }
 
             body::after {
-                opacity: 0.66;
+                opacity: 0.88;
             }
 
             .my-page {
@@ -929,14 +915,13 @@
             }
 
             .my-page::before {
-                right: -170px;
-                top: 20px;
-                opacity: 0.42;
-                transform: rotate(-14deg) scale(0.82);
+                width: calc(100vw - 14px);
+                opacity: 0.9;
+                transform: translateX(-50%);
             }
 
             .my-page::after {
-                opacity: 0.46;
+                opacity: 0.62;
             }
 
             .my-kicker {
@@ -1261,6 +1246,6 @@
 </div>
 
 <script src="assets/supabase-client.js?v=20260627-home-performance1"></script>
-<script src="assets/my.js?v=20260702-my-login-entry-fix1"></script>
+<script src="assets/my.js?v=20260702-my-page-bg-image1"></script>
 </body>
 </html>

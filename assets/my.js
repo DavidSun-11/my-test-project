@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    const VERSION = "20260702-my-login-entry-fix1";
+    const VERSION = "20260702-my-page-bg-image1";
     const BOSS_LOGIN_URL = "boss-register.html?mode=login&redirect=index";
     const BOSS_REGISTER_URL = "boss-register.html?mode=register&redirect=index";
     const AVATAR_BUCKET = "boss-avatars";

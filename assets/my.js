@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    const VERSION = "20260702-my-page-bg-image1";
+    const VERSION = "20260702-my-starlake-copy1";
     const BOSS_LOGIN_URL = "boss-register.html?mode=login&redirect=index";
     const BOSS_REGISTER_URL = "boss-register.html?mode=register&redirect=index";
     const AVATAR_BUCKET = "boss-avatars";
@@ -214,7 +214,7 @@
     function getMetadataDisplayName(user) {
         const metadata = (user && user.user_metadata) || {};
         const name = metadata.boss_nickname || metadata.nickname || metadata.display_name || metadata.full_name || metadata.name;
-        return safeTrim(name).slice(0, 20) || "老板用户";
+        return safeTrim(name).slice(0, 20) || "星湖用户";
     }
 
     function simpleHash(value) {
@@ -257,8 +257,8 @@
 
     function renderProfile(profile) {
         const displayName = safeTrim(profile && profile.display_name);
-        setText(nodes.displayName, displayName ? "老板：" + displayName : "老板：已登录");
-        setText(nodes.accountType, "老板账号");
+        setText(nodes.displayName, displayName ? "星湖昵称：" + displayName : "星湖昵称：已登录");
+        setText(nodes.accountType, "星湖账号");
         setText(nodes.registeredAt, state.session && state.session.user ? formatDate(state.session.user.created_at) : "--");
     }
 
@@ -339,7 +339,7 @@
     function renderCheckinStatus(status, message) {
         state.checkinStatus = status || null;
         const signed = isSigned(status);
-        const todayText = status ? (signed ? "今日已签到" : "今日未签到") : "--";
+        const todayText = status ? (signed ? "今天已签到" : "今天还没签到") : "--";
         const rewardText = status && status.rewardPoints ? String(status.rewardPoints) : "--";
 
         setText(nodes.points, status ? String(status.totalPoints) : "--");
@@ -354,12 +354,12 @@
 
         if (nodes.checkinButton) {
             nodes.checkinButton.disabled = !!signed;
-            nodes.checkinButton.textContent = signed ? "今日已签到" : "立即签到";
+            nodes.checkinButton.textContent = signed ? "今天已签到" : "立即签到";
         }
 
         if (nodes.benefitCheckinButton) {
             nodes.benefitCheckinButton.disabled = !!signed;
-            nodes.benefitCheckinButton.textContent = signed ? "今日已签到" : "确认签到";
+            nodes.benefitCheckinButton.textContent = signed ? "今天已签到" : "立即签到";
         }
 
         setCheckinMessage(message || (signed ? "今日已完成签到。" : "今日还可以签到。"));
@@ -486,7 +486,7 @@
             { label: "总签到", value: status ? String(status.totalCheckins) + " 天" : "--" },
             { label: "连续签到", value: status ? String(status.currentStreak) + " 天" : "--" },
             { label: "本月签到", value: status ? String(status.monthlyCheckins) + " 天" : "--" },
-            { label: "今日状态", value: status ? (signed ? "今日已签到" : "今日未签到") : "--" },
+            { label: "今日状态", value: status ? (signed ? "今天已签到" : "今天还没签到") : "--" },
             { label: "签到奖励", value: status && status.rewardPoints ? String(status.rewardPoints) + " 积分" : "--" }
         ];
     }
@@ -507,7 +507,7 @@
         const status = state.checkinStatus;
         const signed = isSigned(status);
         const disabled = signed || state.checkinInFlight || state.checkinUnavailable ? " disabled" : "";
-        const buttonLabel = state.checkinUnavailable ? "暂未开启" : (state.checkinInFlight ? "签到中..." : (signed ? "今日已签到" : "立即签到"));
+        const buttonLabel = state.checkinUnavailable ? "暂未开启" : (state.checkinInFlight ? "签到中..." : (signed ? "今天已签到" : "立即签到"));
         const message = nodes.checkinMessage ? nodes.checkinMessage.textContent : "";
 
         setModalContent(
@@ -536,20 +536,20 @@
     }
 
     function renderSettingsModal() {
-        const displayName = nodes.displayName ? nodes.displayName.textContent : "老板：已登录";
+        const displayName = nodes.displayName ? nodes.displayName.textContent : "星湖昵称：已登录";
 
         setModalContent(
             "账号设置",
             "账号设置入口已预留，当前可先维护云端头像并查看账号基础信息。",
             "<div class=\"my-modal-grid\">" +
                 renderRows([
-                    { label: "当前账号", value: displayName.replace(/^老板：/, "") || "已登录" },
-                    { label: "账号类型", value: "老板账号" },
-                    { label: "注册时间", value: nodes.registeredAt ? nodes.registeredAt.textContent : "--" }
+                    { label: "星湖昵称", value: displayName.replace(/^星湖昵称：/, "") || "已登录" },
+                    { label: "账号身份", value: "星湖账号" },
+                    { label: "加入时间", value: nodes.registeredAt ? nodes.registeredAt.textContent : "--" }
                 ]) +
                 "<div class=\"my-empty-state\">更多账号设置正在准备中。头像修改仍使用当前页面的云端头像上传功能。</div>" +
             "</div>",
-            "<button class=\"my-button\" type=\"button\" data-my-modal-avatar>添加 / 修改头像</button><button class=\"my-button my-button--primary\" type=\"button\" data-my-modal-close>关闭</button>"
+            "<button class=\"my-button\" type=\"button\" data-my-modal-avatar>更换头像</button><button class=\"my-button my-button--primary\" type=\"button\" data-my-modal-close>关闭</button>"
         );
     }
 
@@ -740,7 +740,7 @@
 
             setAvatarStatus(isAvatarSetupError(error) ? "头像上传功能还需要完成云端配置。" : "头像上传失败，请稍后再试。");
         } finally {
-            setBusy(nodes.avatarButton, false, "添加 / 修改头像");
+            setBusy(nodes.avatarButton, false, "更换头像");
             if (nodes.avatarInput) {
                 nodes.avatarInput.value = "";
             }
@@ -750,7 +750,7 @@
     async function refreshAll(message) {
         const token = state.loadingToken + 1;
         state.loadingToken = token;
-        setAvatarStatus("正在读取老板资料...");
+        setAvatarStatus("正在读取星湖资料...");
         setCheckinMessage("正在读取签到状态...");
 
         await loadProfile();
@@ -758,7 +758,7 @@
             return;
         }
         await loadCheckinStatus(message);
-        if (nodes.avatarStatus && nodes.avatarStatus.textContent === "正在读取老板资料...") {
+        if (nodes.avatarStatus && nodes.avatarStatus.textContent === "正在读取星湖资料...") {
             setAvatarStatus("");
         }
     }

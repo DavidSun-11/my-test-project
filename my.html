@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的 - 君雪</title>
+    <title>我的星湖 - 君雪</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <script src="assets/performance-mode.js?v=20260613-2"></script>
     <style>
@@ -38,7 +38,7 @@
             background-image:
                 linear-gradient(180deg, rgba(4, 9, 28, 0.08) 0%, rgba(4, 10, 30, 0.18) 58%, rgba(3, 7, 23, 0.34) 100%),
                 linear-gradient(90deg, rgba(2, 6, 20, 0.12), rgba(6, 12, 34, 0.03) 28%, rgba(6, 12, 34, 0.03) 70%, rgba(2, 6, 20, 0.13)),
-                url("assets/images/月夜湖泊.png?v=20260702-my-page-bg-image1");
+                url("assets/images/月夜湖泊.png?v=20260702-my-starlake-copy1");
             background-position: center, center, center;
             background-size: cover, cover, cover;
             background-repeat: no-repeat;
@@ -896,7 +896,7 @@
                 background-image:
                     linear-gradient(180deg, rgba(4, 9, 28, 0.2) 0%, rgba(4, 9, 28, 0.34) 58%, rgba(3, 7, 23, 0.48) 100%),
                     linear-gradient(90deg, rgba(2, 6, 20, 0.1), rgba(6, 12, 34, 0.06) 38%, rgba(2, 6, 20, 0.16)),
-                    url("assets/images/月夜湖泊.png?v=20260702-my-page-bg-image1");
+                    url("assets/images/月夜湖泊.png?v=20260702-my-starlake-copy1");
                 background-position: center, center, 42% top;
                 background-size: cover, cover, auto 100%;
                 background-attachment: scroll, scroll, fixed;
@@ -1031,17 +1031,17 @@
     </button>
 
     <header class="my-hero">
-        <span class="my-kicker">JUNXUE ACCOUNT</span>
-        <h1 class="my-title" id="my-title">我的</h1>
-        <p class="my-subtitle">查看老板账号昵称、头像、积分和星湖签到状态。</p>
+        <span class="my-kicker">JUNXUE STARLAKE</span>
+        <h1 class="my-title" id="my-title">我的星湖</h1>
+        <p class="my-subtitle">查看昵称、头像、积分、签到和兑换记录。</p>
     </header>
 
     <section class="my-card my-logged-out" data-my-logged-out hidden>
-        <h2 class="my-card-title">登录老板账号后，可以查看你的头像、昵称、积分和签到记录。</h2>
-        <p class="my-card-copy">登录后这里会同步你的老板资料，也可以上传云端头像。</p>
+        <h2 class="my-card-title">登录星湖账号后，可以查看你的头像、昵称、积分和签到记录。</h2>
+        <p class="my-card-copy">登录后这里会同步你的星湖资料，也可以上传云端头像。</p>
         <div class="my-actions" style="margin-top:18px">
-            <a class="my-button my-button--primary" href="boss-register.html?mode=login&redirect=index" data-my-login-link>登录老板账号</a>
-            <a class="my-button" href="boss-register.html?mode=register&redirect=index" data-my-register-link>注册老板账号</a>
+            <a class="my-button my-button--primary" href="boss-register.html?mode=login&redirect=index" data-my-login-link>登录星湖账号</a>
+            <a class="my-button" href="boss-register.html?mode=register&redirect=index" data-my-register-link>注册星湖账号</a>
             <a class="my-button" href="index.html">返回首页</a>
         </div>
     </section>
@@ -1050,24 +1050,24 @@
         <aside class="my-card my-profile-card">
             <div>
                 <div class="my-profile-main">
-                    <div class="my-avatar-frame" aria-label="老板头像">
-                        <img data-my-avatar-img alt="老板头像" hidden>
+                    <div class="my-avatar-frame" aria-label="星湖头像">
+                        <img data-my-avatar-img alt="星湖头像" hidden>
                         <div class="my-avatar-placeholder" data-my-avatar-placeholder aria-hidden="true">雪</div>
                     </div>
                     <div class="my-profile-info">
-                        <h2 class="my-profile-name" data-my-display-name>老板：已登录</h2>
-                        <span class="my-account-badge">老板账号</span>
+                        <h2 class="my-profile-name" data-my-display-name>星湖昵称：已登录</h2>
+                        <span class="my-account-badge">星湖账号</span>
                         <p class="my-muted my-profile-note">头像会保存到云端，换设备登录后也能看到。</p>
                     </div>
                 </div>
 
                 <div class="my-profile-meta" aria-label="账号资料">
                     <div class="my-meta-row">
-                        <span>账号类型</span>
-                        <strong data-my-account-type>老板账号</strong>
+                        <span>账号身份</span>
+                        <strong data-my-account-type>星湖账号</strong>
                     </div>
                     <div class="my-meta-row">
-                        <span>注册时间</span>
+                        <span>加入时间</span>
                         <strong data-my-registered-at>--</strong>
                     </div>
                 </div>
@@ -1076,7 +1076,7 @@
             <div>
                 <input data-my-avatar-input type="file" accept="image/jpeg,image/png,image/webp" hidden>
                 <div class="my-actions">
-                    <button class="my-button my-button--primary" type="button" data-my-avatar-button>添加 / 修改头像</button>
+                    <button class="my-button my-button--primary" type="button" data-my-avatar-button>更换头像</button>
                     <a class="my-button" href="index.html">返回首页</a>
                 </div>
                 <div class="my-status" data-my-avatar-status aria-live="polite"></div>
@@ -1096,7 +1096,7 @@
                     </div>
                     <span class="my-feature-label">当前积分</span>
                     <strong class="my-feature-value" data-my-points>--</strong>
-                    <span class="my-card-link">点击查看积分明细</span>
+                    <span class="my-card-link">查看积分明细</span>
                 </section>
 
                 <section class="my-feature-card my-checkin-card" tabindex="0" role="button" data-my-action="checkin" aria-labelledby="my-checkin-title">
@@ -1129,7 +1129,7 @@
                     <strong class="my-feature-value" data-my-exchange-points>--</strong>
                     <div class="my-exchange-summary">
                         <span>10 积分 = 1 元服务额度，仅用于兑换本站游戏服务。</span>
-                        <span>支持王者星星、王者复盘、永劫娱乐陪和语音聊天。</span>
+                        <span>可兑换段位星星、复盘、陪玩和语音聊天。</span>
                     </div>
                     <span class="my-gift-visual" aria-hidden="true">
                         <svg class="my-line-icon" viewBox="0 0 90 76">
@@ -1141,7 +1141,7 @@
                     <div class="my-exchange-actions">
                         <a class="my-button my-button--primary" href="redeem.html" data-my-exchange-link>兑换</a>
                     </div>
-                    <span class="my-card-link">查看我的兑换记录</span>
+                    <span class="my-card-link">查看兑换记录</span>
                 </section>
             </div>
 
@@ -1219,8 +1219,8 @@
                         </span>
                         <div>
                             <span class="my-soft-badge" data-my-today-status-copy>今日状态读取中</span>
-                            <p class="my-muted" style="margin-top:10px">签到可获得 <strong data-my-reward-points>--</strong> 积分</p>
-                            <button class="my-button my-button--primary" type="button" data-my-benefit-checkin>确认签到</button>
+                            <p class="my-muted" style="margin-top:10px">签到可获得 <strong data-my-reward-points>1</strong> 积分</p>
+                            <button class="my-button my-button--primary" type="button" data-my-benefit-checkin>立即签到</button>
                         </div>
                     </div>
                     <div class="my-alert" data-my-checkin-message>正在读取签到状态...</div>
@@ -1246,6 +1246,6 @@
 </div>
 
 <script src="assets/supabase-client.js?v=20260627-home-performance1"></script>
-<script src="assets/my.js?v=20260702-my-page-bg-image1"></script>
+<script src="assets/my.js?v=20260702-my-starlake-copy1"></script>
 </body>
 </html>

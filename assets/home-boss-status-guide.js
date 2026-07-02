@@ -158,31 +158,12 @@
         }
     }
 
-    function openBossLogin() {
+    function goToBossLoginPage() {
         if (!state.sessionReady || state.loggedIn) {
             return;
         }
 
-        if (window.JunxueGanyuLazy && typeof window.JunxueGanyuLazy.load === "function") {
-            window.JunxueGanyuLazy.load().then(function (menu) {
-                if (menu && typeof menu.openBossLogin === "function") {
-                    menu.openBossLogin();
-                    return;
-                }
-
-                window.location.href = "index.html?bossLogin=1";
-            }).catch(function () {
-                window.location.href = "index.html?bossLogin=1";
-            });
-            return;
-        }
-
-        if (window.Live2DInteractiveMenu && typeof window.Live2DInteractiveMenu.openBossLogin === "function") {
-            window.Live2DInteractiveMenu.openBossLogin();
-            return;
-        }
-
-        window.location.href = "index.html?bossLogin=1";
+        window.location.href = "boss-register.html?mode=login&redirect=index";
     }
 
     function initBossStatus() {
@@ -192,7 +173,7 @@
         }
 
         setSyncingStatus();
-        button.addEventListener("click", openBossLogin);
+        button.addEventListener("click", goToBossLoginPage);
 
         waitForSharedSupabaseClient().then(function (sharedClient) {
             return sharedClient.getClient();

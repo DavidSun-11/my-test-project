@@ -720,13 +720,13 @@
             <div class="boss-register-panel-frame" aria-hidden="true"></div>
             <div class="boss-register-panel-content">
                 <span class="boss-register-kicker">Junxue Invitation</span>
-                <h1 class="boss-register-title" id="boss-register-title">老板账号</h1>
-                <p class="boss-register-subtitle">欢迎来到君雪的小小互动星湖</p>
-                <p class="boss-register-copy">注册成为老板后，你可以参与互动、发布评价、参与投票，并使用更多专属功能。</p>
+                <h1 class="boss-register-title" id="boss-register-title" data-boss-register-title>老板账号</h1>
+                <p class="boss-register-subtitle" data-boss-register-subtitle>欢迎来到君雪的小小互动星湖</p>
+                <p class="boss-register-copy" data-boss-register-copy>注册成为老板后，你可以参与互动、发布评价、参与投票，并使用更多专属功能。</p>
                 <div class="boss-register-divider" aria-hidden="true"></div>
 
                 <form class="boss-register-form" data-boss-register-form>
-                    <label class="boss-register-field" data-icon="✦">
+                    <label class="boss-register-field" data-icon="✦" data-boss-register-register-only>
                         <span class="boss-register-label">老板昵称</span>
                         <input class="boss-register-input" name="displayName" type="text" autocomplete="nickname" maxlength="20" placeholder="请输入 1-20 字昵称" required>
                     </label>
@@ -741,20 +741,20 @@
                         <input class="boss-register-input" name="password" type="password" autocomplete="new-password" placeholder="请设置登录密码" required>
                     </label>
 
-                    <label class="boss-register-field" data-icon="✧">
+                    <label class="boss-register-field" data-icon="✧" data-boss-register-register-only>
                         <span class="boss-register-label">确认密码</span>
                         <input class="boss-register-input" name="confirmPassword" type="password" autocomplete="new-password" placeholder="请再次输入密码" required>
                     </label>
 
                     <div class="boss-register-actions">
                         <button class="boss-register-button boss-register-button--primary" type="submit" data-boss-register-submit aria-busy="false">注册老板账号</button>
-                        <button class="boss-register-button" type="button" data-boss-register-login>返回登录</button>
+                        <button class="boss-register-button" type="button" data-boss-register-login>去登录</button>
                         <button class="boss-register-button" type="button" data-boss-register-menu>返回菜单</button>
                     </div>
                 </form>
 
                 <div class="boss-register-status is-neutral" data-boss-register-status aria-live="polite">账号仅用于本站互动与评价，不会影响本地记忆中的称呼。</div>
-                <p class="boss-register-note">注册后可参与互动、发布评价，并使用更多专属功能。</p>
+                <p class="boss-register-note" data-boss-register-note>注册后可参与互动、发布评价，并使用更多专属功能。</p>
             </div>
         </section>
     </main>
@@ -762,6 +762,6 @@
     <script src="assets/supabase-client.js?v=20260627-home-performance1"></script>
     <script src="assets/price-reviews.js?v=20260701-boss-review-tabs-pagination1"></script>
     <script src="assets/boss-visit.js?v=20260627-home-performance1"></script>
-    <script src="assets/boss-register.js?v=20260626-boss-nickname-bind1"></script>
+    <script src="assets/boss-register.js?v=20260702-boss-auth-unified1"></script>
 </body>
 </html>

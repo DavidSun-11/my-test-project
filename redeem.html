@@ -16,10 +16,14 @@
             font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
             color: rgba(244, 250, 255, 0.94);
             background:
-                radial-gradient(circle at 82% 8%, rgba(210, 216, 255, 0.18), transparent 11rem),
-                radial-gradient(ellipse at 18% 18%, rgba(141, 82, 202, 0.28), transparent 23rem),
-                radial-gradient(ellipse at 78% 74%, rgba(163, 102, 204, 0.22), transparent 25rem),
-                linear-gradient(180deg, #07122f 0%, #0b1943 44%, #07132e 100%);
+                linear-gradient(180deg, rgba(5, 10, 30, 0.36) 0%, rgba(7, 13, 36, 0.52) 48%, rgba(5, 10, 27, 0.74) 100%),
+                radial-gradient(ellipse at 50% 18%, rgba(96, 108, 214, 0.12), transparent 36rem),
+                url("assets/images/星月湖背景.png");
+            background-attachment: fixed, fixed, fixed;
+            background-color: #07122f;
+            background-position: center center;
+            background-repeat: no-repeat;
+            background-size: cover;
             overflow-x: hidden;
         }
 
@@ -29,16 +33,10 @@
             inset: 0;
             z-index: 0;
             pointer-events: none;
-            background-image:
-                radial-gradient(circle at calc(50% + 575px) 104px, rgba(255, 255, 255, 0.95) 0 42px, rgba(222, 229, 255, 0.78) 43px 50px, rgba(188, 198, 239, 0.22) 51px 70px, transparent 72px),
-                radial-gradient(circle at calc(50% + 560px) 86px, rgba(126, 133, 178, 0.28) 0 8px, transparent 9px),
-                radial-gradient(circle at calc(50% + 594px) 120px, rgba(113, 120, 164, 0.22) 0 13px, transparent 14px),
-                linear-gradient(155deg, transparent 0 10%, rgba(7, 13, 34, 0.88) 10.2% 14%, transparent 14.2%) left 148px top 120px / 420px 130px no-repeat,
-                linear-gradient(22deg, transparent 0 19%, rgba(8, 15, 40, 0.82) 19.2% 23%, transparent 23.2%) left 0 top 130px / 430px 130px no-repeat,
-                linear-gradient(180deg, transparent 0 66%, rgba(10, 21, 47, 0.34) 66.3% 71%, rgba(17, 35, 74, 0.28) 72%, transparent 100%),
-                repeating-linear-gradient(178deg, transparent 0 32px, rgba(180, 207, 255, 0.07) 33px 34px, transparent 35px 66px),
-                radial-gradient(ellipse at 50% 100%, rgba(118, 168, 226, 0.18), transparent 48%);
-            opacity: 0.92;
+            background:
+                linear-gradient(90deg, rgba(3, 8, 25, 0.48) 0%, rgba(7, 14, 39, 0.12) 27%, rgba(7, 14, 39, 0.10) 73%, rgba(3, 8, 25, 0.44) 100%),
+                linear-gradient(180deg, rgba(5, 9, 27, 0.28) 0%, rgba(6, 12, 34, 0.32) 42%, rgba(3, 8, 24, 0.64) 100%);
+            opacity: 1;
         }
 
         body::after {
@@ -48,33 +46,10 @@
             z-index: 0;
             pointer-events: none;
             background:
-                radial-gradient(ellipse at 4% 9%, rgba(176, 95, 207, 0.44) 0 1.6rem, transparent 1.8rem),
-                radial-gradient(ellipse at 8% 3%, rgba(208, 132, 226, 0.32) 0 2rem, transparent 2.2rem),
-                radial-gradient(ellipse at 93% 21%, rgba(187, 98, 210, 0.36) 0 1.4rem, transparent 1.6rem),
-                radial-gradient(ellipse at 96% 31%, rgba(211, 126, 221, 0.24) 0 2rem, transparent 2.2rem),
-                radial-gradient(circle at 6% 63%, rgba(255, 202, 126, 0.46) 0 18px, rgba(255, 160, 88, 0.16) 20px 58px, transparent 64px),
-                radial-gradient(circle at 93% 91%, rgba(255, 202, 126, 0.36) 0 16px, rgba(255, 160, 88, 0.12) 20px 54px, transparent 60px),
-                linear-gradient(112deg, transparent 0 9%, rgba(76, 39, 86, 0.44) 9.2% 9.55%, transparent 9.8% 100%),
-                linear-gradient(58deg, transparent 0 90%, rgba(72, 35, 82, 0.38) 90.1% 90.42%, transparent 90.7% 100%),
-                radial-gradient(ellipse at 18% 72%, rgba(238, 136, 213, 0.62) 0 2px, transparent 3px),
-                radial-gradient(ellipse at 74% 12%, rgba(238, 136, 213, 0.52) 0 2px, transparent 3px),
-                radial-gradient(ellipse at 88% 46%, rgba(238, 136, 213, 0.54) 0 2px, transparent 3px),
-                radial-gradient(ellipse at 40% 8%, rgba(255, 255, 255, 0.5) 0 1px, transparent 2px);
-            background-size:
-                270px 220px,
-                320px 210px,
-                290px 230px,
-                360px 260px,
-                150px 190px,
-                150px 190px,
-                100% 100%,
-                100% 100%,
-                180px 150px,
-                220px 180px,
-                250px 190px,
-                130px 120px;
-            background-repeat: repeat, repeat, repeat, repeat, no-repeat, no-repeat, no-repeat, no-repeat, repeat, repeat, repeat, repeat;
-            opacity: 0.64;
+                radial-gradient(ellipse at 50% 18%, rgba(175, 189, 255, 0.14), transparent 28rem),
+                radial-gradient(ellipse at 82% 86%, rgba(213, 134, 216, 0.16), transparent 22rem),
+                linear-gradient(180deg, rgba(5, 9, 26, 0.12), rgba(4, 8, 24, 0.26));
+            opacity: 1;
         }
 
         .redeem-shell {
@@ -96,47 +71,40 @@
         .redeem-shell::before {
             left: 0;
             top: 0;
-            width: min(31vw, 430px);
-            height: min(36vh, 300px);
+            width: min(28vw, 390px);
+            height: 100vh;
             background:
-                radial-gradient(ellipse at 18% 18%, rgba(233, 149, 224, 0.46) 0 9px, transparent 10px),
-                radial-gradient(ellipse at 36% 11%, rgba(202, 118, 220, 0.34) 0 13px, transparent 14px),
-                radial-gradient(ellipse at 54% 24%, rgba(221, 135, 222, 0.28) 0 11px, transparent 12px),
-                linear-gradient(148deg, transparent 0 49%, rgba(44, 29, 75, 0.52) 49.4% 50.1%, transparent 50.5% 100%),
-                linear-gradient(28deg, transparent 0 58%, rgba(20, 21, 55, 0.44) 58.2% 58.7%, transparent 59% 100%);
-            filter: blur(0.1px) drop-shadow(0 0 24px rgba(153, 83, 210, 0.26));
-            opacity: 0.78;
+                linear-gradient(90deg, rgba(1, 7, 23, 0.48), transparent),
+                radial-gradient(ellipse at 20% 14%, rgba(156, 125, 255, 0.12), transparent 17rem);
+            opacity: 0.9;
         }
 
         .redeem-shell::after {
             right: 0;
             bottom: 0;
-            width: min(34vw, 470px);
-            height: min(44vh, 360px);
+            width: min(34vw, 460px);
+            height: 100vh;
             background:
-                radial-gradient(circle at 83% 78%, rgba(255, 218, 148, 0.42) 0 18px, rgba(255, 166, 88, 0.12) 20px 70px, transparent 74px),
-                linear-gradient(90deg, transparent 0 78%, rgba(255, 222, 151, 0.34) 78.5% 80%, transparent 80.5%),
-                linear-gradient(180deg, transparent 0 64%, rgba(7, 15, 34, 0.58) 64.4% 100%),
-                radial-gradient(ellipse at 52% 28%, rgba(223, 130, 224, 0.36) 0 12px, transparent 13px),
-                radial-gradient(ellipse at 70% 20%, rgba(223, 130, 224, 0.26) 0 15px, transparent 16px),
-                linear-gradient(36deg, transparent 0 60%, rgba(51, 32, 83, 0.44) 60.3% 61%, transparent 61.4%);
-            opacity: 0.82;
+                linear-gradient(270deg, rgba(1, 7, 23, 0.36), transparent),
+                radial-gradient(ellipse at 92% 88%, rgba(255, 177, 108, 0.12), transparent 12rem);
+            opacity: 0.86;
         }
 
         .redeem-nav,
         .redeem-card,
         .redeem-panel,
         .redeem-empty {
-            border: 1px solid rgba(194, 211, 255, 0.38);
+            border: 1px solid rgba(220, 225, 255, 0.36);
             background:
-                linear-gradient(145deg, rgba(15, 25, 74, 0.66), rgba(58, 48, 121, 0.48)),
-                radial-gradient(circle at 12% 0%, rgba(222, 160, 255, 0.12), transparent 34%);
+                linear-gradient(145deg, rgba(8, 17, 52, 0.72), rgba(43, 36, 101, 0.54)),
+                radial-gradient(circle at 10% 0%, rgba(223, 188, 255, 0.13), transparent 35%),
+                radial-gradient(circle at 92% 100%, rgba(126, 191, 255, 0.09), transparent 34%);
             box-shadow:
-                0 24px 72px rgba(1, 7, 27, 0.38),
-                inset 0 1px 0 rgba(255,255,255,0.18),
-                inset 0 0 38px rgba(126, 146, 255, 0.12);
-            backdrop-filter: blur(18px) saturate(132%);
-            -webkit-backdrop-filter: blur(18px) saturate(132%);
+                0 26px 76px rgba(1, 6, 24, 0.46),
+                inset 0 1px 0 rgba(255,255,255,0.20),
+                inset 0 0 42px rgba(139, 148, 255, 0.14);
+            backdrop-filter: blur(20px) saturate(126%);
+            -webkit-backdrop-filter: blur(20px) saturate(126%);
         }
 
         .redeem-nav {
@@ -179,25 +147,25 @@
             gap: 8px;
             padding: 10px 16px;
             border-radius: 999px;
-            border: 1px solid rgba(207, 225, 255, 0.45);
+            border: 1px solid rgba(222, 230, 255, 0.48);
             background:
-                linear-gradient(145deg, rgba(18, 32, 83, 0.62), rgba(52, 43, 113, 0.40));
+                linear-gradient(145deg, rgba(13, 26, 77, 0.68), rgba(57, 43, 116, 0.46));
             color: rgba(244, 250, 255, 0.92);
             text-decoration: none;
             font: inherit;
             cursor: pointer;
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.14), 0 0 18px rgba(116, 156, 255, 0.12);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.16), 0 0 18px rgba(116, 156, 255, 0.14);
             transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
         }
 
         .redeem-button--primary {
             border-color: rgba(232, 218, 255, 0.88);
-            background: linear-gradient(100deg, #8fcfff 0%, #aab6ff 48%, #c48cff 100%);
+            background: linear-gradient(100deg, #91d2ff 0%, #aeb7ff 46%, #d093ff 100%);
             color: #101945;
             font-weight: 800;
             box-shadow:
-                0 0 28px rgba(146, 199, 255, 0.34),
-                0 0 22px rgba(196, 140, 255, 0.28),
+                0 0 30px rgba(146, 199, 255, 0.38),
+                0 0 26px rgba(210, 147, 255, 0.34),
                 inset 0 1px 0 rgba(255,255,255,0.52);
         }
 
@@ -257,7 +225,7 @@
             padding: 12px 14px;
             border-radius: 16px;
             border: 1px solid rgba(183, 207, 255, 0.26);
-            background: rgba(7, 17, 50, 0.52);
+            background: rgba(5, 14, 44, 0.58);
             color: rgba(237, 249, 255, 0.86);
             line-height: 1.6;
             box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
@@ -282,8 +250,8 @@
             gap: 12px;
             padding: 14px 16px;
             border-radius: 16px;
-            border: 1px solid rgba(149, 179, 255, 0.12);
-            background: rgba(9, 18, 58, 0.48);
+            border: 1px solid rgba(178, 199, 255, 0.16);
+            background: rgba(6, 15, 50, 0.56);
             box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
         }
 
@@ -317,8 +285,8 @@
         .redeem-record-card {
             padding: 14px;
             border-radius: 18px;
-            border: 1px solid rgba(193, 213, 255, 0.22);
-            background: linear-gradient(145deg, rgba(9, 22, 63, 0.58), rgba(31, 31, 86, 0.38));
+            border: 1px solid rgba(209, 219, 255, 0.24);
+            background: linear-gradient(145deg, rgba(6, 17, 56, 0.64), rgba(35, 30, 91, 0.44));
             box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
         }
 
@@ -355,15 +323,15 @@
         .redeem-field select,
         .redeem-field textarea {
             width: 100%;
-            border: 1px solid rgba(188, 209, 255, 0.36);
+            border: 1px solid rgba(205, 218, 255, 0.38);
             border-radius: 16px;
             background:
-                linear-gradient(180deg, rgba(9, 18, 54, 0.72), rgba(11, 20, 58, 0.58));
+                linear-gradient(180deg, rgba(5, 13, 44, 0.78), rgba(10, 19, 58, 0.66));
             color: #fff;
             padding: 12px 13px;
             font: inherit;
             outline: none;
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), inset 0 0 18px rgba(112, 131, 220, 0.10);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.09), inset 0 0 18px rgba(112, 131, 220, 0.12);
         }
 
         .redeem-field textarea {
@@ -381,9 +349,9 @@
         .redeem-estimate {
             padding: 14px;
             border-radius: 18px;
-            background: linear-gradient(135deg, rgba(111, 181, 255, 0.24), rgba(155, 92, 202, 0.34));
-            border: 1px solid rgba(215, 204, 255, 0.34);
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 0 22px rgba(175, 130, 255, 0.16);
+            background: linear-gradient(135deg, rgba(99, 173, 255, 0.28), rgba(169, 92, 212, 0.38));
+            border: 1px solid rgba(225, 210, 255, 0.36);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.14), 0 0 24px rgba(183, 134, 255, 0.18);
         }
 
         .redeem-estimate span {
@@ -451,22 +419,23 @@
         }
 
         @media (max-width: 860px) {
+            body {
+                background-attachment: scroll;
+                background-position: center top;
+            }
+
             body::before {
-                background-image:
-                    radial-gradient(circle at 84% 68px, rgba(255, 255, 255, 0.76) 0 28px, rgba(203, 213, 255, 0.22) 30px 48px, transparent 50px),
-                    radial-gradient(ellipse at 28% 8%, rgba(134, 91, 206, 0.22), transparent 18rem),
-                    linear-gradient(180deg, rgba(8, 18, 45, 0), rgba(9, 15, 39, 0.38));
-                opacity: 0.72;
+                background:
+                    linear-gradient(180deg, rgba(4, 8, 26, 0.50) 0%, rgba(5, 10, 30, 0.64) 45%, rgba(3, 7, 22, 0.82) 100%),
+                    linear-gradient(90deg, rgba(2, 7, 23, 0.32), rgba(6, 12, 34, 0.08), rgba(2, 7, 23, 0.32));
+                opacity: 1;
             }
 
             body::after {
                 background:
-                    radial-gradient(ellipse at 12% 18%, rgba(229, 132, 218, 0.34) 0 2px, transparent 3px),
-                    radial-gradient(ellipse at 88% 28%, rgba(229, 132, 218, 0.30) 0 2px, transparent 3px),
-                    radial-gradient(ellipse at 78% 72%, rgba(255, 196, 135, 0.14), transparent 8rem);
-                background-size: 160px 140px, 190px 160px, 100% 100%;
-                background-repeat: repeat, repeat, no-repeat;
-                opacity: 0.38;
+                    radial-gradient(ellipse at 50% 6%, rgba(176, 188, 255, 0.13), transparent 18rem),
+                    radial-gradient(ellipse at 80% 86%, rgba(214, 139, 219, 0.10), transparent 12rem);
+                opacity: 1;
             }
 
             .redeem-shell::before,
@@ -634,6 +603,6 @@
     </main>
 
     <script src="assets/supabase-client.js?v=20260627-home-performance1"></script>
-    <script src="assets/redeem.js?v=20260702-point-redemption-moon-courtyard1"></script>
+    <script src="assets/redeem.js?v=20260702-point-redemption-bg-image1"></script>
 </body>
 </html>

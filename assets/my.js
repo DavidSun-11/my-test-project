@@ -1,7 +1,9 @@
 (function () {
     "use strict";
 
-    const VERSION = "20260701-my-page-one-screen-layout1";
+    const VERSION = "20260702-my-login-entry-fix1";
+    const BOSS_LOGIN_URL = "boss-register.html?mode=login&redirect=index";
+    const BOSS_REGISTER_URL = "boss-register.html?mode=register&redirect=index";
     const AVATAR_BUCKET = "boss-avatars";
     const MAX_AVATAR_BYTES = 1024 * 1024;
     const AVATAR_SIZE = 512;
@@ -108,6 +110,24 @@
         if (label) {
             button.textContent = label;
         }
+    }
+
+    function normalizeBossAuthLinks() {
+        $$("[data-my-login-link], a[href*='bossLogin=1']").forEach(function (link) {
+            link.setAttribute("href", BOSS_LOGIN_URL);
+            link.addEventListener("click", function (event) {
+                event.preventDefault();
+                window.location.href = BOSS_LOGIN_URL;
+            });
+        });
+
+        $$("[data-my-register-link]").forEach(function (link) {
+            link.setAttribute("href", BOSS_REGISTER_URL);
+            link.addEventListener("click", function (event) {
+                event.preventDefault();
+                window.location.href = BOSS_REGISTER_URL;
+            });
+        });
     }
 
     function escapeHtml(value) {
@@ -773,6 +793,8 @@
     }
 
     onReady(function () {
+        normalizeBossAuthLinks();
+
         if (nodes.avatarImg) {
             nodes.avatarImg.addEventListener("error", function () {
                 renderEmptyAvatar();

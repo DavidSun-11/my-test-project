@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    const VERSION = "20260701-point-redemption-mvp1";
+    const VERSION = "20260702-point-redemption-moon-courtyard1";
     const LOGIN_TEXT = "请先登录老板账号。";
     const SQL_HINT = "积分兑换功能需要先执行 Supabase 第 15 节 SQL。";
 

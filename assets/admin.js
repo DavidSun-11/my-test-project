@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    const VERSION = "20260701-point-redemption-mvp1";
+    const VERSION = "20260702-score-guess-points-pool1";
     const SQL_HINT = "管理员后台需要先执行数据库升级 SQL。";
     const NO_PERMISSION_TEXT = "你没有权限访问这个后台。";
     const LOGIN_TEXT = "请先登录管理员账号。";
@@ -27,9 +27,18 @@
         rejected: "已拒绝"
     };
 
+    const SCORE_GUESS_CHOICES = ["铜牌", "银牌", "金牌", "顶级", "无"];
+
+    const SCORE_SETTLEMENT_LABELS = {
+        pending: "待结算",
+        settled: "已结算",
+        no_winner: "无人猜中"
+    };
+
     const state = {
         users: [],
         redemptions: [],
+        scoreGuessSessions: [],
         redemptionFilter: "pending",
         hasAdminAccess: false,
         client: null,
@@ -101,7 +110,7 @@
     function getFriendlyError(error) {
         const message = error && error.message ? error.message : "";
 
-        if (/admin_get_boss_users|admin_adjust_boss_points|admin_set_boss_blocked|admin_set_live_interaction_admin|boss_account_flags|boss_visit_stats|boss_admin_actions|admin_ref|boss_point_redemptions|admin_get_boss_point_redemptions|admin_review_boss_point_redemption|schema cache|function .* does not exist|relation .* does not exist/i.test(message)) {
+        if (/admin_get_boss_users|admin_adjust_boss_points|admin_set_boss_blocked|admin_set_live_interaction_admin|boss_account_flags|boss_visit_stats|boss_admin_actions|admin_ref|boss_point_redemptions|admin_get_boss_point_redemptions|admin_review_boss_point_redemption|live_score_guess|point_ledger|admin_get_live_score_guess_settlement|admin_set_live_score_guess_result|schema cache|function .* does not exist|relation .* does not exist/i.test(message)) {
             return SQL_HINT;
         }
 
@@ -109,7 +118,7 @@
             return "该用户当前积分不足，不能同意这条兑换申请。";
         }
 
-        if (/redemption already processed|not pending/i.test(message)) {
+        if (/redemption already processed/i.test(message)) {
             return "这条兑换申请已经处理过，不能重复操作。";
         }
 
@@ -141,6 +150,14 @@
             return "积分数量必须是 1 到 10000 的正整数。";
         }
 
+        if (/already settled|no_winner|not pending/i.test(message)) {
+            return "这场评分竞猜已经结算过，不能重复结算。";
+        }
+
+        if (/session must be closed|open session/i.test(message)) {
+            return "请先在直播互动里结束竞猜，再公布正确结果并结算。";
+        }
+
         return "操作暂时没有成功，请稍后再试。";
     }
 
@@ -154,7 +171,7 @@
     }
 
     function setBusy(isBusy) {
-        $$("[data-admin-action], [data-redemption-action], [data-admin-redemption-filter]").forEach(function (button) {
+        $$("[data-admin-action], [data-redemption-action], [data-admin-redemption-filter], [data-score-guess-action], [data-admin-score-guess-refresh]").forEach(function (button) {
             button.disabled = !!isBusy;
         });
         if (nodes.refresh) {
@@ -166,6 +183,9 @@
         nodes.tableWrap.hidden = true;
         if (nodes.redemptionPanel) {
             nodes.redemptionPanel.hidden = true;
+        }
+        if (nodes.scoreGuessPanel) {
+            nodes.scoreGuessPanel.hidden = true;
         }
         nodes.empty.hidden = false;
         nodes.empty.innerHTML = [
@@ -265,6 +285,56 @@
         }).join("");
     }
 
+    function getScoreGuessShortRef(id) {
+        return String(id || "").slice(0, 8) || "--------";
+    }
+
+    function renderScoreGuessSessions() {
+        if (!nodes.scoreGuessPanel) {
+            return;
+        }
+
+        nodes.scoreGuessPanel.hidden = false;
+        const sessions = state.scoreGuessSessions || [];
+
+        if (!sessions.length) {
+            nodes.scoreGuessBody.innerHTML = "";
+            nodes.scoreGuessTableWrap.hidden = true;
+            nodes.scoreGuessEmpty.hidden = false;
+            nodes.scoreGuessEmpty.innerHTML = '<strong>暂无评分竞猜场次。</strong>';
+            return;
+        }
+
+        nodes.scoreGuessTableWrap.hidden = false;
+        nodes.scoreGuessEmpty.hidden = true;
+        nodes.scoreGuessBody.innerHTML = sessions.map(function (session, index) {
+            const status = session.status || "closed";
+            const settlementStatus = session.settlement_status || "pending";
+            const canSettle = status === "closed" && settlementStatus === "pending";
+            const choiceOptions = SCORE_GUESS_CHOICES.map(function (choice) {
+                return '<option value="' + escapeHtml(choice) + '">' + escapeHtml(choice) + '</option>';
+            }).join("");
+
+            return [
+                '<tr>',
+                    '<td data-label="场次"><strong>#' + escapeHtml(getScoreGuessShortRef(session.id)) + '</strong><br><span class="admin-pill">' + escapeHtml(formatTime(session.created_at)) + '</span></td>',
+                    '<td data-label="状态"><span class="admin-pill ' + (status === "open" ? "is-good" : "is-admin") + '">' + (status === "open" ? "进行中" : "已结束") + '</span></td>',
+                    '<td data-label="结算"><span class="admin-pill ' + (settlementStatus === "pending" ? "is-pending" : (settlementStatus === "settled" ? "is-approved" : "is-rejected")) + '">' + escapeHtml(SCORE_SETTLEMENT_LABELS[settlementStatus] || settlementStatus) + '</span></td>',
+                    '<td data-label="正确结果">' + escapeHtml(session.correct_choice || "未公布") + '</td>',
+                    '<td data-label="输方池">' + formatNumber(session.total_losing_pool) + '</td>',
+                    '<td data-label="赢家投入">' + formatNumber(session.total_winning_stake) + '</td>',
+                    '<td data-label="结束时间">' + escapeHtml(formatTime(session.ended_at)) + '</td>',
+                    '<td data-label="操作">',
+                        '<div class="admin-actions">',
+                            canSettle ? '<label class="admin-field"><span>正确结果</span><select data-score-guess-choice="' + index + '">' + choiceOptions + '</select></label><button type="button" data-score-guess-action="settle" data-index="' + index + '">公布结果 / 结算积分</button>' : '',
+                            '<button type="button" data-score-guess-action="details" data-index="' + index + '">查看明细</button>',
+                        '</div>',
+                    '</td>',
+                '</tr>'
+            ].join("");
+        }).join("");
+    }
+
     async function loadUsers(doneMessage) {
         setBusy(true);
         setStatus("正在读取老板账号列表...", "neutral");
@@ -324,10 +394,47 @@
         }
     }
 
+    async function loadScoreGuessSessions(doneMessage) {
+        if (!nodes.scoreGuessPanel) {
+            return;
+        }
+
+        setBusy(true);
+        if (nodes.scoreGuessEmpty) {
+            nodes.scoreGuessEmpty.hidden = false;
+            nodes.scoreGuessEmpty.innerHTML = '<strong>正在读取评分竞猜场次...</strong>';
+        }
+
+        try {
+            const response = await state.client
+                .from("live_score_guess_sessions")
+                .select("id,title,status,created_at,ended_at,correct_choice,settlement_status,total_losing_pool,total_winning_stake,settled_at")
+                .order("created_at", { ascending: false })
+                .limit(12);
+
+            if (response.error) {
+                throw response.error;
+            }
+
+            state.scoreGuessSessions = Array.isArray(response.data) ? response.data : [];
+            renderScoreGuessSessions();
+            if (doneMessage) {
+                setStatus(doneMessage, "good");
+            }
+        } catch (error) {
+            nodes.scoreGuessTableWrap.hidden = true;
+            nodes.scoreGuessEmpty.hidden = false;
+            nodes.scoreGuessEmpty.innerHTML = '<strong>' + escapeHtml(getFriendlyError(error)) + '</strong>';
+        } finally {
+            setBusy(false);
+        }
+    }
+
     async function refreshAll(doneMessage) {
         await loadUsers(doneMessage);
         if (state.hasAdminAccess) {
             await loadRedemptions();
+            await loadScoreGuessSessions();
         }
     }
 
@@ -452,8 +559,106 @@
         }
     }
 
+    async function showScoreGuessDetails(session) {
+        if (!session) {
+            return;
+        }
+
+        setBusy(true);
+        try {
+            const response = await state.client.rpc("admin_get_live_score_guess_settlement", {
+                p_session_id: session.id
+            });
+
+            if (response.error) {
+                throw response.error;
+            }
+
+            const rows = Array.isArray(response.data) ? response.data : [];
+            nodes.modal.hidden = false;
+            nodes.modalTitle.textContent = "评分竞猜明细 #" + getScoreGuessShortRef(session.id);
+            nodes.modalBody.innerHTML = rows.length ? [
+                '<div class="admin-table-wrap">',
+                    '<table class="admin-table">',
+                        '<thead><tr><th>昵称</th><th>选择</th><th>投入</th><th>结果</th><th>返还</th><th>奖励</th><th>时间</th></tr></thead>',
+                        '<tbody>',
+                            rows.map(function (row) {
+                                return [
+                                    '<tr>',
+                                        '<td data-label="昵称"><strong>' + escapeHtml(row.display_name || "星湖用户") + '</strong><br><span class="admin-pill">#' + escapeHtml(row.vote_ref || "----") + '</span></td>',
+                                        '<td data-label="选择">' + escapeHtml(row.choice || "暂无") + '</td>',
+                                        '<td data-label="投入">' + formatNumber(row.staked_points) + '</td>',
+                                        '<td data-label="结果">' + (row.is_correct === null || typeof row.is_correct === "undefined" ? "待结算" : (row.is_correct ? "猜对" : "未中")) + '</td>',
+                                        '<td data-label="返还">' + formatNumber(row.settled_points) + '</td>',
+                                        '<td data-label="奖励">' + formatNumber(row.settlement_bonus) + '</td>',
+                                        '<td data-label="时间">' + escapeHtml(formatTime(row.created_at)) + '</td>',
+                                    '</tr>'
+                                ].join("");
+                            }).join(""),
+                        '</tbody>',
+                    '</table>',
+                '</div>',
+                '<div class="admin-modal-actions"><button class="admin-button" type="button" data-modal-close>关闭</button></div>'
+            ].join("") : [
+                '<div class="admin-empty"><strong>这场竞猜暂无投票明细。</strong></div>',
+                '<div class="admin-modal-actions"><button class="admin-button" type="button" data-modal-close>关闭</button></div>'
+            ].join("");
+            nodes.modalForm.dataset.mode = "score-guess-details";
+        } catch (error) {
+            setStatus(getFriendlyError(error), "warning");
+        } finally {
+            setBusy(false);
+        }
+    }
+
+    async function settleScoreGuess(session, correctChoice) {
+        if (!session || SCORE_GUESS_CHOICES.indexOf(correctChoice) === -1) {
+            setStatus("请选择正确结果。", "warning");
+            return;
+        }
+
+        if (session.status !== "closed") {
+            setStatus("请先结束竞猜，再进行结算。", "warning");
+            return;
+        }
+
+        if ((session.settlement_status || "pending") !== "pending") {
+            setStatus("这场评分竞猜已经结算过，不能重复结算。", "warning");
+            return;
+        }
+
+        const confirmed = window.confirm("确认公布正确结果为「" + correctChoice + "」并结算积分吗？\n\n结算后不可重复结算；MVP 第一版不支持撤销，如果选错需要后续人工处理。");
+        if (!confirmed) {
+            return;
+        }
+
+        setBusy(true);
+        try {
+            const response = await state.client.rpc("admin_set_live_score_guess_result", {
+                p_session_id: session.id,
+                p_correct_choice: correctChoice
+            });
+
+            if (response.error) {
+                throw response.error;
+            }
+
+            await loadScoreGuessSessions("评分竞猜已经公布结果并完成积分结算。");
+            await loadUsers();
+        } catch (error) {
+            setStatus(getFriendlyError(error), "warning");
+        } finally {
+            setBusy(false);
+        }
+    }
+
     async function submitModal(event) {
         event.preventDefault();
+
+        if (nodes.modalForm.dataset.mode === "score-guess-details") {
+            closeModal();
+            return;
+        }
 
         if (nodes.modalForm.dataset.mode === "redemption") {
             await submitRedemptionReview();
@@ -571,6 +776,35 @@
             });
         });
 
+        if (nodes.scoreGuessRefresh) {
+            nodes.scoreGuessRefresh.addEventListener("click", function () {
+                loadScoreGuessSessions("评分竞猜场次已刷新。");
+            });
+        }
+
+        if (nodes.scoreGuessBody) {
+            nodes.scoreGuessBody.addEventListener("click", function (event) {
+                const button = event.target.closest("[data-score-guess-action]");
+                if (!button) {
+                    return;
+                }
+
+                const index = Number(button.dataset.index);
+                const session = state.scoreGuessSessions[index];
+                if (!session) {
+                    return;
+                }
+
+                if (button.dataset.scoreGuessAction === "details") {
+                    showScoreGuessDetails(session);
+                    return;
+                }
+
+                const select = nodes.scoreGuessBody.querySelector('[data-score-guess-choice="' + index + '"]');
+                settleScoreGuess(session, select ? select.value : "");
+            });
+        }
+
         nodes.modal.addEventListener("click", function (event) {
             if (event.target === nodes.modal || event.target.closest("[data-modal-close]")) {
                 closeModal();
@@ -590,6 +824,11 @@
         nodes.redemptionTableWrap = $("[data-admin-redemption-table-wrap]");
         nodes.redemptionBody = $("[data-admin-redemption-body]");
         nodes.redemptionEmpty = $("[data-admin-redemption-empty]");
+        nodes.scoreGuessPanel = $("[data-admin-score-guess-panel]");
+        nodes.scoreGuessTableWrap = $("[data-admin-score-guess-table-wrap]");
+        nodes.scoreGuessBody = $("[data-admin-score-guess-body]");
+        nodes.scoreGuessEmpty = $("[data-admin-score-guess-empty]");
+        nodes.scoreGuessRefresh = $("[data-admin-score-guess-refresh]");
         nodes.modal = $("[data-admin-modal]");
         nodes.modalForm = $("[data-admin-modal-form]");
         nodes.modalTitle = $("[data-admin-modal-title]");

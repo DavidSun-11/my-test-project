@@ -1,6 +1,6 @@
 /* Live2D 互动模块：菜单、无奖竞答题库、英雄池转盘、咨询功能都集中在这里，方便后续继续加题。 */
 (function () {
-    const version = "20260630-mobile-live2d-menu-height1";
+    const version = "20260702-score-guess-points-pool1";
     if (typeof window.JunxueLive2DDebugLog !== "function") {
         window.__JUNXUE_LIVE2D_DEBUG__ = window.__JUNXUE_LIVE2D_DEBUG__ || [];
         window.JunxueLive2DDebugLog = function (message, detail) {
@@ -55,7 +55,8 @@
         client: null,
         session: null,
         authSession: null,
-        votes: [],
+        stats: [],
+        mySettlement: null,
         isAdmin: false,
         realtimeWarning: false
     };
@@ -507,6 +508,11 @@
         });
     }
 
+    function formatNumber(value) {
+        const number = Number(value);
+        return Number.isFinite(number) ? String(number) : "0";
+    }
+
     function getDisplayNameFromAuthUser(user) {
         if (!user) {
             return "未登录";
@@ -594,7 +600,7 @@
     function ensureOpeningBubbleStyles() {
         const existingStyle = document.getElementById("live2d-opening-bubble-style");
         if (existingStyle) {
-            if (existingStyle.textContent && existingStyle.textContent.indexOf("20260630-mobile-live2d-menu-height1") !== -1) {
+            if (existingStyle.textContent && existingStyle.textContent.indexOf("20260702-score-guess-points-pool1") !== -1) {
                 return;
             }
             existingStyle.remove();
@@ -603,7 +609,7 @@
         const style = document.createElement("style");
         style.id = "live2d-opening-bubble-style";
         style.textContent = [
-            "/* 20260630-mobile-live2d-menu-height1 */",
+            "/* 20260702-score-guess-points-pool1 */",
             ".live2d-quiz{position:fixed;left:252px;top:160px;right:auto;bottom:auto;z-index:10020;}",
             ".live2d-quiz:not(.is-open){visibility:hidden!important;opacity:0!important;pointer-events:none!important;}",
             ".live2d-quiz.is-open{visibility:visible!important;opacity:1!important;pointer-events:auto!important;}",
@@ -816,7 +822,7 @@
             ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__status-pill{align-self:start;white-space:nowrap;padding:8px 14px;border-radius:999px;border:1px solid rgba(194,241,255,.72);background:linear-gradient(90deg,rgba(79,191,255,.28),rgba(184,139,255,.22));box-shadow:0 0 18px rgba(100,211,255,.2),inset 0 1px 0 rgba(255,255,255,.22);color:rgba(241,253,255,.98);font-size:13px;font-weight:880;}",
             ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__question{color:rgba(242,252,255,.98);font-size:17px;font-weight:850;line-height:1.38;}",
             ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__desc{max-width:620px;color:rgba(201,229,247,.82);font-size:13px;line-height:1.65;}",
-            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__meta{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:12px!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important;}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__meta{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:12px!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important;}",
             ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__meta-item{position:relative;display:grid!important;grid-template-columns:42px 1fr;align-items:center;gap:11px;min-width:0;padding:13px 14px!important;border:1px solid rgba(155,222,255,.45);border-radius:16px;background:linear-gradient(145deg,rgba(255,255,255,.1),rgba(84,162,224,.1));box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 10px 22px rgba(0,13,39,.16);}",
             ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__meta-icon{display:grid;place-items:center;width:42px;height:42px;border-radius:999px;border:1px solid rgba(194,242,255,.66);background:radial-gradient(circle at 35% 24%,rgba(255,255,255,.9),rgba(91,203,255,.72) 38%,rgba(58,96,222,.72));box-shadow:0 0 20px rgba(104,211,255,.35),inset 0 1px 0 rgba(255,255,255,.38);color:#fff;font-size:18px;font-weight:900;text-shadow:0 1px 6px rgba(0,18,42,.42);}",
             ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__meta-label{display:block;margin:0 0 4px;color:rgba(181,224,244,.82);font-size:12px;font-weight:720;}",
@@ -858,7 +864,7 @@
             ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__status-pill{padding:8px 18px!important;border-color:rgba(203,243,255,.86)!important;background:linear-gradient(90deg,rgba(82,190,255,.38),rgba(181,132,255,.26))!important;box-shadow:0 0 22px rgba(102,211,255,.3),inset 0 1px 0 rgba(255,255,255,.28)!important;}",
             ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__question{font-size:19px!important;font-weight:900!important;color:rgba(246,253,255,.99)!important;}",
             ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__desc{max-width:680px!important;margin:0 auto!important;color:rgba(203,229,247,.86)!important;font-size:14px!important;}",
-            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__meta{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:14px!important;}",
+            ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__meta{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:14px!important;}",
             ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__meta-item{grid-template-columns:46px 1fr!important;gap:12px!important;min-height:74px!important;padding:14px 16px!important;border-radius:17px!important;border-color:rgba(154,225,255,.58)!important;background:radial-gradient(circle at 18% 18%,rgba(113,220,255,.2),transparent 36%),linear-gradient(145deg,rgba(255,255,255,.12),rgba(71,146,210,.12))!important;box-shadow:0 12px 28px rgba(0,13,42,.2),inset 0 1px 0 rgba(255,255,255,.22)!important;}",
             ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__meta-icon{width:46px!important;height:46px!important;background:radial-gradient(circle at 35% 25%,#fff,rgba(105,215,255,.82) 42%,rgba(61,96,225,.8))!important;box-shadow:0 0 24px rgba(104,211,255,.44),inset 0 1px 0 rgba(255,255,255,.46)!important;}",
             ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__meta-label{font-size:12px!important;color:rgba(183,224,244,.86)!important;}",
@@ -893,7 +899,7 @@
             ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__status-pill{padding:8px 18px!important;border-radius:999px!important;border:1px solid rgba(203,243,255,.86)!important;background:linear-gradient(90deg,rgba(82,190,255,.38),rgba(181,132,255,.26))!important;box-shadow:0 0 22px rgba(102,211,255,.3),inset 0 1px 0 rgba(255,255,255,.28)!important;color:rgba(242,253,255,.99)!important;font-size:14px!important;font-weight:880!important;}",
             ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__question{margin:0!important;color:rgba(246,253,255,.99)!important;font-size:19px!important;font-weight:900!important;line-height:1.4!important;}",
             ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__desc{max-width:680px!important;margin:0 auto!important;color:rgba(203,229,247,.86)!important;font-size:14px!important;line-height:1.65!important;}",
-            ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__meta{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:12px!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important;}",
+            ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__meta{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:12px!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important;}",
             ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__meta-item{display:grid!important;grid-template-columns:46px 1fr!important;grid-template-areas:\"icon label\" \"icon value\"!important;align-items:center!important;gap:4px 12px!important;min-width:0!important;min-height:74px!important;padding:14px 16px!important;border-radius:17px!important;border:1px solid rgba(154,225,255,.58)!important;background:radial-gradient(circle at 18% 18%,rgba(113,220,255,.2),transparent 36%),linear-gradient(145deg,rgba(255,255,255,.12),rgba(71,146,210,.12))!important;box-shadow:0 12px 28px rgba(0,13,42,.2),inset 0 1px 0 rgba(255,255,255,.22)!important;}",
             ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__meta-icon{grid-area:icon!important;display:grid!important;place-items:center!important;width:46px!important;height:46px!important;border-radius:999px!important;border:1px solid rgba(204,244,255,.7)!important;background:radial-gradient(circle at 35% 25%,#fff,rgba(105,215,255,.82) 42%,rgba(61,96,225,.8))!important;box-shadow:0 0 24px rgba(104,211,255,.44),inset 0 1px 0 rgba(255,255,255,.46)!important;color:#fff!important;font-size:18px!important;font-weight:900!important;}",
             ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__meta-label{grid-area:label!important;display:block!important;margin:0!important;color:rgba(183,224,244,.86)!important;font-size:12px!important;font-weight:760!important;}",
@@ -907,12 +913,22 @@
             ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-option__name{display:block!important;color:rgba(248,253,255,.99)!important;font-size:22px!important;font-weight:950!important;line-height:1.08!important;}",
             ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-option__count{display:block!important;margin-top:7px!important;color:rgba(214,236,250,.94)!important;font-size:14px!important;font-weight:740!important;}",
             ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-option__mark{align-self:start!important;justify-self:end!important;min-width:max-content!important;padding:6px 10px!important;border-radius:999px!important;border:1px solid rgba(206,248,255,.82)!important;background:rgba(134,232,255,.24)!important;box-shadow:0 0 14px rgba(119,225,255,.18)!important;color:rgba(238,253,255,.99)!important;font-size:11px!important;font-weight:880!important;}",
+            ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-stake{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(132px,180px)!important;gap:12px!important;align-items:end!important;padding:14px 16px!important;border:1px solid rgba(173,230,255,.42)!important;border-radius:18px!important;background:linear-gradient(145deg,rgba(255,255,255,.08),rgba(72,135,210,.12))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.16)!important;}",
+            ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-stake__copy{display:grid!important;gap:5px!important;color:rgba(209,233,249,.9)!important;font-size:13px!important;line-height:1.45!important;}",
+            ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-stake__copy strong{color:rgba(248,253,255,.99)!important;font-size:15px!important;font-weight:900!important;}",
+            ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-stake__field{display:grid!important;gap:6px!important;color:rgba(187,225,246,.86)!important;font-size:12px!important;font-weight:760!important;}",
+            ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-stake__input{width:100%!important;min-height:42px!important;box-sizing:border-box!important;border:1px solid rgba(192,241,255,.68)!important;border-radius:14px!important;background:rgba(7,24,54,.66)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 0 18px rgba(102,211,255,.12)!important;color:rgba(248,253,255,.99)!important;font:inherit!important;font-size:16px!important;font-weight:850!important;padding:9px 12px!important;outline:none!important;}",
+            ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-stake__input:focus{border-color:rgba(230,253,255,.95)!important;box-shadow:0 0 22px rgba(108,219,255,.28),inset 0 1px 0 rgba(255,255,255,.18)!important;}",
+            ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-settlement{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important;padding:13px!important;border:1px solid rgba(190,236,255,.34)!important;border-radius:18px!important;background:linear-gradient(145deg,rgba(255,255,255,.07),rgba(112,83,190,.12))!important;}",
+            ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-settlement__item{display:grid!important;gap:4px!important;min-width:0!important;padding:10px 11px!important;border-radius:14px!important;background:rgba(7,23,52,.36)!important;border:1px solid rgba(178,230,255,.22)!important;}",
+            ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-settlement__item span{color:rgba(184,222,244,.82)!important;font-size:11px!important;font-weight:740!important;}",
+            ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-settlement__item strong{overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:rgba(249,254,255,.99)!important;font-size:14px!important;font-weight:900!important;}",
             ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__actions{display:flex!important;flex-wrap:wrap!important;align-items:center!important;justify-content:center!important;gap:12px!important;width:100%!important;padding:16px!important;border:1px solid rgba(154,217,255,.38)!important;border-radius:20px!important;background:linear-gradient(145deg,rgba(255,255,255,.09),rgba(80,158,221,.13))!important;box-sizing:border-box!important;}",
             ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-action{display:inline-flex!important;align-items:center!important;justify-content:center!important;min-width:154px!important;min-height:48px!important;padding:12px 18px!important;border-radius:999px!important;border:1px solid rgba(175,230,255,.62)!important;background:rgba(32,65,104,.58)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.18)!important;color:rgba(240,252,255,.98)!important;font-size:15px!important;font-weight:850!important;white-space:nowrap!important;}",
             ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-action--primary{border-color:rgba(191,243,255,.86)!important;background:linear-gradient(135deg,rgba(87,213,255,.92),rgba(168,118,255,.82))!important;box-shadow:0 0 26px rgba(102,213,255,.38),inset 0 1px 0 rgba(255,255,255,.32)!important;}",
             ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-action--danger{border-color:rgba(255,198,216,.86)!important;background:linear-gradient(135deg,rgba(245,105,156,.72),rgba(132,94,220,.72))!important;}",
             ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__footer-note{text-align:center!important;padding:11px 13px!important;border:1px solid rgba(169,226,255,.28)!important;border-radius:15px!important;background:linear-gradient(90deg,transparent,rgba(98,183,240,.12),transparent)!important;color:rgba(195,227,247,.9)!important;font-size:13px!important;line-height:1.55!important;}",
-            "@media (max-width:720px){.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"]{width:min(92vw,520px)!important;padding:20px!important;gap:13px!important;border-radius:22px!important;}.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__header{padding:0 34px 2px!important;align-items:flex-start!important;text-align:left!important;}.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__title{font-size:28px!important;}.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__meta,.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__options{grid-template-columns:1fr!important;}.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-option{grid-template-columns:50px 1fr auto!important;min-height:86px!important;padding:13px!important;}.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-option__badge{width:50px!important;height:50px!important;border-radius:16px!important;font-size:17px!important;}.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__actions{display:grid!important;grid-template-columns:1fr!important;}.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-action{width:100%!important;min-width:0!important;}}",
+            "@media (max-width:720px){.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"]{width:min(92vw,520px)!important;padding:20px!important;gap:13px!important;border-radius:22px!important;}.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__header{padding:0 34px 2px!important;align-items:flex-start!important;text-align:left!important;}.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__title{font-size:28px!important;}.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__meta,.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__options,.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-stake,.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-settlement{grid-template-columns:1fr!important;}.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-option{grid-template-columns:50px 1fr auto!important;min-height:86px!important;padding:13px!important;}.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-option__badge{width:50px!important;height:50px!important;border-radius:16px!important;font-size:17px!important;}.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__actions{display:grid!important;grid-template-columns:1fr!important;}.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-action{width:100%!important;min-width:0!important;}}",
             "@media (max-width:768px){.live2d-opening-bubble,.live2d-quiz-exit-bubble,.live2d-idle-bubble{width:min(92vw,320px);max-width:calc(100vw - 24px);font-size:13px;box-sizing:border-box;}body.keyboard-open .live2d-opening-bubble,body.keyboard-open .live2d-quiz-exit-bubble,body.keyboard-open .live2d-idle-bubble{left:50%!important;right:auto!important;top:max(12px,env(safe-area-inset-top))!important;bottom:auto!important;width:min(92vw,320px)!important;max-width:calc(100vw - 24px)!important;max-height:min(54vh,320px);overflow:auto;transform:translateX(-50%)!important;}}"
         ].join("");
         document.head.appendChild(style);
@@ -940,7 +956,7 @@
             ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__status-pill{padding:7px 15px!important;border-color:rgba(190,237,255,.58)!important;background:linear-gradient(90deg,rgba(82,190,255,.22),rgba(181,132,255,.18))!important;box-shadow:0 0 16px rgba(102,211,255,.16),inset 0 1px 0 rgba(255,255,255,.2)!important;color:rgba(238,252,255,.96)!important;font-size:13px!important;}",
             ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__question{font-size:18px!important;font-weight:880!important;color:rgba(242,252,255,.96)!important;text-shadow:0 0 14px rgba(110,213,255,.16)!important;}",
             ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__desc{max-width:680px!important;margin:0 auto!important;color:rgba(196,226,246,.76)!important;font-size:13px!important;line-height:1.65!important;}",
-            ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__meta{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important;}",
+            ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__meta{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important;}",
             ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__meta-item{display:grid!important;grid-template-columns:36px minmax(0,1fr)!important;grid-template-areas:\"icon label\" \"icon value\"!important;align-items:center!important;gap:3px 10px!important;min-width:0!important;min-height:66px!important;padding:10px 12px!important;border-radius:15px!important;border:1px solid rgba(150,220,255,.34)!important;background:radial-gradient(circle at 18% 16%,rgba(151,225,255,.12),transparent 38%),linear-gradient(145deg,rgba(255,255,255,.07),rgba(75,148,212,.09))!important;box-shadow:0 10px 22px rgba(0,13,42,.12),inset 0 1px 0 rgba(255,255,255,.16),inset 0 -12px 22px rgba(33,88,154,.08)!important;}",
             ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__meta-item:hover{border-color:rgba(184,238,255,.48)!important;box-shadow:0 0 18px rgba(94,206,255,.12),inset 0 1px 0 rgba(255,255,255,.2)!important;}",
             ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__meta-icon{grid-area:icon!important;display:grid!important;place-items:center!important;width:36px!important;height:36px!important;border-radius:999px!important;border:1px solid rgba(200,242,255,.54)!important;background:radial-gradient(circle at 35% 25%,rgba(255,255,255,.92),rgba(112,216,255,.66) 42%,rgba(70,100,210,.58))!important;box-shadow:0 0 16px rgba(104,211,255,.24),inset 0 1px 0 rgba(255,255,255,.42),inset 0 -8px 12px rgba(0,22,55,.14)!important;color:#fff!important;font-size:15px!important;text-shadow:0 1px 5px rgba(0,18,42,.34)!important;}",
@@ -3436,35 +3452,49 @@
             })[choice] || "none";
         }
 
-        function createEmptyScoreGuessCounts() {
-            return SCORE_GUESS_CHOICES.reduce(function (counts, choice) {
-                counts[choice] = 0;
-                return counts;
+        function createEmptyScoreGuessStats() {
+            return SCORE_GUESS_CHOICES.reduce(function (stats, choice) {
+                stats[choice] = {
+                    choice: choice,
+                    voteCount: 0,
+                    totalStakedPoints: 0
+                };
+                return stats;
             }, {});
         }
 
-        function getScoreGuessCounts(votes) {
-            const counts = createEmptyScoreGuessCounts();
+        function normalizeScoreGuessStats(rows) {
+            const stats = createEmptyScoreGuessStats();
 
-            (votes || []).forEach(function (vote) {
-                if (Object.prototype.hasOwnProperty.call(counts, vote.choice)) {
-                    counts[vote.choice] += 1;
+            (rows || []).forEach(function (row) {
+                if (!row || !Object.prototype.hasOwnProperty.call(stats, row.choice)) {
+                    return;
                 }
+
+                stats[row.choice].voteCount = Number(row.vote_count || 0);
+                stats[row.choice].totalStakedPoints = Number(row.total_staked_points || 0);
             });
 
-            return counts;
+            return stats;
         }
 
-        function getScoreGuessUserChoice(votes, userId) {
-            if (!userId) {
-                return "";
+        function normalizeScoreGuessMySettlement(rows) {
+            const row = Array.isArray(rows) ? rows[0] : rows;
+
+            if (!row) {
+                return null;
             }
 
-            const vote = (votes || []).find(function (item) {
-                return item.user_id === userId;
-            });
-
-            return vote ? vote.choice : "";
+            return {
+                choice: row.choice || "",
+                stakedPoints: Number(row.staked_points || 0),
+                settledPoints: Number(row.settled_points || 0),
+                settlementBonus: Number(row.settlement_bonus || 0),
+                isCorrect: row.is_correct === null || typeof row.is_correct === "undefined" ? null : !!row.is_correct,
+                correctChoice: row.correct_choice || "",
+                settlementStatus: row.settlement_status || "pending",
+                currentPoints: Number(row.current_points || 0)
+            };
         }
 
         function createEmptyScoreGuessVoterGroups() {
@@ -3493,7 +3523,7 @@
                 }
 
                 groups[row.choice].push({
-                    name: getSafeScoreGuessVoterName(row.voter_name),
+                    name: getSafeScoreGuessVoterName(row.voter_name || row.display_name),
                     createdAt: row.created_at || ""
                 });
             });
@@ -3510,7 +3540,7 @@
             }
 
             try {
-                const response = await client.rpc("get_live_score_guess_voters", { p_session_id: sessionId });
+                const response = await client.rpc("admin_get_live_score_guess_settlement", { p_session_id: sessionId });
 
                 if (response.error) {
                     throw response.error;
@@ -3518,13 +3548,13 @@
 
                 return {
                     votersByChoice: groupScoreGuessVoters(response.data || []),
-                    votersLoadStatus: "仅管理员可见。名单只显示老板昵称，不展示邮箱和完整用户 ID。"
+                    votersLoadStatus: "仅管理员可见。名单只显示星湖昵称，不展示邮箱和完整用户 ID。"
                 };
             } catch (error) {
                 console.warn("[JunxueScoreGuess] voter list failed.", error);
                 return {
                     votersByChoice: createEmptyScoreGuessVoterGroups(),
-                    votersLoadStatus: "管理员投票名单功能还需要执行数据库升级 SQL。"
+                    votersLoadStatus: "管理员投票明细功能还需要执行第 16 节数据库升级 SQL。"
                 };
             }
         }
@@ -3569,21 +3599,36 @@
             return response.data && response.data.length ? response.data[0] : null;
         }
 
-        async function loadScoreGuessVotes(client, sessionId) {
+        async function loadScoreGuessPublicStats(client, sessionId) {
             if (!sessionId) {
-                return [];
+                return createEmptyScoreGuessStats();
             }
 
-            const response = await client
-                .from("live_score_guess_votes")
-                .select("session_id,user_id,choice,updated_at")
-                .eq("session_id", sessionId);
+            const response = await client.rpc("get_live_score_guess_public_stats", {
+                p_session_id: sessionId
+            });
 
             if (response.error) {
                 throw response.error;
             }
 
-            return response.data || [];
+            return normalizeScoreGuessStats(response.data || []);
+        }
+
+        async function loadScoreGuessMySettlement(client, sessionId, authSession) {
+            if (!client || !sessionId || !authSession || !authSession.user) {
+                return null;
+            }
+
+            const response = await client.rpc("get_live_score_guess_my_settlement", {
+                p_session_id: sessionId
+            });
+
+            if (response.error) {
+                throw response.error;
+            }
+
+            return normalizeScoreGuessMySettlement(response.data || []);
         }
 
         async function checkScoreGuessAdmin(client, userId) {
@@ -3646,7 +3691,8 @@
             const client = await ensureScoreGuessClient();
             const authSession = await getScoreGuessAuthSession(client);
             const session = await loadActiveScoreGuessSession(client);
-            const votes = await loadScoreGuessVotes(client, session && session.id);
+            const stats = await loadScoreGuessPublicStats(client, session && session.id);
+            const mySettlement = await loadScoreGuessMySettlement(client, session && session.id, authSession);
             const isAdmin = await checkScoreGuessAdmin(client, authSession && authSession.user && authSession.user.id);
             const voterState = await loadScoreGuessVoters(client, session && session.status === "closed" ? session.id : "", isAdmin);
 
@@ -3654,7 +3700,8 @@
                 client: client,
                 session: session,
                 authSession: authSession,
-                votes: votes,
+                stats: stats,
+                mySettlement: mySettlement,
                 isAdmin: isAdmin,
                 votersByChoice: voterState.votersByChoice,
                 votersLoadStatus: voterState.votersLoadStatus,
@@ -3725,6 +3772,18 @@
                 return "只有君雪可以开启或结束竞猜哦～";
             }
 
+            if (/insufficient points|not enough points/i.test(message)) {
+                return "当前积分不够投入这次竞猜，先去签到攒一点吧～";
+            }
+
+            if (/stake|staked|points amount|invalid/i.test(message)) {
+                return "投入积分必须是 1 到 10000 的正整数。";
+            }
+
+            if (/already settled|no_winner|settled/i.test(message)) {
+                return "这场竞猜已经结算过，不能重复操作。";
+            }
+
             return fallback || SCORE_GUESS_LOAD_ERROR_TEXT;
         }
 
@@ -3770,20 +3829,25 @@
 
             const activeSession = state.session || null;
             const currentUserId = state.authSession && state.authSession.user ? state.authSession.user.id : "";
-            const userChoice = getScoreGuessUserChoice(state.votes, currentUserId);
-            const counts = getScoreGuessCounts(state.votes);
+            const mySettlement = state.mySettlement || null;
+            const userChoice = mySettlement && mySettlement.choice ? mySettlement.choice : "";
+            const stats = state.stats || createEmptyScoreGuessStats();
             const isOpen = activeSession && activeSession.status === "open";
             const isClosed = activeSession && activeSession.status === "closed";
             const canVote = !!(isOpen && currentUserId);
-            const statusLabel = activeSession ? (isOpen ? "竞猜进行中" : "竞猜已结束") : "暂未开启";
-            const statusText = activeSession ? (isOpen ? "进行中" : "已结束") : "暂未开启";
+            const settlementStatus = activeSession && activeSession.settlement_status ? activeSession.settlement_status : "pending";
+            const statusLabel = activeSession ? (isOpen ? "竞猜进行中" : (settlementStatus === "pending" ? "待结算" : "已结算")) : "暂未开启";
+            const statusText = activeSession ? (isOpen ? "进行中" : (settlementStatus === "pending" ? "已结束" : "已结算")) : "暂未开启";
             const accountLabel = getDisplayNameFromAuthUser(state.authSession && state.authSession.user);
             const choiceLabel = userChoice ? userChoice : "你还没有选择";
+            const currentPoints = mySettlement ? mySettlement.currentPoints : 0;
+            const stakeDefault = mySettlement && mySettlement.stakedPoints > 0 ? mySettlement.stakedPoints : 10;
+            const correctChoice = activeSession && activeSession.correct_choice ? activeSession.correct_choice : (mySettlement && mySettlement.correctChoice ? mySettlement.correctChoice : "");
             const footerNote = message || (!activeSession ?
                 (state.isAdmin ? "当前没有开启中的竞猜，可以开启一场新的评分竞猜。" : "当前没有开启中的竞猜。") :
                 (!currentUserId ? "登录后才能参与评分竞猜哦～" :
                     (isClosed ? "竞猜已结束，看看大家猜得怎么样吧～" :
-                        (userChoice ? "你当前选择了：" + userChoice + "。竞猜结束前还可以改选。" : "选择你觉得最可能的结果，竞猜结束前都可以改选。"))));
+                        (userChoice ? "你当前选择了：" + userChoice + "，投入 " + (mySettlement ? mySettlement.stakedPoints : 0) + " 积分。竞猜结束前可改选或改投入。" : "选择你觉得最可能的结果，并投入积分进入奖池。"))));
 
             meta.textContent = "直播互动";
             question.innerHTML = "";
@@ -3826,18 +3890,48 @@
                             '<strong class="score-guess-panel__meta-value">' + escapeHtml(choiceLabel) + '</strong>',
                         '</span>',
                     '</div>',
+                    '<div class="score-guess-panel__meta-item">',
+                        '<span class="score-guess-panel__meta-icon">☆</span>',
+                        '<span>',
+                            '<span class="score-guess-panel__meta-label">当前积分</span>',
+                            '<strong class="score-guess-panel__meta-value">' + (currentUserId ? formatNumber(currentPoints) : "登录后查看") + '</strong>',
+                        '</span>',
+                    '</div>',
                 '</div>',
+                isOpen ? [
+                    '<div class="score-guess-stake">',
+                        '<div class="score-guess-stake__copy">',
+                            '<strong>投入积分进入奖池</strong>',
+                            '<span>投注成功会立即扣分；结束前改投会在服务端同事务退旧扣新。</span>',
+                        '</div>',
+                        '<label class="score-guess-stake__field">',
+                            '<span>投入积分</span>',
+                            '<input class="score-guess-stake__input" data-score-stake-input type="number" min="1" max="10000" step="1" value="' + escapeHtml(stakeDefault) + '"' + (canVote ? "" : " disabled") + '>',
+                        '</label>',
+                    '</div>'
+                ].join("") : "",
+                isClosed && mySettlement ? [
+                    '<div class="score-guess-settlement" aria-label="我的竞猜结算">',
+                        '<div class="score-guess-settlement__item"><span>正确结果</span><strong>' + escapeHtml(correctChoice || "待公布") + '</strong></div>',
+                        '<div class="score-guess-settlement__item"><span>我的投入</span><strong>' + formatNumber(mySettlement.stakedPoints) + ' 积分</strong></div>',
+                        '<div class="score-guess-settlement__item"><span>是否猜对</span><strong>' + (mySettlement.isCorrect === null ? "待结算" : (mySettlement.isCorrect ? "猜对了" : "没猜中")) + '</strong></div>',
+                        '<div class="score-guess-settlement__item"><span>返还本金</span><strong>' + (mySettlement.isCorrect ? formatNumber(mySettlement.stakedPoints) : "0") + ' 积分</strong></div>',
+                        '<div class="score-guess-settlement__item"><span>获得奖励</span><strong>' + formatNumber(mySettlement.settlementBonus) + ' 积分</strong></div>',
+                        '<div class="score-guess-settlement__item"><span>合计到账</span><strong>' + formatNumber(mySettlement.settledPoints) + ' 积分</strong></div>',
+                    '</div>'
+                ].join("") : "",
                 '<div class="score-guess-panel__options">'
             ].join("") + SCORE_GUESS_CHOICES.map(function (choice) {
                 const selected = userChoice === choice;
                 const tone = getScoreGuessChoiceTone(choice);
                 const badge = choice.charAt(0);
+                const choiceStats = stats[choice] || { voteCount: 0, totalStakedPoints: 0 };
                 return [
                     '<button class="score-guess-option score-guess-option--' + tone + (choice === "无" ? ' score-guess-option--wide' : '') + (selected ? ' is-selected score-guess-option--selected' : '') + '" type="button" data-score-choice="' + escapeHtml(choice) + '"' + (canVote ? "" : " disabled") + '>',
                         '<span class="score-guess-option__badge">' + escapeHtml(choice === "无" ? "—" : badge) + '</span>',
                         '<span class="score-guess-option__body">',
                             '<strong class="score-guess-option__name">' + escapeHtml(choice) + '</strong>',
-                            '<span class="score-guess-option__count">' + counts[choice] + ' 人选择</span>',
+                            '<span class="score-guess-option__count">' + formatNumber(choiceStats.voteCount) + ' 人 / ' + formatNumber(choiceStats.totalStakedPoints) + ' 积分</span>',
                         '</span>',
                         selected ? '<span class="score-guess-option__mark">已选择</span>' : '<span class="score-guess-option__mark" aria-hidden="true"></span>',
                     '</button>'
@@ -4030,15 +4124,7 @@
             }
 
             try {
-                const response = await scoreGuessState.client
-                    .from("live_score_guess_sessions")
-                    .insert({
-                        title: "评分竞猜",
-                        status: "open",
-                        created_by: scoreGuessState.authSession.user.id
-                    })
-                    .select()
-                    .single();
+                const response = await scoreGuessState.client.rpc("admin_start_live_score_guess_session", {});
 
                 if (response.error) {
                     throw response.error;
@@ -4066,11 +4152,9 @@
             }
 
             try {
-                const response = await scoreGuessState.client
-                    .from("live_score_guess_sessions")
-                    .update({ status: "closed", ended_at: new Date().toISOString() })
-                    .eq("id", scoreGuessState.session.id)
-                    .eq("status", "open");
+                const response = await scoreGuessState.client.rpc("admin_close_live_score_guess_session", {
+                    p_session_id: scoreGuessState.session.id
+                });
 
                 if (response.error) {
                     throw response.error;
@@ -4101,28 +4185,37 @@
                 return;
             }
 
+            const stakeInput = options.querySelector("[data-score-stake-input]");
+            const stakedPoints = stakeInput ? Number(stakeInput.value) : 0;
+
+            if (!Number.isInteger(stakedPoints) || stakedPoints < 1 || stakedPoints > 10000) {
+                result.textContent = "投入积分必须是 1 到 10000 的正整数。";
+                result.className = "live2d-quiz__result is-warning";
+                if (stakeInput) {
+                    stakeInput.focus();
+                }
+                return;
+            }
+
             try {
                 await ensureBossAccountNotBlocked(scoreGuessState.client);
 
-                const response = await scoreGuessState.client
-                    .from("live_score_guess_votes")
-                    .upsert({
-                        session_id: scoreGuessState.session.id,
-                        user_id: scoreGuessState.authSession.user.id,
-                        choice: choice,
-                        updated_at: new Date().toISOString()
-                    }, { onConflict: "session_id,user_id" });
+                const response = await scoreGuessState.client.rpc("place_live_score_guess_vote_with_points", {
+                    p_session_id: scoreGuessState.session.id,
+                    p_choice: choice,
+                    p_staked_points: stakedPoints
+                });
 
                 if (response.error) {
                     throw response.error;
                 }
 
-                await refreshScoreGuessPanel("你选择了：" + choice + "。", "is-good");
+                await refreshScoreGuessPanel("你选择了：" + choice + "，投入 " + stakedPoints + " 积分。", "is-good");
             } catch (error) {
                 console.error("[JunxueScoreGuess] vote failed.", error);
                 const message = isBlockedInteractionError(error) ? BLOCKED_INTERACTION_TEXT : (/closed|status/i.test(error.message || "") ?
                     "竞猜已经结束，不能再修改选择啦～" :
-                    "评分竞猜暂时加载失败，可能是网络不稳定，请稍后再试。");
+                    getScoreGuessActionMessage(error, "评分竞猜暂时加载失败，可能是网络不稳定，请稍后再试。"));
                 result.textContent = message;
                 result.className = "live2d-quiz__result is-warning";
             }

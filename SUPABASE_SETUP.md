@@ -2458,3 +2458,800 @@ grant execute on function public.get_my_boss_point_redemptions() to authenticate
 grant execute on function public.admin_get_boss_point_redemptions(text) to authenticated;
 grant execute on function public.admin_review_boss_point_redemption(uuid, text, text) to authenticated;
 ```
+
+## 16. 评分竞猜积分奖池升级 SQL
+
+Run this SQL manually in Supabase SQL Editor after Section 8. It is safe to run repeatedly. If Section 12 has not been executed yet, this section creates the compatible `boss_points` foundation needed for staking and balance checks.
+
+This upgrade keeps old score guess votes compatible: existing rows get `staked_points = 0`, so they still count as people/votes in public stats but do not enter jackpot settlement. Ordinary users should not directly read `live_score_guess_votes` detail after this upgrade; public stats and personal settlement use RPC only.
+
+```sql
+create extension if not exists pgcrypto;
+
+create table if not exists public.boss_points (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  points integer not null default 0,
+  total_checkins integer not null default 0,
+  current_streak integer not null default 0,
+  longest_streak integer not null default 0,
+  last_checkin_date date,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint boss_points_points_nonnegative check (points >= 0),
+  constraint boss_points_total_checkins_nonnegative check (total_checkins >= 0),
+  constraint boss_points_current_streak_nonnegative check (current_streak >= 0),
+  constraint boss_points_longest_streak_nonnegative check (longest_streak >= 0)
+);
+
+alter table public.boss_points
+  add column if not exists points integer not null default 0;
+alter table public.boss_points
+  add column if not exists total_checkins integer not null default 0;
+alter table public.boss_points
+  add column if not exists current_streak integer not null default 0;
+alter table public.boss_points
+  add column if not exists longest_streak integer not null default 0;
+alter table public.boss_points
+  add column if not exists last_checkin_date date;
+alter table public.boss_points
+  add column if not exists created_at timestamptz not null default now();
+alter table public.boss_points
+  add column if not exists updated_at timestamptz not null default now();
+
+alter table public.boss_points
+  drop constraint if exists boss_points_points_nonnegative;
+alter table public.boss_points
+  add constraint boss_points_points_nonnegative check (points >= 0);
+alter table public.boss_points
+  drop constraint if exists boss_points_total_checkins_nonnegative;
+alter table public.boss_points
+  add constraint boss_points_total_checkins_nonnegative check (total_checkins >= 0);
+alter table public.boss_points
+  drop constraint if exists boss_points_current_streak_nonnegative;
+alter table public.boss_points
+  add constraint boss_points_current_streak_nonnegative check (current_streak >= 0);
+alter table public.boss_points
+  drop constraint if exists boss_points_longest_streak_nonnegative;
+alter table public.boss_points
+  add constraint boss_points_longest_streak_nonnegative check (longest_streak >= 0);
+
+alter table public.live_score_guess_sessions
+  add column if not exists correct_choice text;
+alter table public.live_score_guess_sessions
+  add column if not exists settled_at timestamptz;
+alter table public.live_score_guess_sessions
+  add column if not exists settled_by uuid references auth.users(id) on delete set null;
+alter table public.live_score_guess_sessions
+  add column if not exists settlement_status text not null default 'pending';
+alter table public.live_score_guess_sessions
+  add column if not exists total_losing_pool integer not null default 0;
+alter table public.live_score_guess_sessions
+  add column if not exists total_winning_stake integer not null default 0;
+
+alter table public.live_score_guess_sessions
+  drop constraint if exists live_score_guess_sessions_correct_choice_check;
+alter table public.live_score_guess_sessions
+  add constraint live_score_guess_sessions_correct_choice_check
+  check (correct_choice is null or correct_choice in ('铜牌','银牌','金牌','顶级','无'));
+
+alter table public.live_score_guess_sessions
+  drop constraint if exists live_score_guess_sessions_settlement_status_check;
+alter table public.live_score_guess_sessions
+  add constraint live_score_guess_sessions_settlement_status_check
+  check (settlement_status in ('pending','settled','no_winner'));
+
+alter table public.live_score_guess_sessions
+  drop constraint if exists live_score_guess_sessions_pool_nonnegative;
+alter table public.live_score_guess_sessions
+  add constraint live_score_guess_sessions_pool_nonnegative
+  check (total_losing_pool >= 0 and total_winning_stake >= 0);
+
+alter table public.live_score_guess_votes
+  add column if not exists staked_points integer not null default 0;
+alter table public.live_score_guess_votes
+  add column if not exists settled_points integer not null default 0;
+alter table public.live_score_guess_votes
+  add column if not exists settlement_bonus integer not null default 0;
+alter table public.live_score_guess_votes
+  add column if not exists is_correct boolean;
+alter table public.live_score_guess_votes
+  add column if not exists settled_at timestamptz;
+
+update public.live_score_guess_votes
+set staked_points = 0
+where staked_points is null;
+
+alter table public.live_score_guess_votes
+  drop constraint if exists live_score_guess_votes_staked_points_check;
+alter table public.live_score_guess_votes
+  add constraint live_score_guess_votes_staked_points_check
+  check (staked_points >= 0 and staked_points <= 10000);
+
+alter table public.live_score_guess_votes
+  drop constraint if exists live_score_guess_votes_settlement_points_check;
+alter table public.live_score_guess_votes
+  add constraint live_score_guess_votes_settlement_points_check
+  check (settled_points >= 0 and settlement_bonus >= 0);
+
+create table if not exists public.live_score_guess_point_ledger (
+  id uuid primary key default gen_random_uuid(),
+  session_id uuid not null references public.live_score_guess_sessions(id) on delete cascade,
+  vote_user_id uuid references auth.users(id) on delete set null,
+  admin_user_id uuid references auth.users(id) on delete set null,
+  amount integer not null check (amount >= 0),
+  direction text not null check (direction in ('debit','credit','neutral')),
+  reason text not null check (reason in (
+    'stake_debit',
+    'change_vote_refund',
+    'settlement_principal',
+    'settlement_bonus',
+    'no_winner_pool'
+  )),
+  balance_after integer,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists live_score_guess_point_ledger_session_idx
+on public.live_score_guess_point_ledger (session_id, created_at desc);
+
+create index if not exists live_score_guess_point_ledger_vote_user_idx
+on public.live_score_guess_point_ledger (vote_user_id, created_at desc);
+
+alter table public.live_score_guess_point_ledger enable row level security;
+revoke all on public.live_score_guess_point_ledger from anon, authenticated;
+
+drop policy if exists "Anyone can read live score guess votes" on public.live_score_guess_votes;
+drop policy if exists "Authenticated users can insert own open score guess votes" on public.live_score_guess_votes;
+drop policy if exists "Authenticated users can update own open score guess votes" on public.live_score_guess_votes;
+drop policy if exists "Only admins can read live score guess votes" on public.live_score_guess_votes;
+
+drop function if exists public.get_live_score_guess_voters(uuid);
+
+revoke select, insert, update, delete on public.live_score_guess_votes from anon, authenticated;
+
+create policy "Only admins can read live score guess votes"
+on public.live_score_guess_votes
+for select
+to authenticated
+using (
+  exists (
+    select 1
+    from public.live_interaction_admins admin
+    where admin.user_id = auth.uid()
+  )
+);
+
+create or replace function public.is_live_score_guess_admin()
+returns boolean
+language sql
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from public.live_interaction_admins admin
+    where admin.user_id = auth.uid()
+  );
+$$;
+
+drop function if exists public.get_live_score_guess_public_stats(uuid);
+create or replace function public.get_live_score_guess_public_stats(p_session_id uuid)
+returns table (
+  choice text,
+  vote_count integer,
+  total_staked_points integer
+)
+language sql
+security definer
+set search_path = public
+as $$
+  with choices(choice) as (
+    values ('铜牌'), ('银牌'), ('金牌'), ('顶级'), ('无')
+  )
+  select
+    choices.choice,
+    count(vote.user_id)::integer as vote_count,
+    coalesce(sum(case when vote.staked_points > 0 then vote.staked_points else 0 end), 0)::integer as total_staked_points
+  from choices
+  left join public.live_score_guess_votes vote
+    on vote.session_id = p_session_id
+   and vote.choice = choices.choice
+  group by choices.choice
+  order by case choices.choice
+    when '铜牌' then 1
+    when '银牌' then 2
+    when '金牌' then 3
+    when '顶级' then 4
+    else 5
+  end;
+$$;
+
+drop function if exists public.get_live_score_guess_my_settlement(uuid);
+create or replace function public.get_live_score_guess_my_settlement(p_session_id uuid)
+returns table (
+  choice text,
+  staked_points integer,
+  settled_points integer,
+  settlement_bonus integer,
+  is_correct boolean,
+  correct_choice text,
+  settlement_status text,
+  current_points integer
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_user_id uuid := auth.uid();
+begin
+  if v_user_id is null then
+    raise exception 'not authenticated';
+  end if;
+
+  insert into public.boss_points (user_id, points)
+  values (v_user_id, 0)
+  on conflict (user_id) do nothing;
+
+  return query
+  select
+    vote.choice,
+    coalesce(vote.staked_points, 0),
+    coalesce(vote.settled_points, 0),
+    coalesce(vote.settlement_bonus, 0),
+    vote.is_correct,
+    session.correct_choice,
+    coalesce(session.settlement_status, 'pending'),
+    coalesce(points.points, 0)
+  from public.live_score_guess_sessions session
+  left join public.live_score_guess_votes vote
+    on vote.session_id = session.id
+   and vote.user_id = v_user_id
+  left join public.boss_points points
+    on points.user_id = v_user_id
+  where session.id = p_session_id
+  limit 1;
+end;
+$$;
+
+drop function if exists public.place_live_score_guess_vote_with_points(uuid, text, integer);
+create or replace function public.place_live_score_guess_vote_with_points(
+  p_session_id uuid,
+  p_choice text,
+  p_staked_points integer
+)
+returns table (
+  choice text,
+  staked_points integer,
+  current_points integer
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_user_id uuid := auth.uid();
+  v_session public.live_score_guess_sessions%rowtype;
+  v_points public.boss_points%rowtype;
+  v_old_vote public.live_score_guess_votes%rowtype;
+  v_blocked boolean := false;
+  v_available integer := 0;
+begin
+  if v_user_id is null then
+    raise exception 'not authenticated';
+  end if;
+
+  if p_choice not in ('铜牌','银牌','金牌','顶级','无') then
+    raise exception 'invalid choice';
+  end if;
+
+  if p_staked_points is null or p_staked_points < 1 or p_staked_points > 10000 then
+    raise exception 'invalid staked points';
+  end if;
+
+  if to_regclass('public.boss_account_flags') is not null then
+    execute 'select exists (select 1 from public.boss_account_flags where user_id = $1 and is_blocked)'
+    into v_blocked
+    using v_user_id;
+
+    if v_blocked then
+      raise exception 'blocked account';
+    end if;
+  end if;
+
+  select *
+  into v_session
+  from public.live_score_guess_sessions session
+  where session.id = p_session_id
+  for update;
+
+  if v_session.id is null then
+    raise exception 'score guess session not found';
+  end if;
+
+  if v_session.status <> 'open' then
+    raise exception 'score guess session is closed';
+  end if;
+
+  if coalesce(v_session.settlement_status, 'pending') <> 'pending' then
+    raise exception 'score guess already settled';
+  end if;
+
+  insert into public.boss_points (user_id, points)
+  values (v_user_id, 0)
+  on conflict (user_id) do nothing;
+
+  select *
+  into v_points
+  from public.boss_points points
+  where points.user_id = v_user_id
+  for update;
+
+  select *
+  into v_old_vote
+  from public.live_score_guess_votes vote
+  where vote.session_id = p_session_id
+    and vote.user_id = v_user_id
+  for update;
+
+  v_available := v_points.points + coalesce(v_old_vote.staked_points, 0);
+
+  if v_available < p_staked_points then
+    raise exception 'insufficient points';
+  end if;
+
+  if coalesce(v_old_vote.staked_points, 0) > 0 then
+    update public.boss_points
+    set points = points + v_old_vote.staked_points,
+        updated_at = now()
+    where user_id = v_user_id
+    returning *
+    into v_points;
+
+    insert into public.live_score_guess_point_ledger (
+      session_id,
+      vote_user_id,
+      amount,
+      direction,
+      reason,
+      balance_after
+    )
+    values (
+      p_session_id,
+      v_user_id,
+      v_old_vote.staked_points,
+      'credit',
+      'change_vote_refund',
+      v_points.points
+    );
+  end if;
+
+  update public.boss_points
+  set points = points - p_staked_points,
+      updated_at = now()
+  where user_id = v_user_id
+  returning *
+  into v_points;
+
+  insert into public.live_score_guess_point_ledger (
+    session_id,
+    vote_user_id,
+    amount,
+    direction,
+    reason,
+    balance_after
+  )
+  values (
+    p_session_id,
+    v_user_id,
+    p_staked_points,
+    'debit',
+    'stake_debit',
+    v_points.points
+  );
+
+  insert into public.live_score_guess_votes (
+    session_id,
+    user_id,
+    choice,
+    staked_points,
+    settled_points,
+    settlement_bonus,
+    is_correct,
+    settled_at
+  )
+  values (
+    p_session_id,
+    v_user_id,
+    p_choice,
+    p_staked_points,
+    0,
+    0,
+    null,
+    null
+  )
+  on conflict (session_id, user_id) do update
+  set choice = excluded.choice,
+      staked_points = excluded.staked_points,
+      settled_points = 0,
+      settlement_bonus = 0,
+      is_correct = null,
+      settled_at = null,
+      updated_at = now();
+
+  return query
+  select p_choice, p_staked_points, v_points.points;
+end;
+$$;
+
+drop function if exists public.admin_start_live_score_guess_session();
+create or replace function public.admin_start_live_score_guess_session()
+returns table (
+  session_id uuid,
+  status text,
+  created_at timestamptz
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_actor uuid := auth.uid();
+  v_session public.live_score_guess_sessions%rowtype;
+begin
+  if v_actor is null or not public.is_live_score_guess_admin() then
+    raise exception 'not authorized';
+  end if;
+
+  if exists (
+    select 1
+    from public.live_score_guess_sessions session
+    where session.status = 'open'
+  ) then
+    raise exception 'open session already exists';
+  end if;
+
+  insert into public.live_score_guess_sessions (title, status, created_by, settlement_status)
+  values ('评分竞猜', 'open', v_actor, 'pending')
+  returning *
+  into v_session;
+
+  return query
+  select v_session.id, v_session.status, v_session.created_at;
+end;
+$$;
+
+drop function if exists public.admin_close_live_score_guess_session(uuid);
+create or replace function public.admin_close_live_score_guess_session(p_session_id uuid)
+returns table (
+  session_id uuid,
+  status text,
+  ended_at timestamptz
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_actor uuid := auth.uid();
+  v_session public.live_score_guess_sessions%rowtype;
+begin
+  if v_actor is null or not public.is_live_score_guess_admin() then
+    raise exception 'not authorized';
+  end if;
+
+  select *
+  into v_session
+  from public.live_score_guess_sessions session
+  where session.id = p_session_id
+  for update;
+
+  if v_session.id is null then
+    raise exception 'score guess session not found';
+  end if;
+
+  if v_session.status <> 'open' then
+    raise exception 'score guess session is not open';
+  end if;
+
+  update public.live_score_guess_sessions
+  set status = 'closed',
+      ended_at = now()
+  where id = p_session_id
+  returning *
+  into v_session;
+
+  return query
+  select v_session.id, v_session.status, v_session.ended_at;
+end;
+$$;
+
+drop function if exists public.admin_get_live_score_guess_settlement(uuid);
+create or replace function public.admin_get_live_score_guess_settlement(p_session_id uuid)
+returns table (
+  vote_ref text,
+  display_name text,
+  choice text,
+  staked_points integer,
+  is_correct boolean,
+  settled_points integer,
+  settlement_bonus integer,
+  created_at timestamptz,
+  updated_at timestamptz
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if auth.uid() is null or not public.is_live_score_guess_admin() then
+    raise exception 'not authorized';
+  end if;
+
+  return query
+  select
+    left(md5(vote.session_id::text || vote.user_id::text), 8) as vote_ref,
+    coalesce(profile.display_name, '星湖用户') as display_name,
+    vote.choice,
+    coalesce(vote.staked_points, 0) as staked_points,
+    vote.is_correct,
+    coalesce(vote.settled_points, 0) as settled_points,
+    coalesce(vote.settlement_bonus, 0) as settlement_bonus,
+    vote.created_at,
+    vote.updated_at
+  from public.live_score_guess_votes vote
+  left join public.boss_profiles profile
+    on profile.user_id = vote.user_id
+  where vote.session_id = p_session_id
+  order by vote.created_at asc;
+end;
+$$;
+
+drop function if exists public.admin_set_live_score_guess_result(uuid, text);
+create or replace function public.admin_set_live_score_guess_result(
+  p_session_id uuid,
+  p_correct_choice text
+)
+returns table (
+  session_id uuid,
+  settlement_status text,
+  correct_choice text,
+  total_losing_pool integer,
+  total_winning_stake integer,
+  settled_at timestamptz
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_actor uuid := auth.uid();
+  v_session public.live_score_guess_sessions%rowtype;
+  v_losing_pool integer := 0;
+  v_winning_stake integer := 0;
+  v_remainder integer := 0;
+  v_settled_at timestamptz := now();
+begin
+  if v_actor is null or not public.is_live_score_guess_admin() then
+    raise exception 'not authorized';
+  end if;
+
+  if p_correct_choice not in ('铜牌','银牌','金牌','顶级','无') then
+    raise exception 'invalid correct choice';
+  end if;
+
+  select *
+  into v_session
+  from public.live_score_guess_sessions session
+  where session.id = p_session_id
+  for update;
+
+  if v_session.id is null then
+    raise exception 'score guess session not found';
+  end if;
+
+  if v_session.status <> 'closed' then
+    raise exception 'session must be closed before settlement';
+  end if;
+
+  if coalesce(v_session.settlement_status, 'pending') <> 'pending' then
+    raise exception 'score guess already settled';
+  end if;
+
+  select
+    coalesce(sum(case when vote.choice <> p_correct_choice and vote.staked_points > 0 then vote.staked_points else 0 end), 0)::integer,
+    coalesce(sum(case when vote.choice = p_correct_choice and vote.staked_points > 0 then vote.staked_points else 0 end), 0)::integer
+  into v_losing_pool, v_winning_stake
+  from public.live_score_guess_votes vote
+  where vote.session_id = p_session_id;
+
+  update public.live_score_guess_votes vote
+  set is_correct = (vote.choice = p_correct_choice),
+      settled_points = 0,
+      settlement_bonus = 0,
+      settled_at = v_settled_at
+  where vote.session_id = p_session_id;
+
+  if v_winning_stake <= 0 then
+    update public.live_score_guess_sessions
+    set correct_choice = p_correct_choice,
+        settlement_status = 'no_winner',
+        total_losing_pool = v_losing_pool,
+        total_winning_stake = 0,
+        settled_at = v_settled_at,
+        settled_by = v_actor
+    where id = p_session_id
+    returning *
+    into v_session;
+
+    if v_losing_pool > 0 then
+      insert into public.live_score_guess_point_ledger (
+        session_id,
+        admin_user_id,
+        amount,
+        direction,
+        reason
+      )
+      values (
+        p_session_id,
+        v_actor,
+        v_losing_pool,
+        'neutral',
+        'no_winner_pool'
+      );
+    end if;
+
+    return query
+    select v_session.id, v_session.settlement_status, v_session.correct_choice, v_session.total_losing_pool, v_session.total_winning_stake, v_session.settled_at;
+    return;
+  end if;
+
+  select
+    v_losing_pool - coalesce(sum(floor((v_losing_pool::numeric * vote.staked_points::numeric) / v_winning_stake::numeric)::integer), 0)::integer
+  into v_remainder
+  from public.live_score_guess_votes vote
+  where vote.session_id = p_session_id
+    and vote.choice = p_correct_choice
+    and vote.staked_points > 0;
+
+  with calculated as (
+    select
+      vote.user_id,
+      vote.staked_points,
+      floor((v_losing_pool::numeric * vote.staked_points::numeric) / v_winning_stake::numeric)::integer as base_bonus,
+      ((v_losing_pool::numeric * vote.staked_points::numeric) / v_winning_stake::numeric)
+        - floor((v_losing_pool::numeric * vote.staked_points::numeric) / v_winning_stake::numeric) as fraction_part,
+      vote.created_at
+    from public.live_score_guess_votes vote
+    where vote.session_id = p_session_id
+      and vote.choice = p_correct_choice
+      and vote.staked_points > 0
+  ),
+  ranked as (
+    select
+      calculated.*,
+      row_number() over (order by calculated.fraction_part desc, calculated.created_at asc, calculated.user_id asc) as rank_no
+    from calculated
+  ),
+  final_bonus as (
+    select
+      ranked.user_id,
+      ranked.staked_points,
+      ranked.base_bonus + case when ranked.rank_no <= v_remainder then 1 else 0 end as bonus_points
+    from ranked
+  )
+  update public.live_score_guess_votes vote
+  set settlement_bonus = final_bonus.bonus_points,
+      settled_points = final_bonus.staked_points + final_bonus.bonus_points,
+      settled_at = v_settled_at
+  from final_bonus
+  where vote.session_id = p_session_id
+    and vote.user_id = final_bonus.user_id;
+
+  insert into public.boss_points (user_id, points)
+  select vote.user_id, 0
+  from public.live_score_guess_votes vote
+  where vote.session_id = p_session_id
+    and vote.choice = p_correct_choice
+    and vote.staked_points > 0
+  on conflict (user_id) do nothing;
+
+  with payouts as (
+    select
+      vote.user_id,
+      vote.staked_points,
+      vote.settlement_bonus,
+      vote.settled_points
+    from public.live_score_guess_votes vote
+    where vote.session_id = p_session_id
+      and vote.choice = p_correct_choice
+      and vote.staked_points > 0
+  )
+  update public.boss_points points
+  set points = points.points + payouts.settled_points,
+      updated_at = now()
+  from payouts
+  where points.user_id = payouts.user_id;
+
+  insert into public.live_score_guess_point_ledger (
+    session_id,
+    vote_user_id,
+    admin_user_id,
+    amount,
+    direction,
+    reason,
+    balance_after
+  )
+  select
+    p_session_id,
+    vote.user_id,
+    v_actor,
+    vote.staked_points,
+    'credit',
+    'settlement_principal',
+    points.points
+  from public.live_score_guess_votes vote
+  join public.boss_points points
+    on points.user_id = vote.user_id
+  where vote.session_id = p_session_id
+    and vote.choice = p_correct_choice
+    and vote.staked_points > 0;
+
+  insert into public.live_score_guess_point_ledger (
+    session_id,
+    vote_user_id,
+    admin_user_id,
+    amount,
+    direction,
+    reason,
+    balance_after
+  )
+  select
+    p_session_id,
+    vote.user_id,
+    v_actor,
+    vote.settlement_bonus,
+    'credit',
+    'settlement_bonus',
+    points.points
+  from public.live_score_guess_votes vote
+  join public.boss_points points
+    on points.user_id = vote.user_id
+  where vote.session_id = p_session_id
+    and vote.choice = p_correct_choice
+    and vote.staked_points > 0
+    and vote.settlement_bonus > 0;
+
+  update public.live_score_guess_sessions
+  set correct_choice = p_correct_choice,
+      settlement_status = 'settled',
+      total_losing_pool = v_losing_pool,
+      total_winning_stake = v_winning_stake,
+      settled_at = v_settled_at,
+      settled_by = v_actor
+  where id = p_session_id
+  returning *
+  into v_session;
+
+  return query
+  select v_session.id, v_session.settlement_status, v_session.correct_choice, v_session.total_losing_pool, v_session.total_winning_stake, v_session.settled_at;
+end;
+$$;
+
+revoke all on function public.is_live_score_guess_admin() from public;
+revoke all on function public.get_live_score_guess_public_stats(uuid) from public;
+revoke all on function public.get_live_score_guess_my_settlement(uuid) from public;
+revoke all on function public.place_live_score_guess_vote_with_points(uuid, text, integer) from public;
+revoke all on function public.admin_start_live_score_guess_session() from public;
+revoke all on function public.admin_close_live_score_guess_session(uuid) from public;
+revoke all on function public.admin_get_live_score_guess_settlement(uuid) from public;
+revoke all on function public.admin_set_live_score_guess_result(uuid, text) from public;
+
+grant execute on function public.get_live_score_guess_public_stats(uuid) to anon, authenticated;
+grant execute on function public.get_live_score_guess_my_settlement(uuid) to authenticated;
+grant execute on function public.place_live_score_guess_vote_with_points(uuid, text, integer) to authenticated;
+grant execute on function public.admin_start_live_score_guess_session() to authenticated;
+grant execute on function public.admin_close_live_score_guess_session(uuid) to authenticated;
+grant execute on function public.admin_get_live_score_guess_settlement(uuid) to authenticated;
+grant execute on function public.admin_set_live_score_guess_result(uuid, text) to authenticated;
+```

@@ -286,6 +286,28 @@
             color: #ffc2d3;
         }
 
+        .admin-pill.is-confirmed,
+        .admin-pill.is-completed,
+        .admin-pill.is-manual_paid,
+        .admin-pill.is-not_required,
+        .admin-pill.is-voucher_used {
+            border-color: rgba(123, 239, 198, .46);
+            color: #a8ffe2;
+        }
+
+        .admin-pill.is-need_reschedule,
+        .admin-pill.is-manual_unpaid,
+        .admin-pill.is-voucher_reserved,
+        .admin-pill.is-partial_voucher {
+            border-color: rgba(255, 218, 131, .46);
+            color: #ffe6a6;
+        }
+
+        .admin-pill.is-cancelled {
+            border-color: rgba(255, 143, 174, .46);
+            color: #ffc2d3;
+        }
+
         .admin-empty {
             display: grid;
             gap: 12px;
@@ -508,6 +530,43 @@
             </section>
         </section>
 
+        <section class="admin-panel" data-admin-paid-order-panel hidden>
+            <div class="admin-panel-head">
+                <h2 class="admin-panel-title">预约订单管理</h2>
+                <div class="admin-filter-group" aria-label="预约订单筛选">
+                    <button class="admin-button admin-button--primary" type="button" data-admin-paid-order-filter="pending">待确认</button>
+                    <button class="admin-button" type="button" data-admin-paid-order-filter="confirmed">已确认</button>
+                    <button class="admin-button" type="button" data-admin-paid-order-filter="need_reschedule">需改期</button>
+                    <button class="admin-button" type="button" data-admin-paid-order-filter="rejected">已拒绝</button>
+                    <button class="admin-button" type="button" data-admin-paid-order-filter="completed">已完成</button>
+                    <button class="admin-button" type="button" data-admin-paid-order-filter="cancelled">已取消</button>
+                    <button class="admin-button" type="button" data-admin-paid-order-filter="all">全部</button>
+                </div>
+            </div>
+            <div class="admin-table-wrap" data-admin-paid-order-table-wrap hidden>
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>预约用户</th>
+                            <th>脱敏邮箱</th>
+                            <th>服务内容</th>
+                            <th>预约时间</th>
+                            <th>状态</th>
+                            <th>人工转账</th>
+                            <th>兑换券</th>
+                            <th>备注</th>
+                            <th>管理员批注</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody data-admin-paid-order-body></tbody>
+                </table>
+            </div>
+            <section class="admin-empty" data-admin-paid-order-empty>
+                <strong>正在读取预约订单...</strong>
+            </section>
+        </section>
+
         <section class="admin-panel" data-admin-score-guess-panel hidden>
             <div class="admin-panel-head">
                 <h2 class="admin-panel-title">评分竞猜奖池结算</h2>
@@ -551,6 +610,6 @@
 
     <script src="assets/supabase-client.js?v=20260627-home-performance1"></script>
     <script src="assets/boss-visit.js?v=20260627-home-performance1"></script>
-    <script src="assets/admin.js?v=20260702-score-guess-points-pool1"></script>
+    <script src="assets/admin.js?v=20260707-paid-order-mvp1"></script>
 </body>
 </html>

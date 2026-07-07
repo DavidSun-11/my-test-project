@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    const VERSION = "20260702-score-guess-points-pool1";
+    const VERSION = "20260707-paid-order-mvp1";
     const SQL_HINT = "管理员后台需要先执行数据库升级 SQL。";
     const NO_PERMISSION_TEXT = "你没有权限访问这个后台。";
     const LOGIN_TEXT = "请先登录管理员账号。";
@@ -27,6 +27,24 @@
         rejected: "已拒绝"
     };
 
+    const ORDER_STATUS_LABELS = {
+        pending: "待确认",
+        confirmed: "已确认预约",
+        need_reschedule: "需要改期",
+        rejected: "已拒绝",
+        completed: "已完成",
+        cancelled: "已取消"
+    };
+
+    const MANUAL_PAYMENT_LABELS = {
+        manual_unpaid: "待人工转账",
+        manual_paid: "已人工确认转账",
+        not_required: "无需补款",
+        voucher_reserved: "已锁定兑换券",
+        voucher_used: "已使用兑换券",
+        partial_voucher: "已用兑换券，仍需补款"
+    };
+
     const SCORE_GUESS_CHOICES = ["铜牌", "银牌", "金牌", "顶级", "无"];
 
     const SCORE_SETTLEMENT_LABELS = {
@@ -38,8 +56,10 @@
     const state = {
         users: [],
         redemptions: [],
+        paidOrders: [],
         scoreGuessSessions: [],
         redemptionFilter: "pending",
+        paidOrderFilter: "pending",
         hasAdminAccess: false,
         client: null,
         session: null
@@ -88,6 +108,39 @@
         });
     }
 
+    function formatDate(value) {
+        if (!value) {
+            return "暂无";
+        }
+
+        const date = new Date(value + "T00:00:00");
+        if (Number.isNaN(date.getTime())) {
+            return String(value);
+        }
+
+        return date.toLocaleDateString("zh-CN", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit"
+        });
+    }
+
+    function formatMoney(cents) {
+        if (cents == null || cents === "") {
+            return "待确认";
+        }
+
+        const value = Number(cents);
+        if (!Number.isFinite(value)) {
+            return "待确认";
+        }
+
+        return (value / 100).toLocaleString("zh-CN", {
+            minimumFractionDigits: value % 100 === 0 ? 0 : 2,
+            maximumFractionDigits: 2
+        }) + " 元";
+    }
+
     function maskEmail(email) {
         const value = String(email || "").trim();
         const at = value.indexOf("@");
@@ -110,7 +163,7 @@
     function getFriendlyError(error) {
         const message = error && error.message ? error.message : "";
 
-        if (/admin_get_boss_users|admin_adjust_boss_points|admin_set_boss_blocked|admin_set_live_interaction_admin|boss_account_flags|boss_visit_stats|boss_admin_actions|admin_ref|boss_point_redemptions|admin_get_boss_point_redemptions|admin_review_boss_point_redemption|live_score_guess|point_ledger|admin_get_live_score_guess_settlement|admin_set_live_score_guess_result|schema cache|function .* does not exist|relation .* does not exist/i.test(message)) {
+        if (/admin_get_boss_users|admin_adjust_boss_points|admin_set_boss_blocked|admin_set_live_interaction_admin|boss_account_flags|boss_visit_stats|boss_admin_actions|admin_ref|boss_point_redemptions|admin_get_boss_point_redemptions|admin_review_boss_point_redemption|boss_paid_orders|boss_service_vouchers|admin_get_boss_paid_orders|admin_update_boss_paid_order|live_score_guess|point_ledger|admin_get_live_score_guess_settlement|admin_set_live_score_guess_result|schema cache|function .* does not exist|relation .* does not exist/i.test(message)) {
             return SQL_HINT;
         }
 
@@ -120,6 +173,18 @@
 
         if (/redemption already processed/i.test(message)) {
             return "这条兑换申请已经处理过，不能重复操作。";
+        }
+
+        if (/order already finalized/i.test(message)) {
+            return "这条预约订单已经是终态，不能重复处理。";
+        }
+
+        if (/invalid order transition/i.test(message)) {
+            return "当前预约状态不能执行这个操作。";
+        }
+
+        if (/admin note required for reschedule/i.test(message)) {
+            return "选择需要改期时，请在管理员批注里写清楚改期说明。";
         }
 
         if (/admin note/i.test(message)) {
@@ -171,7 +236,7 @@
     }
 
     function setBusy(isBusy) {
-        $$("[data-admin-action], [data-redemption-action], [data-admin-redemption-filter], [data-score-guess-action], [data-admin-score-guess-refresh]").forEach(function (button) {
+        $$("[data-admin-action], [data-redemption-action], [data-admin-redemption-filter], [data-paid-order-action], [data-admin-paid-order-filter], [data-score-guess-action], [data-admin-score-guess-refresh]").forEach(function (button) {
             button.disabled = !!isBusy;
         });
         if (nodes.refresh) {
@@ -183,6 +248,9 @@
         nodes.tableWrap.hidden = true;
         if (nodes.redemptionPanel) {
             nodes.redemptionPanel.hidden = true;
+        }
+        if (nodes.paidOrderPanel) {
+            nodes.paidOrderPanel.hidden = true;
         }
         if (nodes.scoreGuessPanel) {
             nodes.scoreGuessPanel.hidden = true;
@@ -279,6 +347,64 @@
                     '<td data-label="提交时间">' + escapeHtml(formatTime(record.created_at)) + '</td>',
                     '<td data-label="操作">',
                         pending ? '<div class="admin-actions"><button type="button" data-redemption-action="approved" data-index="' + index + '">同意</button><button type="button" data-redemption-action="rejected" data-index="' + index + '">拒绝</button></div>' : '<span class="admin-pill">已处理</span>',
+                    '</td>',
+                '</tr>'
+            ].join("");
+        }).join("");
+    }
+
+    function renderPaidOrders() {
+        if (!nodes.paidOrderPanel) {
+            return;
+        }
+
+        nodes.paidOrderPanel.hidden = false;
+        const records = state.paidOrders || [];
+
+        $$("[data-admin-paid-order-filter]").forEach(function (button) {
+            const active = button.dataset.adminPaidOrderFilter === state.paidOrderFilter;
+            button.classList.toggle("admin-button--primary", active);
+        });
+
+        if (!records.length) {
+            nodes.paidOrderBody.innerHTML = "";
+            nodes.paidOrderTableWrap.hidden = true;
+            nodes.paidOrderEmpty.hidden = false;
+            nodes.paidOrderEmpty.innerHTML = '<strong>当前筛选下暂无预约订单。</strong>';
+            return;
+        }
+
+        nodes.paidOrderTableWrap.hidden = false;
+        nodes.paidOrderEmpty.hidden = true;
+        nodes.paidOrderBody.innerHTML = records.map(function (record, index) {
+            const status = record.order_status || "pending";
+            const manualStatus = record.manual_payment_status || "manual_unpaid";
+            const isFinal = ["rejected", "completed", "cancelled"].indexOf(status) !== -1;
+            const orderRef = String(record.order_ref || "").slice(0, 8) || "--------";
+            const scheduleText = formatDate(record.scheduled_date) + (record.scheduled_time ? " " + record.scheduled_time : "");
+            const voucherText = record.voucher_title ? record.voucher_title + (record.voucher_status ? " / " + record.voucher_status : "") : "未使用兑换券";
+
+            return [
+                '<tr>',
+                    '<td data-label="预约用户"><strong>' + escapeHtml(record.display_name || "星湖用户") + '</strong><br><span class="admin-pill">#' + escapeHtml(orderRef) + '</span></td>',
+                    '<td data-label="脱敏邮箱">' + escapeHtml(record.email_masked || "未绑定邮箱") + '</td>',
+                    '<td data-label="服务内容">' + escapeHtml(record.game_type || "服务") + '<br><span class="admin-pill">' + escapeHtml(record.service_type || "预约") + ' / ' + escapeHtml(record.duration_hours || "--") + ' 小时</span></td>',
+                    '<td data-label="预约时间">' + escapeHtml(scheduleText) + '<br><span class="admin-pill">' + escapeHtml(formatTime(record.created_at)) + '</span></td>',
+                    '<td data-label="状态"><span class="admin-pill is-' + escapeHtml(status) + '">' + escapeHtml(ORDER_STATUS_LABELS[status] || status) + '</span></td>',
+                    '<td data-label="人工转账"><span class="admin-pill is-' + escapeHtml(manualStatus) + '">' + escapeHtml(MANUAL_PAYMENT_LABELS[manualStatus] || manualStatus) + '</span><br>' + escapeHtml(formatMoney(record.final_amount_cents)) + '</td>',
+                    '<td data-label="兑换券">' + escapeHtml(voucherText) + '</td>',
+                    '<td data-label="备注">' + escapeHtml(record.user_note || "暂无") + '<br><span class="admin-pill">' + escapeHtml(record.contact_info || "暂无联系方式") + '</span></td>',
+                    '<td data-label="管理员批注">' + escapeHtml(record.admin_note || "暂无") + (record.payment_note ? '<br><span class="admin-pill">' + escapeHtml(record.payment_note) + '</span>' : '') + '</td>',
+                    '<td data-label="操作">',
+                        isFinal ? '<span class="admin-pill">已处理</span>' : [
+                            '<div class="admin-actions">',
+                                status === "pending" || status === "need_reschedule" ? '<button type="button" data-paid-order-action="confirmed" data-index="' + index + '">确认</button>' : '',
+                                status === "pending" ? '<button type="button" data-paid-order-action="need_reschedule" data-index="' + index + '">需要改期</button>' : '',
+                                status === "pending" ? '<button type="button" data-paid-order-action="rejected" data-index="' + index + '">拒绝</button>' : '',
+                                status === "confirmed" ? '<button type="button" data-paid-order-action="completed" data-index="' + index + '">标记完成</button>' : '',
+                                '<button type="button" data-paid-order-action="cancelled" data-index="' + index + '">取消</button>',
+                            '</div>'
+                        ].join(""),
                     '</td>',
                 '</tr>'
             ].join("");
@@ -394,6 +520,41 @@
         }
     }
 
+    async function loadPaidOrders(doneMessage) {
+        if (!nodes.paidOrderPanel) {
+            return;
+        }
+
+        setBusy(true);
+        if (nodes.paidOrderEmpty) {
+            nodes.paidOrderEmpty.hidden = false;
+            nodes.paidOrderEmpty.innerHTML = '<strong>正在读取预约订单...</strong>';
+        }
+
+        try {
+            const filter = state.paidOrderFilter === "all" ? null : state.paidOrderFilter;
+            const response = await state.client.rpc("admin_get_boss_paid_orders", {
+                p_status: filter
+            });
+
+            if (response.error) {
+                throw response.error;
+            }
+
+            state.paidOrders = Array.isArray(response.data) ? response.data : [];
+            renderPaidOrders();
+            if (doneMessage) {
+                setStatus(doneMessage, "good");
+            }
+        } catch (error) {
+            nodes.paidOrderTableWrap.hidden = true;
+            nodes.paidOrderEmpty.hidden = false;
+            nodes.paidOrderEmpty.innerHTML = '<strong>' + escapeHtml(getFriendlyError(error)) + '</strong>';
+        } finally {
+            setBusy(false);
+        }
+    }
+
     async function loadScoreGuessSessions(doneMessage) {
         if (!nodes.scoreGuessPanel) {
             return;
@@ -434,6 +595,7 @@
         await loadUsers(doneMessage);
         if (state.hasAdminAccess) {
             await loadRedemptions();
+            await loadPaidOrders();
             await loadScoreGuessSessions();
         }
     }
@@ -474,6 +636,68 @@
         nodes.modalBody.querySelector("textarea").focus();
     }
 
+    function getPaidOrderActionLabel(nextStatus) {
+        return {
+            confirmed: "确认预约",
+            need_reschedule: "需要改期",
+            rejected: "拒绝预约",
+            completed: "标记完成",
+            cancelled: "取消预约"
+        }[nextStatus] || "处理预约";
+    }
+
+    function getDefaultManualPaymentStatus(record, nextStatus) {
+        if ((nextStatus === "rejected" || nextStatus === "cancelled") && record.voucher_title) {
+            return "not_required";
+        }
+
+        if (nextStatus === "completed" && record.voucher_title) {
+            return "voucher_used";
+        }
+
+        if (nextStatus === "confirmed" && record.voucher_title) {
+            return "partial_voucher";
+        }
+
+        if (nextStatus === "confirmed") {
+            return "manual_unpaid";
+        }
+
+        return record.manual_payment_status || "manual_unpaid";
+    }
+
+    function openPaidOrderModal(record, nextStatus) {
+        const title = getPaidOrderActionLabel(nextStatus);
+        const scheduleText = formatDate(record.scheduled_date) + (record.scheduled_time ? " " + record.scheduled_time : "");
+        const defaultManualStatus = getDefaultManualPaymentStatus(record, nextStatus);
+        const currentAmount = record.final_amount_cents == null ? NaN : Number(record.final_amount_cents);
+        const amountValue = Number.isFinite(currentAmount) ? String(currentAmount / 100) : "";
+
+        nodes.modal.hidden = false;
+        nodes.modalTitle.textContent = title + "：" + (record.display_name || "星湖用户");
+        nodes.modalBody.innerHTML = [
+            '<div class="admin-field"><span>预约内容</span><strong>' + escapeHtml(record.game_type || "服务") + ' / ' + escapeHtml(record.service_type || "预约") + ' / ' + escapeHtml(scheduleText) + '</strong></div>',
+            '<div class="admin-field"><span>联系方式</span><strong>' + escapeHtml(record.contact_info || "暂无") + '</strong></div>',
+            '<div class="admin-field"><span>兑换券</span><strong>' + escapeHtml(record.voucher_title || "未使用兑换券") + '</strong></div>',
+            '<label class="admin-field"><span>管理员批注（最多 200 字）</span><textarea name="admin_note" maxlength="200" placeholder="' + (nextStatus === "need_reschedule" ? "请写清楚建议改到哪天或哪个时间段。" : "例如：已确认档期，稍后联系人工转账。") + '">' + escapeHtml(record.admin_note || "") + '</textarea></label>',
+            '<label class="admin-field"><span>最终需人工转账金额（元，可留空）</span><input name="final_amount_yuan" type="number" min="0" step="0.01" value="' + escapeHtml(amountValue) + '" placeholder="例如 88"></label>',
+            '<label class="admin-field"><span>人工转账状态</span><select name="manual_payment_status">',
+                Object.keys(MANUAL_PAYMENT_LABELS).map(function (status) {
+                    return '<option value="' + escapeHtml(status) + '"' + (status === defaultManualStatus ? " selected" : "") + '>' + escapeHtml(MANUAL_PAYMENT_LABELS[status]) + '</option>';
+                }).join(""),
+            '</select></label>',
+            '<label class="admin-field"><span>人工转账备注（最多 200 字）</span><textarea name="payment_note" maxlength="200" placeholder="例如：已微信确认转账，或无需补款。">' + escapeHtml(record.payment_note || "") + '</textarea></label>',
+            '<div class="admin-modal-actions">',
+                '<button class="admin-button admin-button--primary" type="submit">' + escapeHtml(title) + '</button>',
+                '<button class="admin-button" type="button" data-modal-close>取消</button>',
+            '</div>'
+        ].join("");
+        nodes.modalForm.dataset.mode = "paid-order";
+        nodes.modalForm.dataset.paidOrderIndex = String(state.paidOrders.indexOf(record));
+        nodes.modalForm.dataset.orderStatus = nextStatus;
+        nodes.modalBody.querySelector("textarea").focus();
+    }
+
     function closeModal() {
         nodes.modal.hidden = true;
         nodes.modalForm.reset();
@@ -481,6 +705,8 @@
         nodes.modalForm.removeAttribute("data-boss-index");
         nodes.modalForm.removeAttribute("data-redemption-index");
         nodes.modalForm.removeAttribute("data-review-status");
+        nodes.modalForm.removeAttribute("data-paid-order-index");
+        nodes.modalForm.removeAttribute("data-order-status");
         nodes.modalBody.innerHTML = "";
     }
 
@@ -552,6 +778,69 @@
             closeModal();
             await loadRedemptions(nextStatus === "approved" ? "已同意兑换申请并完成积分处理。" : "已拒绝兑换申请，未扣除积分。");
             await loadUsers();
+        } catch (error) {
+            setStatus(getFriendlyError(error), "warning");
+        } finally {
+            setBusy(false);
+        }
+    }
+
+    async function submitPaidOrderUpdate() {
+        const index = Number(nodes.modalForm.dataset.paidOrderIndex);
+        const record = state.paidOrders[index];
+        const nextStatus = nodes.modalForm.dataset.orderStatus;
+        const adminNote = String(nodes.modalForm.elements.admin_note.value || "").trim();
+        const paymentNote = String(nodes.modalForm.elements.payment_note.value || "").trim();
+        const amountRaw = String(nodes.modalForm.elements.final_amount_yuan.value || "").trim();
+        const manualPaymentStatus = String(nodes.modalForm.elements.manual_payment_status.value || "").trim();
+        let finalAmountCents = null;
+
+        if (!record) {
+            closeModal();
+            return;
+        }
+
+        if (adminNote.length > 200) {
+            setStatus("管理员批注最多 200 字，请稍微精简一下。", "warning");
+            return;
+        }
+
+        if (nextStatus === "need_reschedule" && !adminNote) {
+            setStatus("选择需要改期时，请在管理员批注里写清楚改期说明。", "warning");
+            return;
+        }
+
+        if (paymentNote.length > 200) {
+            setStatus("人工转账备注最多 200 字，请稍微精简一下。", "warning");
+            return;
+        }
+
+        if (amountRaw) {
+            const amountYuan = Number(amountRaw);
+            if (!Number.isFinite(amountYuan) || amountYuan < 0) {
+                setStatus("最终需人工转账金额不能为负数。", "warning");
+                return;
+            }
+            finalAmountCents = Math.round(amountYuan * 100);
+        }
+
+        setBusy(true);
+        try {
+            const response = await state.client.rpc("admin_update_boss_paid_order", {
+                p_order_ref: record.order_ref,
+                p_order_status: nextStatus,
+                p_admin_note: adminNote || null,
+                p_final_amount_cents: finalAmountCents,
+                p_manual_payment_status: manualPaymentStatus || null,
+                p_payment_note: paymentNote || null
+            });
+
+            if (response.error) {
+                throw response.error;
+            }
+
+            closeModal();
+            await loadPaidOrders("预约订单已更新。");
         } catch (error) {
             setStatus(getFriendlyError(error), "warning");
         } finally {
@@ -662,6 +951,11 @@
 
         if (nodes.modalForm.dataset.mode === "redemption") {
             await submitRedemptionReview();
+            return;
+        }
+
+        if (nodes.modalForm.dataset.mode === "paid-order") {
+            await submitPaidOrderUpdate();
             return;
         }
 
@@ -776,6 +1070,29 @@
             });
         });
 
+        if (nodes.paidOrderBody) {
+            nodes.paidOrderBody.addEventListener("click", function (event) {
+                const button = event.target.closest("[data-paid-order-action]");
+                if (!button) {
+                    return;
+                }
+
+                const record = state.paidOrders[Number(button.dataset.index)];
+                if (!record) {
+                    return;
+                }
+
+                openPaidOrderModal(record, button.dataset.paidOrderAction);
+            });
+        }
+
+        $$("[data-admin-paid-order-filter]").forEach(function (button) {
+            button.addEventListener("click", function () {
+                state.paidOrderFilter = button.dataset.adminPaidOrderFilter || "pending";
+                loadPaidOrders();
+            });
+        });
+
         if (nodes.scoreGuessRefresh) {
             nodes.scoreGuessRefresh.addEventListener("click", function () {
                 loadScoreGuessSessions("评分竞猜场次已刷新。");
@@ -824,6 +1141,10 @@
         nodes.redemptionTableWrap = $("[data-admin-redemption-table-wrap]");
         nodes.redemptionBody = $("[data-admin-redemption-body]");
         nodes.redemptionEmpty = $("[data-admin-redemption-empty]");
+        nodes.paidOrderPanel = $("[data-admin-paid-order-panel]");
+        nodes.paidOrderTableWrap = $("[data-admin-paid-order-table-wrap]");
+        nodes.paidOrderBody = $("[data-admin-paid-order-body]");
+        nodes.paidOrderEmpty = $("[data-admin-paid-order-empty]");
         nodes.scoreGuessPanel = $("[data-admin-score-guess-panel]");
         nodes.scoreGuessTableWrap = $("[data-admin-score-guess-table-wrap]");
         nodes.scoreGuessBody = $("[data-admin-score-guess-body]");

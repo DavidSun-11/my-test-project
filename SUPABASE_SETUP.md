@@ -3255,3 +3255,866 @@ grant execute on function public.admin_close_live_score_guess_session(uuid) to a
 grant execute on function public.admin_get_live_score_guess_settlement(uuid) to authenticated;
 grant execute on function public.admin_set_live_score_guess_result(uuid, text) to authenticated;
 ```
+
+## 17. 服务预约 / 积分兑换券 / 人工转账升级 SQL
+
+用途：
+
+- 新增服务预约表 `boss_paid_orders`，前端展示为“服务预约 / 预约订单”。
+- 新增服务兑换券表 `boss_service_vouchers`，兑换券由积分兑换申请审核同意后自动生成。
+- 用户预约时可以选择一张可用兑换券；提交后服务端锁定兑换券，避免重复使用。
+- 管理员确认、改期、拒绝、取消、完成预约，并手动记录线下转账状态。
+- 第一版不接真实支付接口，`payment_provider` 固定为 `manual`。
+
+请在 Supabase SQL Editor 执行。本节建议在第 15 节积分兑换 SQL 之后执行；如果第 15 节尚未执行，兑换券生成功能会缺少来源表和审核 RPC。
+
+```sql
+create extension if not exists pgcrypto;
+
+create table if not exists public.boss_service_vouchers (
+  id uuid primary key default gen_random_uuid(),
+  voucher_ref uuid not null default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  source_redeem_ref uuid,
+  voucher_type text not null,
+  voucher_title text not null,
+  game_type text,
+  service_type text,
+  rank_range text,
+  quantity numeric,
+  value_points integer,
+  status text not null default 'available',
+  reserved_order_ref uuid,
+  used_order_ref uuid,
+  admin_note text,
+  created_at timestamptz not null default now(),
+  reserved_at timestamptz,
+  used_at timestamptz,
+  expires_at timestamptz,
+  constraint boss_service_vouchers_ref_unique unique (voucher_ref),
+  constraint boss_service_vouchers_source_unique unique (source_redeem_ref),
+  constraint boss_service_vouchers_status_check check (status in ('available', 'reserved', 'used', 'cancelled', 'expired')),
+  constraint boss_service_vouchers_quantity_check check (quantity is null or quantity > 0),
+  constraint boss_service_vouchers_value_points_check check (value_points is null or value_points >= 0),
+  constraint boss_service_vouchers_admin_note_check check (admin_note is null or char_length(admin_note) <= 200)
+);
+
+create index if not exists boss_service_vouchers_user_status_idx
+on public.boss_service_vouchers (user_id, status, created_at desc);
+
+create index if not exists boss_service_vouchers_reserved_order_idx
+on public.boss_service_vouchers (reserved_order_ref);
+
+create table if not exists public.boss_paid_orders (
+  id uuid primary key default gen_random_uuid(),
+  order_ref uuid not null default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  game_type text not null,
+  service_type text not null,
+  scheduled_date date not null,
+  scheduled_time text,
+  duration_hours numeric,
+  contact_info text,
+  user_note text,
+  admin_note text,
+  order_status text not null default 'pending',
+  payment_status text not null default 'unpaid',
+  manual_payment_status text not null default 'manual_unpaid',
+  payment_provider text not null default 'manual',
+  voucher_ref uuid,
+  voucher_title text,
+  estimated_amount_cents integer,
+  final_amount_cents integer,
+  paid_at timestamptz,
+  payment_note text,
+  provider_trade_no text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  processed_at timestamptz,
+  processed_by uuid references auth.users(id) on delete set null,
+  constraint boss_paid_orders_ref_unique unique (order_ref),
+  constraint boss_paid_orders_status_check check (order_status in ('pending', 'confirmed', 'need_reschedule', 'rejected', 'completed', 'cancelled')),
+  constraint boss_paid_orders_payment_status_check check (payment_status in ('unpaid', 'paid', 'not_required')),
+  constraint boss_paid_orders_manual_payment_status_check check (manual_payment_status in ('manual_unpaid', 'manual_paid', 'not_required', 'voucher_reserved', 'voucher_used', 'partial_voucher')),
+  constraint boss_paid_orders_payment_provider_check check (payment_provider = 'manual'),
+  constraint boss_paid_orders_duration_check check (duration_hours is null or duration_hours > 0),
+  constraint boss_paid_orders_estimated_amount_check check (estimated_amount_cents is null or estimated_amount_cents >= 0),
+  constraint boss_paid_orders_final_amount_check check (final_amount_cents is null or final_amount_cents >= 0),
+  constraint boss_paid_orders_contact_check check (contact_info is null or char_length(contact_info) <= 120),
+  constraint boss_paid_orders_user_note_check check (user_note is null or char_length(user_note) <= 300),
+  constraint boss_paid_orders_admin_note_check check (admin_note is null or char_length(admin_note) <= 200),
+  constraint boss_paid_orders_payment_note_check check (payment_note is null or char_length(payment_note) <= 200)
+);
+
+alter table public.boss_paid_orders
+  add column if not exists voucher_ref uuid;
+alter table public.boss_paid_orders
+  add column if not exists voucher_title text;
+alter table public.boss_paid_orders
+  add column if not exists manual_payment_status text not null default 'manual_unpaid';
+alter table public.boss_paid_orders
+  add column if not exists payment_provider text not null default 'manual';
+alter table public.boss_paid_orders
+  add column if not exists paid_at timestamptz;
+alter table public.boss_paid_orders
+  add column if not exists payment_note text;
+alter table public.boss_paid_orders
+  add column if not exists provider_trade_no text;
+
+alter table public.boss_paid_orders
+  drop constraint if exists boss_paid_orders_status_check;
+alter table public.boss_paid_orders
+  add constraint boss_paid_orders_status_check check (order_status in ('pending', 'confirmed', 'need_reschedule', 'rejected', 'completed', 'cancelled'));
+alter table public.boss_paid_orders
+  drop constraint if exists boss_paid_orders_manual_payment_status_check;
+alter table public.boss_paid_orders
+  add constraint boss_paid_orders_manual_payment_status_check check (manual_payment_status in ('manual_unpaid', 'manual_paid', 'not_required', 'voucher_reserved', 'voucher_used', 'partial_voucher'));
+alter table public.boss_paid_orders
+  drop constraint if exists boss_paid_orders_payment_provider_check;
+alter table public.boss_paid_orders
+  add constraint boss_paid_orders_payment_provider_check check (payment_provider = 'manual');
+
+create index if not exists boss_paid_orders_user_status_idx
+on public.boss_paid_orders (user_id, order_status, created_at desc);
+
+create index if not exists boss_paid_orders_status_created_idx
+on public.boss_paid_orders (order_status, created_at desc);
+
+create index if not exists boss_paid_orders_voucher_ref_idx
+on public.boss_paid_orders (voucher_ref);
+
+alter table public.boss_service_vouchers enable row level security;
+alter table public.boss_paid_orders enable row level security;
+
+revoke all on public.boss_service_vouchers from anon, authenticated;
+revoke all on public.boss_paid_orders from anon, authenticated;
+
+create or replace function public.get_boss_service_voucher_title(
+  p_redeem_type text,
+  p_rank_range text,
+  p_quantity numeric
+)
+returns text
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_quantity_text text := trim(to_char(coalesce(p_quantity, 0), 'FM999999990.##'));
+begin
+  if p_redeem_type = 'king_star' then
+    return '王者荣耀 ' || v_quantity_text || ' 颗星兑换券';
+  elsif p_redeem_type = 'king_review' then
+    return '王者复盘 ' || v_quantity_text || ' 小时兑换券';
+  elsif p_redeem_type = 'naraka_companion' then
+    return '永劫无间娱乐陪 ' || v_quantity_text || ' 小时兑换券';
+  elsif p_redeem_type = 'voice_chat' then
+    return '语音聊天 ' || case when p_quantity = 1 then '半小时' else v_quantity_text || ' 个半小时' end || '兑换券';
+  end if;
+
+  return '服务兑换券';
+end;
+$$;
+
+drop function if exists public.create_boss_service_voucher_from_redemption(uuid, uuid, text, text, numeric, integer, text);
+create or replace function public.create_boss_service_voucher_from_redemption(
+  p_user_id uuid,
+  p_redeem_ref uuid,
+  p_redeem_type text,
+  p_rank_range text,
+  p_quantity numeric,
+  p_cost_points integer,
+  p_admin_note text default null
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_voucher_ref uuid;
+  v_game_type text;
+  v_service_type text;
+  v_title text;
+begin
+  if p_user_id is null or p_redeem_ref is null then
+    raise exception 'redemption not found';
+  end if;
+
+  v_game_type := case p_redeem_type
+    when 'king_star' then '王者荣耀'
+    when 'king_review' then '王者荣耀'
+    when 'naraka_companion' then '永劫无间'
+    when 'voice_chat' then '其它'
+    else '其它'
+  end;
+
+  v_service_type := case p_redeem_type
+    when 'king_star' then '段位上分'
+    when 'king_review' then '复盘'
+    when 'naraka_companion' then '娱乐陪玩'
+    when 'voice_chat' then '语音聊天'
+    else '其它'
+  end;
+
+  v_title := public.get_boss_service_voucher_title(p_redeem_type, p_rank_range, p_quantity);
+
+  insert into public.boss_service_vouchers (
+    user_id,
+    source_redeem_ref,
+    voucher_type,
+    voucher_title,
+    game_type,
+    service_type,
+    rank_range,
+    quantity,
+    value_points,
+    status,
+    admin_note
+  )
+  values (
+    p_user_id,
+    p_redeem_ref,
+    p_redeem_type,
+    v_title,
+    v_game_type,
+    v_service_type,
+    p_rank_range,
+    p_quantity,
+    p_cost_points,
+    'available',
+    nullif(left(coalesce(p_admin_note, ''), 200), '')
+  )
+  on conflict (source_redeem_ref) do update
+  set admin_note = coalesce(boss_service_vouchers.admin_note, excluded.admin_note)
+  returning voucher_ref into v_voucher_ref;
+
+  return v_voucher_ref;
+end;
+$$;
+
+create or replace function public.admin_review_boss_point_redemption(
+  p_redeem_ref uuid,
+  p_status text,
+  p_admin_note text default null
+)
+returns table (
+  redeem_ref uuid,
+  status text,
+  cost_points integer,
+  processed_at timestamptz
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_actor uuid := auth.uid();
+  v_redemption public.boss_point_redemptions%rowtype;
+  v_points public.boss_points%rowtype;
+  v_admin_note text := nullif(trim(coalesce(p_admin_note, '')), '');
+  v_processed_at timestamptz := now();
+begin
+  if v_actor is null or not public.is_live_interaction_admin(v_actor) then
+    raise exception 'not authorized';
+  end if;
+
+  if p_status not in ('approved', 'rejected') then
+    raise exception 'invalid review status';
+  end if;
+
+  if v_admin_note is not null and char_length(v_admin_note) > 200 then
+    raise exception 'admin note too long';
+  end if;
+
+  select *
+  into v_redemption
+  from public.boss_point_redemptions redemption
+  where redemption.redeem_ref = p_redeem_ref
+  for update;
+
+  if v_redemption.id is null then
+    raise exception 'redemption not found';
+  end if;
+
+  if v_redemption.status <> 'pending' then
+    raise exception 'redemption already processed';
+  end if;
+
+  if p_status = 'approved' then
+    insert into public.boss_points (user_id, points, total_checkins, current_streak, longest_streak, last_checkin_date)
+    values (v_redemption.user_id, 0, 0, 0, 0, null)
+    on conflict (user_id) do nothing;
+
+    select *
+    into v_points
+    from public.boss_points
+    where user_id = v_redemption.user_id
+    for update;
+
+    if v_points.points < v_redemption.cost_points then
+      raise exception 'insufficient points';
+    end if;
+
+    update public.boss_points
+    set
+      points = points - v_redemption.cost_points,
+      updated_at = now()
+    where user_id = v_redemption.user_id;
+
+    perform public.create_boss_service_voucher_from_redemption(
+      v_redemption.user_id,
+      v_redemption.redeem_ref,
+      v_redemption.redeem_type,
+      v_redemption.rank_range,
+      v_redemption.quantity,
+      v_redemption.cost_points,
+      v_admin_note
+    );
+  end if;
+
+  update public.boss_point_redemptions
+  set
+    status = p_status,
+    admin_note = v_admin_note,
+    processed_at = v_processed_at,
+    processed_by = v_actor
+  where id = v_redemption.id;
+
+  insert into public.boss_admin_actions (actor_user_id, target_user_id, action_type, amount, reason)
+  values (
+    v_actor,
+    v_redemption.user_id,
+    case when p_status = 'approved' then 'approve_redemption' else 'reject_redemption' end,
+    case when p_status = 'approved' then -v_redemption.cost_points else null end,
+    nullif(left(coalesce(v_admin_note, ''), 120), '')
+  );
+
+  return query
+  select
+    v_redemption.redeem_ref,
+    p_status,
+    v_redemption.cost_points,
+    v_processed_at;
+end;
+$$;
+
+drop function if exists public.get_my_available_service_vouchers();
+create or replace function public.get_my_available_service_vouchers()
+returns table (
+  voucher_ref uuid,
+  voucher_title text,
+  voucher_type text,
+  game_type text,
+  service_type text,
+  rank_range text,
+  quantity numeric,
+  value_points integer,
+  status text,
+  created_at timestamptz,
+  expires_at timestamptz
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_actor uuid := auth.uid();
+begin
+  if v_actor is null then
+    raise exception 'not authenticated';
+  end if;
+
+  update public.boss_service_vouchers
+  set status = 'expired'
+  where user_id = v_actor
+    and status = 'available'
+    and expires_at is not null
+    and expires_at < now();
+
+  return query
+  select
+    voucher.voucher_ref,
+    voucher.voucher_title,
+    voucher.voucher_type,
+    voucher.game_type,
+    voucher.service_type,
+    voucher.rank_range,
+    voucher.quantity,
+    voucher.value_points,
+    voucher.status,
+    voucher.created_at,
+    voucher.expires_at
+  from public.boss_service_vouchers voucher
+  where voucher.user_id = v_actor
+    and voucher.status = 'available'
+    and (voucher.expires_at is null or voucher.expires_at >= now())
+  order by voucher.created_at desc
+  limit 50;
+end;
+$$;
+
+drop function if exists public.submit_boss_paid_order(text, text, date, text, numeric, text, text, uuid);
+create or replace function public.submit_boss_paid_order(
+  p_game_type text,
+  p_service_type text,
+  p_scheduled_date date,
+  p_scheduled_time text default null,
+  p_duration_hours numeric default null,
+  p_contact_info text default null,
+  p_user_note text default null,
+  p_voucher_ref uuid default null
+)
+returns table (
+  order_ref uuid,
+  order_status text,
+  manual_payment_status text,
+  voucher_ref uuid,
+  voucher_title text,
+  created_at timestamptz
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_actor uuid := auth.uid();
+  v_game_type text := nullif(trim(coalesce(p_game_type, '')), '');
+  v_service_type text := nullif(trim(coalesce(p_service_type, '')), '');
+  v_scheduled_time text := nullif(trim(coalesce(p_scheduled_time, '')), '');
+  v_contact_info text := nullif(trim(coalesce(p_contact_info, '')), '');
+  v_user_note text := nullif(trim(coalesce(p_user_note, '')), '');
+  v_open_count integer;
+  v_voucher public.boss_service_vouchers%rowtype;
+  v_order_ref uuid := gen_random_uuid();
+  v_manual_status text := 'manual_unpaid';
+begin
+  if v_actor is null then
+    raise exception 'not authenticated';
+  end if;
+
+  if public.is_boss_account_blocked(v_actor) then
+    raise exception 'blocked account cannot submit order';
+  end if;
+
+  if v_game_type not in ('王者荣耀', '永劫无间', '其它') then
+    raise exception 'invalid game type';
+  end if;
+
+  if v_service_type not in ('段位上分', '娱乐陪玩', '复盘', '语音聊天', '其它') then
+    raise exception 'invalid service type';
+  end if;
+
+  if p_scheduled_date is null or p_scheduled_date < current_date then
+    raise exception 'scheduled date cannot be earlier than today';
+  end if;
+
+  if p_duration_hours is null or p_duration_hours <= 0 or p_duration_hours > 24 then
+    raise exception 'invalid duration';
+  end if;
+
+  if v_contact_info is null then
+    raise exception 'contact info is required';
+  end if;
+
+  if char_length(v_contact_info) > 120 then
+    raise exception 'contact info too long';
+  end if;
+
+  if v_user_note is not null and char_length(v_user_note) > 300 then
+    raise exception 'user note too long';
+  end if;
+
+  select count(*)::integer
+  into v_open_count
+  from public.boss_paid_orders paid_order
+  where paid_order.user_id = v_actor
+    and paid_order.order_status in ('pending', 'confirmed', 'need_reschedule');
+
+  if v_open_count >= 10 then
+    raise exception 'open order limit reached';
+  end if;
+
+  if p_voucher_ref is not null then
+    select *
+    into v_voucher
+    from public.boss_service_vouchers voucher
+    where voucher.voucher_ref = p_voucher_ref
+    for update;
+
+    if v_voucher.id is null or v_voucher.user_id <> v_actor then
+      raise exception 'voucher not found';
+    end if;
+
+    if v_voucher.status <> 'available' or (v_voucher.expires_at is not null and v_voucher.expires_at < now()) then
+      raise exception 'voucher is not available';
+    end if;
+
+    v_manual_status := 'voucher_reserved';
+  end if;
+
+  insert into public.boss_paid_orders (
+    order_ref,
+    user_id,
+    game_type,
+    service_type,
+    scheduled_date,
+    scheduled_time,
+    duration_hours,
+    contact_info,
+    user_note,
+    order_status,
+    payment_status,
+    manual_payment_status,
+    payment_provider,
+    voucher_ref,
+    voucher_title
+  )
+  values (
+    v_order_ref,
+    v_actor,
+    v_game_type,
+    v_service_type,
+    p_scheduled_date,
+    v_scheduled_time,
+    p_duration_hours,
+    v_contact_info,
+    v_user_note,
+    'pending',
+    'unpaid',
+    v_manual_status,
+    'manual',
+    case when p_voucher_ref is not null then v_voucher.voucher_ref else null end,
+    case when p_voucher_ref is not null then v_voucher.voucher_title else null end
+  );
+
+  if p_voucher_ref is not null then
+    update public.boss_service_vouchers
+    set
+      status = 'reserved',
+      reserved_order_ref = v_order_ref,
+      reserved_at = now()
+    where id = v_voucher.id;
+  end if;
+
+  return query
+  select
+    paid_order.order_ref,
+    paid_order.order_status,
+    paid_order.manual_payment_status,
+    paid_order.voucher_ref,
+    paid_order.voucher_title,
+    paid_order.created_at
+  from public.boss_paid_orders paid_order
+  where paid_order.order_ref = v_order_ref;
+end;
+$$;
+
+drop function if exists public.get_my_boss_paid_orders();
+create or replace function public.get_my_boss_paid_orders()
+returns table (
+  order_ref uuid,
+  game_type text,
+  service_type text,
+  scheduled_date date,
+  scheduled_time text,
+  duration_hours numeric,
+  contact_info text,
+  user_note text,
+  admin_note text,
+  order_status text,
+  manual_payment_status text,
+  voucher_title text,
+  final_amount_cents integer,
+  payment_note text,
+  created_at timestamptz,
+  processed_at timestamptz,
+  paid_at timestamptz
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_actor uuid := auth.uid();
+begin
+  if v_actor is null then
+    raise exception 'not authenticated';
+  end if;
+
+  return query
+  select
+    paid_order.order_ref,
+    paid_order.game_type,
+    paid_order.service_type,
+    paid_order.scheduled_date,
+    paid_order.scheduled_time,
+    paid_order.duration_hours,
+    paid_order.contact_info,
+    paid_order.user_note,
+    paid_order.admin_note,
+    paid_order.order_status,
+    paid_order.manual_payment_status,
+    paid_order.voucher_title,
+    paid_order.final_amount_cents,
+    paid_order.payment_note,
+    paid_order.created_at,
+    paid_order.processed_at,
+    paid_order.paid_at
+  from public.boss_paid_orders paid_order
+  where paid_order.user_id = v_actor
+  order by paid_order.created_at desc
+  limit 50;
+end;
+$$;
+
+drop function if exists public.admin_get_boss_paid_orders(text);
+create or replace function public.admin_get_boss_paid_orders(p_status text default null)
+returns table (
+  order_ref uuid,
+  display_name text,
+  email_masked text,
+  game_type text,
+  service_type text,
+  scheduled_date date,
+  scheduled_time text,
+  duration_hours numeric,
+  contact_info text,
+  user_note text,
+  admin_note text,
+  order_status text,
+  manual_payment_status text,
+  voucher_title text,
+  voucher_status text,
+  final_amount_cents integer,
+  payment_note text,
+  created_at timestamptz,
+  processed_at timestamptz,
+  paid_at timestamptz
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_actor uuid := auth.uid();
+  v_status text := nullif(trim(coalesce(p_status, '')), '');
+begin
+  if v_actor is null or not public.is_live_interaction_admin(v_actor) then
+    raise exception 'not authorized';
+  end if;
+
+  if v_status is not null and v_status not in ('pending', 'confirmed', 'need_reschedule', 'rejected', 'completed', 'cancelled') then
+    raise exception 'invalid order status filter';
+  end if;
+
+  return query
+  select
+    paid_order.order_ref,
+    coalesce(nullif(trim(profile.display_name), ''), '星湖用户') as display_name,
+    public.mask_admin_email(auth_user.email) as email_masked,
+    paid_order.game_type,
+    paid_order.service_type,
+    paid_order.scheduled_date,
+    paid_order.scheduled_time,
+    paid_order.duration_hours,
+    paid_order.contact_info,
+    paid_order.user_note,
+    paid_order.admin_note,
+    paid_order.order_status,
+    paid_order.manual_payment_status,
+    paid_order.voucher_title,
+    voucher.status as voucher_status,
+    paid_order.final_amount_cents,
+    paid_order.payment_note,
+    paid_order.created_at,
+    paid_order.processed_at,
+    paid_order.paid_at
+  from public.boss_paid_orders paid_order
+  left join public.boss_profiles profile
+    on profile.user_id = paid_order.user_id
+  left join auth.users auth_user
+    on auth_user.id = paid_order.user_id
+  left join public.boss_service_vouchers voucher
+    on voucher.voucher_ref = paid_order.voucher_ref
+  where v_status is null or paid_order.order_status = v_status
+  order by
+    case paid_order.order_status
+      when 'pending' then 0
+      when 'need_reschedule' then 1
+      when 'confirmed' then 2
+      when 'rejected' then 3
+      when 'cancelled' then 4
+      else 5
+    end,
+    paid_order.created_at desc
+  limit 120;
+end;
+$$;
+
+drop function if exists public.admin_update_boss_paid_order(uuid, text, text, integer, text, text);
+create or replace function public.admin_update_boss_paid_order(
+  p_order_ref uuid,
+  p_order_status text,
+  p_admin_note text default null,
+  p_final_amount_cents integer default null,
+  p_manual_payment_status text default null,
+  p_payment_note text default null
+)
+returns table (
+  order_ref uuid,
+  order_status text,
+  manual_payment_status text,
+  voucher_title text,
+  processed_at timestamptz
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_actor uuid := auth.uid();
+  v_order public.boss_paid_orders%rowtype;
+  v_voucher public.boss_service_vouchers%rowtype;
+  v_admin_note text := nullif(trim(coalesce(p_admin_note, '')), '');
+  v_payment_note text := nullif(trim(coalesce(p_payment_note, '')), '');
+  v_manual_status text := nullif(trim(coalesce(p_manual_payment_status, '')), '');
+  v_processed_at timestamptz := now();
+begin
+  if v_actor is null or not public.is_live_interaction_admin(v_actor) then
+    raise exception 'not authorized';
+  end if;
+
+  if p_order_status not in ('confirmed', 'need_reschedule', 'rejected', 'completed', 'cancelled') then
+    raise exception 'invalid order status';
+  end if;
+
+  if v_manual_status is not null and v_manual_status not in ('manual_unpaid', 'manual_paid', 'not_required', 'voucher_reserved', 'voucher_used', 'partial_voucher') then
+    raise exception 'invalid manual payment status';
+  end if;
+
+  if v_admin_note is not null and char_length(v_admin_note) > 200 then
+    raise exception 'admin note too long';
+  end if;
+
+  if v_payment_note is not null and char_length(v_payment_note) > 200 then
+    raise exception 'payment note too long';
+  end if;
+
+  if p_final_amount_cents is not null and p_final_amount_cents < 0 then
+    raise exception 'invalid final amount';
+  end if;
+
+  if p_order_status = 'need_reschedule' and v_admin_note is null then
+    raise exception 'admin note required for reschedule';
+  end if;
+
+  select *
+  into v_order
+  from public.boss_paid_orders paid_order
+  where paid_order.order_ref = p_order_ref
+  for update;
+
+  if v_order.id is null then
+    raise exception 'order not found';
+  end if;
+
+  if v_order.order_status in ('rejected', 'completed', 'cancelled') then
+    raise exception 'order already finalized';
+  end if;
+
+  if v_order.order_status = 'pending' and p_order_status not in ('confirmed', 'need_reschedule', 'rejected', 'cancelled') then
+    raise exception 'invalid order transition';
+  end if;
+
+  if v_order.order_status = 'need_reschedule' and p_order_status not in ('confirmed', 'cancelled') then
+    raise exception 'invalid order transition';
+  end if;
+
+  if v_order.order_status = 'confirmed' and p_order_status not in ('completed', 'cancelled') then
+    raise exception 'invalid order transition';
+  end if;
+
+  if v_order.voucher_ref is not null then
+    select *
+    into v_voucher
+    from public.boss_service_vouchers voucher
+    where voucher.voucher_ref = v_order.voucher_ref
+    for update;
+  end if;
+
+  if p_order_status in ('rejected', 'cancelled') and v_voucher.id is not null and v_voucher.status = 'reserved' then
+    update public.boss_service_vouchers
+    set status = 'available',
+        reserved_order_ref = null,
+        reserved_at = null
+    where id = v_voucher.id;
+  elsif p_order_status = 'completed' and v_voucher.id is not null and v_voucher.status = 'reserved' then
+    update public.boss_service_vouchers
+    set status = 'used',
+        used_order_ref = v_order.order_ref,
+        used_at = now()
+    where id = v_voucher.id;
+
+    if v_manual_status is null then
+      v_manual_status := 'voucher_used';
+    end if;
+  end if;
+
+  if v_manual_status is null then
+    v_manual_status := case
+      when p_order_status in ('rejected', 'cancelled') then v_order.manual_payment_status
+      when v_order.voucher_ref is not null and p_order_status = 'confirmed' and coalesce(p_final_amount_cents, v_order.final_amount_cents, 0) = 0 then 'not_required'
+      when v_order.voucher_ref is not null and p_order_status = 'confirmed' then 'partial_voucher'
+      else v_order.manual_payment_status
+    end;
+  end if;
+
+  update public.boss_paid_orders
+  set
+    order_status = p_order_status,
+    admin_note = v_admin_note,
+    final_amount_cents = p_final_amount_cents,
+    manual_payment_status = v_manual_status,
+    payment_status = case
+      when p_order_status in ('rejected', 'cancelled') then 'not_required'
+      when v_manual_status in ('manual_paid', 'not_required', 'voucher_used') then 'paid'
+      else 'unpaid'
+    end,
+    payment_provider = 'manual',
+    paid_at = case
+      when p_order_status not in ('rejected', 'cancelled') and v_manual_status in ('manual_paid', 'not_required', 'voucher_used') then coalesce(paid_at, now())
+      else paid_at
+    end,
+    payment_note = v_payment_note,
+    processed_at = v_processed_at,
+    processed_by = v_actor,
+    updated_at = now()
+  where id = v_order.id;
+
+  return query
+  select
+    paid_order.order_ref,
+    paid_order.order_status,
+    paid_order.manual_payment_status,
+    paid_order.voucher_title,
+    paid_order.processed_at
+  from public.boss_paid_orders paid_order
+  where paid_order.id = v_order.id;
+end;
+$$;
+
+revoke all on function public.get_boss_service_voucher_title(text, text, numeric) from public;
+revoke all on function public.create_boss_service_voucher_from_redemption(uuid, uuid, text, text, numeric, integer, text) from public;
+revoke all on function public.get_my_available_service_vouchers() from public;
+revoke all on function public.submit_boss_paid_order(text, text, date, text, numeric, text, text, uuid) from public;
+revoke all on function public.get_my_boss_paid_orders() from public;
+revoke all on function public.admin_get_boss_paid_orders(text) from public;
+revoke all on function public.admin_update_boss_paid_order(uuid, text, text, integer, text, text) from public;
+
+grant execute on function public.get_my_available_service_vouchers() to authenticated;
+grant execute on function public.submit_boss_paid_order(text, text, date, text, numeric, text, text, uuid) to authenticated;
+grant execute on function public.get_my_boss_paid_orders() to authenticated;
+grant execute on function public.admin_get_boss_paid_orders(text) to authenticated;
+grant execute on function public.admin_update_boss_paid_order(uuid, text, text, integer, text, text) to authenticated;
+```

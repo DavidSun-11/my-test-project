@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>服务预约 - 君雪</title>
+    <script src="assets/performance-mode.js?v=20260613-2"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+            --order-bg: #07142b;
+            --order-card: rgba(15, 35, 74, 0.74);
+            --order-card-strong: rgba(19, 43, 88, 0.86);
+            --order-line: rgba(191, 232, 255, 0.42);
+            --order-line-strong: rgba(222, 245, 255, 0.7);
+            --order-text: rgba(241, 249, 255, 0.96);
+            --order-muted: rgba(205, 226, 245, 0.78);
+            --order-blue: #8edbff;
+            --order-pink: #d9adff;
+            --order-good: #8ff2ca;
+            --order-warn: #ffd184;
+            font-family: "Microsoft YaHei", "PingFang SC", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            color: var(--order-text);
+            background:
+                radial-gradient(circle at 18% 0%, rgba(118, 206, 255, 0.24), transparent 30%),
+                radial-gradient(circle at 88% 8%, rgba(218, 168, 255, 0.2), transparent 32%),
+                linear-gradient(145deg, #061224 0%, #0b2348 46%, #11184a 100%);
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background:
+                linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent) 50% 72px / min(980px, 80vw) 1px no-repeat,
+                radial-gradient(circle at 50% 100%, rgba(126, 210, 255, 0.16), transparent 42%);
+            opacity: 0.86;
+        }
+
+        a {
+            color: inherit;
+        }
+
+        .order-shell {
+            position: relative;
+            width: min(1180px, calc(100% - 40px));
+            margin: 0 auto;
+            padding: 24px 0 42px;
+        }
+
+        .order-nav,
+        .order-card,
+        .order-panel,
+        .order-empty {
+            border: 1px solid var(--order-line);
+            background: linear-gradient(145deg, rgba(20, 48, 96, 0.72), rgba(16, 26, 66, 0.72));
+            box-shadow: 0 22px 58px rgba(2, 8, 22, 0.36), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+            -webkit-backdrop-filter: blur(18px) saturate(1.12);
+            backdrop-filter: blur(18px) saturate(1.12);
+        }
+
+        .order-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 22px;
+            padding: 14px 18px;
+            border-radius: 24px;
+        }
+
+        .order-brand {
+            display: grid;
+            gap: 4px;
+        }
+
+        .order-brand span {
+            color: var(--order-muted);
+            font-size: 12px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .order-brand strong {
+            font-size: 20px;
+            letter-spacing: 0;
+        }
+
+        .order-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .order-button {
+            display: inline-flex;
+            min-height: 40px;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border: 1px solid rgba(202, 239, 255, 0.5);
+            border-radius: 999px;
+            color: var(--order-text);
+            background: rgba(10, 28, 60, 0.54);
+            text-decoration: none;
+            font: inherit;
+            font-weight: 800;
+            cursor: pointer;
+            transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+        }
+
+        .order-button:hover,
+        .order-button:focus-visible {
+            transform: translateY(-1px);
+            border-color: var(--order-line-strong);
+            box-shadow: 0 0 22px rgba(143, 219, 255, 0.22);
+            outline: none;
+        }
+
+        .order-button--primary {
+            border-color: rgba(227, 212, 255, 0.76);
+            background: linear-gradient(135deg, rgba(120, 211, 255, 0.92), rgba(218, 173, 255, 0.9));
+            color: #102446;
+            box-shadow: 0 14px 30px rgba(111, 191, 255, 0.22), 0 0 28px rgba(218, 173, 255, 0.24);
+        }
+
+        .order-button:disabled {
+            cursor: wait;
+            opacity: 0.72;
+            transform: none;
+        }
+
+        .order-hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
+            gap: 18px;
+            margin-bottom: 18px;
+        }
+
+        .order-card {
+            border-radius: 26px;
+            padding: 24px;
+        }
+
+        .order-kicker {
+            display: inline-flex;
+            margin-bottom: 12px;
+            color: var(--order-blue);
+            font-size: 12px;
+            font-weight: 900;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .order-title {
+            margin: 0;
+            font-size: clamp(34px, 5vw, 58px);
+            line-height: 1.04;
+            letter-spacing: 0;
+        }
+
+        .order-copy {
+            max-width: 680px;
+            margin: 14px 0 0;
+            color: var(--order-muted);
+            font-size: 15px;
+            line-height: 1.75;
+        }
+
+        .order-status {
+            margin-top: 16px;
+            padding: 12px 14px;
+            border: 1px solid rgba(185, 229, 255, 0.36);
+            border-radius: 16px;
+            color: var(--order-muted);
+            background: rgba(7, 20, 47, 0.42);
+            line-height: 1.55;
+        }
+
+        .order-status.is-good {
+            border-color: rgba(143, 242, 202, 0.44);
+            color: var(--order-good);
+        }
+
+        .order-status.is-warning {
+            border-color: rgba(255, 209, 132, 0.48);
+            color: var(--order-warn);
+        }
+
+        .order-meta {
+            display: grid;
+            gap: 12px;
+        }
+
+        .order-meta-row {
+            display: grid;
+            gap: 5px;
+            padding: 14px;
+            border-radius: 18px;
+            background: rgba(7, 20, 47, 0.36);
+        }
+
+        .order-meta-row span,
+        .order-field span,
+        .order-voucher-title {
+            color: var(--order-muted);
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .order-meta-row strong {
+            font-size: 20px;
+        }
+
+        .order-empty {
+            border-radius: 24px;
+            padding: 22px;
+            text-align: center;
+            color: var(--order-muted);
+        }
+
+        .order-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+            gap: 18px;
+        }
+
+        .order-panel {
+            border-radius: 24px;
+            padding: 20px;
+        }
+
+        .order-panel--wide {
+            grid-column: 1 / -1;
+        }
+
+        .order-section-title {
+            margin: 0 0 14px;
+            font-size: 20px;
+        }
+
+        .order-rules {
+            display: grid;
+            gap: 12px;
+            color: var(--order-muted);
+            line-height: 1.7;
+        }
+
+        .order-rule-card {
+            padding: 14px;
+            border: 1px solid rgba(199, 233, 255, 0.28);
+            border-radius: 18px;
+            background: rgba(8, 22, 50, 0.38);
+        }
+
+        .order-rule-card strong {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--order-text);
+        }
+
+        .order-rule-card ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+
+        .order-form {
+            display: grid;
+            gap: 13px;
+        }
+
+        .order-form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 13px;
+        }
+
+        .order-field {
+            display: grid;
+            gap: 7px;
+        }
+
+        .order-field--wide {
+            grid-column: 1 / -1;
+        }
+
+        .order-field input,
+        .order-field select,
+        .order-field textarea {
+            width: 100%;
+            min-height: 44px;
+            border: 1px solid rgba(190, 229, 255, 0.4);
+            border-radius: 15px;
+            color: var(--order-text);
+            background: rgba(6, 19, 45, 0.58);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            font: inherit;
+            padding: 10px 12px;
+            outline: none;
+        }
+
+        .order-field textarea {
+            min-height: 92px;
+            resize: vertical;
+        }
+
+        .order-field input:focus,
+        .order-field select:focus,
+        .order-field textarea:focus {
+            border-color: rgba(142, 219, 255, 0.78);
+            box-shadow: 0 0 20px rgba(142, 219, 255, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+        }
+
+        .order-voucher-box {
+            display: grid;
+            gap: 10px;
+            padding: 14px;
+            border: 1px solid rgba(227, 212, 255, 0.38);
+            border-radius: 18px;
+            background: linear-gradient(145deg, rgba(35, 48, 102, 0.58), rgba(14, 28, 62, 0.58));
+        }
+
+        .order-voucher-detail {
+            min-height: 46px;
+            padding: 12px;
+            border-radius: 14px;
+            color: var(--order-muted);
+            background: rgba(7, 20, 47, 0.42);
+            line-height: 1.55;
+        }
+
+        .order-records {
+            display: grid;
+            gap: 12px;
+        }
+
+        .order-record-card {
+            display: grid;
+            gap: 9px;
+            padding: 15px;
+            border: 1px solid rgba(198, 232, 255, 0.3);
+            border-radius: 18px;
+            background: rgba(7, 20, 47, 0.38);
+        }
+
+        .order-record-card strong {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            font-size: 17px;
+        }
+
+        .order-record-meta {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+            color: var(--order-muted);
+            font-size: 13px;
+        }
+
+        .order-note {
+            padding: 10px 12px;
+            border-radius: 14px;
+            color: var(--order-muted);
+            background: rgba(255, 255, 255, 0.06);
+            line-height: 1.55;
+        }
+
+        .order-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: max-content;
+            max-width: 100%;
+            min-height: 26px;
+            padding: 4px 9px;
+            border: 1px solid rgba(200, 232, 255, 0.34);
+            border-radius: 999px;
+            color: var(--order-muted);
+            background: rgba(255, 255, 255, 0.08);
+            font-size: 12px;
+            font-weight: 900;
+        }
+
+        .order-pill.is-pending,
+        .order-pill.is-need_reschedule {
+            border-color: rgba(255, 209, 132, 0.42);
+            color: var(--order-warn);
+        }
+
+        .order-pill.is-confirmed,
+        .order-pill.is-completed,
+        .order-pill.is-manual_paid,
+        .order-pill.is-not_required,
+        .order-pill.is-voucher_used {
+            border-color: rgba(143, 242, 202, 0.42);
+            color: var(--order-good);
+        }
+
+        .order-pill.is-rejected,
+        .order-pill.is-cancelled {
+            border-color: rgba(255, 154, 185, 0.42);
+            color: #ffb7cc;
+        }
+
+        @media (max-width: 900px) {
+            .order-shell {
+                width: min(100% - 24px, 720px);
+                padding-top: 14px;
+            }
+
+            .order-nav,
+            .order-hero,
+            .order-grid,
+            .order-form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .order-nav {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .order-actions {
+                justify-content: flex-start;
+            }
+
+            .order-record-meta {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 520px) {
+            .order-card,
+            .order-panel,
+            .order-empty {
+                padding: 16px;
+                border-radius: 20px;
+            }
+
+            .order-title {
+                font-size: 34px;
+            }
+
+            .order-button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="order-shell">
+        <nav class="order-nav" aria-label="服务预约导航">
+            <div class="order-brand">
+                <span>Service Reservation</span>
+                <strong>服务预约</strong>
+            </div>
+            <div class="order-actions">
+                <a class="order-button" href="my.html">返回我的星湖</a>
+                <a class="order-button" href="price.html">返回价格页</a>
+                <a class="order-button" href="index.html">返回首页</a>
+            </div>
+        </nav>
+
+        <section class="order-hero">
+            <div class="order-card">
+                <span class="order-kicker">Manual Confirmation</span>
+                <h1 class="order-title">服务预约</h1>
+                <p class="order-copy">提交后等待君雪确认时间和服务内容。第一版只做预约与人工确认记录；如需补款，会由管理员确认后联系你进行微信 / 支付宝等线下转账。</p>
+                <div class="order-status" data-order-status aria-live="polite">正在确认登录状态...</div>
+            </div>
+            <aside class="order-card order-meta" data-order-account hidden>
+                <div class="order-meta-row">
+                    <span>当前账号</span>
+                    <strong data-order-display-name>--</strong>
+                </div>
+                <div class="order-meta-row">
+                    <span>可用兑换券</span>
+                    <strong data-order-voucher-count>--</strong>
+                </div>
+                <div class="order-meta-row">
+                    <span>待处理预约</span>
+                    <strong data-order-open-count>--</strong>
+                </div>
+            </aside>
+        </section>
+
+        <section class="order-empty" data-order-logged-out hidden>
+            <strong>登录老板账号后，可以预约服务、选择积分兑换券，并查看预约处理进度。</strong>
+            <div class="order-actions" style="justify-content:center;margin-top:14px">
+                <a class="order-button order-button--primary" href="index.html?bossLogin=1">登录老板账号</a>
+                <a class="order-button" href="boss-register.html">注册老板账号</a>
+            </div>
+        </section>
+
+        <section class="order-grid" data-order-app hidden>
+            <div class="order-panel">
+                <h2 class="order-section-title">预约说明</h2>
+                <div class="order-rules">
+                    <article class="order-rule-card">
+                        <strong>服务预约流程</strong>
+                        <ul>
+                            <li>先提交预约日期、时间、服务内容和联系方式。</li>
+                            <li>管理员确认档期后，会在后台填写批注和最终需人工转账金额。</li>
+                            <li>第一版只记录预约、兑换券和人工确认转账状态。</li>
+                        </ul>
+                    </article>
+                    <article class="order-rule-card">
+                        <strong>积分兑换券</strong>
+                        <ul>
+                            <li>先在积分兑换页提交兑换申请，管理员同意后会生成服务兑换券。</li>
+                            <li>预约时可以选择一张可用兑换券，提交后会被锁定。</li>
+                            <li>如果预约被拒绝或取消，已锁定兑换券会恢复可用。</li>
+                        </ul>
+                    </article>
+                </div>
+            </div>
+
+            <div class="order-panel">
+                <h2 class="order-section-title">提交预约</h2>
+                <form class="order-form" data-order-form>
+                    <div class="order-form-grid">
+                        <label class="order-field">
+                            <span>游戏</span>
+                            <select name="game_type" data-order-game required>
+                                <option value="王者荣耀">王者荣耀</option>
+                                <option value="永劫无间">永劫无间</option>
+                                <option value="其它">其它</option>
+                            </select>
+                        </label>
+                        <label class="order-field">
+                            <span>服务类型</span>
+                            <select name="service_type" data-order-service required>
+                                <option value="段位上分">段位上分</option>
+                                <option value="娱乐陪玩">娱乐陪玩</option>
+                                <option value="复盘">复盘</option>
+                                <option value="语音聊天">语音聊天</option>
+                                <option value="其它">其它</option>
+                            </select>
+                        </label>
+                        <label class="order-field">
+                            <span>预约日期</span>
+                            <input name="scheduled_date" data-order-date type="date" required>
+                        </label>
+                        <label class="order-field">
+                            <span>预约时间</span>
+                            <input name="scheduled_time" data-order-time type="text" maxlength="40" placeholder="例如 20:00">
+                        </label>
+                        <label class="order-field">
+                            <span>预计时长</span>
+                            <select name="duration_hours" data-order-duration required>
+                                <option value="0.5">0.5 小时</option>
+                                <option value="1">1 小时</option>
+                                <option value="2">2 小时</option>
+                                <option value="3">其它：3 小时</option>
+                            </select>
+                        </label>
+                        <label class="order-field">
+                            <span>联系方式（最多 120 字）</span>
+                            <input name="contact_info" data-order-contact type="text" maxlength="120" placeholder="微信 / QQ / 其它联系方式" required>
+                        </label>
+                        <label class="order-field order-field--wide">
+                            <span>用户备注（最多 300 字）</span>
+                            <textarea name="user_note" data-order-note maxlength="300" placeholder="例如区服、想玩的英雄、希望时间、其它需求。"></textarea>
+                        </label>
+                    </div>
+
+                    <div class="order-voucher-box">
+                        <span class="order-voucher-title">使用积分兑换券</span>
+                        <label class="order-field">
+                            <span>可用兑换券</span>
+                            <select name="voucher_ref" data-order-voucher>
+                                <option value="">不使用兑换券</option>
+                            </select>
+                        </label>
+                        <div class="order-voucher-detail" data-order-voucher-detail>正在读取可用兑换券...</div>
+                    </div>
+
+                    <button class="order-button order-button--primary" type="submit" data-order-submit>提交服务预约</button>
+                </form>
+            </div>
+
+            <div class="order-panel order-panel--wide">
+                <h2 class="order-section-title">我的预约记录</h2>
+                <div class="order-records" data-order-records></div>
+                <div class="order-empty" data-order-record-empty hidden>暂时还没有预约记录。</div>
+            </div>
+        </section>
+    </main>
+
+    <script src="assets/supabase-client.js?v=20260627-home-performance1"></script>
+    <script src="assets/order.js?v=20260707-paid-order-mvp1"></script>
+</body>
+</html>

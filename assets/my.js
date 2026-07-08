@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    const VERSION = "20260702-my-starlake-copy1";
+    const VERSION = "20260707-my-mobile-starlake1";
     const BOSS_LOGIN_URL = "boss-register.html?mode=login&redirect=index";
     const BOSS_REGISTER_URL = "boss-register.html?mode=register&redirect=index";
     const AVATAR_BUCKET = "boss-avatars";
@@ -258,6 +258,9 @@
     function renderProfile(profile) {
         const displayName = safeTrim(profile && profile.display_name);
         setText(nodes.displayName, displayName ? "星湖昵称：" + displayName : "星湖昵称：已登录");
+        if (nodes.displayName) {
+            nodes.displayName.dataset.shortName = displayName || "已登录";
+        }
         setText(nodes.accountType, "星湖账号");
         setText(nodes.registeredAt, state.session && state.session.user ? formatDate(state.session.user.created_at) : "--");
     }

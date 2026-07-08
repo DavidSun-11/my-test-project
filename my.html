@@ -825,6 +825,10 @@
             line-height: 1.7;
         }
 
+        .my-mobile-tabbar {
+            display: none;
+        }
+
         @media (max-width: 1180px) {
             .my-page {
                 width: min(1120px, calc(100vw - 52px));
@@ -1019,6 +1023,816 @@
                 padding-right: 18px;
             }
         }
+
+        @media (max-width: 768px) {
+            :root {
+                --mobile-ink: #34336f;
+                --mobile-text: #555b90;
+                --mobile-muted: #777dab;
+                --mobile-card: rgba(255, 255, 255, 0.68);
+                --mobile-card-strong: rgba(255, 255, 255, 0.78);
+                --mobile-border: rgba(150, 168, 236, 0.42);
+                --mobile-shadow: 0 16px 34px rgba(111, 137, 205, 0.18);
+                --mobile-glow: rgba(255, 255, 255, 0.62);
+                --mobile-purple: #8878f3;
+                --mobile-pink: #e784d9;
+                --mobile-blue: #79b8ff;
+            }
+
+            html {
+                overflow-x: hidden;
+            }
+
+            body {
+                min-height: 100vh;
+                overflow-x: hidden;
+                color: var(--mobile-text);
+                background-image:
+                    linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, rgba(239, 247, 255, 0.16) 42%, rgba(246, 241, 255, 0.48) 100%),
+                    url("assets/images/手机星湖背景.png?v=20260707-my-mobile-starlake1");
+                background-position: center top;
+                background-size: cover;
+                background-attachment: scroll;
+            }
+
+            body::before {
+                background:
+                    radial-gradient(circle at 70% 14%, rgba(255, 255, 255, 0.52), transparent 22%),
+                    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(235, 241, 255, 0.2));
+                opacity: 0.82;
+            }
+
+            body::after {
+                background:
+                    radial-gradient(circle at 17% 19%, rgba(255, 255, 255, 0.5), transparent 2px),
+                    radial-gradient(circle at 91% 27%, rgba(255, 255, 255, 0.46), transparent 2px),
+                    radial-gradient(circle at 73% 62%, rgba(255, 255, 255, 0.42), transparent 2px);
+                opacity: 0.72;
+                mix-blend-mode: screen;
+            }
+
+            .performance-switcher {
+                top: 10px !important;
+                right: 10px !important;
+                transform: scale(0.82);
+                transform-origin: top right;
+                z-index: 18;
+            }
+
+            .my-page {
+                width: min(100%, calc(100vw - 26px));
+                padding: 38px 0 112px;
+                color: var(--mobile-text);
+            }
+
+            .my-page::before,
+            .my-page::after {
+                opacity: 0;
+            }
+
+            .my-settings-pill {
+                display: none;
+            }
+
+            .my-hero {
+                display: grid;
+                justify-items: start;
+                gap: 7px;
+                width: min(100%, 430px);
+                margin: 0 0 18px;
+                padding: 0 26px;
+                text-align: left;
+            }
+
+            .my-kicker {
+                padding: 0;
+                border: 0;
+                border-radius: 0;
+                background: transparent;
+                color: #8d8de2;
+                font-size: 12px;
+                letter-spacing: 0.24em;
+                box-shadow: none;
+            }
+
+            .my-title {
+                font-size: clamp(40px, 12vw, 58px);
+                line-height: 0.98;
+                color: #47427e;
+                text-shadow: 0 8px 24px rgba(255, 255, 255, 0.72);
+            }
+
+            .my-subtitle {
+                max-width: 340px;
+                margin: 0;
+                color: #65699b;
+                font-size: 15px;
+                line-height: 1.55;
+            }
+
+            .my-card,
+            .my-profile-card,
+            .my-feature-card,
+            .my-lower-section,
+            .my-logged-out {
+                border-color: var(--mobile-border);
+                background:
+                    linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(241, 247, 255, 0.56) 52%, rgba(250, 236, 255, 0.58)),
+                    rgba(255, 255, 255, 0.54);
+                color: var(--mobile-text);
+                box-shadow: var(--mobile-shadow), inset 0 1px 0 var(--mobile-glow);
+                backdrop-filter: blur(18px);
+            }
+
+            .my-card::before,
+            .my-feature-card::before,
+            .my-lower-section::before,
+            .my-profile-card::before {
+                opacity: 0.58;
+            }
+
+            .my-logged-out {
+                padding: 20px;
+                border-radius: 24px;
+            }
+
+            .my-logged-out .my-actions {
+                display: grid;
+                grid-template-columns: 1fr;
+                width: 100%;
+            }
+
+            .my-shell {
+                display: block;
+            }
+
+            .my-profile-card {
+                position: relative;
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto;
+                align-items: center;
+                gap: 12px;
+                min-height: 0;
+                padding: 18px;
+                border-radius: 26px;
+            }
+
+            .my-profile-card > div:first-child {
+                min-width: 0;
+            }
+
+            .my-profile-main {
+                display: grid;
+                grid-template-columns: 86px minmax(0, 1fr);
+                align-items: center;
+                justify-items: stretch;
+                gap: 14px;
+                text-align: left;
+            }
+
+            .my-avatar-frame {
+                width: 86px;
+                height: 86px;
+                border: 4px solid rgba(255, 255, 255, 0.82);
+                background: linear-gradient(135deg, rgba(255, 255, 255, 0.62), rgba(185, 215, 255, 0.34));
+                box-shadow: 0 12px 26px rgba(119, 139, 202, 0.2);
+            }
+
+            .my-avatar-frame::after {
+                inset: -10px;
+                background:
+                    radial-gradient(circle at 17% 14%, #9d71f4 0 7%, transparent 8%),
+                    radial-gradient(circle at 79% 77%, rgba(255, 255, 255, 0.8) 0 5%, transparent 6%);
+            }
+
+            .my-avatar-placeholder {
+                color: #6e62c9;
+                font-size: 34px;
+                background: linear-gradient(135deg, #f6efff, #ddecff);
+            }
+
+            .my-profile-info {
+                min-width: 0;
+            }
+
+            .my-profile-name {
+                margin: 0 0 8px;
+                color: var(--mobile-ink);
+                font-size: 0;
+                line-height: 1.1;
+            }
+
+            .my-profile-name::after {
+                content: attr(data-short-name);
+                display: inline-block;
+                max-width: 100%;
+                overflow: hidden;
+                color: var(--mobile-ink);
+                font-size: 24px;
+                font-weight: 900;
+                text-overflow: ellipsis;
+                vertical-align: middle;
+                white-space: nowrap;
+            }
+
+            .my-account-badge {
+                display: inline-flex;
+                align-items: center;
+                min-height: 26px;
+                padding: 5px 12px;
+                border: 0;
+                color: #fff;
+                font-size: 13px;
+                box-shadow: 0 8px 18px rgba(134, 118, 239, 0.24);
+                background: linear-gradient(135deg, #997df6, #7ebcff);
+            }
+
+            .my-profile-note {
+                max-width: 100%;
+                margin-top: 10px;
+                color: #7479a6;
+                font-size: 13px;
+                text-align: left;
+            }
+
+            .my-profile-meta {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+                margin: 12px 0 0 100px;
+                padding: 0;
+                border: 0;
+                background: transparent;
+            }
+
+            .my-meta-row {
+                min-width: 0;
+                padding: 0;
+                color: #7077a8;
+                font-size: 12px;
+            }
+
+            .my-meta-row:first-child span {
+                display: none;
+            }
+
+            .my-meta-row:first-child strong {
+                font-size: 0;
+            }
+
+            .my-meta-row:first-child strong::after {
+                content: "星湖账号";
+                color: #6b61c9;
+                font-size: 12px;
+            }
+
+            .my-meta-row:last-child {
+                display: none;
+            }
+
+            .my-profile-card > div:last-child {
+                display: grid;
+                justify-items: end;
+                gap: 8px;
+            }
+
+            .my-profile-card .my-actions {
+                display: flex;
+                width: auto;
+            }
+
+            .my-profile-card .my-actions .my-button {
+                width: auto;
+                min-width: 0;
+                min-height: 42px;
+                padding: 0 15px;
+                border-color: rgba(154, 145, 235, 0.48);
+                color: #7860da;
+                font-size: 14px;
+                white-space: nowrap;
+                background: rgba(255, 255, 255, 0.58);
+            }
+
+            .my-profile-card .my-actions a.my-button {
+                display: none;
+            }
+
+            .my-status {
+                max-width: 118px;
+                color: #8a72d8;
+                font-size: 11px;
+                text-align: right;
+            }
+
+            .my-main {
+                margin-top: 14px;
+            }
+
+            .my-feature-grid {
+                display: grid;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 10px;
+            }
+
+            .my-feature-card {
+                min-height: 154px;
+                padding: 14px 12px;
+                border-radius: 22px;
+                overflow: hidden;
+            }
+
+            .my-feature-grid > .my-feature-card:nth-child(1) {
+                background:
+                    linear-gradient(145deg, rgba(255, 255, 255, 0.76), rgba(247, 239, 255, 0.66)),
+                    rgba(255, 255, 255, 0.54);
+            }
+
+            .my-feature-grid > .my-feature-card:nth-child(2) {
+                background:
+                    linear-gradient(145deg, rgba(255, 255, 255, 0.78), rgba(227, 246, 255, 0.68)),
+                    rgba(255, 255, 255, 0.54);
+            }
+
+            .my-feature-grid > .my-feature-card:nth-child(3) {
+                background:
+                    linear-gradient(145deg, rgba(255, 246, 249, 0.8), rgba(255, 228, 239, 0.64)),
+                    rgba(255, 255, 255, 0.56);
+            }
+
+            .my-feature-grid > .my-feature-card:nth-child(4) {
+                grid-column: 1 / -1;
+                display: grid;
+                grid-template-columns: 86px minmax(0, 1fr) auto;
+                align-items: center;
+                min-height: 116px;
+                padding: 16px;
+                background:
+                    linear-gradient(120deg, rgba(255, 255, 255, 0.78), rgba(239, 248, 255, 0.58) 45%, rgba(251, 237, 255, 0.54)),
+                    rgba(255, 255, 255, 0.56);
+            }
+
+            .my-feature-top {
+                align-items: start;
+                margin-bottom: 12px;
+            }
+
+            .my-feature-grid > .my-feature-card:nth-child(4) .my-feature-top {
+                display: contents;
+                margin: 0;
+            }
+
+            .my-feature-grid > .my-feature-card:nth-child(4) .my-feature-top .my-card-title {
+                grid-column: 2;
+                grid-row: 1;
+                display: block;
+                align-self: end;
+            }
+
+            .my-feature-grid > .my-feature-card:nth-child(4) .my-feature-icon {
+                grid-column: 1;
+                grid-row: 1 / span 3;
+                align-self: center;
+                justify-self: center;
+                width: 66px;
+                height: 66px;
+            }
+
+            .my-card-title,
+            .my-lower-title {
+                color: var(--mobile-ink);
+                font-size: 20px;
+                line-height: 1.2;
+                text-shadow: 0 1px 0 rgba(255, 255, 255, 0.62);
+            }
+
+            .my-feature-icon,
+            .my-quick-icon,
+            .my-benefit-icon {
+                color: #8a78f1;
+                background:
+                    radial-gradient(circle at 35% 25%, rgba(255, 255, 255, 0.96), transparent 34%),
+                    linear-gradient(145deg, rgba(236, 242, 255, 0.95), rgba(198, 219, 255, 0.78), rgba(238, 209, 255, 0.72));
+                box-shadow: 0 10px 20px rgba(116, 134, 210, 0.18);
+            }
+
+            .my-feature-grid > .my-feature-card:nth-child(3) .my-feature-icon {
+                color: #d373a7;
+                background: linear-gradient(145deg, rgba(255, 244, 247, 0.96), rgba(255, 195, 220, 0.78));
+            }
+
+            .my-feature-label {
+                color: #686d9f;
+                font-size: 13px;
+            }
+
+            .my-feature-value {
+                color: #4d4596;
+                font-size: clamp(26px, 8.8vw, 38px);
+                line-height: 1.04;
+            }
+
+            .my-feature-grid > .my-feature-card:nth-child(2) .my-feature-value {
+                font-size: clamp(24px, 7.6vw, 34px);
+            }
+
+            .my-feature-grid > .my-feature-card:nth-child(3) .my-feature-value {
+                color: #b34b78;
+            }
+
+            .my-card-link {
+                color: #7768db;
+                font-size: 13px;
+            }
+
+            .my-card-link::after {
+                content: "›";
+                font-size: 22px;
+                line-height: 0;
+            }
+
+            .my-feature-grid > .my-feature-card:nth-child(-n+3) .my-card-link {
+                margin-top: auto;
+            }
+
+            .my-feature-grid > .my-feature-card:nth-child(3) .my-exchange-summary,
+            .my-feature-grid > .my-feature-card:nth-child(3) .my-gift-visual,
+            .my-feature-grid > .my-feature-card:nth-child(3) .my-exchange-actions {
+                display: none;
+            }
+
+            .my-feature-grid > .my-feature-card:nth-child(4) .my-feature-label {
+                display: none;
+            }
+
+            .my-feature-grid > .my-feature-card:nth-child(4) .my-feature-value {
+                grid-column: 2;
+                grid-row: 2;
+                color: var(--mobile-ink);
+                font-size: 17px;
+                font-weight: 800;
+            }
+
+            .my-feature-grid > .my-feature-card:nth-child(4) .my-exchange-summary {
+                grid-column: 2;
+                grid-row: 3;
+                gap: 4px;
+                margin: 4px 0 0;
+                color: #656c9e;
+                font-size: 13px;
+                line-height: 1.45;
+            }
+
+            .my-feature-grid > .my-feature-card:nth-child(4) .my-card-link {
+                display: none;
+            }
+
+            .my-feature-grid > .my-feature-card:nth-child(4) .my-exchange-actions {
+                grid-column: 3;
+                grid-row: 1 / span 3;
+                margin: 0;
+                align-self: center;
+                justify-self: end;
+            }
+
+            .my-button,
+            .my-pill-button,
+            .my-feature-grid > .my-feature-card:nth-child(4) .my-exchange-actions .my-button,
+            .my-checkin-card .my-button {
+                border: 0;
+                color: #fff;
+                background: linear-gradient(135deg, #82b8ff, #8b7df5 48%, #e681da);
+                box-shadow: 0 12px 24px rgba(132, 128, 229, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.52);
+            }
+
+            .my-button--primary:hover,
+            .my-button--primary:focus-visible,
+            .my-pill-button:hover,
+            .my-pill-button:focus-visible {
+                transform: translateY(-1px);
+                box-shadow: 0 14px 26px rgba(132, 128, 229, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.58);
+            }
+
+            .my-checkin-card .my-button {
+                min-height: 36px;
+                padding: 0 12px;
+                font-size: 13px;
+            }
+
+            .my-feature-grid > .my-feature-card:nth-child(4) .my-button {
+                min-height: 46px;
+                padding: 0 22px;
+                border-radius: 999px;
+                font-size: 16px;
+                white-space: nowrap;
+            }
+
+            .my-lower-panel {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 12px;
+                margin-top: 14px;
+                padding: 0;
+                border: 0;
+                background: transparent;
+                box-shadow: none;
+            }
+
+            .my-lower-panel::before,
+            .my-lower-panel::after {
+                display: none;
+            }
+
+            .my-lower-section {
+                min-height: 0;
+                padding: 18px;
+                border: 1px solid var(--mobile-border);
+                border-radius: 22px;
+            }
+
+            .my-lower-section + .my-lower-section {
+                border-left: 1px solid var(--mobile-border);
+                border-top: 1px solid var(--mobile-border);
+            }
+
+            .my-lower-section:nth-child(2) {
+                order: 1;
+                grid-column: 1 / -1;
+            }
+
+            .my-lower-section:nth-child(1) {
+                order: 2;
+            }
+
+            .my-lower-section:nth-child(3) {
+                order: 3;
+            }
+
+            .my-lower-title {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                margin-bottom: 14px;
+            }
+
+            .my-lower-title::before {
+                content: "";
+                width: 24px;
+                height: 24px;
+                border-radius: 999px;
+                background:
+                    radial-gradient(circle at 35% 28%, #fff 0 18%, transparent 19%),
+                    linear-gradient(135deg, #8fb8ff, #b783f2);
+                box-shadow: 0 8px 16px rgba(135, 132, 224, 0.2);
+            }
+
+            .my-lower-section:nth-child(2) .my-lower-title {
+                justify-content: space-between;
+            }
+
+            .my-lower-section:nth-child(2) .my-lower-title::after {
+                content: "全部功能 ›";
+                color: #746bd3;
+                font-size: 13px;
+                font-weight: 700;
+            }
+
+            .my-quick-grid {
+                grid-template-columns: repeat(5, minmax(0, 1fr));
+                gap: 9px;
+            }
+
+            .my-quick-link {
+                min-height: 74px;
+                padding: 8px 4px;
+                border: 0;
+                color: #63699c;
+                font-size: 12px;
+                background: transparent;
+                box-shadow: none;
+            }
+
+            .my-quick-icon {
+                width: 44px;
+                height: 44px;
+                border-radius: 16px;
+            }
+
+            .my-record-list {
+                gap: 6px;
+            }
+
+            .my-record-row {
+                padding: 10px 12px;
+                border: 0;
+                color: #61689a;
+                background: rgba(255, 255, 255, 0.44);
+            }
+
+            .my-record-row strong {
+                color: #4750a6;
+            }
+
+            .my-pill-button {
+                min-height: 38px;
+                margin-top: 8px;
+                font-size: 13px;
+            }
+
+            .my-benefit-card {
+                grid-template-columns: 1fr;
+                gap: 12px;
+                padding: 0;
+                border: 0;
+                background: transparent;
+            }
+
+            .my-benefit-icon {
+                width: 54px;
+                height: 54px;
+            }
+
+            .my-soft-badge {
+                border-color: rgba(144, 133, 236, 0.28);
+                color: #746bd3;
+                background: rgba(255, 255, 255, 0.52);
+            }
+
+            .my-alert {
+                margin-top: 12px;
+                border-color: rgba(230, 144, 177, 0.28);
+                color: #b96a86;
+                background: rgba(255, 244, 248, 0.58);
+            }
+
+            .my-stat-label {
+                display: none;
+            }
+
+            .my-modal {
+                padding: 12px;
+                background: rgba(55, 58, 114, 0.22);
+                backdrop-filter: blur(10px);
+            }
+
+            .my-modal-panel {
+                width: min(100%, calc(100vw - 24px));
+                border-color: rgba(164, 168, 235, 0.5);
+                background:
+                    linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(241, 247, 255, 0.78)),
+                    rgba(255, 255, 255, 0.86);
+                color: var(--mobile-text);
+                box-shadow: 0 24px 54px rgba(90, 103, 173, 0.24);
+            }
+
+            .my-modal-title {
+                color: var(--mobile-ink);
+            }
+
+            .my-modal-subtitle,
+            .my-empty-state {
+                color: #69709f;
+            }
+
+            .my-empty-state {
+                border-color: rgba(139, 151, 222, 0.28);
+                background: rgba(255, 255, 255, 0.52);
+            }
+
+            .my-mobile-tabbar {
+                position: fixed;
+                right: 12px;
+                bottom: max(12px, env(safe-area-inset-bottom));
+                left: 12px;
+                z-index: 35;
+                display: grid;
+                grid-template-columns: repeat(5, minmax(0, 1fr));
+                align-items: end;
+                min-height: 76px;
+                padding: 10px 8px 8px;
+                border: 1px solid rgba(155, 169, 226, 0.34);
+                border-radius: 24px;
+                background: rgba(255, 255, 255, 0.76);
+                box-shadow: 0 16px 36px rgba(91, 107, 176, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.84);
+                backdrop-filter: blur(18px);
+            }
+
+            .my-mobile-tabbar__item {
+                display: grid;
+                justify-items: center;
+                gap: 4px;
+                min-width: 0;
+                color: #5d638e;
+                font-size: 12px;
+                font-weight: 700;
+                text-decoration: none;
+            }
+
+            .my-mobile-tabbar__icon {
+                display: grid;
+                place-items: center;
+                width: 30px;
+                height: 30px;
+                color: currentColor;
+            }
+
+            .my-mobile-tabbar__icon svg {
+                width: 25px;
+                height: 25px;
+                fill: none;
+                stroke: currentColor;
+                stroke-width: 1.9;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+            }
+
+            .my-mobile-tabbar__item.is-active {
+                color: #7868ed;
+            }
+
+            .my-mobile-tabbar__item.is-active .my-mobile-tabbar__icon {
+                width: 58px;
+                height: 58px;
+                margin-top: -28px;
+                border-radius: 999px;
+                color: #fff;
+                background:
+                    radial-gradient(circle at 45% 38%, rgba(255, 255, 255, 0.95), transparent 22%),
+                    linear-gradient(145deg, #8fb5ff, #9b7cf4 56%, #e18bdc);
+                box-shadow: 0 12px 30px rgba(139, 122, 239, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.76);
+            }
+        }
+
+        @media (max-width: 430px) {
+            .my-page {
+                width: min(100%, calc(100vw - 20px));
+            }
+
+            .my-hero {
+                padding: 0 18px;
+            }
+
+            .my-profile-card {
+                grid-template-columns: 1fr;
+            }
+
+            .my-profile-card > div:last-child {
+                justify-items: stretch;
+            }
+
+            .my-profile-card .my-actions {
+                justify-content: end;
+            }
+
+            .my-profile-main {
+                grid-template-columns: 78px minmax(0, 1fr);
+            }
+
+            .my-avatar-frame {
+                width: 78px;
+                height: 78px;
+            }
+
+            .my-profile-meta {
+                margin-left: 92px;
+            }
+
+            .my-feature-grid {
+                gap: 8px;
+            }
+
+            .my-feature-card {
+                padding: 12px 10px;
+                border-radius: 20px;
+            }
+
+            .my-card-title {
+                font-size: 18px;
+            }
+
+            .my-feature-icon {
+                width: 38px;
+                height: 38px;
+            }
+
+            .my-feature-grid > .my-feature-card:nth-child(4) {
+                grid-template-columns: 72px minmax(0, 1fr);
+            }
+
+            .my-feature-grid > .my-feature-card:nth-child(4) .my-exchange-actions {
+                grid-column: 2;
+                grid-row: auto;
+                justify-self: start;
+                margin-top: 8px;
+            }
+
+            .my-quick-grid {
+                gap: 5px;
+            }
+
+            .my-quick-link {
+                font-size: 11px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1056,7 +1870,7 @@
                         <div class="my-avatar-placeholder" data-my-avatar-placeholder aria-hidden="true">雪</div>
                     </div>
                     <div class="my-profile-info">
-                        <h2 class="my-profile-name" data-my-display-name>星湖昵称：已登录</h2>
+                        <h2 class="my-profile-name" data-my-display-name data-short-name="已登录">星湖昵称：已登录</h2>
                         <span class="my-account-badge">星湖账号</span>
                         <p class="my-muted my-profile-note">头像会保存到云端，换设备登录后也能看到。</p>
                     </div>
@@ -1263,6 +2077,53 @@
     </section>
 </main>
 
+<nav class="my-mobile-tabbar" aria-label="手机端我的星湖导航">
+    <a class="my-mobile-tabbar__item" href="index.html">
+        <span class="my-mobile-tabbar__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+                <path d="M3.5 11.2 12 4l8.5 7.2"></path>
+                <path d="M5.5 10.6v8.6h5v-5h3v5h5v-8.6"></path>
+            </svg>
+        </span>
+        <span>首页</span>
+    </a>
+    <a class="my-mobile-tabbar__item" href="order.html">
+        <span class="my-mobile-tabbar__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+                <path d="M7 3.8v3M17 3.8v3M5.5 6h13A2.5 2.5 0 0 1 21 8.5v10A2.5 2.5 0 0 1 18.5 21h-13A2.5 2.5 0 0 1 3 18.5v-10A2.5 2.5 0 0 1 5.5 6Z"></path>
+                <path d="M7.4 11.4h9.2M7.4 15.4h5.4"></path>
+            </svg>
+        </span>
+        <span>预约</span>
+    </a>
+    <a class="my-mobile-tabbar__item is-active" href="my.html" aria-current="page">
+        <span class="my-mobile-tabbar__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+                <path d="m12 3.6 2.35 4.76 5.25.76-3.8 3.7.9 5.22L12 15.56l-4.7 2.48.9-5.22-3.8-3.7 5.25-.76L12 3.6Z"></path>
+            </svg>
+        </span>
+        <span>我的星湖</span>
+    </a>
+    <a class="my-mobile-tabbar__item" href="#my-title">
+        <span class="my-mobile-tabbar__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+                <path d="M5.5 5.2h13A2.3 2.3 0 0 1 20.8 7.5v8.2a2.3 2.3 0 0 1-2.3 2.3h-8.1L6 20.5V18H5.5a2.3 2.3 0 0 1-2.3-2.3V7.5a2.3 2.3 0 0 1 2.3-2.3Z"></path>
+                <path d="M8 10h8M8 14h5"></path>
+            </svg>
+        </span>
+        <span>消息</span>
+    </a>
+    <a class="my-mobile-tabbar__item" href="my.html">
+        <span class="my-mobile-tabbar__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+                <path d="M12 12.2a4.2 4.2 0 1 0 0-8.4 4.2 4.2 0 0 0 0 8.4Z"></path>
+                <path d="M4.5 20.2c1.3-3.5 4-5.2 7.5-5.2s6.2 1.7 7.5 5.2"></path>
+            </svg>
+        </span>
+        <span>我的</span>
+    </a>
+</nav>
+
 <div class="my-modal" data-my-modal hidden>
     <section class="my-modal-panel" role="dialog" aria-modal="true" aria-labelledby="my-modal-title" aria-describedby="my-modal-subtitle">
         <header class="my-modal-head">
@@ -1278,6 +2139,6 @@
 </div>
 
 <script src="assets/supabase-client.js?v=20260627-home-performance1"></script>
-<script src="assets/my.js?v=20260702-my-starlake-copy1"></script>
+<script src="assets/my.js?v=20260707-my-mobile-starlake1"></script>
 </body>
 </html>

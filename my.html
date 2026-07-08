@@ -1049,7 +1049,7 @@
                 color: var(--mobile-text);
                 background-image:
                     linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, rgba(239, 247, 255, 0.16) 42%, rgba(246, 241, 255, 0.48) 100%),
-                    url("assets/images/手机星湖背景.png?v=20260708-my-mobile-starlake-compact1");
+                    url("assets/images/手机星湖背景.png?v=20260708-my-mobile-starlake-readability1");
                 background-position: center top;
                 background-size: cover;
                 background-attachment: scroll;
@@ -1838,7 +1838,7 @@
             body {
                 background-image:
                     linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, rgba(239, 247, 255, 0.13) 42%, rgba(246, 241, 255, 0.42) 100%),
-                    url("assets/images/手机星湖背景.png?v=20260708-my-mobile-starlake-compact1");
+                    url("assets/images/手机星湖背景.png?v=20260708-my-mobile-starlake-readability1");
             }
 
             .performance-switcher {
@@ -2415,6 +2415,116 @@
                 font-size: 11px;
             }
         }
+
+        @media (max-width: 768px) {
+            .my-checkin-card {
+                align-content: start;
+                gap: 5px;
+            }
+
+            .my-checkin-card .my-feature-top {
+                margin-bottom: 6px !important;
+            }
+
+            .my-checkin-card .my-card-title {
+                max-width: 4.9em !important;
+                font-size: 16px !important;
+                line-height: 1.15 !important;
+            }
+
+            .my-checkin-card .my-feature-label {
+                color: #52608e;
+                font-size: 11.5px !important;
+                line-height: 1.2;
+            }
+
+            .my-checkin-card .my-feature-value {
+                display: -webkit-box;
+                min-height: 2.3em;
+                overflow: hidden;
+                color: #2f3368;
+                font-size: clamp(18px, 5.5vw, 24px) !important;
+                line-height: 1.12 !important;
+                white-space: normal !important;
+                word-break: keep-all;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+            }
+
+            .my-checkin-card .my-button {
+                min-height: 30px !important;
+                margin-top: 4px !important;
+                padding: 0 7px !important;
+                font-size: 11.5px !important;
+                line-height: 1 !important;
+                white-space: nowrap;
+            }
+
+            .my-record-row,
+            .my-record-row span {
+                color: #4b5f8f !important;
+            }
+
+            .my-record-row strong {
+                color: #2f3368 !important;
+            }
+
+            .my-benefit-card .my-muted,
+            .my-benefit-card .my-muted strong,
+            .my-lower-section:nth-child(3) .my-muted,
+            .my-lower-section:nth-child(3) .my-muted strong {
+                color: #56618f !important;
+            }
+
+            .my-soft-badge {
+                border-color: rgba(112, 102, 207, 0.28);
+                color: #4f43ba;
+                background: rgba(255, 255, 255, 0.68);
+            }
+
+            .my-alert {
+                border-color: rgba(197, 126, 156, 0.28);
+                color: rgba(47, 51, 104, 0.78) !important;
+                background: rgba(255, 244, 249, 0.72);
+            }
+        }
+
+        @media (max-width: 430px) {
+            .my-checkin-card .my-card-title {
+                font-size: 15px !important;
+            }
+
+            .my-checkin-card .my-feature-value {
+                font-size: clamp(17px, 5.2vw, 22px) !important;
+            }
+
+            .my-checkin-card .my-button {
+                min-height: 29px !important;
+                padding: 0 6px !important;
+                font-size: 11px !important;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .my-checkin-card .my-card-title {
+                font-size: 14px !important;
+            }
+
+            .my-checkin-card .my-feature-label {
+                font-size: 11px !important;
+            }
+
+            .my-checkin-card .my-feature-value {
+                min-height: 2.25em;
+                font-size: 17px !important;
+            }
+
+            .my-checkin-card .my-button {
+                min-height: 28px !important;
+                padding: 0 4px !important;
+                font-size: 10.5px !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -2721,6 +2831,6 @@
 </div>
 
 <script src="assets/supabase-client.js?v=20260627-home-performance1"></script>
-<script src="assets/my.js?v=20260708-my-mobile-starlake-compact1"></script>
+<script src="assets/my.js?v=20260708-my-mobile-starlake-readability1"></script>
 </body>
 </html>

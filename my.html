@@ -1049,7 +1049,7 @@
                 color: var(--mobile-text);
                 background-image:
                     linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, rgba(239, 247, 255, 0.16) 42%, rgba(246, 241, 255, 0.48) 100%),
-                    url("assets/images/手机星湖背景.png?v=20260707-my-mobile-starlake1");
+                    url("assets/images/手机星湖背景.png?v=20260708-my-mobile-starlake-compact1");
                 background-position: center top;
                 background-size: cover;
                 background-attachment: scroll;
@@ -1833,6 +1833,588 @@
                 font-size: 11px;
             }
         }
+
+        @media (max-width: 768px) {
+            body {
+                background-image:
+                    linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, rgba(239, 247, 255, 0.13) 42%, rgba(246, 241, 255, 0.42) 100%),
+                    url("assets/images/手机星湖背景.png?v=20260708-my-mobile-starlake-compact1");
+            }
+
+            .performance-switcher {
+                top: 12px !important;
+                right: 12px !important;
+                transform: scale(0.74);
+                transform-origin: top right;
+                z-index: 22;
+            }
+
+            .my-page {
+                width: min(100%, calc(100vw - 28px));
+                padding: 30px 0 calc(150px + env(safe-area-inset-bottom));
+            }
+
+            .my-hero {
+                gap: 5px;
+                margin-bottom: 14px;
+                padding: 0 24px;
+            }
+
+            .my-kicker {
+                color: #9089e7;
+                font-size: 11px;
+                letter-spacing: 0.26em;
+            }
+
+            .my-title {
+                font-size: clamp(38px, 11.2vw, 54px);
+                color: #34306f;
+            }
+
+            .my-subtitle {
+                max-width: 360px;
+                color: #4e5689;
+                font-size: 14px;
+                line-height: 1.45;
+            }
+
+            .my-profile-card {
+                grid-template-columns: minmax(0, 1fr) auto;
+                gap: 10px;
+                padding: 13px 15px;
+                border-radius: 24px;
+                background:
+                    linear-gradient(120deg, rgba(255, 255, 255, 0.82), rgba(244, 249, 255, 0.62) 55%, rgba(250, 238, 255, 0.58)),
+                    rgba(255, 255, 255, 0.64);
+            }
+
+            .my-profile-main {
+                grid-template-columns: 70px minmax(0, 1fr);
+                gap: 12px;
+            }
+
+            .my-avatar-frame {
+                width: 70px;
+                height: 70px;
+                border-width: 3px;
+                box-shadow: 0 10px 22px rgba(115, 132, 202, 0.18);
+            }
+
+            .my-avatar-frame::after {
+                inset: -7px;
+            }
+
+            .my-avatar-placeholder {
+                font-size: 29px;
+            }
+
+            .my-profile-name {
+                margin-bottom: 6px;
+            }
+
+            .my-profile-name::after {
+                font-size: 22px;
+                max-width: min(46vw, 190px);
+            }
+
+            .my-account-badge {
+                min-height: 24px;
+                padding: 4px 11px;
+                font-size: 12px;
+            }
+
+            .my-profile-note {
+                margin-top: 7px;
+                color: #687099;
+                font-size: 12px;
+                line-height: 1.35;
+            }
+
+            .my-profile-meta {
+                display: none;
+            }
+
+            .my-profile-card > div:last-child {
+                align-self: center;
+            }
+
+            .my-profile-card .my-actions .my-button {
+                min-height: 38px;
+                padding: 0 13px;
+                border: 1px solid rgba(148, 137, 232, 0.38);
+                color: #725ed8;
+                font-size: 13px;
+                background: rgba(255, 255, 255, 0.66);
+                box-shadow: 0 8px 18px rgba(125, 139, 203, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.72);
+            }
+
+            .my-status {
+                max-width: 104px;
+                font-size: 10px;
+                line-height: 1.25;
+            }
+
+            .my-main {
+                margin-top: 12px;
+            }
+
+            .my-feature-grid {
+                gap: 8px;
+            }
+
+            .my-feature-grid > .my-feature-card:nth-child(-n+3) {
+                min-height: 134px;
+                padding: 12px 10px;
+                border-radius: 20px;
+            }
+
+            .my-feature-grid > .my-feature-card:nth-child(-n+3) .my-feature-top {
+                margin-bottom: 9px;
+            }
+
+            .my-feature-grid > .my-feature-card:nth-child(-n+3) .my-card-title {
+                max-width: 4.6em;
+                font-size: 18px;
+                line-height: 1.18;
+            }
+
+            .my-feature-grid > .my-feature-card:nth-child(-n+3) .my-feature-icon {
+                width: 36px;
+                height: 36px;
+                border-radius: 14px;
+            }
+
+            .my-feature-grid > .my-feature-card:nth-child(-n+3) .my-feature-label {
+                font-size: 12px;
+            }
+
+            .my-feature-grid > .my-feature-card:nth-child(-n+3) .my-feature-value {
+                margin-top: 3px;
+                font-size: clamp(26px, 8vw, 34px);
+            }
+
+            .my-feature-grid > .my-feature-card:nth-child(2) .my-feature-value {
+                font-size: clamp(21px, 6.7vw, 30px);
+                white-space: nowrap;
+            }
+
+            .my-feature-grid > .my-feature-card:nth-child(-n+3) .my-card-link {
+                font-size: 12px;
+                line-height: 1.2;
+            }
+
+            .my-checkin-card .my-button {
+                min-height: 32px;
+                margin-top: 8px;
+                padding: 0 9px;
+                border-radius: 999px;
+                font-size: 12px;
+                white-space: nowrap;
+            }
+
+            .my-order-card {
+                position: relative;
+                grid-template-columns: clamp(96px, 28vw, 126px) minmax(0, 1fr) auto !important;
+                gap: 12px;
+                min-height: 128px !important;
+                margin-top: 8px;
+                padding: 14px 16px !important;
+                border-radius: 24px !important;
+                background:
+                    radial-gradient(circle at 16% 50%, rgba(196, 167, 255, 0.22), transparent 30%),
+                    radial-gradient(circle at 80% 16%, rgba(255, 196, 239, 0.24), transparent 32%),
+                    linear-gradient(120deg, rgba(255, 255, 255, 0.84), rgba(241, 247, 255, 0.68) 52%, rgba(252, 239, 255, 0.62)),
+                    rgba(255, 255, 255, 0.68) !important;
+            }
+
+            .my-order-card::after {
+                content: "";
+                position: absolute;
+                right: 14px;
+                top: 12px;
+                width: 42%;
+                height: 70%;
+                border-radius: 999px;
+                background:
+                    radial-gradient(circle, rgba(255, 255, 255, 0.58) 0 2px, transparent 3px),
+                    linear-gradient(135deg, transparent, rgba(202, 214, 255, 0.16));
+                background-size: 48px 42px, auto;
+                opacity: 0.7;
+                pointer-events: none;
+            }
+
+            .my-order-card .my-feature-top {
+                display: contents;
+            }
+
+            .my-order-card .my-card-title {
+                grid-column: 2;
+                grid-row: 1;
+                align-self: end;
+                font-size: 27px;
+                line-height: 1.05;
+            }
+
+            .my-order-card .my-feature-value {
+                grid-column: 2;
+                grid-row: 2;
+                color: #42417f;
+                font-size: 16px;
+                line-height: 1.25;
+            }
+
+            .my-order-card .my-exchange-summary {
+                grid-column: 2;
+                grid-row: 3;
+                max-width: 24em;
+                margin-top: 3px;
+                color: #5f6697;
+                font-size: 12.5px;
+                line-height: 1.42;
+            }
+
+            .my-order-card .my-exchange-actions {
+                grid-column: 3;
+                grid-row: 1 / span 3;
+                z-index: 1;
+                align-self: center;
+                justify-self: end;
+            }
+
+            .my-order-card .my-button {
+                min-height: 42px !important;
+                padding: 0 20px !important;
+                border-radius: 999px !important;
+                font-size: 15px !important;
+                font-weight: 900;
+                letter-spacing: 0;
+            }
+
+            .my-order-calendar-art {
+                position: relative;
+                grid-column: 1 !important;
+                grid-row: 1 / span 3 !important;
+                align-self: center;
+                justify-self: center;
+                width: clamp(86px, 24vw, 112px) !important;
+                height: clamp(78px, 22vw, 104px) !important;
+                border: 0;
+                border-radius: 24px;
+                color: #7b66e9;
+                transform: rotate(-4deg);
+                background:
+                    radial-gradient(circle at 78% 78%, rgba(255, 255, 255, 0.92) 0 8%, transparent 9%),
+                    linear-gradient(180deg, rgba(157, 126, 249, 0.96) 0 22%, rgba(255, 255, 255, 0.9) 23% 100%);
+                box-shadow:
+                    0 16px 30px rgba(132, 103, 225, 0.24),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.86);
+            }
+
+            .my-order-calendar-art::before {
+                content: "";
+                position: absolute;
+                left: 16%;
+                top: -7%;
+                width: 68%;
+                height: 16px;
+                border-radius: 999px;
+                background:
+                    radial-gradient(circle at 16% 50%, #ede8ff 0 7px, transparent 8px),
+                    radial-gradient(circle at 84% 50%, #ede8ff 0 7px, transparent 8px),
+                    linear-gradient(90deg, transparent 0 12%, #8f76f2 13% 22%, transparent 23% 76%, #8f76f2 77% 86%, transparent 87%);
+                filter: drop-shadow(0 4px 8px rgba(110, 95, 197, 0.2));
+            }
+
+            .my-order-calendar-art::after {
+                content: "";
+                position: absolute;
+                right: -10px;
+                bottom: -9px;
+                width: 40px;
+                height: 40px;
+                border-radius: 14px;
+                background:
+                    radial-gradient(circle at 36% 32%, rgba(255, 255, 255, 0.86), transparent 23%),
+                    linear-gradient(145deg, #b6c8ff, #a675f6 58%, #f0a5e6);
+                box-shadow: 0 10px 18px rgba(138, 109, 225, 0.22);
+                transform: rotate(12deg);
+                clip-path: polygon(50% 0, 62% 32%, 97% 34%, 70% 55%, 79% 91%, 50% 70%, 21% 91%, 30% 55%, 3% 34%, 38% 32%);
+            }
+
+            .my-order-calendar-art svg {
+                position: relative;
+                z-index: 1;
+                width: 70%;
+                height: 70%;
+                margin-top: 12%;
+                opacity: 0.42;
+                stroke-width: 1.5;
+            }
+
+            .my-lower-panel {
+                gap: 10px;
+                margin-top: 12px;
+            }
+
+            .my-lower-section {
+                padding: 15px;
+                border-radius: 21px;
+            }
+
+            .my-lower-title {
+                margin-bottom: 11px;
+                font-size: 19px;
+            }
+
+            .my-quick-grid {
+                gap: 6px;
+            }
+
+            .my-quick-link {
+                min-height: 65px;
+                padding: 5px 2px;
+                font-size: 11.5px;
+            }
+
+            .my-quick-icon {
+                width: 40px;
+                height: 40px;
+                border-radius: 14px;
+            }
+
+            .my-record-row {
+                padding: 8px 10px;
+                font-size: 13px;
+            }
+
+            .my-benefit-card {
+                gap: 9px;
+            }
+
+            .my-benefit-icon {
+                width: 44px;
+                height: 44px;
+            }
+
+            .my-benefit-card .my-button {
+                min-height: 38px;
+                margin-top: 8px;
+                width: 100%;
+            }
+
+            .my-alert {
+                margin-top: 9px;
+                padding: 9px 10px;
+                font-size: 12px;
+            }
+
+            .my-mobile-tabbar {
+                bottom: max(10px, env(safe-area-inset-bottom));
+                min-height: 72px;
+                padding-bottom: calc(8px + env(safe-area-inset-bottom) * 0.35);
+            }
+        }
+
+        @media (max-width: 430px) {
+            .my-page {
+                width: min(100%, calc(100vw - 22px));
+                padding-bottom: calc(148px + env(safe-area-inset-bottom));
+            }
+
+            .my-profile-card {
+                grid-template-columns: minmax(0, 1fr) auto;
+                padding: 12px;
+            }
+
+            .my-profile-main {
+                grid-template-columns: 64px minmax(0, 1fr);
+                gap: 10px;
+            }
+
+            .my-avatar-frame {
+                width: 64px;
+                height: 64px;
+            }
+
+            .my-profile-name::after {
+                max-width: 42vw;
+                font-size: 20px;
+            }
+
+            .my-profile-note {
+                max-width: 43vw;
+                font-size: 11.5px;
+            }
+
+            .my-profile-card .my-actions .my-button {
+                min-height: 36px;
+                padding: 0 11px;
+                font-size: 12px;
+            }
+
+            .my-feature-grid {
+                gap: 7px;
+            }
+
+            .my-feature-grid > .my-feature-card:nth-child(-n+3) {
+                min-height: 126px;
+                padding: 10px 8px;
+                border-radius: 18px;
+            }
+
+            .my-feature-grid > .my-feature-card:nth-child(-n+3) .my-card-title {
+                font-size: 17px;
+            }
+
+            .my-feature-grid > .my-feature-card:nth-child(-n+3) .my-feature-icon {
+                width: 33px;
+                height: 33px;
+            }
+
+            .my-feature-grid > .my-feature-card:nth-child(-n+3) .my-feature-label,
+            .my-feature-grid > .my-feature-card:nth-child(-n+3) .my-card-link {
+                font-size: 11.5px;
+            }
+
+            .my-checkin-card .my-button {
+                min-height: 30px;
+                padding: 0 7px;
+                font-size: 11.5px;
+            }
+
+            .my-order-card {
+                grid-template-columns: 94px minmax(0, 1fr) !important;
+                min-height: 134px !important;
+                gap: 10px;
+                padding: 13px !important;
+            }
+
+            .my-order-card .my-card-title {
+                font-size: 25px;
+            }
+
+            .my-order-card .my-exchange-summary {
+                font-size: 12px;
+            }
+
+            .my-order-card .my-exchange-actions {
+                grid-column: 2;
+                grid-row: 4;
+                justify-self: start;
+                margin-top: 5px;
+            }
+
+            .my-order-card .my-button {
+                min-height: 38px !important;
+                padding: 0 18px !important;
+                font-size: 14px !important;
+            }
+
+            .my-order-calendar-art {
+                width: 86px !important;
+                height: 82px !important;
+            }
+
+            .my-lower-section {
+                padding: 13px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .my-page {
+                width: min(100%, calc(100vw - 18px));
+            }
+
+            .my-hero {
+                padding: 0 14px;
+            }
+
+            .my-title {
+                font-size: 36px;
+            }
+
+            .my-subtitle {
+                font-size: 13px;
+            }
+
+            .my-profile-card {
+                grid-template-columns: 1fr;
+            }
+
+            .my-profile-card > div:last-child,
+            .my-profile-card .my-actions {
+                justify-items: start;
+                justify-content: start;
+            }
+
+            .my-profile-name::after,
+            .my-profile-note {
+                max-width: 100%;
+            }
+
+            .my-feature-grid {
+                gap: 6px;
+            }
+
+            .my-feature-grid > .my-feature-card:nth-child(-n+3) {
+                min-height: 120px;
+                padding: 9px 6px;
+            }
+
+            .my-feature-grid > .my-feature-card:nth-child(-n+3) .my-card-title {
+                font-size: 15px;
+            }
+
+            .my-feature-grid > .my-feature-card:nth-child(-n+3) .my-feature-icon {
+                width: 30px;
+                height: 30px;
+            }
+
+            .my-feature-grid > .my-feature-card:nth-child(-n+3) .my-feature-value {
+                font-size: 25px;
+            }
+
+            .my-feature-grid > .my-feature-card:nth-child(2) .my-feature-value {
+                font-size: 20px;
+            }
+
+            .my-checkin-card .my-button {
+                width: 100%;
+                padding: 0 4px;
+                font-size: 11px;
+            }
+
+            .my-order-card {
+                grid-template-columns: 78px minmax(0, 1fr) !important;
+            }
+
+            .my-order-calendar-art {
+                width: 72px !important;
+                height: 72px !important;
+                border-radius: 19px;
+            }
+
+            .my-order-card .my-card-title {
+                font-size: 22px;
+            }
+
+            .my-order-card .my-exchange-summary {
+                font-size: 11.5px;
+            }
+
+            .my-lower-panel {
+                grid-template-columns: 1fr;
+            }
+
+            .my-lower-section:nth-child(1),
+            .my-lower-section:nth-child(3) {
+                grid-column: 1 / -1;
+            }
+
+            .my-mobile-tabbar__item {
+                font-size: 11px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1959,10 +2541,10 @@
                     <span class="my-card-link">查看兑换记录</span>
                 </section>
 
-                <a class="my-feature-card" href="order.html" aria-labelledby="my-order-title">
+                <a class="my-feature-card my-order-card" href="order.html" aria-labelledby="my-order-title">
                     <div class="my-feature-top">
                         <h2 class="my-card-title" id="my-order-title">我的预约</h2>
-                        <span class="my-feature-icon" aria-hidden="true">
+                        <span class="my-feature-icon my-order-calendar-art" aria-hidden="true">
                             <svg class="my-line-icon" viewBox="0 0 24 24">
                                 <path d="M7 3.8v3M17 3.8v3M5.2 6h13.6A2.2 2.2 0 0 1 21 8.2v10.1a2.2 2.2 0 0 1-2.2 2.2H5.2A2.2 2.2 0 0 1 3 18.3V8.2A2.2 2.2 0 0 1 5.2 6Z"></path>
                                 <path d="M7.2 11.2h9.6M7.2 15.2h5.3"></path>
@@ -2139,6 +2721,6 @@
 </div>
 
 <script src="assets/supabase-client.js?v=20260627-home-performance1"></script>
-<script src="assets/my.js?v=20260707-my-mobile-starlake1"></script>
+<script src="assets/my.js?v=20260708-my-mobile-starlake-compact1"></script>
 </body>
 </html>

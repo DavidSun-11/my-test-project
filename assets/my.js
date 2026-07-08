@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    const VERSION = "20260707-my-mobile-starlake1";
+    const VERSION = "20260708-my-mobile-starlake-compact1";
     const BOSS_LOGIN_URL = "boss-register.html?mode=login&redirect=index";
     const BOSS_REGISTER_URL = "boss-register.html?mode=register&redirect=index";
     const AVATAR_BUCKET = "boss-avatars";

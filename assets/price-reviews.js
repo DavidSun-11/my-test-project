@@ -1,5 +1,5 @@
 (function () {
-    const SCRIPT_VERSION = "20260701-boss-review-tabs-pagination1";
+    const SCRIPT_VERSION = "20260709-boss-reviews-cosmic-glass1";
     const REVIEW_QUERY_TIMEOUT_MS = 9000;
     const OPTIONAL_QUERY_TIMEOUT_MS = 3500;
     const REVIEW_LOADING_TEXT = "\u6b63\u5728\u8bfb\u53d6\u8001\u677f\u8bc4\u4ef7...";
@@ -32,6 +32,11 @@
     const reviewSortControls = document.getElementById("price-review-sort-controls");
     const reviewPagination = document.getElementById("price-review-pagination");
     const reviewListTop = document.getElementById("boss-review-list-top");
+    const isBossReviewsPage = !!(
+        document.querySelector(".boss-reviews-page") ||
+        document.getElementById("boss-reviews") ||
+        /(^|\/)boss-reviews\.html$/i.test(window.location.pathname || "")
+    );
 
     let client = null;
     let currentUser = null;
@@ -437,6 +442,10 @@
         );
     }
 
+    function isBossReviewsFullPageMode() {
+        return isBossReviewsPage && isFullReviewPageMode();
+    }
+
     function getReviewPageSize() {
         if (window.matchMedia && window.matchMedia("(max-width: 640px)").matches) {
             return REVIEW_PAGE_SIZE_MOBILE;
@@ -453,6 +462,24 @@
 
     function getReviewLikeCount(reviewId) {
         return ensureInteraction(reviewId).likesCount || 0;
+    }
+
+    function calculateTopLikeCount(reviews) {
+        const items = Array.isArray(reviews) ? reviews : lastReviews;
+
+        if (!items.length) {
+            return "--";
+        }
+
+        return items.reduce(function (top, review) {
+            return Math.max(top, getReviewLikeCount(review.id));
+        }, 0);
+    }
+
+    function getReviewAvatarText(name) {
+        const text = String(name || "").trim();
+
+        return text ? text.slice(0, 1) : "雪";
     }
 
     function sortReviewsForDisplay(reviews) {
@@ -1246,6 +1273,38 @@
         const stats = calculateStats(reviews);
         const ratingText = stats.averageRating === "--" ? "--" : stats.averageRating + " ★";
 
+        if (isBossReviewsFullPageMode()) {
+            const topLikes = calculateTopLikeCount(reviews);
+
+            reviewStats.innerHTML = [
+                '<div class="price-review-stat reviews-cosmic-stat reviews-cosmic-stat--total">',
+                    '<span class="reviews-cosmic-stat-icon" aria-hidden="true"></span>',
+                    '<span>总评价数</span>',
+                    '<strong>' + stats.total + '</strong>',
+                    '<small>条真实反馈</small>',
+                '</div>',
+                '<div class="price-review-stat reviews-cosmic-stat reviews-cosmic-stat--rating">',
+                    '<span class="reviews-cosmic-stat-icon" aria-hidden="true"></span>',
+                    '<span>平均星级</span>',
+                    '<strong>' + escapeHtml(ratingText) + '</strong>',
+                    '<small>基于真实评价</small>',
+                '</div>',
+                '<div class="price-review-stat reviews-cosmic-stat reviews-cosmic-stat--likes">',
+                    '<span class="reviews-cosmic-stat-icon" aria-hidden="true"></span>',
+                    '<span>最高点赞数</span>',
+                    '<strong>' + escapeHtml(String(topLikes)) + '</strong>',
+                    '<small>来自互动数据</small>',
+                '</div>',
+                '<div class="price-review-stat reviews-cosmic-stat reviews-cosmic-stat--service">',
+                    '<span class="reviews-cosmic-stat-icon" aria-hidden="true"></span>',
+                    '<span>最受欢迎服务</span>',
+                    '<strong>' + escapeHtml(stats.topService || "暂无") + '</strong>',
+                    '<small>按评价数量统计</small>',
+                '</div>'
+            ].join("");
+            return;
+        }
+
         reviewStats.innerHTML = [
             '<div class="price-review-stat"><span>总评价数</span><strong>' + stats.total + '</strong></div>',
             '<div class="price-review-stat"><span>平均星级</span><strong>' + ratingText + '</strong></div>',
@@ -1255,6 +1314,36 @@
 
     function renderStatsError() {
         if (!reviewStats) {
+            return;
+        }
+
+        if (isBossReviewsFullPageMode()) {
+            reviewStats.innerHTML = [
+                '<div class="price-review-stat reviews-cosmic-stat reviews-cosmic-stat--total">',
+                    '<span class="reviews-cosmic-stat-icon" aria-hidden="true"></span>',
+                    '<span>总评价数</span>',
+                    '<strong>--</strong>',
+                    '<small>加载失败</small>',
+                '</div>',
+                '<div class="price-review-stat reviews-cosmic-stat reviews-cosmic-stat--rating">',
+                    '<span class="reviews-cosmic-stat-icon" aria-hidden="true"></span>',
+                    '<span>平均星级</span>',
+                    '<strong>--</strong>',
+                    '<small>加载失败</small>',
+                '</div>',
+                '<div class="price-review-stat reviews-cosmic-stat reviews-cosmic-stat--likes">',
+                    '<span class="reviews-cosmic-stat-icon" aria-hidden="true"></span>',
+                    '<span>最高点赞数</span>',
+                    '<strong>--</strong>',
+                    '<small>加载失败</small>',
+                '</div>',
+                '<div class="price-review-stat reviews-cosmic-stat reviews-cosmic-stat--service">',
+                    '<span class="reviews-cosmic-stat-icon" aria-hidden="true"></span>',
+                    '<span>最受欢迎服务</span>',
+                    '<strong>暂无</strong>',
+                    '<small>加载失败</small>',
+                '</div>'
+            ].join("");
             return;
         }
 
@@ -1353,6 +1442,43 @@
         const isExpanded = fullPageMode && expandedReviewIds.has(review.id);
         const interactiveAttrs = fullPageMode ? ' tabindex="0" aria-expanded="' + (isExpanded ? "true" : "false") + '"' : "";
 
+        if (isBossReviewsFullPageMode()) {
+            const avatarText = getReviewAvatarText(review.nickname);
+
+            return [
+                '<article class="price-review-item reviews-cosmic-review-card' + (isExpanded ? ' is-expanded' : '') + '" data-review-id="' + escapeHtml(review.id) + '"' + interactiveAttrs + '>',
+                    '<span class="reviews-cosmic-card-corner reviews-cosmic-card-corner--tl" aria-hidden="true"></span>',
+                    '<span class="reviews-cosmic-card-corner reviews-cosmic-card-corner--br" aria-hidden="true"></span>',
+                    '<div class="price-review-head reviews-cosmic-review-head">',
+                        '<span class="reviews-cosmic-avatar" aria-hidden="true">' + escapeHtml(avatarText) + '</span>',
+                        '<span class="reviews-cosmic-review-person">',
+                            '<strong>' + escapeHtml(review.nickname) + '</strong>',
+                            '<small>真实老板反馈</small>',
+                        '</span>',
+                        '<span class="reviews-cosmic-service-tag">' + escapeHtml(review.service_type || "其它") + '</span>',
+                    '</div>',
+                    '<div class="price-review-stars reviews-cosmic-stars" aria-label="' + rating + ' 星评价">' + "★".repeat(rating) + "☆".repeat(5 - rating) + '</div>',
+                    '<div class="price-review-meta reviews-cosmic-review-meta">',
+                        '<span>' + escapeHtml(review.service_type || "其它") + '</span>',
+                        '<span>' + escapeHtml(formatTime(review.created_at)) + '</span>',
+                    '</div>',
+                    '<p class="price-review-message reviews-cosmic-message' + (isExpanded ? '' : ' is-collapsed') + '">' + escapeHtml(review.message) + '</p>',
+                    '<button class="price-review-expand" type="button" hidden>' + (isExpanded ? "收起" : "展开全文") + '</button>',
+                    '<div class="price-review-actions reviews-cosmic-actions">',
+                        '<button class="price-review-action' + (interaction.userLiked ? ' is-liked' : '') + '" type="button" data-action="toggle-like">' +
+                            (interaction.userLiked ? "♥ 已赞" : "♡ 点赞") +
+                        '</button>',
+                        '<span class="price-review-count">' + escapeHtml(likeCountText) + '</span>',
+                        '<button class="price-review-action" type="button" data-action="toggle-comments">' +
+                            (interaction.commentsOpen ? "收起评论" : "评论") +
+                        '</button>',
+                        '<span class="price-review-count">' + escapeHtml(commentCountText) + '</span>',
+                    '</div>',
+                    interaction.commentsOpen ? renderComments(review.id, interaction) : '',
+                '</article>'
+            ].join("");
+        }
+
         return [
             '<article class="price-review-item' + (isExpanded ? ' is-expanded' : '') + '" data-review-id="' + escapeHtml(review.id) + '"' + interactiveAttrs + '>',
                 '<div class="price-review-head">',
@@ -1449,6 +1575,9 @@
                 return;
             }
             renderReviews(currentReviews);
+            if (isBossReviewsFullPageMode()) {
+                renderStats(currentReviews);
+            }
         }).catch(function (error) {
             logSupabaseError("boss review interactions load failed", error);
         });

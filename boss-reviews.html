@@ -1483,10 +1483,803 @@
                 padding-top: 0;
             }
         }
+        .boss-reviews-page {
+            --cosmic-ink: #f7fbff;
+            --cosmic-muted: rgba(220, 231, 255, 0.76);
+            --cosmic-soft: rgba(176, 208, 255, 0.58);
+            --cosmic-line: rgba(184, 218, 255, 0.42);
+            --cosmic-line-strong: rgba(220, 237, 255, 0.76);
+            --cosmic-panel: rgba(10, 33, 78, 0.6);
+            --cosmic-panel-soft: rgba(20, 56, 124, 0.42);
+            --cosmic-glow: rgba(106, 171, 255, 0.54);
+            --cosmic-gold: #ffe4a7;
+            --cosmic-violet: #c8b7ff;
+            color: var(--cosmic-ink);
+            background:
+                radial-gradient(circle at 78% 12%, rgba(255, 255, 255, 0.22), transparent 8rem),
+                radial-gradient(circle at 50% 18%, rgba(79, 145, 255, 0.26), transparent 34rem),
+                linear-gradient(180deg, rgba(3, 16, 46, 0.14), rgba(2, 7, 24, 0.58));
+        }
+
+        .boss-reviews-page .review-bg {
+            background:
+                radial-gradient(circle at 78% 14%, rgba(255, 255, 255, 0.9) 0 3.2rem, rgba(178, 207, 255, 0.42) 3.3rem 5.4rem, transparent 5.5rem),
+                radial-gradient(circle at 52% 22%, rgba(154, 195, 255, 0.3), transparent 26rem),
+                radial-gradient(circle at 20% 22%, rgba(38, 95, 180, 0.28), transparent 22rem),
+                linear-gradient(180deg, #061337 0%, #0a2358 44%, #04163c 68%, #020917 100%);
+        }
+
+        .boss-reviews-page .review-bg::before {
+            top: 18vh;
+            height: 32vh;
+            opacity: 0.86;
+            background:
+                linear-gradient(164deg, transparent 0 15%, rgba(207, 224, 255, 0.34) 15.5% 16.4%, transparent 17%),
+                linear-gradient(30deg, transparent 0 46%, rgba(230, 239, 255, 0.28) 46.4% 47.2%, transparent 48%),
+                linear-gradient(180deg, transparent 0%, rgba(9, 30, 72, 0.84) 78%, rgba(3, 10, 30, 0.58) 100%);
+            clip-path: polygon(0 72%, 7% 50%, 14% 62%, 24% 34%, 34% 67%, 45% 30%, 54% 62%, 64% 39%, 76% 68%, 88% 37%, 100% 61%, 100% 100%, 0 100%);
+        }
+
+        .boss-reviews-page .review-bg::after {
+            background:
+                radial-gradient(circle at 50% 17%, rgba(255, 255, 255, 0.82) 0 1px, transparent 2px),
+                radial-gradient(circle at 38% 23%, rgba(187, 218, 255, 0.9) 0 1px, transparent 2px),
+                radial-gradient(circle at 65% 27%, rgba(255, 248, 229, 0.78) 0 1px, transparent 2px),
+                radial-gradient(ellipse at 50% 64%, rgba(170, 214, 255, 0.22), transparent 28rem),
+                linear-gradient(90deg, rgba(2, 8, 28, 0.72), transparent 20%, transparent 80%, rgba(2, 8, 28, 0.8));
+            background-size: 260px 180px, 310px 210px, 350px 260px, auto, auto;
+        }
+
+        .boss-reviews-page .review-arch {
+            left: 50%;
+            top: 70px;
+            width: min(1160px, 86vw);
+            height: 430px;
+            transform: translateX(-50%);
+            border: 1px solid rgba(210, 232, 255, 0.24);
+            border-bottom: 0;
+            border-radius: 52% 52% 0 0;
+            background:
+                radial-gradient(ellipse at 50% 0%, rgba(214, 232, 255, 0.18), transparent 32%),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.14) 1px, transparent 1px) 50% 0 / 18% 100%,
+                linear-gradient(180deg, rgba(255, 255, 255, 0.13) 1px, transparent 1px) 0 40% / 100% 18%;
+            box-shadow:
+                inset 0 0 42px rgba(164, 207, 255, 0.18),
+                0 0 60px rgba(60, 144, 255, 0.18);
+            opacity: 0.9;
+        }
+
+        .boss-reviews-page .review-arch::before,
+        .boss-reviews-page .review-arch::after {
+            top: 20%;
+            bottom: auto;
+            width: 112px;
+            height: 360px;
+            border-radius: 58px 58px 10px 10px;
+            background:
+                radial-gradient(circle at 50% 20%, rgba(255, 238, 188, 0.42), transparent 19px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.2), rgba(47, 95, 165, 0.18) 22%, rgba(255, 255, 255, 0.14) 52%, rgba(10, 32, 72, 0.28)),
+                linear-gradient(180deg, rgba(154, 196, 255, 0.2), rgba(7, 25, 65, 0.44));
+            border: 1px solid rgba(211, 229, 255, 0.26);
+            box-shadow:
+                inset 0 0 24px rgba(212, 231, 255, 0.18),
+                0 0 42px rgba(42, 120, 224, 0.16);
+        }
+
+        .boss-reviews-page .review-arch::before {
+            left: -52px;
+        }
+
+        .boss-reviews-page .review-arch::after {
+            right: -52px;
+        }
+
+        .boss-reviews-page .review-lake {
+            height: 48vh;
+            background:
+                radial-gradient(ellipse at 78% 10%, rgba(255, 255, 255, 0.16), transparent 15rem),
+                radial-gradient(ellipse at 50% 12%, rgba(179, 220, 255, 0.28), transparent 28rem),
+                repeating-linear-gradient(178deg, rgba(210, 233, 255, 0.15) 0 1px, transparent 1px 18px),
+                linear-gradient(180deg, rgba(10, 38, 88, 0.12), rgba(2, 9, 26, 0.92));
+        }
+
+        .boss-reviews-page .review-shell {
+            width: min(1260px, calc(100% - 56px));
+            padding: 14px 0 56px;
+        }
+
+        .boss-reviews-page .review-nav {
+            min-height: 66px;
+            padding: 11px 16px;
+            grid-template-columns: minmax(190px, 0.9fr) minmax(440px, 1.6fr) minmax(240px, 0.9fr);
+            border-radius: 0 0 22px 22px;
+            background:
+                linear-gradient(180deg, rgba(12, 32, 76, 0.78), rgba(6, 20, 52, 0.54)),
+                radial-gradient(circle at 50% 100%, rgba(74, 150, 255, 0.2), transparent 34%);
+            border: 1px solid rgba(179, 210, 255, 0.22);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.18),
+                0 16px 42px rgba(1, 7, 25, 0.3);
+            backdrop-filter: blur(18px);
+        }
+
+        .boss-reviews-page .brand-mark {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background:
+                radial-gradient(circle at 45% 38%, #ffffff 0 7%, transparent 8%),
+                conic-gradient(from 45deg, #ffffff 0 12%, #8dc8ff 12% 24%, #ffffff 24% 35%, #4a8dff 35% 57%, #d8e9ff 57% 75%, #5c91ff 75% 100%);
+            box-shadow:
+                inset 0 0 12px rgba(255, 255, 255, 0.6),
+                0 0 22px rgba(91, 160, 255, 0.7);
+        }
+
+        .boss-reviews-page .nav-links {
+            justify-content: center;
+            gap: 26px;
+        }
+
+        .boss-reviews-page .nav-links a {
+            position: relative;
+            padding: 13px 6px;
+            color: rgba(232, 241, 255, 0.82);
+        }
+
+        .boss-reviews-page .nav-links a.is-active {
+            color: #ffffff;
+            text-shadow: 0 0 14px rgba(107, 174, 255, 0.86);
+        }
+
+        .boss-reviews-page .nav-links a.is-active::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            bottom: 4px;
+            width: 58px;
+            height: 2px;
+            transform: translateX(-50%);
+            background: linear-gradient(90deg, transparent, #8ac8ff, #ffffff, #8ac8ff, transparent);
+            box-shadow: 0 0 16px rgba(112, 181, 255, 0.9);
+        }
+
+        .boss-reviews-page .review-nav-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .boss-reviews-page .nav-ghost,
+        .boss-reviews-page .nav-cta {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 40px;
+            padding: 0 18px;
+            border-radius: 12px;
+            border: 1px solid rgba(180, 211, 255, 0.3);
+            color: #f6fbff;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 10px 24px rgba(0, 8, 30, 0.22);
+        }
+
+        .boss-reviews-page .nav-ghost {
+            background: rgba(8, 26, 63, 0.44);
+        }
+
+        .boss-reviews-page .nav-cta {
+            background: linear-gradient(135deg, rgba(70, 127, 235, 0.86), rgba(110, 158, 255, 0.72));
+        }
+
+        .boss-reviews-page .hero {
+            position: relative;
+            min-height: 290px;
+            padding: 70px 0 36px;
+            text-align: center;
+        }
+
+        .boss-reviews-page .hero::before {
+            content: "";
+            position: absolute;
+            left: 50%;
+            top: 18px;
+            width: min(620px, 72vw);
+            height: 240px;
+            transform: translateX(-50%);
+            border-top: 1px solid rgba(216, 235, 255, 0.48);
+            border-radius: 50%;
+            background:
+                radial-gradient(circle at 50% 8%, rgba(255, 255, 255, 0.88) 0 4px, rgba(144, 198, 255, 0.5) 5px 11px, transparent 12px),
+                radial-gradient(ellipse at 50% 42%, rgba(86, 154, 255, 0.18), transparent 64%);
+            box-shadow: inset 0 18px 38px rgba(105, 171, 255, 0.12);
+            pointer-events: none;
+        }
+
+        .boss-reviews-page .hero::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            top: 86px;
+            width: min(760px, 78vw);
+            height: 1px;
+            transform: translateX(-50%);
+            background: linear-gradient(90deg, transparent, rgba(177, 215, 255, 0.75), transparent);
+            box-shadow: 0 0 22px rgba(114, 181, 255, 0.54);
+            pointer-events: none;
+        }
+
+        .boss-reviews-page .hero-badge {
+            position: relative;
+            z-index: 1;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+            padding: 8px 18px;
+            border-radius: 999px;
+            border: 1px solid rgba(204, 224, 255, 0.38);
+            background: rgba(9, 32, 76, 0.52);
+            color: rgba(242, 248, 255, 0.92);
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            box-shadow: inset 0 0 18px rgba(119, 179, 255, 0.2), 0 0 24px rgba(82, 149, 255, 0.18);
+        }
+
+        .boss-reviews-page .hero-badge::before,
+        .boss-reviews-page .hero-badge::after {
+            content: "";
+            width: 8px;
+            height: 8px;
+            transform: rotate(45deg);
+            background: linear-gradient(135deg, #ffffff, #88cfff);
+            box-shadow: 0 0 12px rgba(147, 203, 255, 0.85);
+        }
+
+        .boss-reviews-page .hero h1 {
+            position: relative;
+            z-index: 1;
+            margin: 0;
+            font-size: clamp(4.4rem, 8vw, 7.4rem);
+            line-height: 0.98;
+            letter-spacing: 0.08em;
+            color: #f9fcff;
+            text-shadow:
+                0 0 16px rgba(255, 255, 255, 0.44),
+                0 0 34px rgba(98, 170, 255, 0.72),
+                0 10px 34px rgba(0, 7, 28, 0.55);
+        }
+
+        .boss-reviews-page .hero h1::before,
+        .boss-reviews-page .hero h1::after {
+            background: linear-gradient(90deg, transparent, rgba(229, 241, 255, 0.96), transparent);
+            box-shadow: 0 0 16px rgba(140, 201, 255, 0.9);
+        }
+
+        .boss-reviews-page .hero p {
+            position: relative;
+            z-index: 1;
+            margin-top: 18px;
+            color: rgba(237, 245, 255, 0.9);
+            font-size: 1.2rem;
+            letter-spacing: 0.13em;
+            text-shadow: 0 0 16px rgba(96, 158, 255, 0.48);
+        }
+
+        .boss-reviews-page .stats-panel {
+            position: relative;
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 0;
+            max-width: 1010px;
+            margin: -8px auto 42px;
+            padding: 18px 26px;
+            border-radius: 24px;
+            background:
+                linear-gradient(180deg, rgba(22, 62, 132, 0.7), rgba(7, 24, 62, 0.72)),
+                radial-gradient(circle at 50% 0%, rgba(139, 201, 255, 0.26), transparent 42%);
+            border: 1px solid rgba(191, 222, 255, 0.56);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.18),
+                inset 0 0 38px rgba(99, 169, 255, 0.16),
+                0 0 34px rgba(63, 139, 255, 0.32),
+                0 24px 70px rgba(0, 7, 28, 0.4);
+            overflow: hidden;
+        }
+
+        .boss-reviews-page .stats-panel::before,
+        .boss-reviews-page .stats-panel::after {
+            content: "";
+            position: absolute;
+            left: 22px;
+            right: 22px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(232, 243, 255, 0.9), transparent);
+            pointer-events: none;
+        }
+
+        .boss-reviews-page .stats-panel::before {
+            top: 8px;
+        }
+
+        .boss-reviews-page .stats-panel::after {
+            bottom: 8px;
+        }
+
+        .boss-reviews-page .reviews-cosmic-stat {
+            position: relative;
+            display: grid;
+            grid-template-columns: 58px 1fr;
+            grid-template-rows: auto auto auto;
+            column-gap: 15px;
+            align-items: center;
+            min-height: 112px;
+            padding: 12px 24px;
+            border-radius: 0;
+            border: 0;
+            background: transparent;
+        }
+
+        .boss-reviews-page .reviews-cosmic-stat + .reviews-cosmic-stat {
+            border-left: 1px solid rgba(181, 211, 255, 0.26);
+        }
+
+        .boss-reviews-page .reviews-cosmic-stat span:not(.reviews-cosmic-stat-icon) {
+            color: rgba(221, 234, 255, 0.78);
+            font-size: 0.9rem;
+        }
+
+        .boss-reviews-page .reviews-cosmic-stat strong {
+            color: #ffffff;
+            font-size: clamp(1.65rem, 2.4vw, 2.35rem);
+            letter-spacing: 0.02em;
+            text-shadow: 0 0 18px rgba(115, 182, 255, 0.76);
+        }
+
+        .boss-reviews-page .reviews-cosmic-stat small {
+            color: rgba(205, 224, 255, 0.72);
+            font-size: 0.82rem;
+        }
+
+        .boss-reviews-page .reviews-cosmic-stat-icon {
+            grid-row: 1 / 4;
+            position: relative;
+            width: 56px;
+            height: 56px;
+            border-radius: 18px;
+            background:
+                conic-gradient(from 45deg, rgba(255, 255, 255, 0.95), rgba(91, 169, 255, 0.65), rgba(193, 219, 255, 0.9), rgba(79, 140, 255, 0.54), rgba(255, 255, 255, 0.95));
+            clip-path: polygon(50% 0, 87% 18%, 100% 52%, 74% 100%, 26% 100%, 0 52%, 13% 18%);
+            box-shadow: 0 0 22px rgba(118, 185, 255, 0.58), inset 0 0 14px rgba(255, 255, 255, 0.52);
+        }
+
+        .boss-reviews-page .reviews-cosmic-stat--rating .reviews-cosmic-stat-icon {
+            border-radius: 50%;
+            clip-path: none;
+            background:
+                radial-gradient(circle at 50% 42%, #ffffff 0 18%, transparent 19%),
+                conic-gradient(#d7ecff, #6db3ff, #ffffff, #8a7dff, #d7ecff);
+        }
+
+        .boss-reviews-page .reviews-cosmic-stat--likes .reviews-cosmic-stat-icon {
+            background:
+                radial-gradient(circle at 50% 32%, #ffffff 0 12%, transparent 13%),
+                linear-gradient(135deg, #dff2ff, #86bfff 42%, #ffe5a7 70%, #7fb9ff);
+        }
+
+        .boss-reviews-page .reviews-cosmic-stat--service .reviews-cosmic-stat-icon {
+            background:
+                radial-gradient(circle at 50% 35%, #ffffff 0 12%, transparent 13%),
+                linear-gradient(135deg, #a7d9ff, #3b82f6 45%, #87f0ff);
+            clip-path: polygon(50% 0, 100% 42%, 78% 100%, 22% 100%, 0 42%);
+        }
+
+        .boss-reviews-page .price-status {
+            max-width: 780px;
+            margin: 0 auto 20px;
+        }
+
+        .boss-reviews-page .review-list-section {
+            position: relative;
+            padding-top: 0;
+        }
+
+        .boss-reviews-page .review-list-heading {
+            max-width: 1080px;
+            margin: 0 auto 30px;
+            padding: 12px 14px 12px 28px;
+            border-radius: 22px;
+            border: 1px solid rgba(178, 211, 255, 0.24);
+            background: rgba(5, 23, 58, 0.52);
+            box-shadow: inset 0 0 28px rgba(103, 169, 255, 0.12), 0 18px 40px rgba(0, 7, 28, 0.25);
+            backdrop-filter: blur(16px);
+        }
+
+        .boss-reviews-page .review-list-kicker {
+            color: rgba(165, 209, 255, 0.78);
+            letter-spacing: 0.14em;
+        }
+
+        .boss-reviews-page .review-list-heading h2 {
+            color: #f7fbff;
+            text-shadow: 0 0 18px rgba(90, 162, 255, 0.55);
+        }
+
+        .boss-reviews-page .section-tabs {
+            padding: 7px;
+            border-radius: 999px;
+            border: 1px solid rgba(179, 213, 255, 0.2);
+            background: rgba(5, 18, 48, 0.48);
+        }
+
+        .boss-reviews-page .section-tabs button {
+            min-height: 42px;
+            padding: 0 24px;
+            color: rgba(221, 233, 255, 0.76);
+            border: 1px solid transparent;
+            background: transparent;
+            box-shadow: none;
+        }
+
+        .boss-reviews-page .section-tabs button.is-active {
+            color: #ffffff;
+            background:
+                linear-gradient(180deg, rgba(65, 147, 255, 0.56), rgba(16, 74, 157, 0.54)),
+                radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.34), transparent 42%);
+            border-color: rgba(205, 230, 255, 0.54);
+            box-shadow: inset 0 0 18px rgba(170, 216, 255, 0.24), 0 0 22px rgba(90, 165, 255, 0.46);
+        }
+
+        .boss-reviews-page .reviews-grid.is-dynamic-review-list {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 28px;
+        }
+
+        .boss-reviews-page .price-review-item {
+            position: relative;
+            min-height: 318px;
+            padding: 24px;
+            border-radius: 24px;
+            border: 1px solid rgba(176, 212, 255, 0.38);
+            background:
+                radial-gradient(circle at 88% 10%, rgba(90, 165, 255, 0.32), transparent 9rem),
+                radial-gradient(circle at 8% 0%, rgba(255, 255, 255, 0.16), transparent 7rem),
+                linear-gradient(180deg, rgba(17, 58, 125, 0.68), rgba(4, 22, 58, 0.74));
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.14),
+                inset 0 0 34px rgba(104, 177, 255, 0.12),
+                0 18px 48px rgba(0, 7, 28, 0.34);
+            overflow: hidden;
+        }
+
+        .boss-reviews-page .price-review-item::before {
+            content: "";
+            position: absolute;
+            inset: 8px;
+            border-radius: 19px;
+            border: 1px solid rgba(216, 235, 255, 0.18);
+            pointer-events: none;
+            mask:
+                linear-gradient(#000 0 0) top left / 58px 58px no-repeat,
+                linear-gradient(#000 0 0) top right / 58px 58px no-repeat,
+                linear-gradient(#000 0 0) bottom left / 58px 58px no-repeat,
+                linear-gradient(#000 0 0) bottom right / 58px 58px no-repeat;
+        }
+
+        .boss-reviews-page .price-review-item::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at 80% 12%, rgba(255, 255, 255, 0.8) 0 1px, transparent 2px),
+                radial-gradient(circle at 88% 24%, rgba(143, 207, 255, 0.9) 0 1px, transparent 2px),
+                linear-gradient(135deg, transparent 0 68%, rgba(97, 166, 255, 0.16));
+            pointer-events: none;
+        }
+
+        .boss-reviews-page .reviews-cosmic-card-corner {
+            position: absolute;
+            z-index: 1;
+            width: 52px;
+            height: 52px;
+            border: 1px solid rgba(218, 237, 255, 0.48);
+            opacity: 0.9;
+            pointer-events: none;
+        }
+
+        .boss-reviews-page .reviews-cosmic-card-corner--tl {
+            top: 10px;
+            left: 10px;
+            border-right: 0;
+            border-bottom: 0;
+            border-radius: 18px 0 0 0;
+            box-shadow: -5px -5px 16px rgba(95, 170, 255, 0.18);
+        }
+
+        .boss-reviews-page .reviews-cosmic-card-corner--br {
+            right: 10px;
+            bottom: 10px;
+            border-left: 0;
+            border-top: 0;
+            border-radius: 0 0 18px 0;
+            box-shadow: 5px 5px 16px rgba(95, 170, 255, 0.16);
+        }
+
+        .boss-reviews-page .reviews-cosmic-review-head {
+            position: relative;
+            z-index: 2;
+            display: grid;
+            grid-template-columns: 62px minmax(0, 1fr) auto;
+            gap: 14px;
+            align-items: center;
+        }
+
+        .boss-reviews-page .reviews-cosmic-avatar {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 62px;
+            height: 62px;
+            border-radius: 50%;
+            color: #ffffff;
+            font-size: 1.4rem;
+            font-weight: 900;
+            background:
+                radial-gradient(circle at 36% 30%, rgba(255, 255, 255, 0.92), transparent 18%),
+                radial-gradient(circle at 50% 50%, rgba(94, 159, 255, 0.88), rgba(12, 45, 102, 0.8) 62%, rgba(3, 18, 50, 0.9));
+            border: 1px solid rgba(213, 235, 255, 0.68);
+            box-shadow: inset 0 0 18px rgba(255, 255, 255, 0.18), 0 0 28px rgba(98, 170, 255, 0.42);
+        }
+
+        .boss-reviews-page .reviews-cosmic-review-person {
+            min-width: 0;
+        }
+
+        .boss-reviews-page .reviews-cosmic-review-person strong {
+            display: block;
+            color: #f9fcff;
+            font-size: 1.16rem;
+            text-shadow: 0 0 14px rgba(112, 178, 255, 0.58);
+        }
+
+        .boss-reviews-page .reviews-cosmic-review-person small {
+            display: block;
+            margin-top: 5px;
+            color: rgba(205, 224, 255, 0.7);
+        }
+
+        .boss-reviews-page .reviews-cosmic-service-tag {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 30px;
+            padding: 0 12px;
+            border-radius: 999px;
+            color: rgba(224, 238, 255, 0.9);
+            font-size: 0.82rem;
+            border: 1px solid rgba(171, 209, 255, 0.28);
+            background: rgba(27, 72, 142, 0.42);
+            box-shadow: inset 0 0 14px rgba(103, 170, 255, 0.14);
+        }
+
+        .boss-reviews-page .reviews-cosmic-stars {
+            position: relative;
+            z-index: 2;
+            margin-top: 20px;
+            color: #bfe3ff;
+            font-size: 1.28rem;
+            letter-spacing: 0.24em;
+            text-shadow:
+                0 0 8px rgba(255, 255, 255, 0.8),
+                0 0 18px rgba(107, 181, 255, 0.82);
+        }
+
+        .boss-reviews-page .reviews-cosmic-review-meta {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 12px;
+            color: rgba(207, 225, 255, 0.74);
+            font-size: 0.92rem;
+        }
+
+        .boss-reviews-page .reviews-cosmic-message {
+            position: relative;
+            z-index: 2;
+            min-height: 92px;
+            margin: 18px 0 16px;
+            color: rgba(242, 247, 255, 0.9);
+            font-size: 1rem;
+            line-height: 1.84;
+        }
+
+        .boss-reviews-page .price-review-expand {
+            position: relative;
+            z-index: 2;
+        }
+
+        .boss-reviews-page .reviews-cosmic-actions {
+            position: relative;
+            z-index: 2;
+            margin-top: auto;
+            padding-top: 14px;
+            border-top: 1px solid rgba(178, 212, 255, 0.17);
+        }
+
+        .boss-reviews-page .price-review-action,
+        .boss-reviews-page .price-review-small-button,
+        .boss-reviews-page .price-review-empty-action {
+            border-radius: 999px;
+            border: 1px solid rgba(177, 215, 255, 0.32);
+            color: rgba(239, 247, 255, 0.92);
+            background: rgba(11, 38, 91, 0.58);
+            box-shadow: inset 0 0 16px rgba(99, 168, 255, 0.12);
+        }
+
+        .boss-reviews-page .price-review-action.is-liked {
+            border-color: rgba(255, 219, 151, 0.58);
+            color: #fff1c7;
+            background: rgba(124, 83, 24, 0.35);
+            box-shadow: inset 0 0 16px rgba(255, 215, 134, 0.22), 0 0 18px rgba(255, 207, 118, 0.18);
+        }
+
+        .boss-reviews-page .price-review-comments {
+            position: relative;
+            z-index: 2;
+            border-color: rgba(170, 208, 255, 0.2);
+            background: rgba(2, 14, 39, 0.3);
+        }
+
+        .boss-reviews-page .review-pagination button {
+            border: 1px solid rgba(178, 214, 255, 0.32);
+            color: rgba(236, 245, 255, 0.92);
+            background: rgba(9, 31, 75, 0.62);
+        }
+
+        .boss-reviews-page .review-pagination button.is-active {
+            color: #ffffff;
+            background: linear-gradient(135deg, rgba(55, 130, 239, 0.82), rgba(123, 169, 255, 0.68));
+            box-shadow: 0 0 20px rgba(96, 170, 255, 0.45);
+        }
+
+        @media (max-width: 1180px) {
+            .boss-reviews-page .review-nav {
+                grid-template-columns: 1fr;
+                border-radius: 22px;
+            }
+
+            .boss-reviews-page .review-nav-actions {
+                justify-content: center;
+            }
+
+            .boss-reviews-page .stats-panel {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .boss-reviews-page .reviews-cosmic-stat:nth-child(3) {
+                border-left: 0;
+            }
+
+            .boss-reviews-page .reviews-grid.is-dynamic-review-list {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 760px) {
+            .boss-reviews-page .review-arch {
+                width: 92vw;
+                height: 260px;
+                opacity: 0.34;
+            }
+
+            .boss-reviews-page .review-arch::before,
+            .boss-reviews-page .review-arch::after {
+                display: none;
+            }
+
+            .boss-reviews-page .review-shell {
+                width: min(100% - 28px, 520px);
+                padding-top: 12px;
+            }
+
+            .boss-reviews-page .review-nav {
+                padding: 14px;
+            }
+
+            .boss-reviews-page .nav-links {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 8px;
+            }
+
+            .boss-reviews-page .review-nav-actions {
+                flex-direction: column;
+            }
+
+            .boss-reviews-page .nav-ghost,
+            .boss-reviews-page .nav-cta {
+                width: 100%;
+            }
+
+            .boss-reviews-page .hero {
+                min-height: 230px;
+                padding: 42px 0 22px;
+            }
+
+            .boss-reviews-page .hero h1 {
+                font-size: clamp(3rem, 16vw, 4.5rem);
+                letter-spacing: 0.04em;
+            }
+
+            .boss-reviews-page .hero p {
+                font-size: 0.96rem;
+                letter-spacing: 0.04em;
+            }
+
+            .boss-reviews-page .stats-panel {
+                grid-template-columns: 1fr;
+                padding: 14px;
+                margin-bottom: 28px;
+            }
+
+            .boss-reviews-page .reviews-cosmic-stat,
+            .boss-reviews-page .reviews-cosmic-stat + .reviews-cosmic-stat,
+            .boss-reviews-page .reviews-cosmic-stat:nth-child(3) {
+                border-left: 0;
+                border-top: 1px solid rgba(181, 211, 255, 0.2);
+            }
+
+            .boss-reviews-page .reviews-cosmic-stat:first-child {
+                border-top: 0;
+            }
+
+            .boss-reviews-page .review-list-heading {
+                padding: 18px;
+            }
+
+            .boss-reviews-page .section-tabs {
+                width: 100%;
+                justify-content: stretch;
+                display: grid;
+                grid-template-columns: 1fr;
+                border-radius: 20px;
+            }
+
+            .boss-reviews-page .section-tabs button {
+                width: 100%;
+                min-height: 40px;
+            }
+
+            .boss-reviews-page .reviews-grid.is-dynamic-review-list {
+                grid-template-columns: 1fr;
+                gap: 18px;
+            }
+
+            .boss-reviews-page .price-review-item {
+                min-height: 0;
+                padding: 20px;
+            }
+
+            .boss-reviews-page .reviews-cosmic-review-head {
+                grid-template-columns: 54px minmax(0, 1fr);
+            }
+
+            .boss-reviews-page .reviews-cosmic-service-tag {
+                grid-column: 1 / -1;
+                justify-self: start;
+            }
+
+            .boss-reviews-page .reviews-cosmic-avatar {
+                width: 54px;
+                height: 54px;
+            }
+        }
     </style>
 </head>
 <body>
-<div class="review-page">
+<div class="review-page boss-reviews-page" id="boss-reviews">
     <div class="review-bg" aria-hidden="true"></div>
     <div class="review-arch" aria-hidden="true"></div>
     <div class="review-lake" aria-hidden="true"></div>
@@ -1522,12 +2315,16 @@
                 <a href="price.html#service-prices">服务流程</a>
                 <a href="about.html">关于我们</a>
             </div>
-            <a class="nav-cta" href="contact.html">联系君雪</a>
+            <div class="review-nav-actions">
+                <a class="nav-ghost" href="contact.html">联系顾问</a>
+                <a class="nav-cta" href="contact.html">预约咨询</a>
+            </div>
         </nav>
 
         <section class="hero" aria-labelledby="boss-review-title">
+            <span class="hero-badge">真实反馈 · 用心陪伴</span>
             <h1 id="boss-review-title">老板评价</h1>
-            <p>认真服务，也想把每一份感受收藏下来</p>
+            <p>每一份认可，都是我们前行的星光</p>
         </section>
 
         <section class="glass-panel stats-panel" id="price-review-stats" aria-label="老板评价统计">
@@ -1612,6 +2409,6 @@
 <button class="price-review-empty-action" id="price-open-ganyu-review" type="button" hidden>找甘雨发布评价</button>
 <script src="assets/supabase-client.js?v=20260627-home-performance1"></script>
 <script src="assets/vendor/supabase-js-2.min.js?v=20260616-1"></script>
-<script src="assets/price-reviews.js?v=20260701-boss-review-tabs-pagination1"></script>
+<script src="assets/price-reviews.js?v=20260709-boss-reviews-cosmic-glass1"></script>
 </body>
 </html>

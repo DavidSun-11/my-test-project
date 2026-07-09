@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>老板评价 - 君雪咨询手机版</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <script src="assets/performance-mode.js?v=20260613-2"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            min-height: 100%;
+            margin: 0;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", Arial, sans-serif;
+            color: #20295f;
+            background: #cfe0ff;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        button,
+        input,
+        textarea {
+            font: inherit;
+        }
+
+        .boss-reviews-mobile-page {
+            position: relative;
+            min-height: 100vh;
+            overflow: hidden;
+            isolation: isolate;
+            background:
+                linear-gradient(180deg, rgba(209, 224, 255, 0.28), rgba(240, 246, 255, 0.62) 48%, rgba(228, 235, 255, 0.82)),
+                url("assets/images/手机星湖背景.png") center top / cover fixed no-repeat;
+        }
+
+        .boss-reviews-mobile-page::before,
+        .boss-reviews-mobile-page::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        .boss-reviews-mobile-page::before {
+            background:
+                radial-gradient(circle at 78% 22%, rgba(255, 255, 255, 0.74) 0 78px, rgba(221, 231, 255, 0.36) 79px 150px, transparent 151px),
+                radial-gradient(circle at 52% 20%, rgba(255, 255, 255, 0.56), transparent 180px),
+                linear-gradient(180deg, rgba(215, 226, 255, 0.2), rgba(255, 255, 255, 0.54) 54%, rgba(239, 244, 255, 0.84));
+        }
+
+        .boss-reviews-mobile-page::after {
+            background:
+                radial-gradient(circle at 8% 35%, rgba(164, 142, 255, 0.22), transparent 90px),
+                radial-gradient(circle at 92% 43%, rgba(174, 201, 255, 0.36), transparent 110px),
+                linear-gradient(180deg, transparent 0 36%, rgba(255, 255, 255, 0.18) 46%, rgba(161, 196, 255, 0.22) 62%, rgba(255, 255, 255, 0.54) 100%);
+            backdrop-filter: saturate(1.08);
+        }
+
+        .mobile-lake-glow,
+        .mobile-crystal-flower,
+        .mobile-petals {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .mobile-lake-glow::before {
+            content: "";
+            position: absolute;
+            left: -10vw;
+            right: -10vw;
+            top: 29vh;
+            height: 30vh;
+            background:
+                linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.72), transparent) 50% 36% / 76% 1px no-repeat,
+                repeating-linear-gradient(178deg, rgba(105, 149, 225, 0.12) 0 1px, transparent 1px 18px),
+                radial-gradient(ellipse at 50% 40%, rgba(255, 255, 255, 0.5), transparent 54%);
+            opacity: 0.72;
+        }
+
+        .mobile-crystal-flower::before,
+        .mobile-crystal-flower::after {
+            content: "";
+            position: absolute;
+            width: 92px;
+            height: 132px;
+            filter: drop-shadow(0 12px 24px rgba(111, 133, 210, 0.28));
+            opacity: 0.62;
+        }
+
+        .mobile-crystal-flower::before {
+            left: -20px;
+            top: 38vh;
+            background:
+                linear-gradient(135deg, transparent 0 46%, rgba(124, 96, 255, 0.44) 47% 52%, transparent 53%),
+                conic-gradient(from 0deg at 50% 70%, rgba(255, 255, 255, 0.9), rgba(154, 191, 255, 0.42), rgba(181, 153, 255, 0.62), rgba(255, 255, 255, 0.86));
+            clip-path: polygon(50% 0, 66% 38%, 100% 52%, 66% 63%, 50% 100%, 34% 63%, 0 52%, 34% 38%);
+        }
+
+        .mobile-crystal-flower::after {
+            right: -16px;
+            top: 27vh;
+            width: 120px;
+            height: 120px;
+            background:
+                radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.86) 0 12%, transparent 13%),
+                conic-gradient(from 20deg, rgba(255, 255, 255, 0.82), rgba(183, 148, 255, 0.52), rgba(127, 177, 255, 0.44), rgba(255, 255, 255, 0.74));
+            clip-path: polygon(50% 0, 62% 34%, 100% 20%, 74% 50%, 100% 80%, 62% 66%, 50% 100%, 38% 66%, 0 80%, 26% 50%, 0 20%, 38% 34%);
+        }
+
+        .mobile-petals span {
+            position: absolute;
+            width: 13px;
+            height: 22px;
+            border-radius: 999px 999px 999px 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.82), rgba(198, 170, 255, 0.52));
+            box-shadow: 0 0 12px rgba(255, 255, 255, 0.72);
+            opacity: 0.62;
+            transform: rotate(34deg);
+        }
+
+        .mobile-petals span:nth-child(1) { left: 6%; top: 24%; }
+        .mobile-petals span:nth-child(2) { right: 3%; top: 28%; transform: rotate(-28deg); }
+        .mobile-petals span:nth-child(3) { left: 18%; top: 59%; transform: rotate(60deg); }
+        .mobile-petals span:nth-child(4) { right: 12%; top: 67%; transform: rotate(-48deg); }
+
+        .mobile-review-shell {
+            position: relative;
+            z-index: 1;
+            width: min(100% - 28px, 480px);
+            margin: 0 auto;
+            padding: calc(18px + env(safe-area-inset-top)) 0 34px;
+        }
+
+        .mobile-review-topbar {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto auto;
+            gap: 10px;
+            align-items: center;
+            min-height: 70px;
+            padding: 10px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.68);
+            border-radius: 28px;
+            background: rgba(255, 255, 255, 0.28);
+            box-shadow: 0 16px 38px rgba(95, 121, 195, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.76);
+            backdrop-filter: blur(18px) saturate(1.18);
+        }
+
+        .mobile-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .mobile-brand-mark {
+            flex: 0 0 auto;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background:
+                radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.92) 0 8%, transparent 9%),
+                conic-gradient(from 42deg, #ffffff, #86bdff, #806dff, #e7f2ff, #79b6ff, #ffffff);
+            box-shadow: inset 0 0 14px rgba(255, 255, 255, 0.72), 0 0 22px rgba(92, 131, 225, 0.42);
+        }
+
+        .mobile-brand strong {
+            display: block;
+            color: #17215a;
+            font-size: 1.28rem;
+            line-height: 1.05;
+            letter-spacing: 0.04em;
+        }
+
+        .mobile-brand span span {
+            display: block;
+            margin-top: 4px;
+            color: rgba(33, 39, 91, 0.66);
+            font-size: 0.66rem;
+            letter-spacing: 0.2em;
+            white-space: nowrap;
+        }
+
+        .mobile-consult-button,
+        .mobile-menu-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 44px;
+            border: 1px solid rgba(255, 255, 255, 0.72);
+            color: #283174;
+            background: rgba(255, 255, 255, 0.28);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78), 0 10px 24px rgba(116, 132, 205, 0.16);
+            backdrop-filter: blur(14px);
+        }
+
+        .mobile-consult-button {
+            gap: 6px;
+            padding: 0 13px;
+            border-radius: 999px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .mobile-menu-button {
+            width: 44px;
+            border-radius: 16px;
+        }
+
+        .mobile-menu-button span,
+        .mobile-menu-button::before,
+        .mobile-menu-button::after {
+            content: "";
+            display: block;
+            width: 20px;
+            height: 2px;
+            border-radius: 999px;
+            background: #25306e;
+        }
+
+        .mobile-menu-button {
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .mobile-review-tabs {
+            display: flex;
+            gap: 4px;
+            margin: 16px 0 22px;
+            padding: 6px;
+            border-radius: 999px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            background: rgba(255, 255, 255, 0.34);
+            border: 1px solid rgba(255, 255, 255, 0.66);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 12px 30px rgba(105, 129, 202, 0.14);
+            backdrop-filter: blur(16px);
+        }
+
+        .mobile-review-tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .mobile-review-tabs a {
+            flex: 0 0 auto;
+            min-width: 94px;
+            min-height: 42px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            color: rgba(32, 39, 92, 0.78);
+            font-weight: 800;
+        }
+
+        .mobile-review-tabs a.is-active {
+            color: #1b2360;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(214, 226, 255, 0.72));
+            box-shadow: inset 0 -3px 0 rgba(125, 114, 255, 0.72), 0 10px 22px rgba(104, 124, 215, 0.18);
+        }
+
+        .mobile-review-hero {
+            position: relative;
+            min-height: 272px;
+            display: grid;
+            place-items: center;
+            text-align: center;
+            padding: 24px 8px 36px;
+        }
+
+        .mobile-review-hero::before {
+            content: "";
+            position: absolute;
+            left: 50%;
+            top: 18px;
+            width: 252px;
+            height: 190px;
+            transform: translateX(-50%);
+            border-top: 1px solid rgba(121, 140, 221, 0.28);
+            border-radius: 50%;
+            background: radial-gradient(circle at 68% 48%, rgba(255, 255, 255, 0.76), transparent 90px);
+            pointer-events: none;
+        }
+
+        .mobile-review-hero h1 {
+            position: relative;
+            margin: 0;
+            color: #1e2865;
+            font-size: clamp(3.35rem, 17vw, 4.8rem);
+            line-height: 1;
+            letter-spacing: 0.08em;
+            font-weight: 500;
+            text-shadow: 0 6px 24px rgba(255, 255, 255, 0.78), 0 0 22px rgba(88, 111, 205, 0.26);
+        }
+
+        .mobile-review-hero p {
+            position: relative;
+            margin: 18px 0 0;
+            color: rgba(37, 44, 102, 0.68);
+            font-size: 1rem;
+            letter-spacing: 0.12em;
+        }
+
+        .mobile-review-hero .spark {
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            background: linear-gradient(135deg, #ffffff, #7e8fff);
+            clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.9));
+        }
+
+        .mobile-review-hero .spark.is-left { left: 16%; top: 35%; }
+        .mobile-review-hero .spark.is-right { right: 15%; top: 34%; }
+
+        .mobile-quote-card,
+        .mobile-stats-panel,
+        .mobile-review-sort,
+        .reviews-mobile-card,
+        .price-empty,
+        .price-status {
+            border: 1px solid rgba(255, 255, 255, 0.72);
+            background: rgba(255, 255, 255, 0.45);
+            box-shadow: 0 18px 42px rgba(107, 130, 205, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(18px) saturate(1.15);
+        }
+
+        .mobile-quote-card {
+            position: relative;
+            width: min(100%, 330px);
+            margin: -20px auto 20px;
+            padding: 17px 26px;
+            border-radius: 22px;
+            color: rgba(38, 45, 105, 0.78);
+            text-align: center;
+            line-height: 1.75;
+            letter-spacing: 0.04em;
+        }
+
+        .mobile-quote-card::before,
+        .mobile-quote-card::after {
+            position: absolute;
+            color: rgba(137, 124, 255, 0.34);
+            font-size: 2rem;
+            line-height: 1;
+        }
+
+        .mobile-quote-card::before {
+            content: "“";
+            left: 18px;
+            top: 12px;
+        }
+
+        .mobile-quote-card::after {
+            content: "”";
+            right: 18px;
+            bottom: 4px;
+        }
+
+        .mobile-stats-panel {
+            display: grid;
+            gap: 0;
+            margin: 22px auto 22px;
+            padding: 18px 22px;
+            border-radius: 30px;
+        }
+
+        .reviews-mobile-stat {
+            display: grid;
+            grid-template-columns: 56px minmax(0, 1fr) auto 14px;
+            align-items: center;
+            gap: 14px;
+            min-height: 74px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(83, 99, 165, 0.16);
+        }
+
+        .reviews-mobile-stat:last-child {
+            border-bottom: 0;
+        }
+
+        .reviews-mobile-stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.58);
+            position: relative;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85), 0 10px 18px rgba(100, 130, 220, 0.16);
+        }
+
+        .reviews-mobile-stat-icon::before {
+            content: "";
+            position: absolute;
+            inset: 12px;
+            background: linear-gradient(135deg, #ffffff, #65c5ff 44%, #776dff);
+            clip-path: polygon(50% 0, 100% 45%, 68% 100%, 32% 100%, 0 45%);
+            filter: drop-shadow(0 3px 8px rgba(77, 115, 225, 0.35));
+        }
+
+        .reviews-mobile-stat--rating .reviews-mobile-stat-icon::before {
+            background: linear-gradient(135deg, #ffffff, #b8a8ff 48%, #7e7cff);
+            clip-path: polygon(50% 0, 62% 35%, 100% 35%, 70% 57%, 82% 100%, 50% 72%, 18% 100%, 30% 57%, 0 35%, 38% 35%);
+        }
+
+        .reviews-mobile-stat--likes .reviews-mobile-stat-icon::before {
+            background: linear-gradient(135deg, #effcff, #6ed4ff, #698bff);
+            clip-path: polygon(44% 0, 70% 0, 60% 38%, 92% 38%, 38% 100%, 48% 56%, 16% 56%);
+        }
+
+        .reviews-mobile-stat--service .reviews-mobile-stat-icon::before {
+            background: linear-gradient(135deg, #ffffff, #c9b5ff 40%, #8790ff);
+            clip-path: polygon(8% 42%, 28% 42%, 38% 12%, 50% 42%, 72% 42%, 90% 22%, 82% 82%, 18% 82%);
+        }
+
+        .reviews-mobile-stat-copy strong {
+            display: block;
+            color: #263074;
+            font-size: 1.03rem;
+            letter-spacing: 0.04em;
+        }
+
+        .reviews-mobile-stat-copy small {
+            display: block;
+            margin-top: 3px;
+            color: rgba(48, 58, 124, 0.62);
+            font-size: 0.83rem;
+        }
+
+        .reviews-mobile-stat b {
+            color: #24306e;
+            font-size: 1.72rem;
+            white-space: nowrap;
+        }
+
+        .reviews-mobile-stat i {
+            color: rgba(74, 86, 158, 0.62);
+            font-style: normal;
+            font-size: 1.5rem;
+        }
+
+        .mobile-review-sort {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 6px;
+            margin: 16px 6px 18px;
+            padding: 7px;
+            border-radius: 999px;
+        }
+
+        .mobile-review-sort button {
+            min-height: 42px;
+            border: 0;
+            border-radius: 999px;
+            color: rgba(38, 47, 110, 0.68);
+            background: transparent;
+            font-weight: 800;
+        }
+
+        .mobile-review-sort button.is-active {
+            color: #ffffff;
+            background: linear-gradient(135deg, #9fb7ff, #8b83ff 48%, #c58df7);
+            box-shadow: 0 10px 20px rgba(112, 111, 231, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.46);
+        }
+
+        .price-status {
+            margin: 12px 0;
+            padding: 14px 16px;
+            border-radius: 18px;
+            color: #35407f;
+        }
+
+        .price-status:empty {
+            display: none;
+        }
+
+        .price-review-list {
+            display: grid;
+            gap: 14px;
+        }
+
+        .reviews-mobile-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 24px;
+            padding: 16px;
+        }
+
+        .reviews-mobile-card::after {
+            content: "“";
+            position: absolute;
+            right: 18px;
+            bottom: -2px;
+            color: rgba(139, 139, 229, 0.2);
+            font-size: 4.4rem;
+            line-height: 1;
+            pointer-events: none;
+        }
+
+        .reviews-mobile-card-head {
+            display: grid;
+            grid-template-columns: 58px minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .reviews-mobile-avatar {
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 1.3rem;
+            font-weight: 900;
+            background:
+                radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.92), transparent 20%),
+                linear-gradient(135deg, #c3d8ff, #888cff 52%, #d4c7ff);
+            border: 2px solid rgba(255, 255, 255, 0.82);
+            box-shadow: 0 10px 20px rgba(105, 126, 207, 0.18);
+        }
+
+        .reviews-mobile-person {
+            min-width: 0;
+        }
+
+        .reviews-mobile-person strong {
+            display: block;
+            color: #20295f;
+            font-size: 1.06rem;
+        }
+
+        .reviews-mobile-service-tag {
+            display: inline-flex;
+            margin-top: 5px;
+            padding: 3px 9px;
+            border-radius: 999px;
+            color: #6c54d9;
+            background: rgba(151, 135, 255, 0.14);
+            font-size: 0.78rem;
+        }
+
+        .reviews-mobile-date {
+            align-self: start;
+            color: rgba(48, 57, 122, 0.58);
+            font-size: 0.78rem;
+            white-space: nowrap;
+        }
+
+        .reviews-mobile-stars {
+            margin: 12px 0 8px 70px;
+            color: #7e7bf0;
+            font-size: 1rem;
+            letter-spacing: 0.22em;
+            text-shadow: 0 0 12px rgba(255, 255, 255, 0.9);
+        }
+
+        .reviews-mobile-message {
+            margin: 0;
+            color: rgba(30, 39, 92, 0.88);
+            line-height: 1.75;
+            font-size: 0.96rem;
+        }
+
+        .price-review-message.is-collapsed {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .price-review-expand {
+            margin-top: 10px;
+            border: 0;
+            background: transparent;
+            color: #6f68df;
+            font-weight: 800;
+        }
+
+        .reviews-mobile-actions {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(92, 103, 170, 0.13);
+        }
+
+        .price-review-action,
+        .price-review-small-button,
+        .price-review-empty-action,
+        .review-pagination button {
+            min-height: 40px;
+            padding: 0 13px;
+            border: 1px solid rgba(129, 143, 220, 0.18);
+            border-radius: 999px;
+            color: #394389;
+            background: rgba(255, 255, 255, 0.42);
+            font-weight: 800;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.68);
+        }
+
+        .price-review-action.is-liked {
+            color: #ffffff;
+            background: linear-gradient(135deg, #938fff, #d28df4);
+        }
+
+        .price-review-count {
+            color: rgba(49, 58, 123, 0.62);
+            font-size: 0.84rem;
+        }
+
+        .price-review-comments {
+            position: relative;
+            z-index: 1;
+            margin-top: 12px;
+            padding: 12px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.36);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+
+        .price-review-comment {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(83, 99, 165, 0.12);
+        }
+
+        .price-review-comment:last-child {
+            border-bottom: 0;
+        }
+
+        .price-review-comment-meta {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            color: #303a7f;
+            font-size: 0.86rem;
+        }
+
+        .price-review-comment p,
+        .price-review-comment-empty,
+        .price-review-comment-login {
+            margin: 6px 0 0;
+            color: rgba(38, 47, 105, 0.74);
+            line-height: 1.6;
+        }
+
+        .price-review-comment-form {
+            display: grid;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .price-review-comment-form input,
+        .price-review-comment-form textarea {
+            width: 100%;
+            border: 1px solid rgba(126, 143, 220, 0.18);
+            border-radius: 14px;
+            padding: 10px 12px;
+            color: #293170;
+            background: rgba(255, 255, 255, 0.56);
+            outline: none;
+        }
+
+        .price-review-comment-form textarea {
+            min-height: 82px;
+            resize: vertical;
+        }
+
+        .price-empty {
+            border-radius: 22px;
+            padding: 22px 18px;
+            color: rgba(38, 47, 105, 0.78);
+            text-align: center;
+            line-height: 1.7;
+        }
+
+        .price-empty strong {
+            display: block;
+            margin-bottom: 10px;
+            color: #273071;
+        }
+
+        .review-pagination {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 18px 0 0;
+        }
+
+        .review-pagination[hidden] {
+            display: none;
+        }
+
+        .review-pagination button.is-active {
+            color: #ffffff;
+            background: linear-gradient(135deg, #92aaff, #b585f1);
+        }
+
+        .review-pagination button:disabled {
+            opacity: 0.48;
+        }
+
+        .mobile-review-footer {
+            margin: 28px 0 8px;
+            color: rgba(40, 49, 111, 0.72);
+            text-align: center;
+            letter-spacing: 0.14em;
+            font-size: 0.86rem;
+        }
+
+        @media (max-width: 374px) {
+            .mobile-review-shell {
+                width: min(100% - 20px, 480px);
+            }
+
+            .mobile-brand-mark {
+                width: 42px;
+                height: 42px;
+            }
+
+            .mobile-brand strong {
+                font-size: 1.08rem;
+            }
+
+            .mobile-consult-button {
+                padding: 0 10px;
+                font-size: 0.9rem;
+            }
+
+            .reviews-mobile-stat {
+                grid-template-columns: 48px minmax(0, 1fr) auto;
+                gap: 10px;
+            }
+
+            .reviews-mobile-stat i {
+                display: none;
+            }
+
+            .reviews-mobile-card-head {
+                grid-template-columns: 52px minmax(0, 1fr);
+            }
+
+            .reviews-mobile-date {
+                grid-column: 2;
+                justify-self: start;
+            }
+
+            .reviews-mobile-stars {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="boss-reviews-mobile-page">
+    <div class="mobile-lake-glow" aria-hidden="true"></div>
+    <div class="mobile-crystal-flower" aria-hidden="true"></div>
+    <div class="mobile-petals" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+
+    <main class="mobile-review-shell" id="top">
+        <header class="mobile-review-topbar" aria-label="君雪咨询手机版导航">
+            <a class="mobile-brand" href="index.html" aria-label="返回君雪网站首页">
+                <span class="mobile-brand-mark" aria-hidden="true"></span>
+                <span>
+                    <strong>君雪咨询</strong>
+                    <span>JUNXUE CONSULTATION</span>
+                </span>
+            </a>
+            <a class="mobile-consult-button" href="contact.html">预约咨询</a>
+            <a class="mobile-menu-button" href="#mobile-review-tabs" aria-label="查看页面导航"><span></span></a>
+        </header>
+
+        <nav class="mobile-review-tabs" id="mobile-review-tabs" aria-label="老板评价手机版导航">
+            <a class="is-active" href="boss-reviews-mobile.html">老板评价</a>
+            <a href="price.html">咨询服务</a>
+            <a href="price.html#service-prices">服务流程</a>
+            <a href="about.html">关于我们</a>
+        </nav>
+
+        <section class="mobile-review-hero" aria-labelledby="mobile-review-title">
+            <span class="spark is-left" aria-hidden="true"></span>
+            <span class="spark is-right" aria-hidden="true"></span>
+            <div>
+                <h1 id="mobile-review-title">老板评价</h1>
+                <p>每一份认可，都是我们前行的星光</p>
+            </div>
+        </section>
+
+        <section class="mobile-quote-card" aria-label="评价引言">
+            <p>你们的用心，我们都看在眼里。<br>每一次真诚的反馈，都是我们继续前行的光。</p>
+        </section>
+
+        <section class="mobile-stats-panel" id="price-review-stats" aria-label="老板评价统计">
+            <div class="price-review-stat reviews-mobile-stat reviews-mobile-stat--total">
+                <span class="reviews-mobile-stat-icon" aria-hidden="true"></span>
+                <span class="reviews-mobile-stat-copy"><strong>总评价数</strong><small>正在同步真实评价</small></span>
+                <b>--</b>
+                <i aria-hidden="true">›</i>
+            </div>
+            <div class="price-review-stat reviews-mobile-stat reviews-mobile-stat--rating">
+                <span class="reviews-mobile-stat-icon" aria-hidden="true"></span>
+                <span class="reviews-mobile-stat-copy"><strong>平均星级</strong><small>基于真实评价</small></span>
+                <b>--</b>
+                <i aria-hidden="true">›</i>
+            </div>
+            <div class="price-review-stat reviews-mobile-stat reviews-mobile-stat--likes">
+                <span class="reviews-mobile-stat-icon" aria-hidden="true"></span>
+                <span class="reviews-mobile-stat-copy"><strong>最高点赞数</strong><small>来自互动数据</small></span>
+                <b>--</b>
+                <i aria-hidden="true">›</i>
+            </div>
+            <div class="price-review-stat reviews-mobile-stat reviews-mobile-stat--service">
+                <span class="reviews-mobile-stat-icon" aria-hidden="true"></span>
+                <span class="reviews-mobile-stat-copy"><strong>最受欢迎服务</strong><small>按评价数量统计</small></span>
+                <b>暂无</b>
+                <i aria-hidden="true">›</i>
+            </div>
+        </section>
+
+        <div class="price-status price-review-global-status" id="price-review-status" role="status" aria-live="polite"></div>
+
+        <section class="mobile-review-list-section" aria-labelledby="mobile-review-list-title">
+            <div class="mobile-review-sort" id="price-review-sort-controls" role="tablist" aria-label="评价排序">
+                <button class="is-active" type="button" role="tab" aria-selected="true" data-review-sort="latest">全部评价</button>
+                <button type="button" role="tab" aria-selected="false" data-review-sort="likes">高赞反馈</button>
+                <button type="button" role="tab" aria-selected="false" data-review-sort="all">全部记录</button>
+            </div>
+
+            <h2 id="mobile-review-list-title" hidden>老板评价列表</h2>
+            <section class="price-review-list" id="price-review-list" data-review-pagination="true" aria-label="老板评价列表">
+                <div class="price-empty">正在读取老板评价...</div>
+            </section>
+
+            <nav class="review-pagination" id="price-review-pagination" hidden aria-label="老板评价分页"></nav>
+        </section>
+
+        <footer class="mobile-review-footer">
+            ✦ 感谢每一位老板的信任与支持
+        </footer>
+    </main>
+</div>
+<button class="price-review-empty-action" id="price-open-ganyu-review" type="button" hidden>找甘雨发布评价</button>
+<script src="assets/supabase-client.js?v=20260627-home-performance1"></script>
+<script src="assets/vendor/supabase-js-2.min.js?v=20260616-1"></script>
+<script src="assets/price-reviews.js?v=20260709-boss-reviews-mobile-moonlake2"></script>
+</body>
+</html>

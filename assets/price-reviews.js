@@ -1,5 +1,5 @@
 (function () {
-    const SCRIPT_VERSION = "20260709-boss-reviews-cosmic-glass1";
+    const SCRIPT_VERSION = "20260709-boss-reviews-mobile-moonlake2";
     const REVIEW_QUERY_TIMEOUT_MS = 9000;
     const OPTIONAL_QUERY_TIMEOUT_MS = 3500;
     const REVIEW_LOADING_TEXT = "\u6b63\u5728\u8bfb\u53d6\u8001\u677f\u8bc4\u4ef7...";
@@ -32,10 +32,17 @@
     const reviewSortControls = document.getElementById("price-review-sort-controls");
     const reviewPagination = document.getElementById("price-review-pagination");
     const reviewListTop = document.getElementById("boss-review-list-top");
+    const isBossReviewsMobilePage = !!(
+        document.querySelector(".boss-reviews-mobile-page") ||
+        /(^|\/)boss-reviews-mobile\.html$/i.test(window.location.pathname || "")
+    );
     const isBossReviewsPage = !!(
-        document.querySelector(".boss-reviews-page") ||
-        document.getElementById("boss-reviews") ||
-        /(^|\/)boss-reviews\.html$/i.test(window.location.pathname || "")
+        !isBossReviewsMobilePage &&
+        (
+            document.querySelector(".boss-reviews-page") ||
+            document.getElementById("boss-reviews") ||
+            /(^|\/)boss-reviews\.html$/i.test(window.location.pathname || "")
+        )
     );
 
     let client = null;
@@ -444,6 +451,10 @@
 
     function isBossReviewsFullPageMode() {
         return isBossReviewsPage && isFullReviewPageMode();
+    }
+
+    function isBossReviewsMobileFullPageMode() {
+        return isBossReviewsMobilePage && isFullReviewPageMode();
     }
 
     function getReviewPageSize() {
@@ -1273,6 +1284,50 @@
         const stats = calculateStats(reviews);
         const ratingText = stats.averageRating === "--" ? "--" : stats.averageRating + " ★";
 
+        if (isBossReviewsMobileFullPageMode()) {
+            const topLikes = calculateTopLikeCount(reviews);
+
+            reviewStats.innerHTML = [
+                '<div class="price-review-stat reviews-mobile-stat reviews-mobile-stat--total">',
+                    '<span class="reviews-mobile-stat-icon" aria-hidden="true"></span>',
+                    '<span class="reviews-mobile-stat-copy">',
+                        '<strong>总评价数</strong>',
+                        '<small>条真实反馈</small>',
+                    '</span>',
+                    '<b>' + stats.total + '</b>',
+                    '<i aria-hidden="true">›</i>',
+                '</div>',
+                '<div class="price-review-stat reviews-mobile-stat reviews-mobile-stat--rating">',
+                    '<span class="reviews-mobile-stat-icon" aria-hidden="true"></span>',
+                    '<span class="reviews-mobile-stat-copy">',
+                        '<strong>平均星级</strong>',
+                        '<small>基于真实评价</small>',
+                    '</span>',
+                    '<b>' + escapeHtml(ratingText) + '</b>',
+                    '<i aria-hidden="true">›</i>',
+                '</div>',
+                '<div class="price-review-stat reviews-mobile-stat reviews-mobile-stat--likes">',
+                    '<span class="reviews-mobile-stat-icon" aria-hidden="true"></span>',
+                    '<span class="reviews-mobile-stat-copy">',
+                        '<strong>最高点赞数</strong>',
+                        '<small>来自互动数据</small>',
+                    '</span>',
+                    '<b>' + escapeHtml(String(topLikes)) + '</b>',
+                    '<i aria-hidden="true">›</i>',
+                '</div>',
+                '<div class="price-review-stat reviews-mobile-stat reviews-mobile-stat--service">',
+                    '<span class="reviews-mobile-stat-icon" aria-hidden="true"></span>',
+                    '<span class="reviews-mobile-stat-copy">',
+                        '<strong>最受欢迎服务</strong>',
+                        '<small>按评价数量统计</small>',
+                    '</span>',
+                    '<b>' + escapeHtml(stats.topService || "暂无") + '</b>',
+                    '<i aria-hidden="true">›</i>',
+                '</div>'
+            ].join("");
+            return;
+        }
+
         if (isBossReviewsFullPageMode()) {
             const topLikes = calculateTopLikeCount(reviews);
 
@@ -1314,6 +1369,36 @@
 
     function renderStatsError() {
         if (!reviewStats) {
+            return;
+        }
+
+        if (isBossReviewsMobileFullPageMode()) {
+            reviewStats.innerHTML = [
+                '<div class="price-review-stat reviews-mobile-stat reviews-mobile-stat--total">',
+                    '<span class="reviews-mobile-stat-icon" aria-hidden="true"></span>',
+                    '<span class="reviews-mobile-stat-copy"><strong>总评价数</strong><small>加载失败</small></span>',
+                    '<b>--</b>',
+                    '<i aria-hidden="true">›</i>',
+                '</div>',
+                '<div class="price-review-stat reviews-mobile-stat reviews-mobile-stat--rating">',
+                    '<span class="reviews-mobile-stat-icon" aria-hidden="true"></span>',
+                    '<span class="reviews-mobile-stat-copy"><strong>平均星级</strong><small>加载失败</small></span>',
+                    '<b>--</b>',
+                    '<i aria-hidden="true">›</i>',
+                '</div>',
+                '<div class="price-review-stat reviews-mobile-stat reviews-mobile-stat--likes">',
+                    '<span class="reviews-mobile-stat-icon" aria-hidden="true"></span>',
+                    '<span class="reviews-mobile-stat-copy"><strong>最高点赞数</strong><small>加载失败</small></span>',
+                    '<b>--</b>',
+                    '<i aria-hidden="true">›</i>',
+                '</div>',
+                '<div class="price-review-stat reviews-mobile-stat reviews-mobile-stat--service">',
+                    '<span class="reviews-mobile-stat-icon" aria-hidden="true"></span>',
+                    '<span class="reviews-mobile-stat-copy"><strong>最受欢迎服务</strong><small>加载失败</small></span>',
+                    '<b>暂无</b>',
+                    '<i aria-hidden="true">›</i>',
+                '</div>'
+            ].join("");
             return;
         }
 
@@ -1441,6 +1526,37 @@
         const fullPageMode = isFullReviewPageMode();
         const isExpanded = fullPageMode && expandedReviewIds.has(review.id);
         const interactiveAttrs = fullPageMode ? ' tabindex="0" aria-expanded="' + (isExpanded ? "true" : "false") + '"' : "";
+
+        if (isBossReviewsMobileFullPageMode()) {
+            const avatarText = getReviewAvatarText(review.nickname);
+
+            return [
+                '<article class="price-review-item reviews-mobile-card' + (isExpanded ? ' is-expanded' : '') + '" data-review-id="' + escapeHtml(review.id) + '"' + interactiveAttrs + '>',
+                    '<div class="price-review-head reviews-mobile-card-head">',
+                        '<span class="reviews-mobile-avatar" aria-hidden="true">' + escapeHtml(avatarText) + '</span>',
+                        '<span class="reviews-mobile-person">',
+                            '<strong>' + escapeHtml(review.nickname || "老板") + '</strong>',
+                            '<small class="reviews-mobile-service-tag">' + escapeHtml(review.service_type || "其它") + '</small>',
+                        '</span>',
+                        '<time class="reviews-mobile-date">' + escapeHtml(formatTime(review.created_at)) + '</time>',
+                    '</div>',
+                    '<div class="price-review-stars reviews-mobile-stars" aria-label="' + rating + ' 星评价">' + "★".repeat(rating) + "☆".repeat(5 - rating) + '</div>',
+                    '<p class="price-review-message reviews-mobile-message' + (isExpanded ? '' : ' is-collapsed') + '">' + escapeHtml(review.message) + '</p>',
+                    '<button class="price-review-expand" type="button" hidden>' + (isExpanded ? "收起" : "展开全文") + '</button>',
+                    '<div class="price-review-actions reviews-mobile-actions">',
+                        '<button class="price-review-action' + (interaction.userLiked ? ' is-liked' : '') + '" type="button" data-action="toggle-like">' +
+                            (interaction.userLiked ? "♥ 已赞" : "♡ 点赞") +
+                        '</button>',
+                        '<span class="price-review-count">' + escapeHtml(likeCountText) + '</span>',
+                        '<button class="price-review-action" type="button" data-action="toggle-comments">' +
+                            (interaction.commentsOpen ? "收起评论" : "评论") +
+                        '</button>',
+                        '<span class="price-review-count">' + escapeHtml(commentCountText) + '</span>',
+                    '</div>',
+                    interaction.commentsOpen ? renderComments(review.id, interaction) : '',
+                '</article>'
+            ].join("");
+        }
 
         if (isBossReviewsFullPageMode()) {
             const avatarText = getReviewAvatarText(review.nickname);
@@ -1575,7 +1691,7 @@
                 return;
             }
             renderReviews(currentReviews);
-            if (isBossReviewsFullPageMode()) {
+            if (isBossReviewsFullPageMode() || isBossReviewsMobileFullPageMode()) {
                 renderStats(currentReviews);
             }
         }).catch(function (error) {

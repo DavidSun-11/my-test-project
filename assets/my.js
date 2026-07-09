@@ -209,7 +209,11 @@
     }
 
     function isMobileViewport() {
-        return !!(window.matchMedia && window.matchMedia("(max-width: 768px)").matches);
+        if (!window.matchMedia) {
+            return (window.innerWidth || document.documentElement.clientWidth || 0) <= 768;
+        }
+
+        return window.matchMedia("(hover: none), (max-width: 768px)").matches;
     }
 
     function isSigned(status) {
@@ -765,7 +769,9 @@
         state.lastModalTrigger = null;
     }
 
-    async function openMobileMessages(trigger) {
+    async function openMobileMessagePopup(trigger) {
+        console.debug("[my-mobile-message] open");
+
         if (!nodes.modal || state.mobileMessageInFlight) {
             return;
         }
@@ -801,19 +807,57 @@
         }
     }
 
-    function bindMobileMessageEntry() {
-        if (!nodes.mobileMessageLink || nodes.mobileMessageLink.dataset.myMessageBound === "true") {
+    function closeMobileMessagePopup() {
+        closeModal();
+    }
+
+    async function openMobileMessages(trigger) {
+        return openMobileMessagePopup(trigger);
+    }
+
+    function handleMobileMessageEvent(event, trigger) {
+        if (!trigger) {
             return;
         }
 
-        nodes.mobileMessageLink.dataset.myMessageBound = "true";
-        nodes.mobileMessageLink.addEventListener("click", function (event) {
-            if (!isMobileViewport()) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (!isMobileViewport()) {
+            console.warn("[my-mobile-message] ignored: non-mobile viewport.");
+            return;
+        }
+
+        openMobileMessagePopup(trigger);
+    }
+
+    function bindMobileMessageEntry() {
+        if (document.documentElement.dataset.myMessageBound === "true") {
+            return;
+        }
+
+        document.documentElement.dataset.myMessageBound = "true";
+
+        if (nodes.mobileMessageLink) {
+            nodes.mobileMessageLink.dataset.myMessageBound = "true";
+        }
+
+        document.addEventListener("click", function (event) {
+            const trigger = event.target && event.target.closest ? event.target.closest("[data-my-mobile-message]") : null;
+            if (trigger) {
+                handleMobileMessageEvent(event, trigger);
+            }
+        });
+
+        document.addEventListener("keydown", function (event) {
+            if (event.key !== "Enter" && event.key !== " ") {
                 return;
             }
 
-            event.preventDefault();
-            openMobileMessages(nodes.mobileMessageLink);
+            const trigger = event.target && event.target.closest ? event.target.closest("[data-my-mobile-message]") : null;
+            if (trigger) {
+                handleMobileMessageEvent(event, trigger);
+            }
         });
     }
 
@@ -1075,7 +1119,7 @@
         if (nodes.modal) {
             nodes.modal.addEventListener("click", function (event) {
                 if (event.target === nodes.modal || event.target.closest("[data-my-modal-close]")) {
-                    closeModal();
+                    closeMobileMessagePopup();
                     return;
                 }
 
@@ -1105,7 +1149,7 @@
 
         document.addEventListener("keydown", function (event) {
             if (event.key === "Escape" && nodes.modal && !nodes.modal.hidden) {
-                closeModal();
+                closeMobileMessagePopup();
             }
         });
 

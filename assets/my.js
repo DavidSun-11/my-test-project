@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    const VERSION = "20260708-my-mobile-starlake-readability1";
+    const VERSION = "20260709-mobile-message-popup1";
     const BOSS_LOGIN_URL = "boss-register.html?mode=login&redirect=index";
     const BOSS_REGISTER_URL = "boss-register.html?mode=register&redirect=index";
     const AVATAR_BUCKET = "boss-avatars";
@@ -11,6 +11,24 @@
         "image/jpeg": true,
         "image/png": true,
         "image/webp": true
+    };
+    const MOBILE_MESSAGE_LIMIT = 8;
+    const MOBILE_MESSAGE_LOGIN_URL = "index.html?bossLogin=1";
+    const ORDER_MESSAGE_LABELS = {
+        pending: "你的预约已提交，正在等待君雪确认。",
+        confirmed: "你的预约已确认，请查看管理员批注。",
+        need_reschedule: "你的预约需要改期，请查看管理员批注。",
+        completed: "你的预约已完成。",
+        rejected: "你的预约已被拒绝，请查看管理员批注。",
+        cancelled: "你的预约已取消。"
+    };
+    const MANUAL_PAYMENT_LABELS = {
+        manual_unpaid: "待人工转账",
+        manual_paid: "已人工确认转账",
+        not_required: "无需补款",
+        voucher_reserved: "已锁定兑换券",
+        voucher_used: "已使用兑换券",
+        partial_voucher: "已用兑换券，仍需补款"
     };
 
     const state = {
@@ -23,6 +41,7 @@
         loadingToken: 0,
         checkinInFlight: false,
         checkinUnavailable: false,
+        mobileMessageInFlight: false,
         activeModal: "",
         lastModalTrigger: null
     };
@@ -60,7 +79,9 @@
         rewardPoints: $("[data-my-reward-points]"),
         checkinMessage: $("[data-my-checkin-message]"),
         actionNodes: $$("[data-my-action]"),
+        mobileMessageLink: $("[data-my-mobile-message]"),
         modal: $("[data-my-modal]"),
+        modalPanel: $("[data-my-modal] .my-modal-panel"),
         modalTitle: $("[data-my-modal-title]"),
         modalSubtitle: $("[data-my-modal-subtitle]"),
         modalBody: $("[data-my-modal-body]"),
@@ -155,6 +176,42 @@
         return year + "-" + month + "-" + day;
     }
 
+    function formatDateTime(value) {
+        if (!value) {
+            return "";
+        }
+
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) {
+            return "";
+        }
+
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        const hour = String(date.getHours()).padStart(2, "0");
+        const minute = String(date.getMinutes()).padStart(2, "0");
+        return year + "-" + month + "-" + day + " " + hour + ":" + minute;
+    }
+
+    function getOrderMessageTime(record) {
+        return (record && (record.processed_at || record.updated_at || record.created_at)) || "";
+    }
+
+    function getOrderMessageTimestamp(record) {
+        const value = getOrderMessageTime(record);
+        if (!value) {
+            return 0;
+        }
+
+        const time = new Date(value).getTime();
+        return Number.isNaN(time) ? 0 : time;
+    }
+
+    function isMobileViewport() {
+        return !!(window.matchMedia && window.matchMedia("(max-width: 768px)").matches);
+    }
+
     function isSigned(status) {
         return !!(status && (status.signedToday || status.alreadySigned));
     }
@@ -185,6 +242,16 @@
             code === "42703" ||
             code === "PGRST204" ||
             /boss-avatars|avatar_path|avatar_updated_at|storage|bucket|row-level security|violates row-level|not found|permission denied|policy|schema cache/i.test(message);
+    }
+
+    function isOrderMessageSetupError(error) {
+        const message = getErrorMessage(error);
+        const code = getErrorCode(error);
+
+        return code === "42P01" ||
+            code === "42883" ||
+            code === "PGRST202" ||
+            /boss_paid_orders|get_my_boss_paid_orders|schema cache|function .* does not exist|relation .* does not exist/i.test(message);
     }
 
     function normalizeNumber(value) {
@@ -469,6 +536,83 @@
         }).join("");
     }
 
+    function sortMessageRecords(records) {
+        return records.map(function (record, index) {
+            return {
+                index: index,
+                record: record,
+                time: getOrderMessageTimestamp(record)
+            };
+        }).sort(function (left, right) {
+            if (left.time || right.time) {
+                return right.time - left.time;
+            }
+            return left.index - right.index;
+        }).slice(0, MOBILE_MESSAGE_LIMIT).map(function (item) {
+            return item.record;
+        });
+    }
+
+    function renderMessageCards(records) {
+        const rows = sortMessageRecords(records || []).filter(function (record) {
+            return !!ORDER_MESSAGE_LABELS[record && record.order_status];
+        });
+
+        if (!rows.length) {
+            return "<div class=\"my-message-empty\">暂无消息</div>";
+        }
+
+        return "<div class=\"my-message-list\">" + rows.map(function (record) {
+            const status = record.order_status || "pending";
+            const paymentStatus = record.manual_payment_status || "";
+            const time = formatDateTime(getOrderMessageTime(record));
+            const meta = [
+                record.game_type || record.service_type ? escapeHtml([record.game_type, record.service_type].filter(Boolean).join(" / ")) : "",
+                time ? escapeHtml(time) : "",
+                paymentStatus && MANUAL_PAYMENT_LABELS[paymentStatus] ? escapeHtml(MANUAL_PAYMENT_LABELS[paymentStatus]) : "",
+                record.voucher_title ? "兑换券：" + escapeHtml(record.voucher_title) : ""
+            ].filter(Boolean).map(function (item) {
+                return "<span class=\"my-message-pill\">" + item + "</span>";
+            }).join("");
+            const adminNote = record.admin_note ? "<div class=\"my-message-note\">管理员批注：" + escapeHtml(record.admin_note) + "</div>" : "";
+            const paymentNote = record.payment_note ? "<div class=\"my-message-note\">人工转账备注：" + escapeHtml(record.payment_note) + "</div>" : "";
+
+            return [
+                "<article class=\"my-message-card\">",
+                    "<strong>" + escapeHtml(ORDER_MESSAGE_LABELS[status]) + "</strong>",
+                    meta ? "<div class=\"my-message-meta\">" + meta + "</div>" : "",
+                    adminNote,
+                    paymentNote,
+                "</article>"
+            ].join("");
+        }).join("") + "</div>";
+    }
+
+    function renderMessagesModal(body, subtitle, actions) {
+        setModalContent(
+            "星湖消息",
+            subtitle || "这里会显示最近的预约状态提醒。",
+            body || "<div class=\"my-message-empty\">暂无消息</div>",
+            actions || "<button class=\"my-button my-button--primary\" type=\"button\" data-my-modal-close>返回</button>"
+        );
+    }
+
+    function renderMessageLoginModal() {
+        renderMessagesModal(
+            "<div class=\"my-message-empty\">登录老板账号后，可以查看预约消息。</div>",
+            "登录后会按你的预约订单生成轻量提醒。",
+            "<button class=\"my-button\" type=\"button\" data-my-message-login>去登录</button><button class=\"my-button my-button--primary\" type=\"button\" data-my-modal-close>返回</button>"
+        );
+    }
+
+    function renderMessageLoadingModal() {
+        renderMessagesModal(
+            "<div class=\"my-message-empty\">正在读取预约消息...</div>",
+            "正在同步你的预约订单状态。",
+            "<button class=\"my-button my-button--primary\" type=\"button\" data-my-modal-close>返回</button>"
+        );
+    }
+
     function setModalContent(title, subtitle, body, actions) {
         setText(nodes.modalTitle, title);
         setText(nodes.modalSubtitle, subtitle);
@@ -575,6 +719,10 @@
         }
         if (state.activeModal === "settings") {
             renderSettingsModal();
+            return;
+        }
+        if (state.activeModal === "messages") {
+            return;
         }
     }
 
@@ -586,6 +734,10 @@
         state.activeModal = type;
         state.lastModalTrigger = trigger || document.activeElement;
         nodes.modal.hidden = false;
+        nodes.modal.classList.toggle("is-mobile-message", type === "messages");
+        if (nodes.modalPanel) {
+            nodes.modalPanel.classList.toggle("is-mobile-message-panel", type === "messages");
+        }
         updateOpenModal();
         document.body.classList.add("is-my-modal-open");
 
@@ -600,6 +752,10 @@
         }
 
         nodes.modal.hidden = true;
+        nodes.modal.classList.remove("is-mobile-message");
+        if (nodes.modalPanel) {
+            nodes.modalPanel.classList.remove("is-mobile-message-panel");
+        }
         document.body.classList.remove("is-my-modal-open");
         state.activeModal = "";
 
@@ -607,6 +763,58 @@
             state.lastModalTrigger.focus({ preventScroll: true });
         }
         state.lastModalTrigger = null;
+    }
+
+    async function openMobileMessages(trigger) {
+        if (!nodes.modal || state.mobileMessageInFlight) {
+            return;
+        }
+
+        if (!state.client || !state.session || !state.session.user) {
+            renderMessageLoginModal();
+            openModal("messages", trigger);
+            return;
+        }
+
+        state.mobileMessageInFlight = true;
+        renderMessageLoadingModal();
+        openModal("messages", trigger);
+
+        try {
+            const response = await state.client.rpc("get_my_boss_paid_orders", {});
+            if (response.error) {
+                throw response.error;
+            }
+
+            const records = Array.isArray(response.data) ? response.data : [];
+            renderMessagesModal(renderMessageCards(records));
+        } catch (error) {
+            if (isOrderMessageSetupError(error)) {
+                console.warn("[JunxueMy] mobile messages unavailable until paid order SQL is ready.");
+                renderMessagesModal("<div class=\"my-message-empty\">暂无消息</div>");
+            } else {
+                console.warn("[JunxueMy] mobile messages failed.");
+                renderMessagesModal("<div class=\"my-message-empty\">暂无消息</div>");
+            }
+        } finally {
+            state.mobileMessageInFlight = false;
+        }
+    }
+
+    function bindMobileMessageEntry() {
+        if (!nodes.mobileMessageLink || nodes.mobileMessageLink.dataset.myMessageBound === "true") {
+            return;
+        }
+
+        nodes.mobileMessageLink.dataset.myMessageBound = "true";
+        nodes.mobileMessageLink.addEventListener("click", function (event) {
+            if (!isMobileViewport()) {
+                return;
+            }
+
+            event.preventDefault();
+            openMobileMessages(nodes.mobileMessageLink);
+        });
     }
 
     function validateAvatarFile(file) {
@@ -797,6 +1005,7 @@
 
     onReady(function () {
         normalizeBossAuthLinks();
+        bindMobileMessageEntry();
 
         if (nodes.avatarImg) {
             nodes.avatarImg.addEventListener("error", function () {
@@ -885,6 +1094,11 @@
                     if (nodes.avatarInput) {
                         nodes.avatarInput.click();
                     }
+                    return;
+                }
+
+                if (event.target.closest("[data-my-message-login]")) {
+                    window.location.href = MOBILE_MESSAGE_LOGIN_URL;
                 }
             });
         }

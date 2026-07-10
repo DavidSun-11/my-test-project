@@ -1799,6 +1799,43 @@
                 color: #34336f;
             }
 
+            .my-message-card-head {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 10px;
+            }
+
+            .my-message-copy {
+                margin: 0;
+                color: rgba(47, 51, 104, 0.8);
+                font-size: 13px;
+                line-height: 1.58;
+            }
+
+            .my-message-read {
+                flex: 0 0 auto;
+                padding: 4px 8px;
+                border: 1px solid rgba(139, 151, 222, 0.22);
+                border-radius: 999px;
+                color: #69709f;
+                background: rgba(255, 255, 255, 0.58);
+                font-size: 11px;
+                font-weight: 700;
+            }
+
+            .my-message-card-actions {
+                display: flex;
+                justify-content: flex-end;
+                margin-top: 2px;
+            }
+
+            .my-message-card-actions .my-button {
+                min-height: 34px;
+                padding: 0 14px;
+                font-size: 12px;
+            }
+
             .my-message-pill {
                 border-color: rgba(140, 148, 221, 0.26);
                 color: #56618f;
@@ -1846,11 +1883,35 @@
             }
 
             .my-mobile-tabbar__icon {
+                position: relative;
                 display: grid;
                 place-items: center;
                 width: 30px;
                 height: 30px;
                 color: currentColor;
+            }
+
+            .my-mobile-tabbar__badge {
+                position: absolute;
+                top: -4px;
+                right: -7px;
+                display: grid;
+                place-items: center;
+                min-width: 16px;
+                height: 16px;
+                padding: 0 4px;
+                border: 2px solid rgba(255, 255, 255, 0.86);
+                border-radius: 999px;
+                color: #fff;
+                background: linear-gradient(135deg, #ff718f, #e65572);
+                box-shadow: 0 4px 10px rgba(205, 75, 113, 0.32);
+                font-size: 9px;
+                font-weight: 800;
+                line-height: 1;
+            }
+
+            .my-mobile-tabbar__badge[hidden] {
+                display: none;
             }
 
             .my-mobile-tabbar__icon svg {
@@ -2920,6 +2981,7 @@
                 <path d="M5.5 5.2h13A2.3 2.3 0 0 1 20.8 7.5v8.2a2.3 2.3 0 0 1-2.3 2.3h-8.1L6 20.5V18H5.5a2.3 2.3 0 0 1-2.3-2.3V7.5a2.3 2.3 0 0 1 2.3-2.3Z"></path>
                 <path d="M8 10h8M8 14h5"></path>
             </svg>
+            <span class="my-mobile-tabbar__badge" data-my-mobile-message-badge hidden>0</span>
         </span>
         <span>消息</span>
     </a>
@@ -2949,6 +3011,6 @@
 </div>
 
 <script src="assets/supabase-client.js?v=20260627-home-performance1"></script>
-<script src="assets/my.js?v=20260709-mobile-message-popup1"></script>
+<script src="assets/my.js?v=20260710-starlake-message-badge1"></script>
 </body>
 </html>

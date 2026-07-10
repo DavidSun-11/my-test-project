@@ -660,7 +660,7 @@
     function renderMessageLoadingModal() {
         setModalContent(
             "星湖消息",
-            "这里会汇总你的预约进度、兑换结果和每日签到提醒。",
+            "星湖有新动静，会轻轻提醒你。",
             renderMobileMessageLoading(),
             "<button class=\"my-button my-button--primary\" type=\"button\" data-my-modal-close>返回</button>"
         );

@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    const VERSION = "20260710-starlake-message-badge1";
+    const VERSION = "20260710-starlake-messages-render-fix1";
     const BOSS_LOGIN_URL = "boss-register.html?mode=login&redirect=index";
     const BOSS_REGISTER_URL = "boss-register.html?mode=register&redirect=index";
     const AVATAR_BUCKET = "boss-avatars";
@@ -33,6 +33,13 @@
         rejected: "已拒绝",
         cancelled: "已取消"
     };
+    const ORDER_PROGRESS_STATUSES = {
+        confirmed: true,
+        need_reschedule: true,
+        rejected: true,
+        completed: true,
+        cancelled: true
+    };
     const MANUAL_PAYMENT_LABELS = {
         manual_unpaid: "待人工转账",
         manual_paid: "已人工确认转账",
@@ -58,6 +65,12 @@
         mobileMessageRedemptions: [],
         mobileMessageOrdersLoaded: false,
         mobileMessageRedemptionsLoaded: false,
+        mobileMessageSources: {
+            checkin: "idle",
+            orders: "idle",
+            redemptions: "idle"
+        },
+        mobileMessageDiagnosticsLogged: false,
         mobileMessageReadState: {},
         activeModal: "",
         lastModalTrigger: null
@@ -337,6 +350,11 @@
     function renderLoggedOut() {
         setHidden(nodes.loggedOut, false);
         setHidden(nodes.app, true);
+        if (!state.mobileMessageDiagnosticsLogged) {
+            state.mobileMessageDiagnosticsLogged = true;
+            console.debug("[star-lake-messages] init");
+            console.debug("[star-lake-messages] user logged in:", false);
+        }
         if (nodes.mobileMessageBadge) {
             nodes.mobileMessageBadge.hidden = true;
         }
@@ -476,8 +494,11 @@
             }
 
             state.checkinUnavailable = false;
+            state.mobileMessageSources.checkin = "success";
             renderCheckinStatus(normalizeCheckinRow(response.data), message);
         } catch (error) {
+            state.mobileMessageSources.checkin = "error";
+            console.warn("[star-lake-messages] query failed: checkin unavailable.");
             if (isCheckinSetupError(error)) {
                 state.checkinUnavailable = true;
                 renderCheckinStatus(null, "签到功能还需要执行数据库升级 SQL。");
@@ -637,9 +658,10 @@
     }
 
     function renderMessageLoadingModal() {
-        renderMessagesModal(
-            "<div class=\"my-message-empty\">正在读取预约消息...</div>",
-            "正在同步你的预约订单状态。",
+        setModalContent(
+            "星湖消息",
+            "这里会汇总你的预约进度、兑换结果和每日签到提醒。",
+            renderMobileMessageLoading(),
             "<button class=\"my-button my-button--primary\" type=\"button\" data-my-modal-close>返回</button>"
         );
     }
@@ -669,9 +691,11 @@
                 throw response.error;
             }
             state.mobileMessageOrders = Array.isArray(response.data) ? response.data : [];
+            state.mobileMessageSources.orders = "success";
         } catch (error) {
             state.mobileMessageOrders = [];
-            console.warn("[JunxueMy] appointment reminders are temporarily unavailable.");
+            state.mobileMessageSources.orders = "error";
+            console.warn("[star-lake-messages] query failed: appointments unavailable.");
         } finally {
             state.mobileMessageOrdersLoaded = true;
         }
@@ -684,9 +708,11 @@
                 throw response.error;
             }
             state.mobileMessageRedemptions = Array.isArray(response.data) ? response.data : [];
+            state.mobileMessageSources.redemptions = "success";
         } catch (error) {
             state.mobileMessageRedemptions = [];
-            console.warn("[JunxueMy] redemption reminders are temporarily unavailable.");
+            state.mobileMessageSources.redemptions = "error";
+            console.warn("[star-lake-messages] query failed: redemptions unavailable.");
         } finally {
             state.mobileMessageRedemptionsLoaded = true;
         }
@@ -769,7 +795,7 @@
 
         if (checkinStatus && !state.checkinUnavailable && !isSigned(checkinStatus)) {
             messages.push({
-                key: makeMobileMessageKey("checkin", [getShanghaiDate()]),
+                key: "checkin-missing-" + getShanghaiDate(),
                 type: "checkin",
                 title: "今日还没有签到",
                 description: "去星湖签到，领取今天的积分吧。",
@@ -781,7 +807,7 @@
 
         if (state.mobileMessageOrdersLoaded) {
             (state.mobileMessageOrders || []).filter(function (record) {
-                return !!(record && ORDER_STATUS_LABELS[record.order_status] && isRecentMobileMessageRecord(record));
+                return !!(record && ORDER_PROGRESS_STATUSES[record.order_status] && isRecentMobileMessageRecord(record));
             }).forEach(function (record) {
                 const status = record.order_status || "pending";
                 const recordTime = getOrderMessageTime(record);
@@ -840,17 +866,49 @@
         });
     }
 
+    function areMobileMessageSourcesLoading() {
+        return Object.keys(state.mobileMessageSources).some(function (source) {
+            const status = state.mobileMessageSources[source];
+            return status === "idle" || status === "loading";
+        });
+    }
+
+    function getMobileMessageFailedSources() {
+        return Object.keys(state.mobileMessageSources).filter(function (source) {
+            return state.mobileMessageSources[source] === "error";
+        });
+    }
+
+    function logMobileMessageDiagnostics(messages, mode) {
+        if (state.mobileMessageDiagnosticsLogged || mode !== "final") {
+            return;
+        }
+
+        state.mobileMessageDiagnosticsLogged = true;
+        console.debug("[star-lake-messages] init");
+        console.debug("[star-lake-messages] user logged in:", !!(state.session && state.session.user));
+        console.debug("[star-lake-messages] checkin reminder:", messages.some(function (message) { return message.type === "checkin"; }));
+        console.debug("[star-lake-messages] appointments count:", state.mobileMessageOrders.length);
+        console.debug("[star-lake-messages] redeem messages count:", messages.filter(function (message) { return message.type === "redemption"; }).length);
+        console.debug("[star-lake-messages] render messages count:", messages.length);
+        if (!messages.length) {
+            console.debug("[star-lake-messages] render empty");
+        }
+    }
+
     function updateMobileMessageBadge() {
         const messages = buildMobileMessageItems();
         const unreadCount = messages.filter(function (message) { return !message.read; }).length;
+        const hasActiveCheckinReminder = messages.some(function (message) { return message.type === "checkin"; });
+        const badgeCount = Math.max(unreadCount, hasActiveCheckinReminder ? 1 : 0);
 
         if (nodes.mobileMessageBadge) {
-            nodes.mobileMessageBadge.hidden = unreadCount === 0;
-            nodes.mobileMessageBadge.textContent = unreadCount > 9 ? "9+" : String(unreadCount);
+            nodes.mobileMessageBadge.hidden = badgeCount === 0;
+            nodes.mobileMessageBadge.textContent = badgeCount > 9 ? "9+" : String(badgeCount);
         }
         if (nodes.mobileMessageLink) {
-            nodes.mobileMessageLink.classList.toggle("has-unread", unreadCount > 0);
-            nodes.mobileMessageLink.setAttribute("aria-label", unreadCount > 0 ? "消息，有未读提醒" : "消息");
+            nodes.mobileMessageLink.classList.toggle("has-unread", badgeCount > 0);
+            nodes.mobileMessageLink.setAttribute("aria-label", badgeCount > 0 ? "消息，有未读提醒" : "消息");
         }
 
         return messages;
@@ -874,12 +932,32 @@
         return "<div class=\"my-message-empty\"><strong>星湖暂时很安静</strong><span>新的预约、兑换和签到提醒，会在这里慢慢出现。</span></div>";
     }
 
+    function renderMobileMessageLoading() {
+        return "<div class=\"my-message-empty is-loading\"><strong>正在同步星湖消息...</strong><span>正在读取预约、兑换和每日签到提醒。</span></div>";
+    }
+
+    function renderMobileMessageFailure() {
+        return "<div class=\"my-message-empty is-warning\"><strong>星湖消息暂时没有同步完成</strong><span>已显示可以确认的提醒，稍后再试一次吧。</span></div>";
+    }
+
+    function renderMobileMessagePartialFailure() {
+        const failedSources = getMobileMessageFailedSources();
+        if (!failedSources.length) {
+            return "";
+        }
+        return "<div class=\"my-message-sync-note\">部分消息同步失败，已显示可以确认的提醒。</div>";
+    }
+
     function renderMobileMessageCards(messages) {
-        if (!messages.length) {
-            return renderMobileMessageEmpty();
+        if (areMobileMessageSourcesLoading()) {
+            return renderMobileMessageLoading();
         }
 
-        return "<div class=\"my-message-list\">" + messages.map(function (message) {
+        if (!messages.length) {
+            return getMobileMessageFailedSources().length ? renderMobileMessageFailure() : renderMobileMessageEmpty();
+        }
+
+        const content = "<div class=\"my-message-list\">" + messages.map(function (message) {
             const time = formatDateTime(getOrderMessageTime(message));
             const meta = [];
             const notes = [];
@@ -924,14 +1002,18 @@
                     "<div class=\"my-message-card-actions\"><button class=\"my-button my-button--primary\" type=\"button\" data-my-message-action=\"" + escapeHtml(message.action) + "\">" + escapeHtml(message.actionLabel) + "</button></div>",
                 "</article>"
             ].join("");
-        }).join("") + "</div>";
+        }).join("") + renderMobileMessagePartialFailure() + "</div>";
+
+        return content;
     }
 
     function renderStarlakeMessagesModal(messages) {
+        const renderedMessages = messages || [];
+        logMobileMessageDiagnostics(renderedMessages, areMobileMessageSourcesLoading() ? "loading" : "final");
         setModalContent(
             "星湖消息",
             "这里会汇总你的预约进度、兑换结果和每日签到提醒。",
-            renderMobileMessageCards(messages || []),
+            renderMobileMessageCards(renderedMessages),
             "<button class=\"my-button my-button--primary\" type=\"button\" data-my-modal-close>返回</button>"
         );
     }
@@ -1321,6 +1403,13 @@
         state.loadingToken = token;
         setAvatarStatus("正在读取星湖资料...");
         setCheckinMessage("正在读取签到状态...");
+        state.mobileMessageSources.checkin = "loading";
+        state.mobileMessageSources.orders = "loading";
+        state.mobileMessageSources.redemptions = "loading";
+        state.mobileMessageOrdersLoaded = false;
+        state.mobileMessageRedemptionsLoaded = false;
+        state.mobileMessageOrders = [];
+        state.mobileMessageRedemptions = [];
 
         state.mobileMessageLoadPromise = Promise.allSettled([
             loadProfile(),
@@ -1333,6 +1422,8 @@
             return;
         }
         updateMobileMessageBadge();
+        refreshOpenStarlakeMessages();
+        logMobileMessageDiagnostics(buildMobileMessageItems(), "final");
         if (nodes.avatarStatus && nodes.avatarStatus.textContent === "正在读取星湖资料...") {
             setAvatarStatus("");
         }

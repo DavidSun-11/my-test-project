@@ -1749,7 +1749,12 @@
             }
 
             .my-modal-panel.is-mobile-message-panel {
+                width: min(100%, calc(100vw - 24px));
+                min-width: 0;
                 max-height: min(72vh, 520px);
+                display: grid;
+                grid-template-columns: minmax(0, 1fr);
+                grid-template-rows: auto minmax(0, 1fr) auto;
                 border-radius: 24px;
             }
 
@@ -1768,26 +1773,75 @@
             }
 
             .my-modal.is-mobile-message .my-modal-head {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) 42px;
+                align-items: start;
+                gap: 12px;
                 padding: 20px 18px 10px;
             }
 
+            .my-modal.is-mobile-message .my-modal-head > div,
+            .my-modal.is-mobile-message .my-modal-title,
+            .my-modal.is-mobile-message .my-modal-subtitle,
+            .my-modal.is-mobile-message .my-modal-body,
+            .my-modal.is-mobile-message .my-message-list,
+            .my-modal.is-mobile-message .my-message-card {
+                width: 100%;
+                min-width: 0;
+                max-width: none;
+            }
+
+            .my-modal.is-mobile-message .my-modal-title,
+            .my-modal.is-mobile-message .my-modal-subtitle,
+            .my-modal.is-mobile-message .my-message-copy,
+            .my-modal.is-mobile-message .my-message-note {
+                overflow-wrap: anywhere;
+                word-break: normal;
+                writing-mode: horizontal-tb;
+            }
+
+            .my-modal.is-mobile-message .my-modal-close {
+                width: 42px;
+                min-width: 42px;
+                height: 42px;
+                margin: 0;
+            }
+
             .my-modal.is-mobile-message .my-modal-body {
+                min-height: 0;
+                overflow: hidden;
                 padding: 8px 18px 14px;
             }
 
             .my-modal.is-mobile-message .my-modal-actions {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr);
+                width: 100%;
                 padding: 0 18px calc(18px + env(safe-area-inset-bottom) * 0.4);
             }
 
-            .my-message-list {
+            .my-modal.is-mobile-message .my-modal-actions .my-button {
+                width: 100%;
+                min-width: 0;
+            }
+
+            .my-modal.is-mobile-message .my-message-list {
+                width: 100%;
+                min-width: 0;
                 max-height: min(48vh, 360px);
+                display: grid;
+                grid-template-columns: minmax(0, 1fr);
                 overflow-y: auto;
                 overflow-x: hidden;
                 padding-right: 2px;
                 -webkit-overflow-scrolling: touch;
             }
 
-            .my-message-card {
+            .my-modal.is-mobile-message .my-message-card {
+                width: 100%;
+                min-width: 0;
+                display: grid;
+                grid-template-columns: minmax(0, 1fr);
                 border-color: rgba(149, 162, 229, 0.26);
                 background:
                     linear-gradient(145deg, rgba(255, 255, 255, 0.72), rgba(238, 245, 255, 0.56)),
@@ -1804,6 +1858,12 @@
                 align-items: center;
                 justify-content: space-between;
                 gap: 10px;
+                min-width: 0;
+            }
+
+            .my-message-card-head strong {
+                min-width: 0;
+                overflow-wrap: anywhere;
             }
 
             .my-message-copy {
@@ -1847,10 +1907,33 @@
             }
 
             .my-message-empty {
+                width: 100%;
+                min-width: 0;
+                display: grid;
+                gap: 8px;
                 min-height: 116px;
                 border-color: rgba(139, 151, 222, 0.28);
                 color: #69709f;
                 background: rgba(255, 255, 255, 0.5);
+            }
+
+            .my-message-empty.is-loading {
+                color: #59669d;
+            }
+
+            .my-message-empty.is-warning,
+            .my-message-sync-note {
+                border: 1px solid rgba(231, 166, 125, 0.28);
+                color: #9a6a70;
+                background: rgba(255, 247, 239, 0.58);
+            }
+
+            .my-message-sync-note {
+                margin-top: 10px;
+                padding: 10px 12px;
+                border-radius: 14px;
+                font-size: 12px;
+                line-height: 1.5;
             }
 
             .my-mobile-tabbar {
@@ -3011,6 +3094,6 @@
 </div>
 
 <script src="assets/supabase-client.js?v=20260627-home-performance1"></script>
-<script src="assets/my.js?v=20260710-starlake-message-badge1"></script>
+<script src="assets/my.js?v=20260710-starlake-messages-render-fix1"></script>
 </body>
 </html>

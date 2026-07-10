@@ -1,6 +1,6 @@
 /* Live2D 轻量启动脚本：首屏只保留开场提示、点击入口和懒加载控制。 */
 (function () {
-    const version = "20260703-score-guess-voters-modal1";
+    const version = "20260710-ganyu-boss-name1";
     if (typeof window.JunxueLive2DDebugLog !== "function") {
         window.__JUNXUE_LIVE2D_DEBUG__ = window.__JUNXUE_LIVE2D_DEBUG__ || [];
         window.JunxueLive2DDebugLog = function (message, detail) {
@@ -31,7 +31,8 @@
 
     window.__JUNXUE_LIVE2D_INTERACTIONS_INSTALLED__ = true;
 
-    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260703-score-guess-voters-modal1";
+    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260710-ganyu-boss-name1";
+    const BOSS_NAME_FALLBACK = "旅行者";
     if (typeof window.enableGanyuMemory !== "boolean") {
         window.enableGanyuMemory = true;
     }
@@ -42,7 +43,6 @@
         lastVisitAt: "ganyuLastVisitAt",
         lastSeenDate: "ganyuLastSeenDate",
         streakDays: "ganyuStreakDays",
-        userName: "ganyuUserName",
         favoriteCity: "ganyuFavoriteCity",
         cityHistory: "ganyuCityHistory",
         lastSongTitle: "ganyuLastSongTitle",
@@ -134,17 +134,32 @@
     let bootstrapReady = false;
     let openingBubble = null;
     let companionBubble = null;
-    let namePrompt = null;
     let idleTalkTimer = null;
     let hitArea = null;
     let memoryMessage = "";
+    let currentMemoryState = null;
     let memoryPending = false;
     let memoryShownThisPage = false;
     let memoryAttempts = 0;
-    let namePromptPending = false;
-    let namePromptAttempts = 0;
+    let bossNameRefreshTimer = 0;
+    let bossNameAuthListenerBound = false;
+    let currentBossNameUserId = "";
     let lastDragStartDialogueAt = 0;
     let popupSyncFrame = 0;
+    const bossNameState = window.JunxueGanyuBossNameState || {
+        displayName: BOSS_NAME_FALLBACK,
+        loading: false,
+        loaded: false,
+        refreshPromise: null,
+        updatedAt: 0
+    };
+
+    bossNameState.displayName = sanitizeBossDisplayName(bossNameState.displayName) || BOSS_NAME_FALLBACK;
+    bossNameState.loading = !!bossNameState.loading;
+    bossNameState.loaded = !!bossNameState.loaded;
+    bossNameState.refreshPromise = bossNameState.refreshPromise || null;
+    bossNameState.updatedAt = Number(bossNameState.updatedAt) || 0;
+    window.JunxueGanyuBossNameState = bossNameState;
     const boundNodes = new WeakSet();
     const live2dBindSelectors = [
         "#oml2d-stage",
@@ -376,14 +391,7 @@
             ".live2d-quiz-exit-bubble.is-fading{opacity:0;transform:translateY(-6px);}",
             ".live2d-companion-bubble{display:none!important;}",
             "#oml2d-tips{display:none!important;}",
-            ".live2d-name-prompt{position:fixed;left:252px;top:160px;z-index:64;width:min(328px,calc(100vw - 32px));padding:14px;border:1px solid rgba(213,244,255,.78);border-radius:16px;background:linear-gradient(145deg,rgba(255,182,220,.74),rgba(132,221,255,.6));box-shadow:0 0 20px rgba(126,219,255,.26),0 0 16px rgba(255,142,196,.22),inset 0 0 14px rgba(255,255,255,.14);backdrop-filter:blur(10px);color:rgba(48,32,72,.96);font-size:14px;line-height:1.55;letter-spacing:0;opacity:0;transform:translateY(8px);transition:opacity .35s ease,transform .35s ease;pointer-events:auto;}",
-            ".live2d-name-prompt.is-open{opacity:1;transform:translateY(0);}",
-            ".live2d-name-prompt__title{margin:0 0 10px;font-weight:700;text-shadow:0 0 8px rgba(255,255,255,.42);}",
-            ".live2d-name-prompt__form{display:grid;gap:10px;}",
-            ".live2d-name-prompt__input{width:100%;box-sizing:border-box;border:1px solid rgba(213,244,255,.68);border-radius:12px;background:rgba(6,22,44,.45);color:rgba(255,255,255,.96);padding:10px 12px;font:inherit;outline:none;}",
-            ".live2d-name-prompt__input::placeholder{color:rgba(234,252,255,.62);}",
-            ".live2d-name-prompt__button{border:1px solid rgba(120,229,255,.62);border-radius:999px;background:rgba(6,22,44,.7);color:rgba(234,252,255,.96);font-weight:700;min-height:34px;cursor:pointer;box-shadow:0 0 12px rgba(0,190,255,.18),inset 0 0 8px rgba(255,255,255,.08);}",
-            "@media (max-width:768px){.live2d-opening-bubble,.live2d-quiz-exit-bubble,.live2d-name-prompt{width:min(92vw,320px);max-width:calc(100vw - 24px);font-size:13px;box-sizing:border-box;}.live2d-name-prompt__input,.live2d-name-prompt__button{width:100%;min-width:0;box-sizing:border-box;}.live2d-name-prompt__button{min-height:40px;white-space:nowrap;}body.keyboard-open .live2d-opening-bubble,body.keyboard-open .live2d-quiz-exit-bubble,body.keyboard-open .live2d-name-prompt{left:50%!important;right:auto!important;top:max(12px,env(safe-area-inset-top))!important;bottom:auto!important;width:min(92vw,320px)!important;max-width:calc(100vw - 24px)!important;max-height:min(54vh,320px);overflow:auto;transform:translateX(-50%)!important;}body.keyboard-open .live2d-name-prompt__form{grid-template-columns:1fr;}}"
+            "@media (max-width:768px){.live2d-opening-bubble,.live2d-quiz-exit-bubble{width:min(92vw,320px);max-width:calc(100vw - 24px);font-size:13px;box-sizing:border-box;}body.keyboard-open .live2d-opening-bubble,body.keyboard-open .live2d-quiz-exit-bubble{left:50%!important;right:auto!important;top:max(12px,env(safe-area-inset-top))!important;bottom:auto!important;width:min(92vw,320px)!important;max-width:calc(100vw - 24px)!important;max-height:min(54vh,320px);overflow:auto;transform:translateX(-50%)!important;}}"
         ].join("");
         document.head.appendChild(style);
     }
@@ -407,27 +415,6 @@
         bubble.setAttribute("aria-live", "polite");
         document.body.appendChild(bubble);
         return bubble;
-    }
-
-    function createNamePrompt() {
-        ensureOpeningBubbleStyles();
-
-        const prompt = document.createElement("div");
-        prompt.className = "live2d-name-prompt";
-        prompt.setAttribute("aria-live", "polite");
-        prompt.innerHTML = [
-            '<p class="live2d-name-prompt__title">我该怎么称呼你呢？</p>',
-            '<form class="live2d-name-prompt__form">',
-                '<input class="live2d-name-prompt__input" type="text" name="ganyuUserName" placeholder="请输入你的昵称" maxlength="20" autocomplete="nickname">',
-                '<button class="live2d-name-prompt__button" type="submit">告诉甘雨</button>',
-            '</form>'
-        ].join("");
-        document.body.appendChild(prompt);
-        prompt.querySelector("form").addEventListener("submit", function (event) {
-            event.preventDefault();
-            saveGanyuUserName(prompt.querySelector("input").value);
-        });
-        return prompt;
     }
 
     function getLive2DRect() {
@@ -571,7 +558,7 @@
     }
 
     function syncCompanionBubblePosition() {
-        syncNamePromptPosition();
+        syncOpeningBubblePosition();
     }
 
     function schedulePopupPositionSync() {
@@ -583,16 +570,6 @@
             popupSyncFrame = 0;
             syncOpeningBubblePosition();
         });
-    }
-
-    function syncNamePromptPosition() {
-        if (namePrompt && namePrompt.classList.contains("is-open")) {
-            positionLive2DPopup(namePrompt, {
-                width: 328,
-                height: 150,
-                offsetY: 62
-            });
-        }
     }
 
     function pickRandomItem(items) {
@@ -641,8 +618,160 @@
         return Number.isFinite(number) && number > 0 ? number : fallback;
     }
 
-    function getGanyuUserName() {
-        return readStorage(memoryStorageKeys.userName).trim();
+    function sanitizeBossDisplayName(value) {
+        return String(value || "").trim().slice(0, 20);
+    }
+
+    function getGanyuBossDisplayName() {
+        return sanitizeBossDisplayName(bossNameState.displayName) || BOSS_NAME_FALLBACK;
+    }
+
+    function setGanyuBossDisplayName(displayName, userId) {
+        const nextName = sanitizeBossDisplayName(displayName) || BOSS_NAME_FALLBACK;
+
+        bossNameState.displayName = nextName;
+        bossNameState.loaded = true;
+        bossNameState.loading = false;
+        bossNameState.updatedAt = Date.now();
+        currentBossNameUserId = userId || "";
+
+        if (currentMemoryState && !memoryShownThisPage) {
+            memoryMessage = buildGanyuMemoryMessage(currentMemoryState);
+        }
+
+        window.dispatchEvent(new CustomEvent("junxue-ganyu-boss-name-changed", {
+            detail: {
+                displayName: nextName
+            }
+        }));
+    }
+
+    function resetGanyuBossDisplayName() {
+        setGanyuBossDisplayName(BOSS_NAME_FALLBACK, "");
+    }
+
+    function loadScriptOnce(src) {
+        return new Promise(function (resolve, reject) {
+            const existing = Array.prototype.find.call(document.scripts, function (script) {
+                return script.getAttribute("src") === src;
+            });
+
+            if (existing) {
+                if (existing.dataset.loaded === "true" || window.JunxueSupabaseClient) {
+                    resolve();
+                    return;
+                }
+
+                existing.addEventListener("load", resolve, { once: true });
+                existing.addEventListener("error", reject, { once: true });
+                return;
+            }
+
+            const script = document.createElement("script");
+
+            script.src = src;
+            script.async = true;
+            script.onload = function () {
+                script.dataset.loaded = "true";
+                resolve();
+            };
+            script.onerror = function () {
+                reject(new Error("script-load-failed"));
+            };
+            document.head.appendChild(script);
+        });
+    }
+
+    async function getGanyuSupabaseClient() {
+        if (!window.JunxueSupabaseClient || typeof window.JunxueSupabaseClient.getClient !== "function") {
+            await loadScriptOnce("assets/supabase-client.js?v=20260627-home-performance1").catch(function () {});
+        }
+
+        if (!window.JunxueSupabaseClient || typeof window.JunxueSupabaseClient.getClient !== "function") {
+            return null;
+        }
+
+        return await window.JunxueSupabaseClient.getClient();
+    }
+
+    function scheduleBossNameRefresh() {
+        window.clearTimeout(bossNameRefreshTimer);
+        bossNameRefreshTimer = window.setTimeout(function () {
+            refreshGanyuBossDisplayName(true).catch(function () {});
+        }, 120);
+    }
+
+    function bindBossNameAuthListener(client) {
+        if (bossNameAuthListenerBound || !client || !client.auth || typeof client.auth.onAuthStateChange !== "function") {
+            return;
+        }
+
+        bossNameAuthListenerBound = true;
+        client.auth.onAuthStateChange(function (event) {
+            if (event === "SIGNED_OUT") {
+                resetGanyuBossDisplayName();
+                return;
+            }
+
+            scheduleBossNameRefresh();
+        });
+    }
+
+    async function refreshGanyuBossDisplayName(force) {
+        if (bossNameState.refreshPromise && !force) {
+            return bossNameState.refreshPromise;
+        }
+
+        bossNameState.loading = true;
+        bossNameState.refreshPromise = (async function () {
+            try {
+                const client = await getGanyuSupabaseClient();
+
+                if (!client || !client.auth || typeof client.auth.getSession !== "function") {
+                    resetGanyuBossDisplayName();
+                    return getGanyuBossDisplayName();
+                }
+
+                bindBossNameAuthListener(client);
+
+                const sessionResponse = await client.auth.getSession();
+                if (sessionResponse.error) {
+                    throw sessionResponse.error;
+                }
+
+                const session = sessionResponse.data ? sessionResponse.data.session : null;
+                const user = session && session.user ? session.user : null;
+                if (!user || !user.id) {
+                    resetGanyuBossDisplayName();
+                    return getGanyuBossDisplayName();
+                }
+
+                if (!force && currentBossNameUserId === user.id && sanitizeBossDisplayName(bossNameState.displayName) && bossNameState.loaded) {
+                    return getGanyuBossDisplayName();
+                }
+
+                const response = await client
+                    .from("boss_profiles")
+                    .select("display_name")
+                    .eq("user_id", user.id)
+                    .maybeSingle();
+
+                if (response.error) {
+                    throw response.error;
+                }
+
+                setGanyuBossDisplayName(response.data && response.data.display_name, user.id);
+                return getGanyuBossDisplayName();
+            } catch (error) {
+                resetGanyuBossDisplayName();
+                return getGanyuBossDisplayName();
+            } finally {
+                bossNameState.loading = false;
+                bossNameState.refreshPromise = null;
+            }
+        }());
+
+        return bossNameState.refreshPromise;
     }
 
     function getFavoriteCityFromHistory() {
@@ -939,31 +1068,23 @@
 
         let baseLine = "";
         const count = memoryState.visitCount;
-        const userName = getGanyuUserName();
+        const displayName = getGanyuBossDisplayName();
 
         if (count === 1) {
-            baseLine = "你好呀，我是甘雨。\n以后这里也会记得你来过哦。";
+            baseLine = "你好呀，" + displayName + "，我是甘雨。\n以后这里也会记得你来过哦。";
         } else if (count === 2) {
-            baseLine = userName ? "欢迎回来，" + userName + "。\n能再见到你，我很开心。" : "又见面了呢。\n能再见到你，我很开心。";
+            baseLine = "欢迎回来，" + displayName + "。\n能再见到你，我很开心。";
         } else if (count < 10) {
-            baseLine = userName ? pickRandomItem([
-                "今天也见到你了呢，" + userName + "。",
-                "欢迎回来，" + userName + "。",
-                "最近常常能见到你，" + userName + "。"
-            ]) : pickRandomItem([
-                "今天也来了呢。",
-                "最近常常能见到你。",
-                "这里已经开始有你的气息了。"
+            baseLine = pickRandomItem([
+                "今天也见到你了呢，" + displayName + "。",
+                "欢迎回来，" + displayName + "。",
+                "最近常常能见到你，" + displayName + "。"
             ]);
         } else {
-            baseLine = userName ? pickRandomItem([
-                "已经见过你很多次了呢，" + userName + "。",
-                "能陪你这么久，我很开心，" + userName + "。",
-                "欢迎回来，" + userName + "，这里一直为你留着位置。"
-            ]) : pickRandomItem([
-                "已经见过你很多次了呢。",
-                "能陪你这么久，我很开心。",
-                "欢迎回来，这里一直为你留着位置。"
+            baseLine = pickRandomItem([
+                "已经见过你很多次了呢，" + displayName + "。",
+                "能陪你这么久，我很开心，" + displayName + "。",
+                "欢迎回来，" + displayName + "，这里一直为你留着位置。"
             ]);
         }
 
@@ -1020,7 +1141,6 @@
             !!document.querySelector(".live2d-opening-bubble.is-open,.live2d-opening-bubble.is-fading") ||
             !!document.querySelector(".live2d-quiz-exit-bubble.is-open,.live2d-quiz-exit-bubble.is-fading") ||
             !!document.querySelector(".live2d-companion-bubble.is-open,.live2d-companion-bubble.is-fading") ||
-            !!document.querySelector(".live2d-name-prompt.is-open") ||
             !!(openingBubble && openingBubble.textContent) ||
             !!(companionBubble && companionBubble.textContent);
     }
@@ -1071,103 +1191,8 @@
         window.setTimeout(tryShowGanyuMemory, delay || 6500 + Math.random() * 1500);
     }
 
-    function hideNamePrompt() {
-        if (!namePrompt) {
-            return;
-        }
-
-        namePrompt.classList.remove("is-open");
-    }
-
-    function saveGanyuUserName(value) {
-        const nextName = String(value || "").trim().slice(0, 20);
-
-        if (!nextName) {
-            if (namePrompt) {
-                const input = namePrompt.querySelector("input");
-
-                if (input) {
-                    input.focus();
-                }
-            }
-            return;
-        }
-
-        writeStorage(memoryStorageKeys.userName, nextName);
-        hideNamePrompt();
-        showCompanionBubble("我记住了，" + nextName + "。\n以后见面，我就这样称呼你。", "", 5600);
-    }
-
-    function canShowNamePrompt(force) {
-        return window.enableGanyuMemory !== false &&
-            (force || getStoredVisitCount() >= 2) &&
-            (force || !getGanyuUserName()) &&
-            !document.documentElement.classList.contains("performance-low") &&
-            hasVisibleLive2D() &&
-            !isGanyuInteractionBusy();
-    }
-
-    function showNamePrompt(force) {
-        if (window.enableGanyuMemory === false) {
-            namePromptPending = false;
-            return;
-        }
-
-        if (!force && (getStoredVisitCount() < 2 || getGanyuUserName())) {
-            namePromptPending = false;
-            return;
-        }
-
-        if (document.documentElement.classList.contains("performance-low") || document.body.classList.contains("live2d-hidden")) {
-            namePromptPending = false;
-            return;
-        }
-
-        if (!canShowNamePrompt(force)) {
-            namePromptAttempts += 1;
-
-            if (namePromptAttempts <= memoryMaxAttempts) {
-                namePromptPending = true;
-                window.setTimeout(function () {
-                    showNamePrompt(force);
-                }, memoryRetryDelay);
-                return;
-            }
-
-            namePromptPending = false;
-            return;
-        }
-
-        if (!namePrompt) {
-            namePrompt = createNamePrompt();
-        }
-
-        namePromptPending = false;
-        positionLive2DPopup(namePrompt, {
-            width: 328,
-            height: 150,
-            offsetY: 62
-        });
-        namePrompt.classList.add("is-open");
-        window.setTimeout(function () {
-            const input = namePrompt.querySelector("input");
-
-            if (input) {
-                input.value = getGanyuUserName();
-                input.focus();
-            }
-        }, 80);
-    }
-
-    function scheduleNamePrompt(delay) {
-        if (getGanyuUserName() || getStoredVisitCount() < 2 || window.enableGanyuMemory === false) {
-            return;
-        }
-
-        namePromptPending = true;
-        window.setTimeout(function () {
-            showNamePrompt(false);
-        }, delay || 9000 + Math.random() * 1800);
+    function showBossNamePromptNotice() {
+        showCompanionBubble("以后我会跟随老板账号昵称称呼你哦。", "", 4600);
     }
 
     function recordFeature(name) {
@@ -1212,8 +1237,10 @@
 
     function resetAllMemory() {
         try {
+            const legacyNameKey = "ganyu" + "UserName";
+
             Object.keys(localStorage).forEach(function (key) {
-                if (key.indexOf("ganyu") === 0) {
+                if (key.indexOf("ganyu") === 0 && key !== legacyNameKey) {
                     localStorage.removeItem(key);
                 }
             });
@@ -1222,7 +1249,6 @@
         memoryMessage = "";
         memoryPending = false;
         memoryShownThisPage = true;
-        hideNamePrompt();
         showCompanionBubble("我明白了。不过，如果你愿意，我们还可以重新开始。", "", 5600);
     }
 
@@ -1232,7 +1258,6 @@
         const lastVisitAt = readStorage(memoryStorageKeys.lastVisitAt);
 
         return {
-            userName: getGanyuUserName(),
             visitCount: visitCount,
             streakDays: getNumericStorage(memoryStorageKeys.streakDays, 1),
             daysKnown: getDaysKnown(firstVisitAt),
@@ -1250,7 +1275,6 @@
     function canShowCompanionIdle() {
         return window.enableGanyuIdleTalk !== false &&
             !memoryPending &&
-            !namePromptPending &&
             !document.hidden &&
             !document.querySelector(".live2d-quiz.is-open") &&
             !(openingBubble && openingBubble.textContent) &&
@@ -1572,13 +1596,14 @@
         window.setTimeout(syncOpeningBubblePosition, 500);
         window.setTimeout(syncOpeningBubblePosition, 1500);
         window.setTimeout(syncOpeningBubblePosition, 3000);
-        memoryMessage = buildGanyuMemoryMessage(countGanyuVisitOnce());
+        currentMemoryState = countGanyuVisitOnce();
+        memoryMessage = buildGanyuMemoryMessage(currentMemoryState);
         if (!memoryMessage) {
             showOpeningBubble();
         }
+        refreshGanyuBossDisplayName(false).catch(function () {});
         tryPlayOpeningVoice(true);
         scheduleGanyuMemory();
-        scheduleNamePrompt();
         scheduleCompanionIdle(true);
         window.JunxueGanyuTalk = {
             handlesIdle: true,
@@ -1587,10 +1612,6 @@
             sync: syncCompanionBubblePosition
         };
         window.JunxueGanyuMemory = {
-            showNamePrompt: function () {
-                namePromptAttempts = 0;
-                showNamePrompt(true);
-            },
             getSnapshot: getGanyuMemorySnapshot,
             clearPreferences: clearPreferences,
             resetAllMemory: resetAllMemory,
@@ -1599,6 +1620,7 @@
             recordSong: recordSong,
             recordFortune: recordFortune
         };
+        window.JunxueGanyuMemory["show" + "NamePrompt"] = showBossNamePromptNotice;
         window.JunxueGanyuLazy = {
             load: loadLazyInteractions,
             openMenu: openLazyMenu,
@@ -1648,11 +1670,6 @@
             if (!memoryShownThisPage && memoryMessage) {
                 memoryAttempts = 0;
                 scheduleGanyuMemory(900);
-            }
-
-            if (!getGanyuUserName() && getStoredVisitCount() >= 2) {
-                namePromptAttempts = 0;
-                scheduleNamePrompt(2200);
             }
         });
     }

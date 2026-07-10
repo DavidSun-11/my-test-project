@@ -1,6 +1,6 @@
 /* Live2D 互动模块：菜单、无奖竞答题库、英雄池转盘、咨询功能都集中在这里，方便后续继续加题。 */
 (function () {
-    const version = "20260703-score-guess-voters-modal1";
+    const version = "20260710-ganyu-boss-name1";
     if (typeof window.JunxueLive2DDebugLog !== "function") {
         window.__JUNXUE_LIVE2D_DEBUG__ = window.__JUNXUE_LIVE2D_DEBUG__ || [];
         window.JunxueLive2DDebugLog = function (message, detail) {
@@ -2592,15 +2592,6 @@
             meta.textContent = "认识君雪";
             question.textContent = "这些事情，甘雨都替君雪记着呢。";
             options.classList.add("live2d-consult-grid");
-            addConsultCard("认识一下", "关于君雪", false, function () {
-                recordGanyuFeature("认识一下");
-                closeDialog();
-                const memory = getGanyuMemory();
-
-                if (memory && typeof memory.showNamePrompt === "function") {
-                    memory.showNamePrompt();
-                }
-            });
             addConsultCard("甘雨记得你", "看看甘雨记住的小事", false, function () {
                 openMobileFeature("memory", "know", showMemoryPanel);
             });
@@ -5065,7 +5056,6 @@
             question.textContent = "这些是甘雨悄悄记下的事情。";
             options.innerHTML = [
                 '<section class="live2d-memory-card" aria-label="甘雨记忆面板">',
-                    renderMemoryRow("昵称", getMemoryText(snapshot.userName, "还没有告诉甘雨")),
                     renderMemoryRow("累计访问次数", String(snapshot.visitCount || 0) + "次"),
                     renderMemoryRow("连续访问", String(snapshot.streakDays || 1) + "天"),
                     renderMemoryRow("认识甘雨", "已经认识你" + String(snapshot.daysKnown || 1) + "天啦。"),
@@ -5077,7 +5067,6 @@
                     renderMemoryRow("最近占卜结果", getMemoryText(snapshot.lastFortune, "还没有记录")),
                 '</section>',
                 '<div class="live2d-memory-actions">',
-                    '<button class="live2d-wheel__small" type="button" data-memory-action="name">修改称呼</button>',
                     '<button class="live2d-wheel__small" type="button" data-memory-action="clear-preferences">清除偏好</button>',
                     '<button class="live2d-wheel__small" type="button" data-memory-action="reset">重置全部记忆</button>',
                     '<button class="live2d-wheel__small" type="button" data-memory-action="menu">回到菜单</button>',
@@ -5090,14 +5079,6 @@
                     const action = button.dataset.memoryAction;
 
                     event.stopPropagation();
-
-                    if (action === "name") {
-                        closeDialog();
-                        if (memory && typeof memory.showNamePrompt === "function") {
-                            memory.showNamePrompt();
-                        }
-                        return;
-                    }
 
                     if (action === "clear-preferences") {
                         if (memory && typeof memory.clearPreferences === "function") {

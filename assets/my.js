@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    const VERSION = "20260710-starlake-messages-render-fix1";
+    const VERSION = "20260710-starlake-message-checkin-nav1";
     const BOSS_LOGIN_URL = "boss-register.html?mode=login&redirect=index";
     const BOSS_REGISTER_URL = "boss-register.html?mode=register&redirect=index";
     const AVATAR_BUCKET = "boss-avatars";
@@ -108,6 +108,7 @@
         todayDate: $("[data-my-today-date]"),
         rewardPoints: $("[data-my-reward-points]"),
         checkinMessage: $("[data-my-checkin-message]"),
+        checkinSection: $("[data-my-checkin-section]"),
         actionNodes: $$("[data-my-action]"),
         mobileMessageLink: $("[data-my-mobile-message]"),
         mobileMessageBadge: $("[data-my-mobile-message-badge]"),
@@ -1207,6 +1208,24 @@
         closeModal();
     }
 
+    function activateCheckinSection() {
+        console.debug("[star-lake-messages] navigate to checkin section");
+        const section = nodes.checkinSection;
+        console.debug("[star-lake-messages] checkin section found:", !!section);
+
+        if (!section) {
+            return;
+        }
+
+        window.requestAnimationFrame(function () {
+            section.scrollIntoView({ behavior: "smooth", block: "center" });
+            if (typeof section.focus === "function") {
+                section.focus({ preventScroll: true });
+            }
+            console.debug("[star-lake-checkin] section activated");
+        });
+    }
+
     async function openMobileMessages(trigger) {
         return openMobileMessagePopup(trigger);
     }
@@ -1534,8 +1553,11 @@
                 if (messageAction) {
                     const action = messageAction.getAttribute("data-my-message-action");
                     if (action === "checkin") {
-                        closeModal();
-                        openModal("checkin", messageAction);
+                        console.debug("[star-lake-messages] checkin action clicked");
+                        console.debug("[star-lake-messages] close messages before checkin");
+                        closeMobileMessagePopup();
+                        console.debug("[star-lake-messages] old checkin modal blocked");
+                        activateCheckinSection();
                         return;
                     }
                     if (action === "order") {

@@ -2056,10 +2056,13 @@ If this SQL is not executed yet, `my.html` will show:
 
 - 新增老板积分兑换申请表 `boss_point_redemptions`。
 - 用户提交兑换申请时不扣积分，状态默认为 `pending`。
+- 待审核申请只占用积分兑换页的可兑换额度，不冻结竞猜等其它积分消费；管理员审核时仍按实际积分余额最终判断。
 - `cost_points` 由服务端 RPC 根据兑换类型、段位区间、数量重新计算，前端只显示预计值。
 - 管理员同意时在同一个 RPC 事务流程内检查积分、扣除积分、更新申请状态。
 - 管理员拒绝时不扣积分，只保存状态和批注。
 - 管理员权限继续使用 `live_interaction_admins` 判断。
+
+> 2026-07-14 余额强校验：全新部署仍按章节顺序执行。已经执行过第 17 节的现有项目，只需执行本节中从 `drop function if exists public.get_boss_redemption_balance_summary()` 开始，到两个 RPC 的 `grant execute` 结束的连续补丁段；不要单独用第 15 节旧版管理员审核函数覆盖第 17 节最终版本。
 
 请在 Supabase SQL Editor 执行：
 
@@ -2166,8 +2169,76 @@ begin
 end;
 $$;
 
-drop function if exists public.submit_boss_point_redemption(text, text, numeric, text);
-create or replace function public.submit_boss_point_redemption(
+drop function if exists public.get_boss_redemption_balance_summary();
+create function public.get_boss_redemption_balance_summary()
+returns table (
+  current_points integer,
+  pending_reserved_points integer,
+  available_points integer,
+  pending_count integer
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_actor uuid := auth.uid();
+  v_current_points integer := 0;
+  v_pending_reserved_points integer := 0;
+  v_pending_count integer := 0;
+begin
+  if v_actor is null then
+    raise exception 'not authenticated';
+  end if;
+
+  select
+    coalesce((
+      select coalesce(points.points, 0)
+      from public.boss_points points
+      where points.user_id = v_actor
+    ), 0)::integer,
+    coalesce(sum(greatest(coalesce(redemption.cost_points, 0), 0)), 0)::integer,
+    count(*)::integer
+  into
+    v_current_points,
+    v_pending_reserved_points,
+    v_pending_count
+  from public.boss_point_redemptions redemption
+  where redemption.user_id = v_actor
+    and redemption.status = 'pending';
+
+  return query
+  select
+    coalesce(v_current_points, 0),
+    coalesce(v_pending_reserved_points, 0),
+    greatest(coalesce(v_current_points, 0) - coalesce(v_pending_reserved_points, 0), 0),
+    coalesce(v_pending_count, 0);
+end;
+$$;
+
+do $$
+declare
+  v_signature text;
+begin
+  for v_signature in
+    select format(
+      '%I.%I(%s)',
+      namespace.nspname,
+      proc.proname,
+      pg_get_function_identity_arguments(proc.oid)
+    )
+    from pg_proc proc
+    join pg_namespace namespace
+      on namespace.oid = proc.pronamespace
+    where namespace.nspname = 'public'
+      and proc.proname = 'submit_boss_point_redemption'
+  loop
+    execute 'drop function if exists ' || v_signature;
+  end loop;
+end;
+$$;
+
+create function public.submit_boss_point_redemption(
   p_redeem_type text,
   p_rank_range text,
   p_quantity numeric,
@@ -2180,7 +2251,11 @@ returns table (
   quantity numeric,
   cost_points integer,
   status text,
-  created_at timestamptz
+  created_at timestamptz,
+  current_points integer,
+  pending_reserved_points integer,
+  available_points integer,
+  pending_count integer
 )
 language plpgsql
 security definer
@@ -2191,7 +2266,11 @@ declare
   v_rank_range text := nullif(trim(coalesce(p_rank_range, '')), '');
   v_user_note text := nullif(trim(coalesce(p_user_note, '')), '');
   v_cost integer;
-  v_pending_count integer;
+  v_current_points integer := 0;
+  v_pending_reserved_points integer := 0;
+  v_available_points integer := 0;
+  v_pending_count integer := 0;
+  v_redemption public.boss_point_redemptions%rowtype;
 begin
   if v_actor is null then
     raise exception 'not authenticated';
@@ -2211,8 +2290,22 @@ begin
 
   v_cost := public.calculate_boss_redemption_cost(p_redeem_type, v_rank_range, p_quantity);
 
-  select count(*)::integer
-  into v_pending_count
+  insert into public.boss_points (user_id, points, total_checkins, current_streak, longest_streak, last_checkin_date)
+  values (v_actor, 0, 0, 0, 0, null)
+  on conflict (user_id) do nothing;
+
+  select coalesce(points.points, 0)::integer
+  into v_current_points
+  from public.boss_points points
+  where points.user_id = v_actor
+  for update;
+
+  select
+    coalesce(sum(greatest(coalesce(redemption.cost_points, 0), 0)), 0)::integer,
+    count(*)::integer
+  into
+    v_pending_reserved_points,
+    v_pending_count
   from public.boss_point_redemptions redemption
   where redemption.user_id = v_actor
     and redemption.status = 'pending';
@@ -2221,7 +2314,12 @@ begin
     raise exception 'pending redemption limit reached';
   end if;
 
-  return query
+  v_available_points := greatest(coalesce(v_current_points, 0) - coalesce(v_pending_reserved_points, 0), 0);
+
+  if v_available_points < v_cost then
+    raise exception '积分不足，无法提交兑换申请。';
+  end if;
+
   insert into public.boss_point_redemptions (
     user_id,
     redeem_type,
@@ -2238,16 +2336,41 @@ begin
     v_cost,
     v_user_note
   )
-  returning
-    boss_point_redemptions.redeem_ref,
-    boss_point_redemptions.redeem_type,
-    boss_point_redemptions.rank_range,
-    boss_point_redemptions.quantity,
-    boss_point_redemptions.cost_points,
-    boss_point_redemptions.status,
-    boss_point_redemptions.created_at;
+  returning * into v_redemption;
+
+  select
+    coalesce(sum(greatest(coalesce(redemption.cost_points, 0), 0)), 0)::integer,
+    count(*)::integer
+  into
+    v_pending_reserved_points,
+    v_pending_count
+  from public.boss_point_redemptions redemption
+  where redemption.user_id = v_actor
+    and redemption.status = 'pending';
+
+  v_available_points := greatest(coalesce(v_current_points, 0) - coalesce(v_pending_reserved_points, 0), 0);
+
+  return query
+  select
+    v_redemption.redeem_ref,
+    v_redemption.redeem_type,
+    v_redemption.rank_range,
+    v_redemption.quantity,
+    v_redemption.cost_points,
+    v_redemption.status,
+    v_redemption.created_at,
+    coalesce(v_current_points, 0),
+    coalesce(v_pending_reserved_points, 0),
+    v_available_points,
+    coalesce(v_pending_count, 0);
 end;
 $$;
+
+revoke all on function public.get_boss_redemption_balance_summary() from public, anon, authenticated;
+revoke all on function public.submit_boss_point_redemption(text, text, numeric, text) from public, anon, authenticated;
+
+grant execute on function public.get_boss_redemption_balance_summary() to authenticated;
+grant execute on function public.submit_boss_point_redemption(text, text, numeric, text) to authenticated;
 
 drop function if exists public.get_my_boss_point_redemptions();
 create or replace function public.get_my_boss_point_redemptions()
@@ -2448,12 +2571,10 @@ end;
 $$;
 
 revoke all on function public.calculate_boss_redemption_cost(text, text, numeric) from public;
-revoke all on function public.submit_boss_point_redemption(text, text, numeric, text) from public;
 revoke all on function public.get_my_boss_point_redemptions() from public;
 revoke all on function public.admin_get_boss_point_redemptions(text) from public;
 revoke all on function public.admin_review_boss_point_redemption(uuid, text, text) from public;
 
-grant execute on function public.submit_boss_point_redemption(text, text, numeric, text) to authenticated;
 grant execute on function public.get_my_boss_point_redemptions() to authenticated;
 grant execute on function public.admin_get_boss_point_redemptions(text) to authenticated;
 grant execute on function public.admin_review_boss_point_redemption(uuid, text, text) to authenticated;

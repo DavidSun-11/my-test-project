@@ -1,9 +1,11 @@
 (function () {
     "use strict";
 
-    const VERSION = "20260702-point-redemption-bg-image2";
+    const VERSION = "20260714-redemption-balance-guard1";
     const LOGIN_TEXT = "请先登录老板账号。";
     const SQL_HINT = "积分兑换功能需要先执行 Supabase 第 15 节 SQL。";
+    const INSUFFICIENT_POINTS_TEXT = "当前积分不足，暂时无法提交该兑换申请。";
+    const PENDING_LIMIT_TEXT = "待审核申请最多 5 个，请先等待已有申请处理。";
 
     const TYPE_LABELS = {
         king_star: "王者星星",
@@ -44,7 +46,12 @@
         client: null,
         session: null,
         records: [],
-        submitting: false
+        submitting: false,
+        balanceLoaded: false,
+        currentPoints: 0,
+        pendingReservedPoints: 0,
+        availablePoints: 0,
+        pendingCount: 0
     };
 
     const nodes = {};
@@ -76,15 +83,44 @@
         nodes.status.className = "redeem-status" + (type ? " is-" + type : "");
     }
 
+    function setBalanceMessage(message, type) {
+        if (!nodes.balanceMessage) {
+            return;
+        }
+        nodes.balanceMessage.textContent = message || "";
+        nodes.balanceMessage.className = "redeem-balance-message" + (type ? " is-" + type : "");
+    }
+
+    function normalizeRpcNumber(value, label) {
+        if (value == null || value === "") {
+            console.warn("[JunxueRedeem] " + label + " is missing; using 0.");
+            return 0;
+        }
+        const number = Number(value);
+        if (!Number.isFinite(number) || number < 0) {
+            console.warn("[JunxueRedeem] " + label + " is invalid; using 0.");
+            return 0;
+        }
+        return Math.floor(number);
+    }
+
+    function getRpcRow(data) {
+        return Array.isArray(data) ? (data[0] || null) : (data || null);
+    }
+
     function getFriendlyError(error) {
         const message = error && error.message ? error.message : "";
 
-        if (/boss_point_redemptions|submit_boss_point_redemption|get_my_boss_point_redemptions|schema cache|function .* does not exist|relation .* does not exist/i.test(message)) {
+        if (/积分不足|insufficient points/i.test(message)) {
+            return INSUFFICIENT_POINTS_TEXT;
+        }
+
+        if (/boss_point_redemptions|submit_boss_point_redemption|get_boss_redemption_balance_summary|get_my_boss_point_redemptions|schema cache|function .* does not exist|relation .* does not exist/i.test(message)) {
             return SQL_HINT;
         }
 
         if (/pending redemption limit/i.test(message)) {
-            return "待审核申请最多 5 个，请先等待已有申请处理。";
+            return PENDING_LIMIT_TEXT;
         }
 
         if (/invalid redemption type/i.test(message)) {
@@ -151,6 +187,71 @@
         return (TYPE_COSTS[type] || 0) * quantity;
     }
 
+    function renderBalanceSummary() {
+        setText(nodes.points, state.balanceLoaded ? String(state.currentPoints) : "--");
+        setText(nodes.pendingPoints, state.balanceLoaded ? String(state.pendingReservedPoints) : "--");
+        setText(nodes.availablePoints, state.balanceLoaded ? String(state.availablePoints) : "--");
+        setText(nodes.pendingCount, state.balanceLoaded ? String(state.pendingCount) : "--");
+    }
+
+    function applyBalanceSummary(row) {
+        if (!row) {
+            throw new Error("invalid redemption balance summary response");
+        }
+
+        const currentPoints = normalizeRpcNumber(row.current_points, "current_points");
+        const pendingReservedPoints = normalizeRpcNumber(row.pending_reserved_points, "pending_reserved_points");
+        const reportedAvailablePoints = normalizeRpcNumber(row.available_points, "available_points");
+        const availablePoints = Math.max(currentPoints - pendingReservedPoints, 0);
+
+        if (reportedAvailablePoints !== availablePoints) {
+            console.warn("[JunxueRedeem] available_points did not match the balance summary; using the calculated value.");
+        }
+
+        state.currentPoints = currentPoints;
+        state.pendingReservedPoints = pendingReservedPoints;
+        state.availablePoints = availablePoints;
+        state.pendingCount = normalizeRpcNumber(row.pending_count, "pending_count");
+        state.balanceLoaded = true;
+        renderBalanceSummary();
+        updateSubmissionAvailability();
+    }
+
+    function getSubmissionBlockReason() {
+        const estimate = calculateEstimate();
+
+        if (!state.balanceLoaded) {
+            return "正在读取可兑换积分，请稍候。";
+        }
+        const validationMessage = validateForm();
+        if (validationMessage) {
+            return validationMessage;
+        }
+        if (state.pendingCount >= 5) {
+            return PENDING_LIMIT_TEXT;
+        }
+        if (estimate > state.availablePoints) {
+            return INSUFFICIENT_POINTS_TEXT;
+        }
+        return "";
+    }
+
+    function updateSubmissionAvailability() {
+        const blockReason = getSubmissionBlockReason();
+        if (nodes.submit) {
+            nodes.submit.disabled = state.submitting || !!blockReason;
+            nodes.submit.textContent = state.submitting ? "提交中..." : "提交兑换申请";
+        }
+
+        if (!state.balanceLoaded) {
+            setBalanceMessage(blockReason, "");
+        } else if (blockReason) {
+            setBalanceMessage(blockReason, "warning");
+        } else {
+            setBalanceMessage("", "");
+        }
+    }
+
     function updateTypeUi() {
         const isKingStar = nodes.type && nodes.type.value === "king_star";
 
@@ -170,14 +271,12 @@
 
         const estimate = calculateEstimate();
         setText(nodes.estimate, estimate == null ? "--" : String(estimate));
+        updateSubmissionAvailability();
     }
 
     function setSubmitting(isSubmitting) {
         state.submitting = !!isSubmitting;
-        if (nodes.submit) {
-            nodes.submit.disabled = !!isSubmitting;
-            nodes.submit.textContent = isSubmitting ? "提交中..." : "提交兑换申请";
-        }
+        updateSubmissionAvailability();
     }
 
     async function loadProfile() {
@@ -195,28 +294,29 @@
         }
     }
 
-    async function loadPoints() {
+    async function loadBalanceSummary() {
+        state.balanceLoaded = false;
+        renderBalanceSummary();
+        updateSubmissionAvailability();
+
         try {
-            const response = await state.client.rpc("get_boss_checkin_status", { p_month: null });
+            const response = await state.client.rpc("get_boss_redemption_balance_summary", {});
             if (response.error) {
                 throw response.error;
             }
-            const row = Array.isArray(response.data) ? response.data[0] : response.data;
-            const points = row && (row.total_points != null ? row.total_points : row.points);
-            setText(nodes.points, points != null ? points : "0");
+
+            applyBalanceSummary(getRpcRow(response.data));
+            return { ok: true, error: null };
         } catch (error) {
-            setText(nodes.points, "暂未开启");
+            state.balanceLoaded = false;
+            renderBalanceSummary();
+            updateSubmissionAvailability();
+            return { ok: false, error: error };
         }
     }
 
     function renderRecords() {
         const records = state.records || [];
-        const pendingCount = records.filter(function (record) {
-            return record.status === "pending";
-        }).length;
-
-        setText(nodes.pendingCount, String(pendingCount));
-
         if (!records.length) {
             nodes.records.innerHTML = "";
             nodes.recordEmpty.hidden = false;
@@ -235,8 +335,8 @@
                     '<strong>' + escapeHtml(typeLabel) + ' <span class="redeem-pill is-' + escapeHtml(status) + '">' + escapeHtml(STATUS_LABELS[status] || status) + '</span></strong>',
                     '<div class="redeem-record-meta">',
                         '<span>段位 / 区间：' + escapeHtml(rankLabel) + '</span>',
-                        '<span>数量：' + escapeHtml(record.quantity) + '</span>',
-                        '<span>预计消耗：' + escapeHtml(record.cost_points) + ' 积分</span>',
+                        '<span>数量：' + escapeHtml(normalizeRpcNumber(record.quantity, "record quantity")) + '</span>',
+                        '<span>预计消耗：' + escapeHtml(normalizeRpcNumber(record.cost_points, "record cost_points")) + ' 积分</span>',
                         '<span>提交时间：' + escapeHtml(formatTime(record.created_at)) + '</span>',
                     '</div>',
                     record.user_note ? '<div class="redeem-note">我的备注：' + escapeHtml(record.user_note) + '</div>' : '',
@@ -246,7 +346,7 @@
         }).join("");
     }
 
-    async function loadRecords(message) {
+    async function loadRecords(message, silent) {
         try {
             const response = await state.client.rpc("get_my_boss_point_redemptions", {});
             if (response.error) {
@@ -255,9 +355,15 @@
 
             state.records = Array.isArray(response.data) ? response.data : [];
             renderRecords();
-            setStatus(message || "兑换记录已同步。", "good");
+            if (!silent) {
+                setStatus(message || "兑换记录已同步。", "good");
+            }
+            return { ok: true, error: null };
         } catch (error) {
-            setStatus(getFriendlyError(error), "warning");
+            if (!silent) {
+                setStatus(getFriendlyError(error), "warning");
+            }
+            return { ok: false, error: error };
         }
     }
 
@@ -297,6 +403,13 @@
             return;
         }
 
+        const blockReason = getSubmissionBlockReason();
+        if (blockReason) {
+            setBalanceMessage(blockReason, "warning");
+            setStatus(blockReason, "warning");
+            return;
+        }
+
         const type = nodes.type.value;
         const params = {
             p_redeem_type: type,
@@ -314,11 +427,17 @@
                 throw response.error;
             }
 
+            applyBalanceSummary(getRpcRow(response.data));
             nodes.form.reset();
             updateTypeUi();
-            await loadRecords("兑换申请已提交，等待管理员审核。");
+            const recordsResult = await loadRecords("", true);
+            setStatus(recordsResult.ok ? "兑换申请已提交，等待管理员审核。" : "兑换申请已提交，但记录暂时没有刷新，请稍后再试。", recordsResult.ok ? "good" : "warning");
         } catch (error) {
-            setStatus(getFriendlyError(error), "warning");
+            const friendlyError = getFriendlyError(error);
+            if (friendlyError === INSUFFICIENT_POINTS_TEXT) {
+                await loadBalanceSummary();
+            }
+            setStatus(friendlyError, "warning");
         } finally {
             setSubmitting(false);
         }
@@ -331,6 +450,8 @@
         nodes.account = $("[data-redeem-account]");
         nodes.displayName = $("[data-redeem-display-name]");
         nodes.points = $("[data-redeem-points]");
+        nodes.pendingPoints = $("[data-redeem-pending-points]");
+        nodes.availablePoints = $("[data-redeem-available-points]");
         nodes.pendingCount = $("[data-redeem-pending-count]");
         nodes.form = $("[data-redeem-form]");
         nodes.type = $("[data-redeem-type]");
@@ -340,6 +461,7 @@
         nodes.quantityLabel = $("[data-redeem-quantity-label]");
         nodes.note = $("[data-redeem-note]");
         nodes.estimate = $("[data-redeem-estimate]");
+        nodes.balanceMessage = $("[data-redeem-balance-message]");
         nodes.submit = $("[data-redeem-submit]");
         nodes.records = $("[data-redeem-records]");
         nodes.recordEmpty = $("[data-redeem-record-empty]");
@@ -366,8 +488,17 @@
             nodes.loggedOut.hidden = true;
             nodes.app.hidden = false;
             nodes.account.hidden = false;
-            await Promise.all([loadProfile(), loadPoints()]);
-            await loadRecords("可以提交新的兑换申请。");
+            const results = await Promise.all([loadProfile(), loadBalanceSummary(), loadRecords("", true)]);
+            const balanceResult = results[1];
+            const recordsResult = results[2];
+
+            if (!balanceResult.ok) {
+                setStatus(getFriendlyError(balanceResult.error), "warning");
+            } else if (!recordsResult.ok) {
+                setStatus(getFriendlyError(recordsResult.error), "warning");
+            } else {
+                setStatus("可以提交新的兑换申请。", "good");
+            }
         } catch (error) {
             setStatus(getFriendlyError(error), "warning");
         }

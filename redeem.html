@@ -361,6 +361,22 @@
             text-shadow: 0 0 18px rgba(172, 207, 255, 0.28);
         }
 
+        .redeem-balance-note,
+        .redeem-balance-message {
+            margin: 0;
+            color: rgba(219, 240, 255, 0.76);
+            font-size: 0.88rem;
+            line-height: 1.65;
+        }
+
+        .redeem-balance-message:empty {
+            display: none;
+        }
+
+        .redeem-balance-message.is-warning {
+            color: #ffe0a3;
+        }
+
         .redeem-pill {
             display: inline-flex;
             align-items: center;
@@ -486,7 +502,7 @@
             <div class="redeem-card">
                 <span class="redeem-kicker">Moonlit Service Desk</span>
                 <h1 class="redeem-title">把星湖积分换成服务时间</h1>
-                <p class="redeem-copy">积分仅用于兑换本站游戏服务，不提现、不转账、不折现。提交申请后先进入待审核，管理员同意时才会扣除积分。</p>
+                <p class="redeem-copy">积分仅用于兑换本站游戏服务，不提现、不转账、不折现。待审核申请会占用本页可兑换额度，最终能否兑换以管理员审核时的实际积分余额为准。</p>
                 <div class="redeem-status" data-redeem-status aria-live="polite">正在确认登录状态...</div>
             </div>
             <aside class="redeem-card redeem-meta" data-redeem-account hidden>
@@ -497,6 +513,14 @@
                 <div class="redeem-meta-row">
                     <span>当前积分</span>
                     <strong data-redeem-points>--</strong>
+                </div>
+                <div class="redeem-meta-row">
+                    <span>待审核占用</span>
+                    <strong data-redeem-pending-points>--</strong>
+                </div>
+                <div class="redeem-meta-row">
+                    <span>可兑换积分</span>
+                    <strong data-redeem-available-points>--</strong>
                 </div>
                 <div class="redeem-meta-row">
                     <span>待审核申请</span>
@@ -580,7 +604,9 @@
                         <span>预计消耗积分（最终以服务端重新计算为准）</span>
                         <strong data-redeem-estimate>60</strong>
                     </div>
-                    <button class="redeem-button redeem-button--primary" type="submit" data-redeem-submit>提交兑换申请</button>
+                    <p class="redeem-balance-note">待审核申请会占用本页可兑换额度，最终能否兑换以管理员审核时的实际积分余额为准。</p>
+                    <p class="redeem-balance-message" data-redeem-balance-message aria-live="polite"></p>
+                    <button class="redeem-button redeem-button--primary" type="submit" data-redeem-submit disabled>提交兑换申请</button>
                 </form>
             </div>
 
@@ -593,6 +619,6 @@
     </main>
 
     <script src="assets/supabase-client.js?v=20260627-home-performance1"></script>
-    <script src="assets/redeem.js?v=20260702-point-redemption-bg-image2"></script>
+    <script src="assets/redeem.js?v=20260714-redemption-balance-guard1"></script>
 </body>
 </html>

@@ -19,6 +19,9 @@
             --order-pink: #d9adff;
             --order-good: #8ff2ca;
             --order-warn: #ffd184;
+            --order-lake-bg: url("./assets/images/预约背景.png");
+            --order-ice-one: url("./assets/images/冰晶素材.png");
+            --order-ice-two: url("./assets/images/冰晶素材2.png");
             font-family: "Microsoft YaHei", "PingFang SC", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
         }
 
@@ -31,9 +34,9 @@
             margin: 0;
             color: var(--order-text);
             background:
-                radial-gradient(circle at 18% 0%, rgba(118, 206, 255, 0.24), transparent 30%),
-                radial-gradient(circle at 88% 8%, rgba(218, 168, 255, 0.2), transparent 32%),
-                linear-gradient(145deg, #061224 0%, #0b2348 46%, #11184a 100%);
+                linear-gradient(180deg, rgba(3, 12, 38, 0.28), rgba(4, 13, 40, 0.72)),
+                var(--order-lake-bg) center / cover fixed no-repeat,
+                #061224;
         }
 
         body::before {
@@ -42,9 +45,10 @@
             inset: 0;
             pointer-events: none;
             background:
-                linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent) 50% 72px / min(980px, 80vw) 1px no-repeat,
-                radial-gradient(circle at 50% 100%, rgba(126, 210, 255, 0.16), transparent 42%);
-            opacity: 0.86;
+                linear-gradient(180deg, rgba(3, 11, 36, 0.06), rgba(3, 10, 32, 0.28)),
+                linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.16), transparent) 50% 62px / min(1100px, 80vw) 1px no-repeat,
+                var(--order-ice-two) right 4% bottom 2% / min(260px, 22vw) auto no-repeat;
+            opacity: 0.82;
         }
 
         a {
@@ -53,9 +57,9 @@
 
         .order-shell {
             position: relative;
-            width: min(1180px, calc(100% - 40px));
+            width: min(1400px, calc(100% - 40px));
             margin: 0 auto;
-            padding: 24px 0 42px;
+            padding: 14px 0 28px;
         }
 
         .order-nav,
@@ -67,16 +71,26 @@
             box-shadow: 0 22px 58px rgba(2, 8, 22, 0.36), inset 0 1px 0 rgba(255, 255, 255, 0.14);
             -webkit-backdrop-filter: blur(18px) saturate(1.12);
             backdrop-filter: blur(18px) saturate(1.12);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .order-nav > *,
+        .order-card > *,
+        .order-panel > *,
+        .order-empty > * {
+            position: relative;
+            z-index: 1;
         }
 
         .order-nav {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 16px;
-            margin-bottom: 22px;
-            padding: 14px 18px;
-            border-radius: 24px;
+            gap: 12px;
+            margin-bottom: 14px;
+            padding: 10px 14px;
+            border-radius: 18px;
         }
 
         .order-brand {
@@ -106,11 +120,11 @@
 
         .order-button {
             display: inline-flex;
-            min-height: 40px;
+            min-height: 38px;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            padding: 10px 16px;
+            padding: 8px 14px;
             border: 1px solid rgba(202, 239, 255, 0.5);
             border-radius: 999px;
             color: var(--order-text);
@@ -120,6 +134,12 @@
             font-weight: 800;
             cursor: pointer;
             transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+        }
+
+        .order-button svg {
+            width: 18px;
+            height: 18px;
+            flex: 0 0 auto;
         }
 
         .order-button:hover,
@@ -146,18 +166,47 @@
         .order-hero {
             display: grid;
             grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
-            gap: 18px;
-            margin-bottom: 18px;
+            gap: 14px;
+            margin-bottom: 14px;
         }
 
         .order-card {
-            border-radius: 26px;
-            padding: 24px;
+            border-radius: 22px;
+            padding: 18px;
+        }
+
+        .order-hero > .order-card:first-child::after,
+        .order-grid > .order-panel:nth-child(2)::after {
+            content: "";
+            position: absolute;
+            z-index: 0;
+            pointer-events: none;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: contain;
+            opacity: 0.62;
+            mix-blend-mode: screen;
+        }
+
+        .order-hero > .order-card:first-child::after {
+            inset: 18px 14px auto auto;
+            width: clamp(130px, 17vw, 230px);
+            aspect-ratio: 1;
+            background-image: var(--order-ice-one);
+        }
+
+        .order-grid > .order-panel:nth-child(2)::after {
+            right: -30px;
+            bottom: -45px;
+            width: clamp(170px, 23vw, 300px);
+            aspect-ratio: 1;
+            background-image: var(--order-ice-two);
+            opacity: 0.3;
         }
 
         .order-kicker {
             display: inline-flex;
-            margin-bottom: 12px;
+            margin-bottom: 6px;
             color: var(--order-blue);
             font-size: 12px;
             font-weight: 900;
@@ -167,22 +216,22 @@
 
         .order-title {
             margin: 0;
-            font-size: clamp(34px, 5vw, 58px);
+            font-size: clamp(34px, 4.4vw, 54px);
             line-height: 1.04;
             letter-spacing: 0;
         }
 
         .order-copy {
             max-width: 680px;
-            margin: 14px 0 0;
+            margin: 10px 0 0;
             color: var(--order-muted);
-            font-size: 15px;
-            line-height: 1.75;
+            font-size: 14px;
+            line-height: 1.6;
         }
 
         .order-status {
-            margin-top: 16px;
-            padding: 12px 14px;
+            margin-top: 12px;
+            padding: 10px 12px;
             border: 1px solid rgba(185, 229, 255, 0.36);
             border-radius: 16px;
             color: var(--order-muted);
@@ -202,14 +251,14 @@
 
         .order-meta {
             display: grid;
-            gap: 12px;
+            gap: 8px;
         }
 
         .order-meta-row {
             display: grid;
-            gap: 5px;
-            padding: 14px;
-            border-radius: 18px;
+            gap: 3px;
+            padding: 10px 12px;
+            border-radius: 15px;
             background: rgba(7, 20, 47, 0.36);
         }
 
@@ -222,12 +271,12 @@
         }
 
         .order-meta-row strong {
-            font-size: 20px;
+            font-size: 18px;
         }
 
         .order-empty {
-            border-radius: 24px;
-            padding: 22px;
+            border-radius: 20px;
+            padding: 18px;
             text-align: center;
             color: var(--order-muted);
         }
@@ -235,12 +284,12 @@
         .order-grid {
             display: grid;
             grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
-            gap: 18px;
+            gap: 14px;
         }
 
         .order-panel {
-            border-radius: 24px;
-            padding: 20px;
+            border-radius: 20px;
+            padding: 16px;
         }
 
         .order-panel--wide {
@@ -248,27 +297,27 @@
         }
 
         .order-section-title {
-            margin: 0 0 14px;
-            font-size: 20px;
+            margin: 0 0 10px;
+            font-size: 18px;
         }
 
         .order-rules {
             display: grid;
-            gap: 12px;
+            gap: 8px;
             color: var(--order-muted);
-            line-height: 1.7;
+            line-height: 1.52;
         }
 
         .order-rule-card {
-            padding: 14px;
+            padding: 10px 12px;
             border: 1px solid rgba(199, 233, 255, 0.28);
-            border-radius: 18px;
+            border-radius: 15px;
             background: rgba(8, 22, 50, 0.38);
         }
 
         .order-rule-card strong {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
             color: var(--order-text);
         }
 
@@ -279,18 +328,18 @@
 
         .order-form {
             display: grid;
-            gap: 13px;
+            gap: 9px;
         }
 
         .order-form-grid {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 13px;
+            gap: 9px;
         }
 
         .order-field {
             display: grid;
-            gap: 7px;
+            gap: 5px;
         }
 
         .order-field--wide {
@@ -301,19 +350,19 @@
         .order-field select,
         .order-field textarea {
             width: 100%;
-            min-height: 44px;
+            min-height: 40px;
             border: 1px solid rgba(190, 229, 255, 0.4);
-            border-radius: 15px;
+            border-radius: 13px;
             color: var(--order-text);
             background: rgba(6, 19, 45, 0.58);
             box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
             font: inherit;
-            padding: 10px 12px;
+            padding: 8px 10px;
             outline: none;
         }
 
         .order-field textarea {
-            min-height: 92px;
+            min-height: 70px;
             resize: vertical;
         }
 
@@ -326,16 +375,16 @@
 
         .order-voucher-box {
             display: grid;
-            gap: 10px;
-            padding: 14px;
+            gap: 7px;
+            padding: 10px;
             border: 1px solid rgba(227, 212, 255, 0.38);
-            border-radius: 18px;
+            border-radius: 15px;
             background: linear-gradient(145deg, rgba(35, 48, 102, 0.58), rgba(14, 28, 62, 0.58));
         }
 
         .order-voucher-detail {
-            min-height: 46px;
-            padding: 12px;
+            min-height: 38px;
+            padding: 8px 10px;
             border-radius: 14px;
             color: var(--order-muted);
             background: rgba(7, 20, 47, 0.42);
@@ -420,7 +469,7 @@
         @media (max-width: 900px) {
             .order-shell {
                 width: min(100% - 24px, 720px);
-                padding-top: 14px;
+                padding-top: 12px;
             }
 
             .order-nav,
@@ -437,6 +486,7 @@
 
             .order-actions {
                 justify-content: flex-start;
+                width: 100%;
             }
 
             .order-record-meta {
@@ -445,10 +495,14 @@
         }
 
         @media (max-width: 520px) {
+            body {
+                background-attachment: scroll;
+            }
+
             .order-card,
             .order-panel,
             .order-empty {
-                padding: 16px;
+                padding: 14px;
                 border-radius: 20px;
             }
 
@@ -459,6 +513,11 @@
             .order-button {
                 width: 100%;
             }
+
+            .order-hero > .order-card:first-child::after,
+            .order-grid > .order-panel:nth-child(2)::after {
+                opacity: 0.2;
+            }
         }
     </style>
 </head>
@@ -466,21 +525,21 @@
     <main class="order-shell">
         <nav class="order-nav" aria-label="服务预约导航">
             <div class="order-brand">
-                <span>Service Reservation</span>
+                <span>JUNXUE BOOKING</span>
                 <strong>服务预约</strong>
             </div>
             <div class="order-actions">
-                <a class="order-button" href="my.html">返回我的星湖</a>
-                <a class="order-button" href="price.html">返回价格页</a>
-                <a class="order-button" href="index.html">返回首页</a>
+                <a class="order-button" href="my.html"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.6"/><path d="m19 15 .8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.4"/></svg>返回我的星湖</a>
+                <a class="order-button" href="price.html"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m4 9 6-6 10 10-6 6L4 9Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.7"/><circle cx="9" cy="8" r="1.4" fill="currentColor"/><path d="m9 17 4 4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.7"/></svg>返回价格页</a>
+                <a class="order-button" href="index.html"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m4 10 8-6 8 6v9a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-9Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.7"/><path d="M9 20v-6h6v6" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.7"/></svg>返回首页</a>
             </div>
         </nav>
 
         <section class="order-hero">
             <div class="order-card">
-                <span class="order-kicker">Manual Confirmation</span>
+                <span class="order-kicker">JUNXUE BOOKING</span>
                 <h1 class="order-title">服务预约</h1>
-                <p class="order-copy">提交后等待君雪确认时间和服务内容。第一版只做预约与人工确认记录；如需补款，会由管理员确认后联系你进行微信 / 支付宝等线下转账。</p>
+                <p class="order-copy">提交后，君雪会确认时间、服务内容和最终金额。需要补款时，会通过微信 / 支付宝等方式与你线下确认。</p>
                 <div class="order-status" data-order-status aria-live="polite">正在确认登录状态...</div>
             </div>
             <aside class="order-card order-meta" data-order-account hidden>
@@ -514,16 +573,16 @@
                     <article class="order-rule-card">
                         <strong>服务预约流程</strong>
                         <ul>
-                            <li>先提交预约日期、时间、服务内容和联系方式。</li>
-                            <li>管理员确认档期后，会在后台填写批注和最终需人工转账金额。</li>
-                            <li>第一版只记录预约、兑换券和人工确认转账状态。</li>
+                            <li>先填写预约日期、时间、服务内容和联系方式。</li>
+                            <li>君雪确认档期后，会在后台更新预约状态与备注。</li>
+                            <li>如需补差价，会与你线下确认转账方式和金额。</li>
                         </ul>
                     </article>
                     <article class="order-rule-card">
                         <strong>积分兑换券</strong>
                         <ul>
-                            <li>先在积分兑换页提交兑换申请，管理员同意后会生成服务兑换券。</li>
-                            <li>预约时可以选择一张可用兑换券，提交后会被锁定。</li>
+                            <li>先在积分兑换页提交申请，审核通过后会生成可用兑换券。</li>
+                            <li>提交预约时可以选择一张可用兑换券，提交后会暂时锁定。</li>
                             <li>如果预约被拒绝或取消，已锁定兑换券会恢复可用。</li>
                         </ul>
                     </article>
@@ -603,6 +662,6 @@
     </main>
 
     <script src="assets/supabase-client.js?v=20260627-home-performance1"></script>
-    <script src="assets/order.js?v=20260707-paid-order-mvp1"></script>
+    <script src="assets/order.js?v=20260715-booking-crystal-lake1"></script>
 </body>
 </html>

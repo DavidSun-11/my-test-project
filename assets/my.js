@@ -1,12 +1,17 @@
 (function () {
     "use strict";
 
-    const VERSION = "20260710-starlake-message-checkin-nav1";
+    const VERSION = "20260715-avatar-compress3mb1";
     const BOSS_LOGIN_URL = "boss-register.html?mode=login&redirect=index";
     const BOSS_REGISTER_URL = "boss-register.html?mode=register&redirect=index";
     const AVATAR_BUCKET = "boss-avatars";
-    const MAX_AVATAR_BYTES = 1024 * 1024;
-    const AVATAR_SIZE = 512;
+    const MAX_AVATAR_SOURCE_BYTES = 3 * 1024 * 1024;
+    const MAX_AVATAR_UPLOAD_BYTES = 3 * 1024 * 1024;
+    const TARGET_AVATAR_BYTES = 800 * 1024;
+    const AVATAR_MAX_EDGE = 768;
+    const AVATAR_SAFE_MAX_EDGE = 8192;
+    const AVATAR_SAFE_MAX_PIXELS = 24 * 1000 * 1000;
+    const AVATAR_QUALITY_STEPS = [0.85, 0.78, 0.70, 0.62, 0.55];
     const AVATAR_TYPES = {
         "image/jpeg": true,
         "image/png": true,
@@ -52,9 +57,9 @@
     const state = {
         client: null,
         session: null,
-        userHash: "",
         profile: null,
         avatarPath: "",
+        avatarUploadInFlight: false,
         checkinStatus: null,
         loadingToken: 0,
         checkinInFlight: false,
@@ -320,34 +325,6 @@
         return safeTrim(name).slice(0, 20) || "星湖用户";
     }
 
-    function simpleHash(value) {
-        let hash = 2166136261;
-        const source = String(value || "");
-
-        for (let index = 0; index < source.length; index += 1) {
-            hash ^= source.charCodeAt(index);
-            hash = Math.imul(hash, 16777619);
-        }
-
-        return (hash >>> 0).toString(36);
-    }
-
-    async function getSafeUserHash(userId) {
-        const value = String(userId || "");
-
-        if (window.crypto && window.crypto.subtle && window.TextEncoder) {
-            try {
-                const bytes = new TextEncoder().encode(value);
-                const digest = await window.crypto.subtle.digest("SHA-256", bytes);
-                return Array.prototype.map.call(new Uint8Array(digest).slice(0, 10), function (byte) {
-                    return byte.toString(16).padStart(2, "0");
-                }).join("");
-            } catch (error) {}
-        }
-
-        return simpleHash(value);
-    }
-
     function renderLoggedOut() {
         setHidden(nodes.loggedOut, false);
         setHidden(nodes.app, true);
@@ -388,27 +365,64 @@
         setHidden(nodes.avatarPlaceholder, false);
     }
 
+    async function getCloudAvatarSignedUrl(path) {
+        const response = await state.client.storage.from(AVATAR_BUCKET).createSignedUrl(path, 3600);
+
+        if (response.error || !response.data || !response.data.signedUrl) {
+            throw response.error || new Error("signed-url-missing");
+        }
+
+        return response.data.signedUrl;
+    }
+
+    function preloadAvatarUrl(url) {
+        return new Promise(function (resolve, reject) {
+            const image = new Image();
+
+            image.onload = function () {
+                image.onload = null;
+                image.onerror = null;
+                image.src = "";
+                resolve();
+            };
+            image.onerror = function () {
+                image.onload = null;
+                image.onerror = null;
+                image.src = "";
+                reject(new Error("avatar-preview-load-failed"));
+            };
+            image.src = url;
+        });
+    }
+
+    async function getReadableCloudAvatarUrl(path) {
+        const url = await getCloudAvatarSignedUrl(path);
+        await preloadAvatarUrl(url);
+        return url;
+    }
+
+    function applyCloudAvatarUrl(url) {
+        if (nodes.avatarImg) {
+            nodes.avatarImg.src = url;
+            nodes.avatarImg.hidden = false;
+        }
+        setHidden(nodes.avatarPlaceholder, true);
+    }
+
     async function renderCloudAvatar(path) {
         if (!path) {
             renderEmptyAvatar();
-            return;
+            return false;
         }
 
         try {
-            const response = await state.client.storage.from(AVATAR_BUCKET).createSignedUrl(path, 3600);
-
-            if (response.error || !response.data || !response.data.signedUrl) {
-                throw response.error || new Error("signed-url-missing");
-            }
-
-            if (nodes.avatarImg) {
-                nodes.avatarImg.src = response.data.signedUrl;
-                nodes.avatarImg.hidden = false;
-            }
-            setHidden(nodes.avatarPlaceholder, true);
+            const url = await getReadableCloudAvatarUrl(path);
+            applyCloudAvatarUrl(url);
+            return true;
         } catch (error) {
             renderEmptyAvatar();
             setAvatarStatus(isAvatarSetupError(error) ? "头像上传功能还需要完成云端配置。" : "头像暂时读取失败，请稍后再试。");
+            return false;
         }
     }
 
@@ -1278,72 +1292,406 @@
 
     function validateAvatarFile(file) {
         if (!file) {
-            return "请选择头像图片。";
+            return "";
         }
 
         if (!AVATAR_TYPES[file.type]) {
             return "头像只支持 JPG、PNG 或 WebP 图片。";
         }
 
-        if (file.size > MAX_AVATAR_BYTES) {
-            return "头像图片请控制在 1MB 以内。";
+        if (file.size > MAX_AVATAR_SOURCE_BYTES) {
+            return "图片超过 3MB，请压缩后重新选择。";
         }
 
         return "";
     }
 
-    function loadImageFromFile(file) {
-        return new Promise(function (resolve, reject) {
-            const url = URL.createObjectURL(file);
-            const image = new Image();
+    function readBlobAsArrayBuffer(blob) {
+        if (blob && typeof blob.arrayBuffer === "function") {
+            return blob.arrayBuffer();
+        }
 
-            image.onload = function () {
-                URL.revokeObjectURL(url);
-                resolve(image);
+        return new Promise(function (resolve, reject) {
+            const reader = new FileReader();
+            reader.onload = function () {
+                resolve(reader.result);
             };
-            image.onerror = function () {
-                URL.revokeObjectURL(url);
-                reject(new Error("image-load-failed"));
+            reader.onerror = function () {
+                reject(reader.error || new Error("avatar-file-read-failed"));
             };
-            image.src = url;
+            reader.readAsArrayBuffer(blob);
         });
     }
 
-    function canvasToBlob(canvas, type, quality) {
+    async function detectAvatarMime(file) {
+        const buffer = await readBlobAsArrayBuffer(file.slice(0, 16));
+        const bytes = new Uint8Array(buffer);
+
+        if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
+            return "image/jpeg";
+        }
+
+        if (
+            bytes.length >= 8
+            && bytes[0] === 0x89
+            && bytes[1] === 0x50
+            && bytes[2] === 0x4e
+            && bytes[3] === 0x47
+            && bytes[4] === 0x0d
+            && bytes[5] === 0x0a
+            && bytes[6] === 0x1a
+            && bytes[7] === 0x0a
+        ) {
+            return "image/png";
+        }
+
+        if (
+            bytes.length >= 12
+            && bytes[0] === 0x52
+            && bytes[1] === 0x49
+            && bytes[2] === 0x46
+            && bytes[3] === 0x46
+            && bytes[8] === 0x57
+            && bytes[9] === 0x45
+            && bytes[10] === 0x42
+            && bytes[11] === 0x50
+        ) {
+            return "image/webp";
+        }
+
+        return "";
+    }
+
+    async function loadAvatarImageSource(file) {
+        if (typeof window.createImageBitmap === "function") {
+            try {
+                const bitmap = await window.createImageBitmap(file, { imageOrientation: "from-image" });
+                if (bitmap && bitmap.width > 0 && bitmap.height > 0) {
+                    return {
+                        source: bitmap,
+                        width: bitmap.width,
+                        height: bitmap.height,
+                        cleanup: function () {
+                            if (typeof bitmap.close === "function") {
+                                bitmap.close();
+                            }
+                        }
+                    };
+                }
+                if (bitmap && typeof bitmap.close === "function") {
+                    bitmap.close();
+                }
+            } catch (error) {}
+        }
+
         return new Promise(function (resolve, reject) {
-            canvas.toBlob(function (blob) {
-                if (!blob) {
-                    reject(new Error("canvas-blob-failed"));
+            let url = "";
+            const image = new Image();
+            let cleaned = false;
+
+            function releaseUrl() {
+                if (url) {
+                    URL.revokeObjectURL(url);
+                    url = "";
+                }
+            }
+
+            function cleanup() {
+                if (cleaned) {
+                    return;
+                }
+                cleaned = true;
+                releaseUrl();
+                image.onload = null;
+                image.onerror = null;
+                image.src = "";
+            }
+
+            image.decoding = "async";
+            image.onload = function () {
+                const width = image.naturalWidth || image.width;
+                const height = image.naturalHeight || image.height;
+                releaseUrl();
+
+                if (!width || !height) {
+                    cleanup();
+                    reject(new Error("image-load-failed"));
                     return;
                 }
 
-                resolve(blob);
+                resolve({
+                    source: image,
+                    width: width,
+                    height: height,
+                    cleanup: cleanup
+                });
+            };
+            image.onerror = function () {
+                cleanup();
+                reject(new Error("image-load-failed"));
+            };
+
+            try {
+                url = URL.createObjectURL(file);
+                image.src = url;
+            } catch (error) {
+                cleanup();
+                reject(new Error("image-load-failed"));
+            }
+        });
+    }
+
+    function createAvatarCanvas(source, width, height, maxEdge) {
+        const longestEdge = Math.max(width, height);
+        const scale = Math.min(1, maxEdge / longestEdge);
+        const canvas = document.createElement("canvas");
+        const targetWidth = Math.max(1, Math.round(width * scale));
+        const targetHeight = Math.max(1, Math.round(height * scale));
+
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
+        const context = canvas.getContext("2d", { alpha: true });
+
+        if (!context) {
+            releaseAvatarCanvas(canvas);
+            throw new Error("canvas-context-failed");
+        }
+
+        context.imageSmoothingEnabled = true;
+        context.imageSmoothingQuality = "high";
+        context.drawImage(source, 0, 0, targetWidth, targetHeight);
+        return canvas;
+    }
+
+    function releaseAvatarCanvas(canvas) {
+        if (!canvas) {
+            return;
+        }
+        canvas.width = 0;
+        canvas.height = 0;
+    }
+
+    function canvasHasTransparency(canvas) {
+        try {
+            const context = canvas.getContext("2d", { alpha: true });
+            const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
+
+            for (let index = 3; index < pixels.length; index += 4) {
+                if (pixels[index] < 255) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (error) {
+            return true;
+        }
+    }
+
+    function canvasToBlob(canvas, type, quality) {
+        return new Promise(function (resolve) {
+            canvas.toBlob(function (blob) {
+                resolve(blob || null);
             }, type, quality);
         });
     }
 
-    async function compressAvatar(file) {
-        const image = await loadImageFromFile(file);
-        const canvas = document.createElement("canvas");
-        const size = Math.min(AVATAR_SIZE, Math.max(1, Math.min(image.naturalWidth || image.width, image.naturalHeight || image.height)));
-        const sourceSize = Math.min(image.naturalWidth || image.width, image.naturalHeight || image.height);
-        const sourceX = Math.max(0, ((image.naturalWidth || image.width) - sourceSize) / 2);
-        const sourceY = Math.max(0, ((image.naturalHeight || image.height) - sourceSize) / 2);
+    async function encodeLossyAvatar(canvas, contentType, extension) {
+        let latest = null;
 
-        canvas.width = size;
-        canvas.height = size;
-        canvas.getContext("2d").drawImage(image, sourceX, sourceY, sourceSize, sourceSize, 0, 0, size, size);
+        for (let index = 0; index < AVATAR_QUALITY_STEPS.length; index += 1) {
+            const blob = await canvasToBlob(canvas, contentType, AVATAR_QUALITY_STEPS[index]);
+            if (!blob || blob.type !== contentType) {
+                return null;
+            }
 
-        let blob = await canvasToBlob(canvas, "image/webp", 0.86);
-        if (blob.size > MAX_AVATAR_BYTES) {
-            blob = await canvasToBlob(canvas, "image/webp", 0.72);
+            latest = {
+                blob: blob,
+                extension: extension,
+                contentType: contentType
+            };
+            if (blob.size <= TARGET_AVATAR_BYTES) {
+                return latest;
+            }
         }
 
-        if (blob.size > MAX_AVATAR_BYTES) {
-            throw new Error("compressed-avatar-too-large");
+        return latest;
+    }
+
+    async function encodePngAvatar(canvas) {
+        const blob = await canvasToBlob(canvas, "image/png");
+        if (!blob || blob.type !== "image/png") {
+            return null;
         }
 
-        return blob;
+        return {
+            blob: blob,
+            extension: "png",
+            contentType: "image/png"
+        };
+    }
+
+    function getAvatarEdgeSteps(longestEdge) {
+        const baseEdge = Math.min(AVATAR_MAX_EDGE, longestEdge);
+        const values = [baseEdge, Math.min(baseEdge, 640), Math.min(baseEdge, 512), Math.min(baseEdge, 384)];
+        return values.filter(function (value, index) {
+            return value > 0 && values.indexOf(value) === index;
+        });
+    }
+
+    function keepSmallerAvatarResult(current, candidate) {
+        if (!candidate || !candidate.blob) {
+            return current;
+        }
+        if (!current || !current.blob || candidate.blob.size < current.blob.size) {
+            return candidate;
+        }
+        return current;
+    }
+
+    async function compressAvatar(file, detectedMime) {
+        let imageSource = null;
+        let bestResult = null;
+        let webpSupported = true;
+        let fallbackType = "";
+
+        try {
+            imageSource = await loadAvatarImageSource(file);
+            const width = imageSource.width;
+            const height = imageSource.height;
+            const longestEdge = Math.max(width, height);
+
+            if (longestEdge > AVATAR_SAFE_MAX_EDGE || width * height > AVATAR_SAFE_MAX_PIXELS) {
+                throw new Error("avatar-pixels-too-large");
+            }
+
+            const edgeSteps = getAvatarEdgeSteps(longestEdge);
+            for (let index = 0; index < edgeSteps.length; index += 1) {
+                let canvas = null;
+
+                try {
+                    canvas = createAvatarCanvas(imageSource.source, width, height, edgeSteps[index]);
+                    let candidate = null;
+
+                    if (webpSupported) {
+                        candidate = await encodeLossyAvatar(canvas, "image/webp", "webp");
+                        if (candidate) {
+                            bestResult = keepSmallerAvatarResult(bestResult, candidate);
+                            if (candidate.blob.size <= TARGET_AVATAR_BYTES) {
+                                return candidate;
+                            }
+                            continue;
+                        }
+                        webpSupported = false;
+                    }
+
+                    if (!fallbackType) {
+                        const needsTransparency = detectedMime !== "image/jpeg" && canvasHasTransparency(canvas);
+                        fallbackType = needsTransparency ? "image/png" : "image/jpeg";
+                    }
+
+                    candidate = fallbackType === "image/png"
+                        ? await encodePngAvatar(canvas)
+                        : await encodeLossyAvatar(canvas, "image/jpeg", "jpg");
+
+                    if (!candidate) {
+                        throw new Error("canvas-blob-failed");
+                    }
+
+                    bestResult = keepSmallerAvatarResult(bestResult, candidate);
+                    if (candidate.blob.size <= TARGET_AVATAR_BYTES) {
+                        return candidate;
+                    }
+                } finally {
+                    releaseAvatarCanvas(canvas);
+                    canvas = null;
+                }
+            }
+
+            if (!bestResult || !bestResult.blob) {
+                throw new Error("canvas-blob-failed");
+            }
+            if (bestResult.blob.size > MAX_AVATAR_UPLOAD_BYTES) {
+                throw new Error("compressed-avatar-too-large");
+            }
+
+            return bestResult;
+        } finally {
+            if (imageSource && typeof imageSource.cleanup === "function") {
+                imageSource.cleanup();
+            }
+            imageSource = null;
+        }
+    }
+
+    function getAvatarRandomToken() {
+        if (window.crypto && typeof window.crypto.randomUUID === "function") {
+            return window.crypto.randomUUID().replace(/-/g, "").slice(0, 12);
+        }
+
+        if (window.crypto && typeof window.crypto.getRandomValues === "function") {
+            const bytes = new Uint8Array(6);
+            window.crypto.getRandomValues(bytes);
+            return Array.prototype.map.call(bytes, function (byte) {
+                return byte.toString(16).padStart(2, "0");
+            }).join("");
+        }
+
+        return Math.random().toString(36).slice(2, 14);
+    }
+
+    function buildAvatarPath(extension) {
+        const userId = state.session && state.session.user ? String(state.session.user.id || "") : "";
+        return userId + "/avatar-" + Date.now() + "-" + getAvatarRandomToken() + "." + extension;
+    }
+
+    function isCurrentUserAvatarPath(path) {
+        const userId = state.session && state.session.user ? String(state.session.user.id || "") : "";
+        const source = String(path || "");
+        const parts = source.split("/");
+
+        return !!userId
+            && source.charAt(0) !== "/"
+            && parts.length >= 2
+            && parts[0] === userId
+            && parts.every(function (part) {
+                return !!part && part !== "." && part !== "..";
+            });
+    }
+
+    async function removeOwnedAvatar(path) {
+        if (!path || !isCurrentUserAvatarPath(path)) {
+            if (path) {
+                console.warn("[JunxueMy] skipped avatar cleanup outside the current user directory.");
+            }
+            return false;
+        }
+
+        const response = await state.client.storage.from(AVATAR_BUCKET).remove([path]);
+        if (response.error) {
+            throw response.error;
+        }
+        return true;
+    }
+
+    function getAvatarErrorMessage(error) {
+        const code = error && error.message ? String(error.message) : "";
+
+        if (/avatar-file-read-failed|invalid-avatar-file|image-load-failed/i.test(code)) {
+            return "无法读取这张图片，请换一张 JPG、PNG 或 WebP 图片。";
+        }
+        if (code === "avatar-pixels-too-large") {
+            return "图片像素过大，请换一张尺寸更小的 JPG、PNG 或 WebP 图片。";
+        }
+        if (code === "compressed-avatar-too-large") {
+            return "图片压缩后仍然过大，请换一张尺寸更小的图片。";
+        }
+        if (/canvas|compress/i.test(code)) {
+            return "头像压缩失败，请换一张图片后重试。";
+        }
+        if (isAvatarSetupError(error)) {
+            return "头像上传功能还需要完成云端配置。";
+        }
+        return "头像上传失败，请稍后再试。";
     }
 
     async function saveAvatarPath(path) {
@@ -1370,46 +1718,92 @@
     }
 
     async function uploadAvatar(file) {
+        if (!file || state.avatarUploadInFlight) {
+            return;
+        }
+
         const validationMessage = validateAvatarFile(file);
         if (validationMessage) {
             setAvatarStatus(validationMessage);
             return;
         }
 
-        setBusy(nodes.avatarButton, true, "上传中...");
-        setAvatarStatus("正在压缩并上传头像...");
+        state.avatarUploadInFlight = true;
+        setBusy(nodes.avatarButton, true, "处理中...");
+        setAvatarStatus("正在压缩头像…");
 
         let nextPath = "";
+        const oldPath = state.avatarPath;
+        let profileUpdated = false;
+        let newAvatarReadable = false;
+        let compressed = null;
 
         try {
-            const blob = await compressAvatar(file);
-            nextPath = "avatars/" + state.userHash + "/avatar-" + Date.now() + ".webp";
-            const uploadResponse = await state.client.storage.from(AVATAR_BUCKET).upload(nextPath, blob, {
+            const detectedMime = await detectAvatarMime(file);
+            if (!detectedMime || detectedMime !== file.type) {
+                throw new Error("invalid-avatar-file");
+            }
+
+            compressed = await compressAvatar(file, detectedMime);
+            if (!compressed || !compressed.blob) {
+                throw new Error("canvas-blob-failed");
+            }
+            if (compressed.blob.size > MAX_AVATAR_UPLOAD_BYTES) {
+                throw new Error("compressed-avatar-too-large");
+            }
+
+            nextPath = buildAvatarPath(compressed.extension);
+            setBusy(nodes.avatarButton, true, "上传中...");
+            setAvatarStatus("正在上传头像…");
+
+            const uploadResponse = await state.client.storage.from(AVATAR_BUCKET).upload(nextPath, compressed.blob, {
                 cacheControl: "3600",
-                contentType: "image/webp",
-                upsert: true
+                contentType: compressed.contentType,
+                upsert: false
             });
 
             if (uploadResponse.error) {
                 throw uploadResponse.error;
             }
 
-            const oldPath = state.avatarPath;
             await saveAvatarPath(nextPath);
+            profileUpdated = true;
+
+            const signedUrl = await getReadableCloudAvatarUrl(nextPath);
+            applyCloudAvatarUrl(signedUrl);
+            newAvatarReadable = true;
 
             if (oldPath && oldPath !== nextPath) {
-                state.client.storage.from(AVATAR_BUCKET).remove([oldPath]).catch(function () {});
+                try {
+                    await removeOwnedAvatar(oldPath);
+                } catch (removeError) {
+                    console.warn("[JunxueMy] old avatar cleanup failed.");
+                }
             }
 
-            await renderCloudAvatar(nextPath);
-            setAvatarStatus("头像已上传到云端。");
+            setAvatarStatus("头像已保存到云端");
         } catch (error) {
-            if (nextPath) {
-                state.client.storage.from(AVATAR_BUCKET).remove([nextPath]).catch(function () {});
+            if (profileUpdated && !newAvatarReadable) {
+                try {
+                    await saveAvatarPath(oldPath);
+                    await renderCloudAvatar(oldPath);
+                } catch (rollbackError) {
+                    console.warn("[JunxueMy] avatar path rollback failed.");
+                }
             }
 
-            setAvatarStatus(isAvatarSetupError(error) ? "头像上传功能还需要完成云端配置。" : "头像上传失败，请稍后再试。");
+            if (nextPath) {
+                try {
+                    await removeOwnedAvatar(nextPath);
+                } catch (cleanupError) {
+                    console.warn("[JunxueMy] new avatar cleanup failed.");
+                }
+            }
+
+            setAvatarStatus(getAvatarErrorMessage(error));
         } finally {
+            compressed = null;
+            state.avatarUploadInFlight = false;
             setBusy(nodes.avatarButton, false, "更换头像");
             if (nodes.avatarInput) {
                 nodes.avatarInput.value = "";
@@ -1467,7 +1861,6 @@
                 return;
             }
 
-            state.userHash = await getSafeUserHash(state.session.user.id);
             loadMobileMessageReadState();
             renderLoggedInShell();
             renderProfile(null);
@@ -1491,10 +1884,17 @@
 
         if (nodes.avatarButton && nodes.avatarInput) {
             nodes.avatarButton.addEventListener("click", function () {
+                if (state.avatarUploadInFlight) {
+                    return;
+                }
                 nodes.avatarInput.click();
             });
             nodes.avatarInput.addEventListener("change", function () {
-                uploadAvatar(nodes.avatarInput.files && nodes.avatarInput.files[0]);
+                const file = nodes.avatarInput.files && nodes.avatarInput.files[0];
+                if (!file) {
+                    return;
+                }
+                uploadAvatar(file);
             });
         }
 
@@ -1586,6 +1986,9 @@
                 }
 
                 if (event.target.closest("[data-my-modal-avatar]")) {
+                    if (state.avatarUploadInFlight) {
+                        return;
+                    }
                     closeModal();
                     if (nodes.avatarInput) {
                         nodes.avatarInput.click();

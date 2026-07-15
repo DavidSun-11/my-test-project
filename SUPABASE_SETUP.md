@@ -1958,7 +1958,9 @@ This upgrade:
 
 - Creates a private Supabase Storage bucket named `boss-avatars`.
 - Adds `avatar_path` and `avatar_updated_at` to `public.boss_profiles`.
-- Allows each authenticated user to read, upload, update, and delete only avatar objects owned by their own auth session.
+- Stores new avatars under an auth-owned path such as `<auth.uid()>/avatar-<timestamp>-<random>.webp`.
+- Allows each authenticated user to upload, update, and delete only objects whose first path segment matches their own auth session.
+- Keeps a narrow read-only compatibility path for the legacy avatar currently referenced by the user's own profile.
 - Keeps avatar display cross-device by storing the object path in `boss_profiles.avatar_path`.
 
 ```sql
@@ -1973,7 +1975,7 @@ values (
   'boss-avatars',
   'boss-avatars',
   false,
-  1048576,
+  3145728,
   array['image/jpeg', 'image/png', 'image/webp']
 )
 on conflict (id) do update
@@ -1996,6 +1998,15 @@ to authenticated
 using (
   bucket_id = 'boss-avatars'
   and owner_id = auth.uid()::text
+  and (
+    (storage.foldername(name))[1] = auth.uid()::text
+    or exists (
+      select 1
+      from public.boss_profiles profile
+      where profile.user_id = auth.uid()
+        and profile.avatar_path = storage.objects.name
+    )
+  )
 );
 
 drop policy if exists "Boss avatars can insert own objects" on storage.objects;
@@ -2006,6 +2017,7 @@ to authenticated
 with check (
   bucket_id = 'boss-avatars'
   and owner_id = auth.uid()::text
+  and (storage.foldername(name))[1] = auth.uid()::text
   and storage.extension(name) in ('jpg', 'jpeg', 'png', 'webp')
 );
 
@@ -2017,10 +2029,12 @@ to authenticated
 using (
   bucket_id = 'boss-avatars'
   and owner_id = auth.uid()::text
+  and (storage.foldername(name))[1] = auth.uid()::text
 )
 with check (
   bucket_id = 'boss-avatars'
   and owner_id = auth.uid()::text
+  and (storage.foldername(name))[1] = auth.uid()::text
   and storage.extension(name) in ('jpg', 'jpeg', 'png', 'webp')
 );
 
@@ -2032,15 +2046,26 @@ to authenticated
 using (
   bucket_id = 'boss-avatars'
   and owner_id = auth.uid()::text
+  and (storage.foldername(name))[1] = auth.uid()::text
 );
+```
+
+For an existing `boss-avatars` bucket, this repeatable update changes only the size and MIME configuration. It does not recreate the bucket, delete avatar objects, or loosen Storage RLS:
+
+```sql
+update storage.buckets
+set
+  file_size_limit = 3145728,
+  allowed_mime_types = array['image/jpeg', 'image/png', 'image/webp']
+where id = 'boss-avatars';
 ```
 
 If you prefer the Supabase Dashboard:
 
-1. Go to **Storage -> New bucket**.
-2. Bucket name: `boss-avatars`.
+1. Go to **Storage -> boss-avatars -> bucket settings**.
+2. Keep the existing bucket and avatar objects; do not delete or recreate it.
 3. Keep it private, not public.
-4. Set file size limit to `1 MB`.
+4. Set file size limit to `3 MB`.
 5. Allow MIME types: `image/jpeg`, `image/png`, `image/webp`.
 6. Then run the `boss_profiles` column SQL and the `storage.objects` policies above.
 

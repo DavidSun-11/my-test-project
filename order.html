@@ -19,7 +19,7 @@
             --order-pink: #d9adff;
             --order-good: #8ff2ca;
             --order-warn: #ffd184;
-            --order-lake-bg: url("./assets/images/预约背景.png?v=20260715-booking-crystal-lake2");
+            --order-lake-bg: url("./assets/images/预约背景.png?v=20260716-booking-real-crystal1");
             font-family: "Microsoft YaHei", "PingFang SC", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
         }
 
@@ -32,7 +32,7 @@
             margin: 0;
             color: var(--order-text);
             background:
-                linear-gradient(180deg, rgba(3, 15, 48, 0.08), rgba(3, 16, 50, 0.3)),
+                linear-gradient(180deg, rgba(3, 15, 48, 0.02), rgba(3, 16, 50, 0.12)),
                 var(--order-lake-bg) center / cover fixed no-repeat,
                 #061224;
         }
@@ -43,9 +43,9 @@
             inset: 0;
             pointer-events: none;
             background:
-                linear-gradient(90deg, rgba(2, 12, 42, 0.28) 0%, transparent 22%, transparent 72%, rgba(2, 10, 38, 0.2) 100%),
-                linear-gradient(180deg, transparent 54%, rgba(2, 12, 42, 0.2) 100%);
-            opacity: 0.72;
+                linear-gradient(90deg, rgba(2, 12, 42, 0.1) 0%, transparent 22%, transparent 72%, rgba(2, 10, 38, 0.08) 100%),
+                linear-gradient(180deg, transparent 54%, rgba(2, 12, 42, 0.08) 100%);
+            opacity: 0.58;
         }
 
         a {
@@ -519,10 +519,10 @@
         .order-panel,
         .order-empty {
             border: 1px solid rgba(198, 234, 255, 0.48);
-            background: linear-gradient(145deg, rgba(63, 121, 193, 0.18), rgba(7, 24, 68, 0.42)), rgba(8, 27, 70, 0.26);
+            background: linear-gradient(145deg, rgba(63, 121, 193, 0.12), rgba(7, 24, 68, 0.24)), rgba(8, 27, 70, 0.16);
             box-shadow: 0 15px 42px rgba(2, 8, 35, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.22), inset 0 -1px 0 rgba(100, 185, 255, 0.08);
-            -webkit-backdrop-filter: blur(12px) saturate(1.16);
-            backdrop-filter: blur(12px) saturate(1.16);
+            -webkit-backdrop-filter: blur(8px) saturate(1.12);
+            backdrop-filter: blur(8px) saturate(1.12);
         }
 
         .order-nav::after,
@@ -534,7 +534,7 @@
             inset: 0;
             border-radius: inherit;
             pointer-events: none;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), transparent 18%) top left / 38% 50% no-repeat, linear-gradient(315deg, rgba(130, 201, 255, 0.11), transparent 17%) bottom right / 35% 45% no-repeat;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.07), transparent 18%) top left / 38% 50% no-repeat, linear-gradient(315deg, rgba(130, 201, 255, 0.06), transparent 17%) bottom right / 35% 45% no-repeat;
         }
 
         .order-nav {
@@ -956,11 +956,11 @@
                 <h1 class="order-title">服务预约</h1>
                 <p class="order-copy">提交后，君雪会确认时间、服务内容和最终金额。需要补款时，会通过微信 / 支付宝等方式与你线下确认。</p>
                 <div class="order-status" data-order-status aria-live="polite">正在确认登录状态...</div>
-                <img class="order-hero-crystal" src="assets/images/冰晶素材2-clean.webp?v=20260715-booking-crystal-lake2" alt="" aria-hidden="true">
+                <img class="order-hero-crystal" src="assets/images/冰晶素材2-clean.webp?v=20260716-booking-real-crystal1" alt="" aria-hidden="true">
             </div>
             <aside class="order-card order-meta" data-order-account hidden>
                 <div class="order-account-head">
-                    <img class="order-account-emblem" src="assets/images/冰晶素材-clean.webp?v=20260715-booking-crystal-lake2" alt="" aria-hidden="true">
+                    <img class="order-account-emblem" src="assets/images/冰晶素材-clean.webp?v=20260716-booking-real-crystal1" alt="" aria-hidden="true">
                     <div class="order-account-label">
                         <span>当前账号</span>
                         <strong data-order-display-name>--</strong>
@@ -1083,6 +1083,6 @@
     </main>
 
     <script src="assets/supabase-client.js?v=20260627-home-performance1"></script>
-    <script src="assets/order.js?v=20260715-booking-crystal-lake2"></script>
+    <script src="assets/order.js?v=20260716-booking-real-crystal1"></script>
 </body>
 </html>

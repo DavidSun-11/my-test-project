@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    const VERSION = "20260715-booking-crystal-lake2";
+    const VERSION = "20260716-booking-real-crystal1";
     const LOGIN_TEXT = "请先登录老板账号。";
     const SQL_HINT = "服务预约功能需要先执行 Supabase 第 17 节 SQL。";
     const VOUCHER_SQL_HINT = "兑换券功能需要先完成积分兑换数据库升级。";

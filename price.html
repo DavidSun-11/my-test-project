@@ -890,7 +890,7 @@
             margin-top: 0;
             border-color: rgba(236, 252, 255, 0.8);
             background:
-                radial-gradient(circle at 82% 10%, rgba(255, 255, 255, 0.62), transparent 25%),
+                radial-gradient(ellipse at 108% -8%, rgba(228, 228, 255, 0.28), transparent 62%),
                 radial-gradient(circle at 12% 0%, rgba(245, 254, 255, 0.54), transparent 34%),
                 linear-gradient(145deg, rgba(240, 253, 255, 0.62), rgba(175, 218, 255, 0.35) 53%, rgba(173, 163, 255, 0.25));
             box-shadow:
@@ -912,7 +912,7 @@
         }
 
         .price-card--naraka .price-section-head {
-            max-width: calc(100% - 156px);
+            max-width: calc(100% - 170px);
             margin-bottom: 16px;
         }
 
@@ -1013,16 +1013,16 @@
         .price-naraka-moon-image {
             position: absolute;
             z-index: 0;
-            top: 10px;
-            right: -22px;
-            width: min(44%, 242px);
-            max-width: 242px;
+            top: -26px;
+            right: -70px;
+            width: min(58%, 292px);
+            max-width: 292px;
             height: auto;
-            opacity: 0.94;
+            opacity: 0.42;
             pointer-events: none;
             object-fit: contain;
             mix-blend-mode: screen;
-            filter: drop-shadow(0 0 14px rgba(239, 242, 255, 0.74)) drop-shadow(0 0 32px rgba(147, 139, 255, 0.3));
+            filter: drop-shadow(0 0 20px rgba(235, 239, 255, 0.36)) drop-shadow(0 0 44px rgba(148, 137, 255, 0.16));
         }
 
         .price-naraka-veil {
@@ -1790,14 +1790,14 @@
             }
 
             .price-card--naraka .price-section-head {
-                max-width: calc(100% - 116px);
+                max-width: calc(100% - 126px);
             }
 
             .price-naraka-moon-image {
-                top: 8px;
-                right: -18px;
-                width: min(48%, 184px);
-                opacity: 0.8;
+                top: -14px;
+                right: -52px;
+                width: min(58%, 212px);
+                opacity: 0.34;
             }
 
             .price-naraka-veil {
@@ -1936,12 +1936,12 @@
             }
 
             .price-card--naraka .price-section-head {
-                max-width: calc(100% - 100px);
+                max-width: calc(100% - 112px);
             }
 
             .price-naraka-moon-image {
-                width: min(47%, 156px);
-                opacity: 0.72;
+                width: min(56%, 188px);
+                opacity: 0.3;
             }
         }
     </style>
@@ -2103,8 +2103,8 @@
 
         <div class="price-naraka-stack">
             <article class="price-card is-service price-card--naraka">
-                <img class="price-naraka-moon-image" src="assets/images/明月-月相-clean.webp?v=20260716-price-real-moon1" alt="" aria-hidden="true">
-                <img class="price-naraka-veil" src="assets/ui/price-moonlight-veil.svg?v=20260716-price-real-moon1" alt="" aria-hidden="true">
+                <img class="price-naraka-moon-image" src="assets/images/明月-圆月-clean.webp?v=20260716-price-round-moon1" alt="" aria-hidden="true">
+                <img class="price-naraka-veil" src="assets/ui/price-moonlight-veil.svg?v=20260716-price-round-moon1" alt="" aria-hidden="true">
                 <div class="price-section-head">
                     <div class="price-section-kicker">娱乐陪玩 / 语音聊天</div>
                     <h2>永劫无间陪玩</h2>
@@ -2445,7 +2445,7 @@ document.addEventListener("click", function (event) {
             showPriceReviewScriptFailure();
             return false;
         }
-        return loadScript("assets/price-reviews.js?v=20260716-price-real-moon1");
+        return loadScript("assets/price-reviews.js?v=20260716-price-round-moon1");
     }).then(function (loaded) {
         if (!loaded) {
             showPriceReviewScriptFailure();

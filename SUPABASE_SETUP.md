@@ -2400,6 +2400,7 @@ grant execute on function public.submit_boss_point_redemption(text, text, numeri
 drop function if exists public.get_my_boss_point_redemptions();
 create or replace function public.get_my_boss_point_redemptions()
 returns table (
+  redeem_ref uuid,
   redeem_type text,
   rank_range text,
   quantity numeric,
@@ -2423,6 +2424,7 @@ begin
 
   return query
   select
+    redemption.redeem_ref,
     redemption.redeem_type,
     redemption.rank_range,
     redemption.quantity,
@@ -3409,6 +3411,7 @@ grant execute on function public.admin_set_live_score_guess_result(uuid, text) t
 - 新增服务预约表 `boss_paid_orders`，前端展示为“服务预约 / 预约订单”。
 - 新增服务兑换券表 `boss_service_vouchers`，兑换券由积分兑换申请审核同意后自动生成。
 - 用户预约时可以选择一张可用兑换券；提交后服务端锁定兑换券，避免重复使用。
+- “我的星湖”管理员消息中心使用 `admin_get_my_page_pending_messages(text)` 按类型读取精确待处理总数和最近 5 条摘要；普通用户不会调用该 RPC。
 - 管理员确认、改期、拒绝、取消、完成预约，并手动记录线下转账状态。
 - 第一版不接真实支付接口，`payment_provider` 固定为 `manual`。
 
@@ -4098,6 +4101,157 @@ begin
 end;
 $$;
 
+drop function if exists public.admin_get_my_page_pending_messages(text);
+create or replace function public.admin_get_my_page_pending_messages(p_message_type text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_actor uuid := auth.uid();
+  v_message_type text := lower(trim(coalesce(p_message_type, '')));
+  v_result jsonb;
+begin
+  if v_actor is null or not public.is_live_interaction_admin(v_actor) then
+    raise exception 'not authorized';
+  end if;
+
+  if v_message_type = 'orders' then
+    with filtered as (
+      select
+        paid_order.order_ref,
+        left(coalesce(nullif(trim(profile.display_name), ''), '星湖用户'), 80) as display_name,
+        public.mask_admin_email(auth_user.email) as email_masked,
+        left(coalesce(nullif(concat_ws(' / ', nullif(trim(paid_order.game_type), ''), nullif(trim(paid_order.service_type), '')), ''), '服务预约'), 120) as title,
+        paid_order.order_status as status,
+        paid_order.game_type,
+        paid_order.service_type,
+        paid_order.scheduled_date,
+        paid_order.scheduled_time,
+        paid_order.duration_hours,
+        left(coalesce(paid_order.user_note, ''), 200) as user_note,
+        left(coalesce(paid_order.admin_note, ''), 200) as admin_note,
+        paid_order.manual_payment_status,
+        left(coalesce(paid_order.payment_note, ''), 200) as payment_note,
+        left(coalesce(paid_order.voucher_title, ''), 120) as voucher_title,
+        paid_order.created_at,
+        coalesce(paid_order.paid_at, paid_order.processed_at, paid_order.created_at) as updated_at,
+        case when paid_order.order_status = 'pending' then 0 else 1 end as status_priority
+      from public.boss_paid_orders paid_order
+      left join public.boss_profiles profile
+        on profile.user_id = paid_order.user_id
+      left join auth.users auth_user
+        on auth_user.id = paid_order.user_id
+      where paid_order.order_status in ('pending', 'need_reschedule')
+    ), recent as (
+      select *
+      from filtered
+      order by status_priority, created_at desc
+      limit 5
+    )
+    select jsonb_build_object(
+      'message_type', 'orders',
+      'type_total', (select count(*)::integer from filtered),
+      'items', coalesce((
+        select jsonb_agg(
+          jsonb_build_object(
+            'item_ref', recent.order_ref,
+            'display_name', recent.display_name,
+            'email_masked', recent.email_masked,
+            'title', recent.title,
+            'status', recent.status,
+            'summary', jsonb_strip_nulls(jsonb_build_object(
+              'game_type', recent.game_type,
+              'service_type', recent.service_type,
+              'scheduled_time', recent.scheduled_time,
+              'duration_hours', recent.duration_hours,
+              'user_note', recent.user_note,
+              'admin_note', recent.admin_note,
+              'manual_payment_status', recent.manual_payment_status,
+              'payment_note', recent.payment_note,
+              'voucher_title', recent.voucher_title
+            )),
+            'created_at', recent.created_at,
+            'updated_at', recent.updated_at,
+            'scheduled_date', recent.scheduled_date,
+            'cost_points', null::integer
+          )
+          order by recent.status_priority, recent.created_at desc
+        )
+        from recent
+      ), '[]'::jsonb)
+    )
+    into v_result;
+  elsif v_message_type = 'redemptions' then
+    with filtered as (
+      select
+        redemption.redeem_ref,
+        left(coalesce(nullif(trim(profile.display_name), ''), '老板用户'), 80) as display_name,
+        public.mask_admin_email(auth_user.email) as email_masked,
+        left(coalesce(nullif(trim(redemption.redeem_type), ''), '积分兑换申请'), 120) as title,
+        redemption.status,
+        redemption.redeem_type,
+        redemption.rank_range,
+        redemption.quantity,
+        greatest(coalesce(redemption.cost_points, 0), 0)::integer as cost_points,
+        left(coalesce(redemption.user_note, ''), 200) as user_note,
+        left(coalesce(redemption.admin_note, ''), 200) as admin_note,
+        redemption.created_at,
+        coalesce(redemption.processed_at, redemption.created_at) as updated_at
+      from public.boss_point_redemptions redemption
+      left join public.boss_profiles profile
+        on profile.user_id = redemption.user_id
+      left join auth.users auth_user
+        on auth_user.id = redemption.user_id
+      where redemption.status = 'pending'
+    ), recent as (
+      select *
+      from filtered
+      order by created_at desc
+      limit 5
+    )
+    select jsonb_build_object(
+      'message_type', 'redemptions',
+      'type_total', (select count(*)::integer from filtered),
+      'items', coalesce((
+        select jsonb_agg(
+          jsonb_build_object(
+            'item_ref', recent.redeem_ref,
+            'display_name', recent.display_name,
+            'email_masked', recent.email_masked,
+            'title', recent.title,
+            'status', recent.status,
+            'summary', jsonb_strip_nulls(jsonb_build_object(
+              'redeem_type', recent.redeem_type,
+              'rank_range', recent.rank_range,
+              'quantity', recent.quantity,
+              'user_note', recent.user_note,
+              'admin_note', recent.admin_note
+            )),
+            'created_at', recent.created_at,
+            'updated_at', recent.updated_at,
+            'scheduled_date', null::date,
+            'cost_points', recent.cost_points
+          )
+          order by recent.created_at desc
+        )
+        from recent
+      ), '[]'::jsonb)
+    )
+    into v_result;
+  else
+    raise exception 'invalid message type';
+  end if;
+
+  return coalesce(v_result, jsonb_build_object(
+    'message_type', v_message_type,
+    'type_total', 0,
+    'items', '[]'::jsonb
+  ));
+end;
+$$;
+
 drop function if exists public.admin_update_boss_paid_order(uuid, text, text, integer, text, text);
 create or replace function public.admin_update_boss_paid_order(
   p_order_ref uuid,
@@ -4256,11 +4410,13 @@ revoke all on function public.get_my_available_service_vouchers() from public;
 revoke all on function public.submit_boss_paid_order(text, text, date, text, numeric, text, text, uuid) from public;
 revoke all on function public.get_my_boss_paid_orders() from public;
 revoke all on function public.admin_get_boss_paid_orders(text) from public;
+revoke all on function public.admin_get_my_page_pending_messages(text) from public, anon, authenticated;
 revoke all on function public.admin_update_boss_paid_order(uuid, text, text, integer, text, text) from public;
 
 grant execute on function public.get_my_available_service_vouchers() to authenticated;
 grant execute on function public.submit_boss_paid_order(text, text, date, text, numeric, text, text, uuid) to authenticated;
 grant execute on function public.get_my_boss_paid_orders() to authenticated;
 grant execute on function public.admin_get_boss_paid_orders(text) to authenticated;
+grant execute on function public.admin_get_my_page_pending_messages(text) to authenticated;
 grant execute on function public.admin_update_boss_paid_order(uuid, text, text, integer, text, text) to authenticated;
 ```

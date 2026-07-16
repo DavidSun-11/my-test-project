@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    const VERSION = "20260715-avatar-compress3mb1";
+    const VERSION = "20260716-my-admin-message-center1";
     const BOSS_LOGIN_URL = "boss-register.html?mode=login&redirect=index";
     const BOSS_REGISTER_URL = "boss-register.html?mode=register&redirect=index";
     const AVATAR_BUCKET = "boss-avatars";
@@ -22,6 +22,8 @@
     const MOBILE_MESSAGE_READ_RETENTION_MS = 180 * 24 * 60 * 60 * 1000;
     const MOBILE_MESSAGE_READ_STORAGE_PREFIX = "junxue:starlake-message-read:";
     const MOBILE_MESSAGE_LOGIN_URL = "index.html?bossLogin=1";
+    const ADMIN_MESSAGE_CACHE_MS = 60 * 1000;
+    const ADMIN_MESSAGE_RPC = "admin_get_my_page_pending_messages";
     const ORDER_MESSAGE_LABELS = {
         pending: "你的预约已提交，正在等待君雪确认。",
         confirmed: "你的预约已确认，请查看管理员批注。",
@@ -39,6 +41,7 @@
         cancelled: "已取消"
     };
     const ORDER_PROGRESS_STATUSES = {
+        pending: true,
         confirmed: true,
         need_reschedule: true,
         rejected: true,
@@ -52,6 +55,19 @@
         voucher_reserved: "已锁定兑换券",
         voucher_used: "已使用兑换券",
         partial_voucher: "已用兑换券，仍需补款"
+    };
+    const REDEMPTION_TYPE_LABELS = {
+        king_star: "王者星星",
+        king_review: "王者复盘",
+        naraka_companion: "永劫无间娱乐陪",
+        voice_chat: "语音聊天"
+    };
+    const REDEMPTION_RANK_LABELS = {
+        below_king: "王者以下",
+        king_0_50: "王者 0 - 50 星",
+        king_50_80: "王者 50 - 80 星",
+        king_80_100: "王者 80 - 100 星",
+        king_100_plus: "王者 100 星以上"
     };
 
     const state = {
@@ -77,6 +93,28 @@
         },
         mobileMessageDiagnosticsLogged: false,
         mobileMessageReadState: {},
+        isAdmin: false,
+        adminCheckLoaded: false,
+        adminCheckFailed: false,
+        adminMessageOwnerUserId: "",
+        adminMessageLoadedAt: 0,
+        adminMessageRequestToken: 0,
+        adminMessageLoadPromise: null,
+        adminMessageDetail: null,
+        adminMessageCapabilityError: "",
+        adminMessageSources: {
+            orders: "idle",
+            redemptions: "idle"
+        },
+        adminMessageTotals: {
+            orders: 0,
+            redemptions: 0
+        },
+        adminMessageItems: {
+            orders: [],
+            redemptions: []
+        },
+        authSubscription: null,
         activeModal: "",
         lastModalTrigger: null
     };
@@ -115,8 +153,10 @@
         checkinMessage: $("[data-my-checkin-message]"),
         checkinSection: $("[data-my-checkin-section]"),
         actionNodes: $$("[data-my-action]"),
-        mobileMessageLink: $("[data-my-mobile-message]"),
+        messageLinks: $$("[data-my-mobile-message]"),
+        mobileMessageLink: $(".my-mobile-tabbar [data-my-mobile-message]"),
         mobileMessageBadge: $("[data-my-mobile-message-badge]"),
+        adminShortcut: $("[data-my-admin-shortcut]"),
         modal: $("[data-my-modal]"),
         modalPanel: $("[data-my-modal] .my-modal-panel"),
         modalTitle: $("[data-my-modal-title]"),
@@ -243,14 +283,6 @@
 
         const time = new Date(value).getTime();
         return Number.isNaN(time) ? 0 : time;
-    }
-
-    function isMobileViewport() {
-        if (!window.matchMedia) {
-            return (window.innerWidth || document.documentElement.clientWidth || 0) <= 768;
-        }
-
-        return window.matchMedia("(hover: none), (max-width: 768px)").matches;
     }
 
     function isSigned(status) {
@@ -603,81 +635,59 @@
         }).join("");
     }
 
-    function sortMessageRecords(records) {
-        return records.map(function (record, index) {
-            return {
-                index: index,
-                record: record,
-                time: getOrderMessageTimestamp(record)
-            };
-        }).sort(function (left, right) {
-            if (left.time || right.time) {
-                return right.time - left.time;
-            }
-            return left.index - right.index;
-        }).slice(0, MOBILE_MESSAGE_LIMIT).map(function (item) {
-            return item.record;
-        });
-    }
-
-    function renderMessageCards(records) {
-        const rows = sortMessageRecords(records || []).filter(function (record) {
-            return !!ORDER_MESSAGE_LABELS[record && record.order_status];
-        });
-
-        if (!rows.length) {
-            return "<div class=\"my-message-empty\">暂无消息</div>";
+    function createMessageElement(tagName, className, text) {
+        const element = document.createElement(tagName);
+        if (className) {
+            element.className = className;
         }
-
-        return "<div class=\"my-message-list\">" + rows.map(function (record) {
-            const status = record.order_status || "pending";
-            const paymentStatus = record.manual_payment_status || "";
-            const time = formatDateTime(getOrderMessageTime(record));
-            const meta = [
-                record.game_type || record.service_type ? escapeHtml([record.game_type, record.service_type].filter(Boolean).join(" / ")) : "",
-                time ? escapeHtml(time) : "",
-                paymentStatus && MANUAL_PAYMENT_LABELS[paymentStatus] ? escapeHtml(MANUAL_PAYMENT_LABELS[paymentStatus]) : "",
-                record.voucher_title ? "兑换券：" + escapeHtml(record.voucher_title) : ""
-            ].filter(Boolean).map(function (item) {
-                return "<span class=\"my-message-pill\">" + item + "</span>";
-            }).join("");
-            const adminNote = record.admin_note ? "<div class=\"my-message-note\">管理员批注：" + escapeHtml(record.admin_note) + "</div>" : "";
-            const paymentNote = record.payment_note ? "<div class=\"my-message-note\">人工转账备注：" + escapeHtml(record.payment_note) + "</div>" : "";
-
-            return [
-                "<article class=\"my-message-card\">",
-                    "<strong>" + escapeHtml(ORDER_MESSAGE_LABELS[status]) + "</strong>",
-                    meta ? "<div class=\"my-message-meta\">" + meta + "</div>" : "",
-                    adminNote,
-                    paymentNote,
-                "</article>"
-            ].join("");
-        }).join("") + "</div>";
+        if (text != null) {
+            element.textContent = String(text);
+        }
+        return element;
     }
 
-    function renderMessagesModal(body, subtitle, actions) {
-        setModalContent(
-            "星湖消息",
-            subtitle || "这里会显示最近的预约状态提醒。",
-            body || "<div class=\"my-message-empty\">暂无消息</div>",
-            actions || "<button class=\"my-button my-button--primary\" type=\"button\" data-my-modal-close>返回</button>"
+    function createMessageButton(label, className, attributeName, attributeValue) {
+        const button = createMessageElement("button", className || "my-button", label);
+        button.type = "button";
+        if (attributeName) {
+            button.setAttribute(attributeName, attributeValue == null ? "" : String(attributeValue));
+        }
+        return button;
+    }
+
+    function createMessageEmpty(title, copy, type) {
+        const empty = createMessageElement("div", "my-message-empty" + (type ? " is-" + type : ""));
+        empty.append(
+            createMessageElement("strong", "", title),
+            createMessageElement("span", "", copy)
         );
+        return empty;
+    }
+
+    function setMessageModalContent(title, subtitle, body, actions) {
+        setText(nodes.modalTitle, title);
+        setText(nodes.modalSubtitle, subtitle);
+        if (nodes.modalBody) {
+            nodes.modalBody.replaceChildren(body || document.createDocumentFragment());
+        }
+        if (nodes.modalActions) {
+            nodes.modalActions.replaceChildren();
+            (actions || []).forEach(function (action) {
+                nodes.modalActions.append(action);
+            });
+        }
     }
 
     function renderMessageLoginModal() {
-        renderMessagesModal(
-            "<div class=\"my-message-empty\">登录老板账号后，可以查看预约消息。</div>",
-            "登录后会按你的预约订单生成轻量提醒。",
-            "<button class=\"my-button\" type=\"button\" data-my-message-login>去登录</button><button class=\"my-button my-button--primary\" type=\"button\" data-my-modal-close>返回</button>"
-        );
-    }
-
-    function renderMessageLoadingModal() {
-        setModalContent(
+        const actions = [
+            createMessageButton("去登录", "my-button", "data-my-message-login", ""),
+            createMessageButton("返回", "my-button my-button--primary", "data-my-modal-close", "")
+        ];
+        setMessageModalContent(
             "星湖消息",
-            "星湖有新动静，会轻轻提醒你。",
-            renderMobileMessageLoading(),
-            "<button class=\"my-button my-button--primary\" type=\"button\" data-my-modal-close>返回</button>"
+            "登录后会按你的预约订单生成轻量提醒。",
+            createMessageEmpty("登录老板账号后，可以查看预约消息。", "登录后再来看看星湖的新动静吧。"),
+            actions
         );
     }
 
@@ -809,8 +819,9 @@
         const checkinStatus = state.checkinStatus;
 
         if (checkinStatus && !state.checkinUnavailable && !isSigned(checkinStatus)) {
+            const checkinDate = getShanghaiDate();
             messages.push({
-                key: "checkin-missing-" + getShanghaiDate(),
+                key: makeMobileMessageKey("checkin", [checkinDate, "pending", checkinDate]),
                 type: "checkin",
                 title: "今日还没有签到",
                 description: "去星湖签到，领取今天的积分吧。",
@@ -840,6 +851,7 @@
                     voucher_title: record.voucher_title || "",
                     admin_note: record.admin_note || "",
                     payment_note: record.payment_note || "",
+                    updated_at: recordTime || record.created_at || "",
                     processed_at: record.processed_at || "",
                     created_at: record.created_at || ""
                 });
@@ -853,12 +865,9 @@
                 const recordTime = getOrderMessageTime(record);
                 messages.push({
                     key: makeMobileMessageKey("redemption", [
-                        record.redeem_type || "",
-                        record.quantity || "",
-                        record.cost_points || "",
-                        record.created_at || "",
-                        recordTime || "",
-                        record.status || ""
+                        record.redeem_ref || "",
+                        record.status || "",
+                        recordTime || record.created_at || ""
                     ]),
                     type: "redemption",
                     title: "兑换已完成",
@@ -869,6 +878,7 @@
                     quantity: record.quantity || "",
                     cost_points: record.cost_points || "",
                     admin_note: record.admin_note || "",
+                    updated_at: recordTime || record.created_at || "",
                     processed_at: record.processed_at || "",
                     created_at: record.created_at || ""
                 });
@@ -915,16 +925,22 @@
         const messages = buildMobileMessageItems();
         const unreadCount = messages.filter(function (message) { return !message.read; }).length;
         const hasActiveCheckinReminder = messages.some(function (message) { return message.type === "checkin"; });
-        const badgeCount = Math.max(unreadCount, hasActiveCheckinReminder ? 1 : 0);
+        const personalCount = Math.max(unreadCount, hasActiveCheckinReminder ? 1 : 0);
+        const adminTotalsLoaded = state.isAdmin
+            && state.adminMessageSources.orders === "success"
+            && state.adminMessageSources.redemptions === "success";
+        const badgeCount = state.isAdmin
+            ? (adminTotalsLoaded ? state.adminMessageTotals.orders + state.adminMessageTotals.redemptions : 0)
+            : personalCount;
 
         if (nodes.mobileMessageBadge) {
             nodes.mobileMessageBadge.hidden = badgeCount === 0;
-            nodes.mobileMessageBadge.textContent = badgeCount > 9 ? "9+" : String(badgeCount);
+            nodes.mobileMessageBadge.textContent = badgeCount > 99 ? "99+" : String(badgeCount);
         }
-        if (nodes.mobileMessageLink) {
-            nodes.mobileMessageLink.classList.toggle("has-unread", badgeCount > 0);
-            nodes.mobileMessageLink.setAttribute("aria-label", badgeCount > 0 ? "消息，有未读提醒" : "消息");
-        }
+        nodes.messageLinks.forEach(function (link) {
+            link.classList.toggle("has-unread", badgeCount > 0);
+            link.setAttribute("aria-label", badgeCount > 0 ? "消息，有未读提醒" : "消息");
+        });
 
         return messages;
     }
@@ -943,93 +959,289 @@
         return updateMobileMessageBadge();
     }
 
-    function renderMobileMessageEmpty() {
-        return "<div class=\"my-message-empty\"><strong>星湖暂时很安静</strong><span>新的预约、兑换和签到提醒，会在这里慢慢出现。</span></div>";
-    }
-
-    function renderMobileMessageLoading() {
-        return "<div class=\"my-message-empty is-loading\"><strong>正在同步星湖消息...</strong><span>正在读取预约、兑换和每日签到提醒。</span></div>";
-    }
-
-    function renderMobileMessageFailure() {
-        return "<div class=\"my-message-empty is-warning\"><strong>星湖消息暂时没有同步完成</strong><span>已显示可以确认的提醒，稍后再试一次吧。</span></div>";
-    }
-
-    function renderMobileMessagePartialFailure() {
-        const failedSources = getMobileMessageFailedSources();
-        if (!failedSources.length) {
-            return "";
+    function appendMessageMeta(container, values) {
+        const items = (values || []).filter(Boolean);
+        if (!items.length) {
+            return;
         }
-        return "<div class=\"my-message-sync-note\">部分消息同步失败，已显示可以确认的提醒。</div>";
+        const meta = createMessageElement(container.tagName === "BUTTON" ? "span" : "div", "my-message-meta");
+        items.forEach(function (value) {
+            meta.append(createMessageElement("span", "my-message-pill", value));
+        });
+        container.append(meta);
     }
 
-    function renderMobileMessageCards(messages) {
+    function createPersonalMessageCard(message) {
+        const card = createMessageElement("article", "my-message-card is-" + message.type);
+        const head = createMessageElement("div", "my-message-card-head");
+        const meta = [];
+        const notes = [];
+        const time = formatDateTime(getOrderMessageTime(message));
+
+        head.append(
+            createMessageElement("strong", "", message.title),
+            createMessageElement("span", "my-message-read", message.read ? "已查看" : "未查看")
+        );
+        card.append(head, createMessageElement("p", "my-message-copy", message.description));
+
+        if (message.type === "order") {
+            if (message.game_type || message.service_type) {
+                meta.push([message.game_type, message.service_type].filter(Boolean).join(" / "));
+            }
+            meta.push(ORDER_STATUS_LABELS[message.order_status] || "");
+            meta.push(MANUAL_PAYMENT_LABELS[message.manual_payment_status] || "");
+            if (message.voucher_title) {
+                meta.push("兑换券：" + message.voucher_title);
+            }
+            if (message.admin_note) {
+                notes.push("管理员批注：" + message.admin_note);
+            }
+            if (message.payment_note) {
+                notes.push("人工转账备注：" + message.payment_note);
+            }
+        } else if (message.type === "redemption") {
+            meta.push("积分兑换已通过");
+            if (message.admin_note) {
+                notes.push("管理员批注：" + message.admin_note);
+            }
+        }
+        if (time) {
+            meta.push(time);
+        }
+        appendMessageMeta(card, meta);
+        notes.forEach(function (note) {
+            card.append(createMessageElement("div", "my-message-note", note));
+        });
+
+        const actions = createMessageElement("div", "my-message-card-actions");
+        actions.append(createMessageButton(message.actionLabel, "my-button my-button--primary", "data-my-message-action", message.action));
+        card.append(actions);
+        return card;
+    }
+
+    function createPersonalMessagesSection(messages) {
+        const section = createMessageElement("section", "my-message-section");
+        section.append(createMessageElement("h3", "my-message-section-title", "我的消息"));
         if (areMobileMessageSourcesLoading()) {
-            return renderMobileMessageLoading();
+            section.append(createMessageEmpty("正在同步星湖消息...", "正在读取预约、兑换和每日签到提醒。", "loading"));
+            return section;
         }
-
         if (!messages.length) {
-            return getMobileMessageFailedSources().length ? renderMobileMessageFailure() : renderMobileMessageEmpty();
+            section.append(getMobileMessageFailedSources().length
+                ? createMessageEmpty("星湖消息暂时没有同步完成", "已显示可以确认的提醒，稍后再试一次吧。", "warning")
+                : createMessageEmpty("星湖暂时很安静", "新的预约、兑换和签到提醒，会在这里慢慢出现。"));
+            return section;
         }
 
-        const content = "<div class=\"my-message-list\">" + messages.map(function (message) {
-            const time = formatDateTime(getOrderMessageTime(message));
-            const meta = [];
-            const notes = [];
-            if (message.type === "order") {
-                if (message.game_type || message.service_type) {
-                    meta.push([message.game_type, message.service_type].filter(Boolean).join(" / "));
-                }
-                if (ORDER_STATUS_LABELS[message.order_status]) {
-                    meta.push(ORDER_STATUS_LABELS[message.order_status]);
-                }
-                if (MANUAL_PAYMENT_LABELS[message.manual_payment_status]) {
-                    meta.push(MANUAL_PAYMENT_LABELS[message.manual_payment_status]);
-                }
-                if (message.voucher_title) {
-                    meta.push("兑换券：" + message.voucher_title);
-                }
-                if (message.admin_note) {
-                    notes.push("管理员批注：" + message.admin_note);
-                }
-                if (message.payment_note) {
-                    notes.push("人工转账备注：" + message.payment_note);
-                }
-            }
-            if (message.type === "redemption") {
-                if (message.redeem_type) {
-                    meta.push("积分兑换已通过");
-                }
-                if (message.admin_note) {
-                    notes.push("管理员批注：" + message.admin_note);
-                }
-            }
-            if (time) {
-                meta.push(time);
-            }
+        const list = createMessageElement("div", "my-message-list");
+        messages.forEach(function (message) {
+            list.append(createPersonalMessageCard(message));
+        });
+        if (getMobileMessageFailedSources().length) {
+            list.append(createMessageElement("div", "my-message-sync-note", "部分个人消息同步失败，已显示可以确认的提醒。"));
+        }
+        section.append(list);
+        return section;
+    }
 
-            return [
-                "<article class=\"my-message-card is-" + escapeHtml(message.type) + "\" data-my-message-key=\"" + escapeHtml(message.key) + "\">",
-                    "<div class=\"my-message-card-head\"><strong>" + escapeHtml(message.title) + "</strong><span class=\"my-message-read\">" + (message.read ? "已查看" : "未查看") + "</span></div>",
-                    "<p class=\"my-message-copy\">" + escapeHtml(message.description) + "</p>",
-                    meta.length ? "<div class=\"my-message-meta\">" + meta.map(function (item) { return "<span class=\"my-message-pill\">" + escapeHtml(item) + "</span>"; }).join("") + "</div>" : "",
-                    notes.map(function (note) { return "<div class=\"my-message-note\">" + escapeHtml(note) + "</div>"; }).join(""),
-                    "<div class=\"my-message-card-actions\"><button class=\"my-button my-button--primary\" type=\"button\" data-my-message-action=\"" + escapeHtml(message.action) + "\">" + escapeHtml(message.actionLabel) + "</button></div>",
-                "</article>"
-            ].join("");
-        }).join("") + renderMobileMessagePartialFailure() + "</div>";
+    function getAdminMessageItem(messageType, index) {
+        const items = state.adminMessageItems[messageType];
+        return Array.isArray(items) ? items[index] || null : null;
+    }
 
-        return content;
+    function getAdminMessageStatusLabel(messageType, status) {
+        if (messageType === "orders") {
+            return ORDER_STATUS_LABELS[status] || status || "待处理";
+        }
+        return status === "pending" ? "待审核" : (status || "待处理");
+    }
+
+    function getAdminMessageTitle(messageType, item) {
+        const summary = item && item.summary && typeof item.summary === "object" ? item.summary : {};
+        if (messageType === "redemptions") {
+            return REDEMPTION_TYPE_LABELS[summary.redeem_type] || item.title || "积分兑换申请";
+        }
+        return item.title || [summary.game_type, summary.service_type].filter(Boolean).join(" / ") || "服务预约";
+    }
+
+    function createAdminOverviewPanel() {
+        const panel = createMessageElement("section", "my-admin-message-panel is-overview");
+        const ordersReady = state.adminMessageSources.orders === "success";
+        const redemptionsReady = state.adminMessageSources.redemptions === "success";
+        const totalReady = ordersReady && redemptionsReady;
+        const rows = [
+            ["待审核预约", ordersReady ? state.adminMessageTotals.orders : "--"],
+            ["待审核积分兑换", redemptionsReady ? state.adminMessageTotals.redemptions : "--"],
+            ["待处理总数", totalReady ? state.adminMessageTotals.orders + state.adminMessageTotals.redemptions : "--"]
+        ];
+        panel.append(createMessageElement("h4", "my-admin-message-panel-title", "待处理总览"));
+        const stats = createMessageElement("div", "my-admin-message-stats");
+        rows.forEach(function (row) {
+            const item = createMessageElement("div", "my-admin-message-stat");
+            item.append(createMessageElement("span", "", row[0]), createMessageElement("strong", "", row[1]));
+            stats.append(item);
+        });
+        panel.append(stats);
+        return panel;
+    }
+
+    function createAdminMessageItem(messageType, item, index) {
+        const summary = item && item.summary && typeof item.summary === "object" ? item.summary : {};
+        const button = createMessageButton("", "my-admin-message-item", "data-my-admin-message-type", messageType);
+        button.setAttribute("data-my-admin-message-index", String(index));
+        const head = createMessageElement("span", "my-admin-message-item-head");
+        head.append(
+            createMessageElement("strong", "", item.display_name || "星湖用户"),
+            createMessageElement("span", "my-message-pill", getAdminMessageStatusLabel(messageType, item.status))
+        );
+        button.append(head, createMessageElement("span", "my-admin-message-item-title", getAdminMessageTitle(messageType, item)));
+
+        const meta = [];
+        if (messageType === "orders") {
+            const schedule = [item.scheduled_date || "", summary.scheduled_time || ""].filter(Boolean).join(" ");
+            if (schedule) {
+                meta.push(schedule);
+            }
+            if (MANUAL_PAYMENT_LABELS[summary.manual_payment_status]) {
+                meta.push(MANUAL_PAYMENT_LABELS[summary.manual_payment_status]);
+            }
+        } else {
+            const rank = REDEMPTION_RANK_LABELS[summary.rank_range] || summary.rank_range || "";
+            if (rank) {
+                meta.push(rank);
+            }
+            if (summary.quantity != null && summary.quantity !== "") {
+                meta.push("数量 " + summary.quantity);
+            }
+            meta.push("预计 " + (Number(item.cost_points) || 0) + " 积分");
+        }
+        const createdAt = formatDateTime(item.created_at);
+        if (createdAt) {
+            meta.push(createdAt);
+        }
+        appendMessageMeta(button, meta);
+        if (summary.user_note) {
+            button.append(createMessageElement("span", "my-admin-message-note-preview", "备注：" + summary.user_note));
+        }
+        return button;
+    }
+
+    function createAdminRequestsPanel(messageType, title) {
+        const panel = createMessageElement("section", "my-admin-message-panel is-" + messageType);
+        panel.append(createMessageElement("h4", "my-admin-message-panel-title", title));
+        const source = state.adminMessageSources[messageType];
+        if (source === "idle" || source === "loading") {
+            panel.append(createMessageEmpty("正在读取" + title + "...", "稍等片刻，列表会自动更新。", "loading"));
+            return panel;
+        }
+        if (source === "error") {
+            panel.append(createMessageEmpty(title + "暂时读取失败", "另一个待处理面板仍可继续使用。", "warning"));
+            return panel;
+        }
+
+        const items = state.adminMessageItems[messageType] || [];
+        if (!items.length) {
+            panel.append(createMessageEmpty("目前没有待处理申请。", "这里会显示最近提交的待处理记录。"));
+            return panel;
+        }
+        const list = createMessageElement("div", "my-admin-message-items");
+        items.forEach(function (item, index) {
+            list.append(createAdminMessageItem(messageType, item, index));
+        });
+        panel.append(list);
+        return panel;
+    }
+
+    function createAdminMessageCenter() {
+        const section = createMessageElement("section", "my-admin-message-center");
+        const head = createMessageElement("div", "my-admin-message-center-head");
+        head.append(
+            createMessageElement("h3", "my-message-section-title", "待处理消息"),
+            createMessageButton("刷新消息", "my-button my-button--compact", "data-my-admin-message-refresh", "")
+        );
+        section.append(head);
+
+        if (state.adminMessageCapabilityError) {
+            section.append(createMessageEmpty(state.adminMessageCapabilityError, "个人消息仍可正常查看。", "warning"));
+            return section;
+        }
+        const panels = createMessageElement("div", "my-admin-message-panels");
+        panels.append(
+            createAdminOverviewPanel(),
+            createAdminRequestsPanel("orders", "预约申请"),
+            createAdminRequestsPanel("redemptions", "积分兑换申请")
+        );
+        section.append(panels);
+        return section;
+    }
+
+    function appendAdminDetailRow(container, label, value) {
+        if (value == null || value === "") {
+            return;
+        }
+        const row = createMessageElement("div", "my-admin-message-detail-row");
+        row.append(createMessageElement("span", "", label), createMessageElement("strong", "", value));
+        container.append(row);
+    }
+
+    function renderAdminMessageDetail() {
+        const detail = state.adminMessageDetail || {};
+        const item = getAdminMessageItem(detail.messageType, detail.index);
+        if (!item) {
+            state.adminMessageDetail = null;
+            renderStarlakeMessagesModal(buildMobileMessageItems());
+            return;
+        }
+        const summary = item.summary && typeof item.summary === "object" ? item.summary : {};
+        const body = createMessageElement("div", "my-admin-message-detail");
+        appendAdminDetailRow(body, "老板昵称", item.display_name || "星湖用户");
+        appendAdminDetailRow(body, "脱敏邮箱", item.email_masked || "未绑定邮箱");
+        appendAdminDetailRow(body, "申请内容", getAdminMessageTitle(detail.messageType, item));
+        appendAdminDetailRow(body, "当前状态", getAdminMessageStatusLabel(detail.messageType, item.status));
+        if (detail.messageType === "orders") {
+            appendAdminDetailRow(body, "预约时间", [item.scheduled_date || "", summary.scheduled_time || ""].filter(Boolean).join(" "));
+            appendAdminDetailRow(body, "预计时长", summary.duration_hours ? summary.duration_hours + " 小时" : "");
+            appendAdminDetailRow(body, "人工转账", MANUAL_PAYMENT_LABELS[summary.manual_payment_status] || summary.manual_payment_status);
+            appendAdminDetailRow(body, "兑换券", summary.voucher_title);
+            appendAdminDetailRow(body, "人工转账备注", summary.payment_note);
+        } else {
+            appendAdminDetailRow(body, "段位区间", REDEMPTION_RANK_LABELS[summary.rank_range] || summary.rank_range);
+            appendAdminDetailRow(body, "数量", summary.quantity);
+            appendAdminDetailRow(body, "预计消耗积分", (Number(item.cost_points) || 0) + " 积分");
+        }
+        appendAdminDetailRow(body, "用户备注", summary.user_note || "暂无");
+        appendAdminDetailRow(body, "管理员批注", summary.admin_note || "暂无");
+        appendAdminDetailRow(body, "提交时间", formatDateTime(item.created_at));
+
+        const back = createMessageButton("返回消息", "my-button", "data-my-admin-message-back", "");
+        const enterAdmin = createMessageElement("a", "my-button my-button--primary", "进入后台处理");
+        const orderStatus = item.status === "need_reschedule" ? "need_reschedule" : "pending";
+        enterAdmin.href = detail.messageType === "orders"
+            ? "admin.html?panel=orders&status=" + orderStatus
+            : "admin.html?panel=redemptions&status=pending";
+        setMessageModalContent("申请详情", "查看申请摘要，审批操作仍在管理员后台完成。", body, [back, enterAdmin]);
     }
 
     function renderStarlakeMessagesModal(messages) {
+        if (state.adminMessageDetail) {
+            renderAdminMessageDetail();
+            return;
+        }
         const renderedMessages = messages || [];
+        const body = createMessageElement("div", "my-message-center");
         logMobileMessageDiagnostics(renderedMessages, areMobileMessageSourcesLoading() ? "loading" : "final");
-        setModalContent(
+        body.append(createPersonalMessagesSection(renderedMessages));
+        if (state.isAdmin || state.adminMessageCapabilityError) {
+            body.append(createAdminMessageCenter());
+        }
+        setMessageModalContent(
             "星湖消息",
-            "这里会汇总你的预约进度、兑换结果和每日签到提醒。",
-            renderMobileMessageCards(renderedMessages),
-            "<button class=\"my-button my-button--primary\" type=\"button\" data-my-modal-close>返回</button>"
+            state.isAdmin ? "这里汇总个人提醒和管理员待处理申请。" : "这里会汇总你的预约进度、兑换结果和每日签到提醒。",
+            body,
+            [
+                createMessageButton("刷新消息", "my-button", "data-my-message-refresh", ""),
+                createMessageButton("返回", "my-button my-button--primary", "data-my-modal-close", "")
+            ]
         );
     }
 
@@ -1177,6 +1389,11 @@
             return;
         }
 
+        if (state.activeModal === "messages") {
+            state.adminMessageRequestToken += 1;
+            state.adminMessageLoadPromise = null;
+            state.adminMessageDetail = null;
+        }
         nodes.modal.hidden = true;
         nodes.modal.classList.remove("is-mobile-message");
         if (nodes.modalPanel) {
@@ -1194,7 +1411,7 @@
     async function openMobileMessagePopup(trigger) {
         console.debug("[my-mobile-message] open");
 
-        if (!nodes.modal || state.mobileMessageInFlight) {
+        if (!nodes.modal) {
             return;
         }
 
@@ -1204,15 +1421,56 @@
             return;
         }
 
-        state.mobileMessageInFlight = true;
-        renderMessageLoadingModal();
+        renderStarlakeMessagesModal(markMobileMessagesRead(buildMobileMessageItems()));
         openModal("messages", trigger);
 
+        if (state.mobileMessageInFlight) {
+            return;
+        }
+        state.mobileMessageInFlight = true;
+        const userId = getCurrentSessionUserId();
         try {
             if (state.mobileMessageLoadPromise) {
                 await state.mobileMessageLoadPromise;
             }
+            if (userId !== getCurrentSessionUserId() || state.activeModal !== "messages") {
+                return;
+            }
             renderStarlakeMessagesModal(markMobileMessagesRead(buildMobileMessageItems()));
+            if (state.isAdmin) {
+                loadAdminMessages(false);
+            }
+        } finally {
+            state.mobileMessageInFlight = false;
+        }
+    }
+
+    async function refreshMessageCenter() {
+        const userId = getCurrentSessionUserId();
+        if (!state.client || !userId || state.mobileMessageInFlight) {
+            return;
+        }
+
+        state.mobileMessageInFlight = true;
+        state.mobileMessageSources.checkin = "loading";
+        state.mobileMessageSources.orders = "loading";
+        state.mobileMessageSources.redemptions = "loading";
+        refreshOpenStarlakeMessages();
+        try {
+            await Promise.allSettled([
+                loadCheckinStatus(),
+                loadMobileMessageOrders(),
+                loadMobileMessageRedemptions(),
+                loadAdminIdentity()
+            ]);
+            if (userId !== getCurrentSessionUserId()) {
+                return;
+            }
+            markMobileMessagesRead(buildMobileMessageItems());
+            refreshOpenStarlakeMessages();
+            if (state.isAdmin) {
+                await loadAdminMessages(true);
+            }
         } finally {
             state.mobileMessageInFlight = false;
         }
@@ -1240,10 +1498,6 @@
         });
     }
 
-    async function openMobileMessages(trigger) {
-        return openMobileMessagePopup(trigger);
-    }
-
     function handleMobileMessageEvent(event, trigger) {
         if (!trigger) {
             return;
@@ -1251,11 +1505,6 @@
 
         event.preventDefault();
         event.stopPropagation();
-
-        if (!isMobileViewport()) {
-            console.warn("[my-mobile-message] ignored: non-mobile viewport.");
-            return;
-        }
 
         openMobileMessagePopup(trigger);
     }
@@ -1485,6 +1734,210 @@
         } catch (error) {
             return true;
         }
+    }
+
+    function getCurrentSessionUserId() {
+        return state.session && state.session.user ? String(state.session.user.id || "") : "";
+    }
+
+    function setAdminShortcutVisible(visible) {
+        if (nodes.adminShortcut) {
+            nodes.adminShortcut.hidden = !visible;
+        }
+    }
+
+    function resetAdminMessageData(capabilityError) {
+        state.adminMessageRequestToken += 1;
+        state.adminMessageOwnerUserId = "";
+        state.adminMessageLoadedAt = 0;
+        state.adminMessageLoadPromise = null;
+        state.adminMessageDetail = null;
+        state.adminMessageCapabilityError = capabilityError || "";
+        state.adminMessageSources.orders = "idle";
+        state.adminMessageSources.redemptions = "idle";
+        state.adminMessageTotals.orders = 0;
+        state.adminMessageTotals.redemptions = 0;
+        state.adminMessageItems.orders = [];
+        state.adminMessageItems.redemptions = [];
+    }
+
+    function clearAdminAccess(capabilityError) {
+        state.isAdmin = false;
+        state.adminCheckLoaded = true;
+        state.adminCheckFailed = !!capabilityError;
+        resetAdminMessageData(capabilityError);
+        setAdminShortcutVisible(false);
+        updateMobileMessageBadge();
+        refreshOpenStarlakeMessages();
+    }
+
+    async function loadAdminIdentity() {
+        const userId = getCurrentSessionUserId();
+        if (!state.client || !userId) {
+            clearAdminAccess("");
+            return false;
+        }
+
+        try {
+            const response = await state.client
+                .from("live_interaction_admins")
+                .select("user_id")
+                .eq("user_id", userId)
+                .maybeSingle();
+
+            if (getCurrentSessionUserId() !== userId) {
+                return false;
+            }
+            if (response.error) {
+                throw response.error;
+            }
+
+            state.isAdmin = !!response.data;
+            state.adminCheckLoaded = true;
+            state.adminCheckFailed = false;
+            state.adminMessageCapabilityError = "";
+            setAdminShortcutVisible(state.isAdmin);
+            if (!state.isAdmin) {
+                resetAdminMessageData("");
+            }
+            updateMobileMessageBadge();
+            return state.isAdmin;
+        } catch (error) {
+            console.warn("[star-lake-messages] admin identity check unavailable.");
+            clearAdminAccess("");
+            return false;
+        }
+    }
+
+    function isAdminMessageSetupError(error) {
+        const message = error && error.message ? String(error.message) : "";
+        return /admin_get_my_page_pending_messages|schema cache|function .* does not exist|PGRST202/i.test(message);
+    }
+
+    function isAdminMessagePermissionError(error) {
+        const message = error && error.message ? String(error.message) : "";
+        return /not authorized|permission denied|row-level security|JWT|auth/i.test(message);
+    }
+
+    function normalizeAdminMessagePayload(data, messageType) {
+        let payload = Array.isArray(data) ? data[0] : data;
+        if (typeof payload === "string") {
+            try {
+                payload = JSON.parse(payload);
+            } catch (error) {
+                payload = null;
+            }
+        }
+        if (!payload || typeof payload !== "object" || payload.message_type !== messageType) {
+            throw new Error("invalid admin message payload");
+        }
+
+        const total = Number(payload.type_total);
+        return {
+            messageType: messageType,
+            total: Number.isFinite(total) && total > 0 ? Math.floor(total) : 0,
+            items: Array.isArray(payload.items) ? payload.items.slice(0, 5) : []
+        };
+    }
+
+    function isAdminMessageRequestCurrent(token, userId) {
+        return token === state.adminMessageRequestToken
+            && userId === getCurrentSessionUserId()
+            && state.isAdmin
+            && state.adminMessageOwnerUserId === userId;
+    }
+
+    async function loadAdminMessageSource(messageType, token, userId) {
+        try {
+            const response = await state.client.rpc(ADMIN_MESSAGE_RPC, {
+                p_message_type: messageType
+            });
+            if (!isAdminMessageRequestCurrent(token, userId)) {
+                return;
+            }
+            if (response.error) {
+                throw response.error;
+            }
+
+            const payload = normalizeAdminMessagePayload(response.data, messageType);
+            if (!isAdminMessageRequestCurrent(token, userId)) {
+                return;
+            }
+            state.adminMessageTotals[messageType] = payload.total;
+            state.adminMessageItems[messageType] = payload.items;
+            state.adminMessageSources[messageType] = "success";
+            refreshOpenStarlakeMessages();
+        } catch (error) {
+            if (!isAdminMessageRequestCurrent(token, userId)) {
+                return;
+            }
+            if (isAdminMessageSetupError(error)) {
+                clearAdminAccess("管理员消息功能需要先完成数据库升级。");
+                return;
+            }
+            if (isAdminMessagePermissionError(error)) {
+                clearAdminAccess("管理员消息暂时无法读取。");
+                return;
+            }
+
+            state.adminMessageTotals[messageType] = 0;
+            state.adminMessageItems[messageType] = [];
+            state.adminMessageSources[messageType] = "error";
+            console.warn("[star-lake-messages] admin " + messageType + " messages unavailable.");
+            refreshOpenStarlakeMessages();
+        }
+    }
+
+    function hasFreshAdminMessageCache(userId) {
+        return state.adminMessageOwnerUserId === userId
+            && state.adminMessageSources.orders === "success"
+            && state.adminMessageSources.redemptions === "success"
+            && Date.now() - state.adminMessageLoadedAt < ADMIN_MESSAGE_CACHE_MS;
+    }
+
+    function loadAdminMessages(force) {
+        const userId = getCurrentSessionUserId();
+        if (!state.client || !state.isAdmin || !userId) {
+            return Promise.resolve();
+        }
+        if (!force && hasFreshAdminMessageCache(userId)) {
+            return Promise.resolve();
+        }
+        if (!force && state.adminMessageLoadPromise) {
+            return state.adminMessageLoadPromise;
+        }
+
+        const token = state.adminMessageRequestToken + 1;
+        state.adminMessageRequestToken = token;
+        state.adminMessageOwnerUserId = userId;
+        state.adminMessageLoadedAt = 0;
+        state.adminMessageDetail = null;
+        state.adminMessageCapabilityError = "";
+        state.adminMessageSources.orders = "loading";
+        state.adminMessageSources.redemptions = "loading";
+        state.adminMessageTotals.orders = 0;
+        state.adminMessageTotals.redemptions = 0;
+        state.adminMessageItems.orders = [];
+        state.adminMessageItems.redemptions = [];
+        refreshOpenStarlakeMessages();
+
+        const promise = Promise.allSettled([
+            loadAdminMessageSource("orders", token, userId),
+            loadAdminMessageSource("redemptions", token, userId)
+        ]).then(function () {
+            if (!isAdminMessageRequestCurrent(token, userId)) {
+                return;
+            }
+            if (state.adminMessageSources.orders === "success" && state.adminMessageSources.redemptions === "success") {
+                state.adminMessageLoadedAt = Date.now();
+            }
+            state.adminMessageLoadPromise = null;
+            updateMobileMessageBadge();
+            refreshOpenStarlakeMessages();
+        });
+
+        state.adminMessageLoadPromise = promise;
+        return promise;
     }
 
     function canvasToBlob(canvas, type, quality) {
@@ -1828,7 +2281,8 @@
             loadProfile(),
             loadCheckinStatus(message),
             loadMobileMessageOrders(),
-            loadMobileMessageRedemptions()
+            loadMobileMessageRedemptions(),
+            loadAdminIdentity()
         ]);
         await state.mobileMessageLoadPromise;
         if (token !== state.loadingToken) {
@@ -1839,6 +2293,76 @@
         logMobileMessageDiagnostics(buildMobileMessageItems(), "final");
         if (nodes.avatarStatus && nodes.avatarStatus.textContent === "正在读取星湖资料...") {
             setAvatarStatus("");
+        }
+    }
+
+    function resetSessionBoundState() {
+        state.loadingToken += 1;
+        state.mobileMessageInFlight = false;
+        state.mobileMessageLoadPromise = null;
+        state.mobileMessageOrders = [];
+        state.mobileMessageRedemptions = [];
+        state.mobileMessageOrdersLoaded = false;
+        state.mobileMessageRedemptionsLoaded = false;
+        state.mobileMessageSources.checkin = "idle";
+        state.mobileMessageSources.orders = "idle";
+        state.mobileMessageSources.redemptions = "idle";
+        state.mobileMessageReadState = {};
+        state.mobileMessageDiagnosticsLogged = false;
+        state.checkinStatus = null;
+        state.profile = null;
+        state.avatarPath = "";
+        state.isAdmin = false;
+        state.adminCheckLoaded = false;
+        state.adminCheckFailed = false;
+        resetAdminMessageData("");
+        setAdminShortcutVisible(false);
+        if (nodes.mobileMessageBadge) {
+            nodes.mobileMessageBadge.hidden = true;
+            nodes.mobileMessageBadge.textContent = "0";
+        }
+        nodes.messageLinks.forEach(function (link) {
+            link.classList.remove("has-unread");
+            link.setAttribute("aria-label", "消息");
+        });
+    }
+
+    async function bootstrapAuthenticatedSession() {
+        if (!state.session || !state.session.user) {
+            renderLoggedOut();
+            return;
+        }
+        loadMobileMessageReadState();
+        renderLoggedInShell();
+        renderProfile(null);
+        await refreshAll();
+    }
+
+    async function handleAuthStateChange(nextSession) {
+        const previousUserId = getCurrentSessionUserId();
+        const nextUserId = nextSession && nextSession.user ? String(nextSession.user.id || "") : "";
+        if (previousUserId === nextUserId) {
+            state.session = nextSession || null;
+            return;
+        }
+
+        if (nodes.modal && !nodes.modal.hidden) {
+            closeModal();
+        }
+        resetSessionBoundState();
+        state.session = nextSession || null;
+        if (!nextUserId) {
+            renderLoggedOut();
+            return;
+        }
+
+        try {
+            await bootstrapAuthenticatedSession();
+        } catch (error) {
+            resetSessionBoundState();
+            state.session = null;
+            renderLoggedOut();
+            console.debug("[JunxueMy] session change refresh failed.");
         }
     }
 
@@ -1858,13 +2382,16 @@
             state.session = sessionResponse.data ? sessionResponse.data.session : null;
             if (!state.session || !state.session.user) {
                 renderLoggedOut();
-                return;
+            } else {
+                await bootstrapAuthenticatedSession();
             }
 
-            loadMobileMessageReadState();
-            renderLoggedInShell();
-            renderProfile(null);
-            await refreshAll();
+            const authListener = state.client.auth.onAuthStateChange(function (event, nextSession) {
+                window.setTimeout(function () {
+                    handleAuthStateChange(nextSession);
+                }, 0);
+            });
+            state.authSubscription = authListener && authListener.data ? authListener.data.subscription : null;
         } catch (error) {
             renderLoggedOut();
             console.debug("[JunxueMy] init failed.");
@@ -1949,6 +2476,28 @@
 
         if (nodes.modal) {
             nodes.modal.addEventListener("click", function (event) {
+                const adminMessageItem = event.target.closest("[data-my-admin-message-type][data-my-admin-message-index]");
+                if (adminMessageItem) {
+                    const messageType = adminMessageItem.getAttribute("data-my-admin-message-type");
+                    const index = Number(adminMessageItem.getAttribute("data-my-admin-message-index"));
+                    if ((messageType === "orders" || messageType === "redemptions") && Number.isInteger(index) && getAdminMessageItem(messageType, index)) {
+                        state.adminMessageDetail = { messageType: messageType, index: index };
+                        renderAdminMessageDetail();
+                    }
+                    return;
+                }
+
+                if (event.target.closest("[data-my-admin-message-back]")) {
+                    state.adminMessageDetail = null;
+                    renderStarlakeMessagesModal(buildMobileMessageItems());
+                    return;
+                }
+
+                if (event.target.closest("[data-my-message-refresh], [data-my-admin-message-refresh]")) {
+                    refreshMessageCenter();
+                    return;
+                }
+
                 const messageAction = event.target.closest("[data-my-message-action]");
                 if (messageAction) {
                     const action = messageAction.getAttribute("data-my-message-action");

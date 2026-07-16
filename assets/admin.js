@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    const VERSION = "20260707-paid-order-mvp1";
+    const VERSION = "20260716-my-admin-message-center1";
     const SQL_HINT = "管理员后台需要先执行数据库升级 SQL。";
     const NO_PERMISSION_TEXT = "你没有权限访问这个后台。";
     const LOGIN_TEXT = "请先登录管理员账号。";
@@ -60,6 +60,8 @@
         scoreGuessSessions: [],
         redemptionFilter: "pending",
         paidOrderFilter: "pending",
+        deepLink: null,
+        deepLinkApplied: false,
         hasAdminAccess: false,
         client: null,
         session: null
@@ -139,6 +141,39 @@
             minimumFractionDigits: value % 100 === 0 ? 0 : 2,
             maximumFractionDigits: 2
         }) + " 元";
+    }
+
+    function parseAdminDeepLink() {
+        const params = new URLSearchParams(window.location.search);
+        const panel = params.get("panel") || "";
+        const status = params.get("status") || "";
+        const allowedStatuses = {
+            orders: ["pending", "confirmed", "need_reschedule", "rejected", "completed", "cancelled", "all"],
+            redemptions: ["pending", "approved", "rejected", "all"]
+        };
+
+        if (!Object.prototype.hasOwnProperty.call(allowedStatuses, panel) || allowedStatuses[panel].indexOf(status) === -1) {
+            return null;
+        }
+        return { panel: panel, status: status };
+    }
+
+    function focusAdminDeepLink(deepLink) {
+        if (!deepLink || !state.hasAdminAccess) {
+            return;
+        }
+        const panel = deepLink.panel === "orders" ? nodes.paidOrderPanel : nodes.redemptionPanel;
+        if (!panel || panel.hidden) {
+            return;
+        }
+        const heading = panel.querySelector(".admin-panel-title");
+        window.requestAnimationFrame(function () {
+            panel.scrollIntoView({ behavior: "smooth", block: "start" });
+            if (heading) {
+                heading.setAttribute("tabindex", "-1");
+                heading.focus({ preventScroll: true });
+            }
+        });
     }
 
     function maskEmail(email) {
@@ -594,9 +629,21 @@
     async function refreshAll(doneMessage) {
         await loadUsers(doneMessage);
         if (state.hasAdminAccess) {
+            const deepLink = !state.deepLinkApplied ? state.deepLink : null;
+            if (deepLink) {
+                if (deepLink.panel === "orders") {
+                    state.paidOrderFilter = deepLink.status;
+                } else {
+                    state.redemptionFilter = deepLink.status;
+                }
+            }
             await loadRedemptions();
             await loadPaidOrders();
             await loadScoreGuessSessions();
+            if (deepLink) {
+                state.deepLinkApplied = true;
+                focusAdminDeepLink(deepLink);
+            }
         }
     }
 
@@ -1131,6 +1178,7 @@
     }
 
     async function init() {
+        state.deepLink = parseAdminDeepLink();
         nodes.status = $("[data-admin-status]");
         nodes.identity = $("[data-admin-identity]");
         nodes.refresh = $("[data-admin-refresh]");

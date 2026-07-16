@@ -19,7 +19,7 @@
             --order-pink: #d9adff;
             --order-good: #8ff2ca;
             --order-warn: #ffd184;
-            --order-lake-bg: url("./assets/images/预约背景.png?v=20260716-booking-background-glass2");
+            --order-lake-bg: url("./assets/images/预约背景.png?v=20260716-booking-background-layer2");
             font-family: "Microsoft YaHei", "PingFang SC", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
         }
 
@@ -29,24 +29,35 @@
 
         body {
             min-height: 100vh;
+            min-height: 100svh;
+            min-height: 100dvh;
             margin: 0;
             overflow-x: hidden;
             color: var(--order-text);
-            background:
-                linear-gradient(180deg, rgba(8, 24, 71, 0.01), rgba(5, 18, 57, 0.05)),
-                var(--order-lake-bg) center / cover fixed no-repeat,
-                #061224;
+            background: #061224;
+            isolation: isolate;
         }
 
         body::before {
             content: "";
             position: fixed;
+            z-index: 0;
             inset: 0;
             pointer-events: none;
-            background:
-                linear-gradient(90deg, rgba(3, 16, 54, 0.1) 0%, transparent 26%, transparent 72%, rgba(8, 16, 59, 0.07) 100%),
-                linear-gradient(180deg, rgba(10, 28, 78, 0.02) 0%, transparent 50%, rgba(3, 15, 51, 0.08) 100%);
-            opacity: 0.34;
+            background-color: transparent;
+            background-image: var(--order-lake-bg);
+            background-position: center top;
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            z-index: 1;
+            inset: 0;
+            pointer-events: none;
+            background: linear-gradient(180deg, rgba(4, 14, 43, 0.1) 0%, rgba(5, 18, 52, 0.08) 48%, rgba(2, 12, 38, 0.16) 100%);
         }
 
         a {
@@ -55,9 +66,10 @@
 
         .order-shell {
             position: relative;
-            width: min(1400px, calc(100% - 40px));
+            z-index: 2;
+            width: min(1400px, calc(100% - 32px));
             margin: 0 auto;
-            padding: 14px 0 28px;
+            padding: 12px 0 24px;
         }
 
         .order-nav,
@@ -65,10 +77,8 @@
         .order-panel,
         .order-empty {
             border: 1px solid var(--order-line);
-            background: linear-gradient(145deg, rgba(20, 48, 96, 0.72), rgba(16, 26, 66, 0.72));
-            box-shadow: 0 22px 58px rgba(2, 8, 22, 0.36), inset 0 1px 0 rgba(255, 255, 255, 0.14);
-            -webkit-backdrop-filter: blur(18px) saturate(1.12);
-            backdrop-filter: blur(18px) saturate(1.12);
+            background: linear-gradient(145deg, rgba(45, 91, 145, 0.16), rgba(5, 22, 66, 0.2));
+            box-shadow: 0 16px 38px rgba(2, 8, 35, 0.18), 0 0 28px rgba(91, 179, 255, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.22);
             position: relative;
             overflow: hidden;
         }
@@ -157,8 +167,27 @@
 
         .order-button:disabled {
             cursor: wait;
-            opacity: 0.72;
+            opacity: 0.68;
             transform: none;
+        }
+
+        .order-field input::placeholder,
+        .order-field textarea::placeholder {
+            color: rgba(190, 215, 237, 0.68);
+            opacity: 1;
+        }
+
+        .order-field select option {
+            color: var(--order-text);
+            background: #102753;
+        }
+
+        .order-field input:disabled,
+        .order-field select:disabled,
+        .order-field textarea:disabled {
+            color: rgba(213, 230, 244, 0.72);
+            background-color: rgba(7, 24, 59, 0.34);
+            opacity: 0.72;
         }
 
         .order-hero {
@@ -464,10 +493,6 @@
         }
 
         @media (max-width: 520px) {
-            body {
-                background-attachment: scroll;
-            }
-
             .order-card,
             .order-panel,
             .order-empty {
@@ -489,46 +514,6 @@
         }
 
         /* Crystal lake layout and shared ice-glass material. */
-        body {
-            isolation: isolate;
-            background-position: center top;
-        }
-
-        body::after {
-            content: "";
-            position: fixed;
-            z-index: 0;
-            inset: 0;
-            pointer-events: none;
-            background:
-                radial-gradient(circle at 15% 14%, rgba(207, 237, 255, 0.19), transparent 19%),
-                radial-gradient(circle at 77% 39%, rgba(137, 159, 255, 0.15), transparent 25%),
-                radial-gradient(circle at 46% 82%, rgba(82, 179, 255, 0.1), transparent 31%);
-        }
-
-        .order-shell {
-            z-index: 1;
-            width: min(1400px, calc(100% - 32px));
-            padding: 12px 0 24px;
-        }
-
-        body::before {
-            z-index: 0;
-        }
-
-        .order-nav,
-        .order-card,
-        .order-panel,
-        .order-empty {
-            border: 1px solid rgba(207, 240, 255, 0.4);
-            background:
-                linear-gradient(145deg, rgba(157, 218, 255, 0.07), rgba(71, 125, 211, 0.025) 40%, rgba(8, 25, 72, 0.075)),
-                rgba(5, 22, 66, 0.035);
-            box-shadow: 0 16px 38px rgba(2, 8, 35, 0.16), 0 0 28px rgba(91, 179, 255, 0.09), inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 0 rgba(100, 185, 255, 0.1);
-            -webkit-backdrop-filter: blur(14px) saturate(1.24) brightness(1.06);
-            backdrop-filter: blur(14px) saturate(1.24) brightness(1.06);
-        }
-
         .order-nav::after,
         .order-card::before,
         .order-panel::before {
@@ -573,8 +558,6 @@
             border-radius: 11px;
             background: linear-gradient(145deg, rgba(107, 172, 232, 0.18), rgba(7, 25, 70, 0.18));
             box-shadow: 0 5px 14px rgba(4, 18, 57, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.16);
-            -webkit-backdrop-filter: blur(8px);
-            backdrop-filter: blur(8px);
             font-size: 14px;
         }
 
@@ -621,16 +604,7 @@
         }
 
         .order-card--intro::after {
-            content: "";
-            position: absolute;
-            z-index: 0;
-            right: -7%;
-            bottom: -34%;
-            width: min(42%, 290px);
-            aspect-ratio: 1;
-            pointer-events: none;
-            background: radial-gradient(circle, rgba(181, 233, 255, 0.25) 0%, rgba(99, 171, 255, 0.13) 38%, transparent 72%);
-            filter: blur(7px);
+            content: none;
         }
 
         .order-card > .order-hero-crystal {
@@ -666,8 +640,6 @@
             border-radius: 10px;
             color: rgba(222, 241, 255, 0.9);
             background: linear-gradient(90deg, rgba(98, 177, 239, 0.12), rgba(11, 35, 86, 0.08));
-            -webkit-backdrop-filter: blur(7px);
-            backdrop-filter: blur(7px);
             font-size: 14px;
             line-height: 1.45;
         }
@@ -739,8 +711,6 @@
             border-radius: 11px;
             background: linear-gradient(90deg, rgba(80, 154, 224, 0.1), rgba(5, 24, 68, 0.08));
             box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.13);
-            -webkit-backdrop-filter: blur(7px);
-            backdrop-filter: blur(7px);
         }
 
         .order-meta-icon {
@@ -807,8 +777,6 @@
             border-color: rgba(190, 230, 255, 0.23);
             border-radius: 11px;
             background: linear-gradient(145deg, rgba(92, 157, 221, 0.08), rgba(5, 22, 63, 0.065));
-            -webkit-backdrop-filter: blur(7px);
-            backdrop-filter: blur(7px);
         }
 
         .order-rule-card strong {
@@ -867,8 +835,6 @@
             border-radius: 9px;
             background: linear-gradient(145deg, rgba(71, 137, 205, 0.14), rgba(3, 19, 56, 0.2));
             box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.13), 0 5px 14px rgba(2, 10, 35, 0.07);
-            -webkit-backdrop-filter: blur(7px);
-            backdrop-filter: blur(7px);
             font-size: 14px;
         }
 
@@ -884,8 +850,6 @@
             border-color: rgba(196, 223, 255, 0.3);
             border-radius: 10px;
             background: linear-gradient(145deg, rgba(104, 132, 220, 0.09), rgba(5, 23, 62, 0.075));
-            -webkit-backdrop-filter: blur(7px);
-            backdrop-filter: blur(7px);
         }
 
         .order-voucher-title {
@@ -915,12 +879,35 @@
         .order-pill {
             border-color: rgba(188, 228, 255, 0.28);
             background: linear-gradient(145deg, rgba(82, 150, 215, 0.08), rgba(4, 21, 58, 0.075));
-            -webkit-backdrop-filter: blur(7px);
-            backdrop-filter: blur(7px);
         }
 
         .order-record-card {
             border-radius: 12px;
+        }
+
+        @supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+            .order-nav {
+                -webkit-backdrop-filter: blur(4px) saturate(1.08);
+                backdrop-filter: blur(4px) saturate(1.08);
+            }
+
+            .order-button,
+            .order-status,
+            .order-meta-row,
+            .order-rule-card,
+            .order-field input,
+            .order-field select,
+            .order-field textarea,
+            .order-voucher-detail,
+            .order-record-card {
+                -webkit-backdrop-filter: blur(8px) saturate(1.08);
+                backdrop-filter: blur(8px) saturate(1.08);
+            }
+
+            .order-nav .order-button {
+                -webkit-backdrop-filter: none;
+                backdrop-filter: none;
+            }
         }
 
         @media (min-width: 1000px) and (max-height: 850px) {
@@ -949,8 +936,7 @@
         }
 
         @media (max-width: 900px) {
-            body { background-attachment: scroll; background-position: 43% top; }
-            body::before, body::after { position: absolute; }
+            body::before { background-position: 42% center; }
             .order-shell { width: min(100% - 20px, 720px); padding-top: 10px; }
             .order-nav { min-height: auto; padding: 12px; }
             .order-card { min-height: 0; }
@@ -958,9 +944,7 @@
             .order-voucher-box { grid-template-columns: 1fr; }
             .order-voucher-title { grid-column: auto; }
             .order-nav, .order-card, .order-panel, .order-empty {
-                background: linear-gradient(145deg, rgba(139, 204, 248, 0.09), rgba(7, 25, 69, 0.13)), rgba(5, 22, 66, 0.07);
-                -webkit-backdrop-filter: blur(12px) saturate(1.18);
-                backdrop-filter: blur(12px) saturate(1.18);
+                background: linear-gradient(145deg, rgba(61, 112, 166, 0.18), rgba(5, 22, 66, 0.23));
             }
         }
 
@@ -992,11 +976,11 @@
                 <h1 class="order-title">服务预约</h1>
                 <p class="order-copy">提交后，君雪会确认时间、服务内容和最终金额。需要补款时，会通过微信 / 支付宝等方式与你线下确认。</p>
                 <div class="order-status" data-order-status aria-live="polite">正在确认登录状态...</div>
-                <img class="order-hero-crystal" src="assets/images/冰晶素材2-clean.webp?v=20260716-booking-background-glass2" alt="" aria-hidden="true">
+                <img class="order-hero-crystal" src="assets/images/冰晶素材2-clean.webp?v=20260716-booking-background-layer2" alt="" aria-hidden="true">
             </div>
             <aside class="order-card order-meta" data-order-account hidden>
                 <div class="order-account-head">
-                    <img class="order-account-emblem" src="assets/images/冰晶素材-clean.webp?v=20260716-booking-background-glass2" alt="" aria-hidden="true">
+                    <img class="order-account-emblem" src="assets/images/冰晶素材-clean.webp?v=20260716-booking-background-layer2" alt="" aria-hidden="true">
                     <div class="order-account-label">
                         <span>当前账号</span>
                         <strong data-order-display-name>--</strong>
@@ -1119,6 +1103,6 @@
     </main>
 
     <script src="assets/supabase-client.js?v=20260627-home-performance1"></script>
-    <script src="assets/order.js?v=20260716-booking-background-glass2"></script>
+    <script src="assets/order.js?v=20260716-booking-background-layer2"></script>
 </body>
 </html>

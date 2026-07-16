@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    const VERSION = "20260716-my-admin-message-center1";
+    const VERSION = "20260716-my-avatar-copy1";
     const BOSS_LOGIN_URL = "boss-register.html?mode=login&redirect=index";
     const BOSS_REGISTER_URL = "boss-register.html?mode=register&redirect=index";
     const AVATAR_BUCKET = "boss-avatars";
@@ -354,7 +354,7 @@
     function getMetadataDisplayName(user) {
         const metadata = (user && user.user_metadata) || {};
         const name = metadata.boss_nickname || metadata.nickname || metadata.display_name || metadata.full_name || metadata.name;
-        return safeTrim(name).slice(0, 20) || "星湖用户";
+        return safeTrim(name).slice(0, 20);
     }
 
     function renderLoggedOut() {
@@ -380,10 +380,10 @@
     }
 
     function renderProfile(profile) {
-        const displayName = safeTrim(profile && profile.display_name);
-        setText(nodes.displayName, displayName ? "星湖昵称：" + displayName : "星湖昵称：已登录");
+        const displayName = safeTrim(profile && profile.display_name) || getMetadataDisplayName(state.session && state.session.user) || "星湖旅人";
+        setText(nodes.displayName, "星湖昵称：" + displayName);
         if (nodes.displayName) {
-            nodes.displayName.dataset.shortName = displayName || "已登录";
+            nodes.displayName.dataset.shortName = displayName;
         }
         setText(nodes.accountType, "星湖账号");
         setText(nodes.registeredAt, state.session && state.session.user ? formatDate(state.session.user.created_at) : "--");
@@ -1321,14 +1321,14 @@
     }
 
     function renderSettingsModal() {
-        const displayName = nodes.displayName ? nodes.displayName.textContent : "星湖昵称：已登录";
+        const displayName = nodes.displayName ? nodes.displayName.textContent : "星湖昵称：星湖旅人";
 
         setModalContent(
             "账号设置",
             "账号设置入口已预留，当前可先维护云端头像并查看账号基础信息。",
             "<div class=\"my-modal-grid\">" +
                 renderRows([
-                    { label: "星湖昵称", value: displayName.replace(/^星湖昵称：/, "") || "已登录" },
+                    { label: "星湖昵称", value: displayName.replace(/^星湖昵称：/, "") || "星湖旅人" },
                     { label: "账号身份", value: "星湖账号" },
                     { label: "加入时间", value: nodes.registeredAt ? nodes.registeredAt.textContent : "--" }
                 ]) +
@@ -2148,7 +2148,7 @@
     }
 
     async function saveAvatarPath(path) {
-        const displayName = safeTrim(state.profile && state.profile.display_name) || getMetadataDisplayName(state.session.user);
+        const displayName = safeTrim(state.profile && state.profile.display_name) || getMetadataDisplayName(state.session.user) || "星湖用户";
         const payload = {
             user_id: state.session.user.id,
             display_name: displayName,
@@ -2234,7 +2234,7 @@
                 }
             }
 
-            setAvatarStatus("头像已保存到云端");
+            setAvatarStatus("已同步到星湖");
         } catch (error) {
             if (profileUpdated && !newAvatarReadable) {
                 try {

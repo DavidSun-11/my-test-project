@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    const VERSION = "20260716-score-guess-history-pagination1";
+    const VERSION = "20260716-admin-enterprise-clean1";
     const SQL_HINT = "管理员后台需要先执行数据库升级 SQL。";
     const NO_PERMISSION_TEXT = "你没有权限访问这个后台。";
     const LOGIN_TEXT = "请先登录管理员账号。";
@@ -66,6 +66,18 @@
             isLoading: false,
             requestToken: 0
         },
+        accountView: {
+            query: "",
+            status: "all",
+            page: 1,
+            pageSize: 20
+        },
+        accountActionRegistry: new Map(),
+        actionMenuToken: "",
+        actionMenuTrigger: null,
+        modalAccount: null,
+        isBusy: false,
+        lastSuccessfulUserLoad: null,
         redemptionFilter: "pending",
         paidOrderFilter: "pending",
         deepLink: null,
@@ -154,6 +166,88 @@
             minimumFractionDigits: value % 100 === 0 ? 0 : 2,
             maximumFractionDigits: 2
         }) + " 元";
+    }
+
+    function formatRefreshTime(value) {
+        if (!(value instanceof Date) || Number.isNaN(value.getTime())) {
+            return "--";
+        }
+        return value.toLocaleString("zh-CN", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit"
+        });
+    }
+
+    function normalizeAccountSearch(value) {
+        return String(value == null ? "" : value).trim().toLocaleLowerCase();
+    }
+
+    function createAccountActionToken() {
+        const bytes = new Uint32Array(2);
+        if (window.crypto && typeof window.crypto.getRandomValues === "function") {
+            window.crypto.getRandomValues(bytes);
+            return "account-" + bytes[0].toString(36) + bytes[1].toString(36);
+        }
+        return "account-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 9);
+    }
+
+    function getAccountInitial(value) {
+        const chars = Array.from(String(value || "老板用户").trim());
+        return chars[0] || "星";
+    }
+
+    function getAccountAvatarClass(index) {
+        const classes = ["", "is-alt", "is-green"];
+        return classes[index % classes.length];
+    }
+
+    function getFilteredUsers() {
+        const query = normalizeAccountSearch(state.accountView.query);
+        const status = state.accountView.status;
+
+        return state.users.filter(function (user) {
+            const blocked = !!user.is_blocked;
+            if (status === "blocked" && !blocked) {
+                return false;
+            }
+            if (status === "normal" && blocked) {
+                return false;
+            }
+            if (!query) {
+                return true;
+            }
+            return normalizeAccountSearch(user.display_name).indexOf(query) !== -1 ||
+                normalizeAccountSearch(user.email_masked).indexOf(query) !== -1;
+        });
+    }
+
+    function getAccountPageData() {
+        const records = getFilteredUsers();
+        const pageSize = state.accountView.pageSize;
+        const totalPages = records.length ? Math.ceil(records.length / pageSize) : 0;
+        const page = totalPages ? Math.min(Math.max(1, state.accountView.page), totalPages) : 1;
+        state.accountView.page = page;
+        const start = (page - 1) * pageSize;
+        return {
+            records: records,
+            visible: records.slice(start, start + pageSize),
+            totalPages: totalPages,
+            page: page
+        };
+    }
+
+    function getPageNumbers(page, totalPages) {
+        const pages = [];
+        const start = Math.max(1, Math.min(page - 2, totalPages - 4));
+        const end = Math.min(totalPages, start + 4);
+        for (let current = start; current <= end; current += 1) {
+            pages.push(current);
+        }
+        return pages;
     }
 
     function parseAdminDeepLink() {
@@ -296,11 +390,15 @@
     }
 
     function setBusy(isBusy) {
-        $$("[data-admin-action], [data-redemption-action], [data-admin-redemption-filter], [data-paid-order-action], [data-admin-paid-order-filter], [data-score-guess-action], [data-admin-score-guess-refresh]").forEach(function (button) {
+        state.isBusy = !!isBusy;
+        $$('[data-admin-action], [data-admin-action-menu-item], [data-redemption-action], [data-admin-redemption-filter], [data-paid-order-action], [data-admin-paid-order-filter], [data-score-guess-action], [data-admin-score-guess-refresh]').forEach(function (button) {
             button.disabled = !!isBusy || button.dataset.scoreGuessDisabled === "true";
         });
         if (nodes.refresh) {
             nodes.refresh.disabled = !!isBusy;
+        }
+        if (isBusy) {
+            closeAccountActionMenu();
         }
     }
 
@@ -318,6 +416,8 @@
     }
 
     function renderAccess(message, type) {
+        closeAccountActionMenu();
+        resetDashboardStats();
         nodes.tableWrap.hidden = true;
         if (nodes.redemptionPanel) {
             nodes.redemptionPanel.hidden = true;
@@ -337,7 +437,85 @@
         setStatus(message, type || "warning");
     }
 
+    function resetDashboardStats() {
+        [nodes.statTotal, nodes.statMonthly, nodes.statAdmins, nodes.statBlocked].forEach(function (node) {
+            if (node) {
+                node.textContent = "--";
+            }
+        });
+        if (nodes.systemStatus) {
+            nodes.systemStatus.textContent = "状态待确认";
+            nodes.systemStatus.classList.add("is-pending");
+        }
+        if (nodes.lastUpdated) {
+            nodes.lastUpdated.textContent = "--";
+        }
+    }
+
+    function renderDashboardStats() {
+        const users = state.users;
+        const reliableCreatedAt = users.every(function (user) {
+            return typeof user.created_at === "string" && !Number.isNaN(new Date(user.created_at).getTime());
+        });
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth();
+        const monthCount = reliableCreatedAt ? users.filter(function (user) {
+            const createdAt = new Date(user.created_at);
+            return createdAt.getFullYear() === currentYear && createdAt.getMonth() === currentMonth;
+        }).length : null;
+
+        if (nodes.statTotal) {
+            nodes.statTotal.textContent = String(users.length);
+        }
+        if (nodes.statMonthly) {
+            nodes.statMonthly.textContent = monthCount === null ? "--" : String(monthCount);
+        }
+        if (nodes.statAdmins) {
+            nodes.statAdmins.textContent = String(users.filter(function (user) { return !!user.is_admin; }).length);
+        }
+        if (nodes.statBlocked) {
+            nodes.statBlocked.textContent = String(users.filter(function (user) { return !!user.is_blocked; }).length);
+        }
+
+        if (nodes.systemStatus) {
+            nodes.systemStatus.textContent = "数据连接正常";
+            nodes.systemStatus.classList.remove("is-pending");
+        }
+        if (nodes.lastUpdated) {
+            nodes.lastUpdated.textContent = formatRefreshTime(state.lastSuccessfulUserLoad);
+        }
+    }
+
+    function renderAccountPagination(pageData) {
+        if (!nodes.accountPagination || !nodes.accountPageList || !nodes.accountTotal) {
+            return;
+        }
+
+        if (!pageData.records.length) {
+            nodes.accountPagination.hidden = true;
+            nodes.accountPageList.replaceChildren();
+            nodes.accountTotal.textContent = "";
+            return;
+        }
+
+        nodes.accountPagination.hidden = false;
+        const previous = nodes.accountPagination.querySelector('[data-admin-account-page="previous"]');
+        const next = nodes.accountPagination.querySelector('[data-admin-account-page="next"]');
+        if (previous) {
+            previous.disabled = pageData.page <= 1;
+        }
+        if (next) {
+            next.disabled = pageData.page >= pageData.totalPages;
+        }
+        nodes.accountPageList.innerHTML = getPageNumbers(pageData.page, pageData.totalPages).map(function (page) {
+            return '<button class="admin-button' + (page === pageData.page ? ' is-current' : '') + '" type="button" data-admin-account-page="' + page + '" aria-current="' + (page === pageData.page ? 'page' : 'false') + '">' + page + '</button>';
+        }).join("");
+        nodes.accountTotal.textContent = "共 " + pageData.records.length + " 条";
+    }
+
     function renderRows() {
+        closeAccountActionMenu();
         if (!state.users.length) {
             nodes.tableBody.innerHTML = "";
             nodes.tableWrap.hidden = true;
@@ -348,13 +526,29 @@
 
         nodes.empty.hidden = true;
         nodes.tableWrap.hidden = false;
-        nodes.tableBody.innerHTML = state.users.map(function (user, index) {
+        const pageData = getAccountPageData();
+        state.accountActionRegistry.clear();
+
+        if (!pageData.records.length) {
+            nodes.tableBody.innerHTML = "";
+            nodes.accountTableScroll.hidden = true;
+            nodes.accountEmpty.hidden = false;
+            renderAccountPagination(pageData);
+            return;
+        }
+
+        nodes.accountTableScroll.hidden = false;
+        nodes.accountEmpty.hidden = true;
+        nodes.tableBody.innerHTML = pageData.visible.map(function (user, index) {
             const blocked = !!user.is_blocked;
             const admin = !!user.is_admin;
+            const token = createAccountActionToken();
+            const displayName = user.display_name || "老板用户";
+            state.accountActionRegistry.set(token, user);
 
             return [
                 '<tr>',
-                    '<td data-label="老板昵称"><strong>' + escapeHtml(user.display_name || "老板用户") + '</strong></td>',
+                    '<td data-label="老板昵称"><span class="admin-user-cell"><span class="admin-user-avatar ' + getAccountAvatarClass(index) + '">' + escapeHtml(getAccountInitial(displayName)) + '</span><strong>' + escapeHtml(displayName) + '</strong></span></td>',
                     '<td data-label="邮箱">' + escapeHtml(user.email_masked || "未绑定邮箱") + '</td>',
                     '<td data-label="积分">' + formatNumber(user.points) + '</td>',
                     '<td data-label="总签到">' + formatNumber(user.total_checkins) + '</td>',
@@ -366,14 +560,102 @@
                     '<td data-label="权限"><span class="admin-pill ' + (admin ? "is-admin" : "") + '">' + (admin ? "管理员" : "普通用户") + '</span></td>',
                     '<td data-label="操作">',
                         '<div class="admin-actions">',
-                            '<button type="button" data-admin-action="points" data-index="' + index + '">加积分</button>',
-                            '<button type="button" data-admin-action="block" data-index="' + index + '">' + (blocked ? "解除拉黑" : "拉黑") + '</button>',
-                            '<button type="button" data-admin-action="admin" data-index="' + index + '">' + (admin ? "取消管理员" : "设为管理员") + '</button>',
+                            '<button type="button" data-admin-action="points" data-account-token="' + token + '">加积分</button>',
+                            '<button type="button" data-admin-action="block" data-account-token="' + token + '">' + (blocked ? "解除拉黑" : "拉黑") + '</button>',
+                            '<button type="button" data-admin-action="more" data-account-token="' + token + '" aria-haspopup="menu" aria-expanded="false">更多</button>',
                         '</div>',
                     '</td>',
                 '</tr>'
             ].join("");
         }).join("");
+        renderAccountPagination(pageData);
+    }
+
+    function closeAccountActionMenu() {
+        if (!nodes.actionMenu) {
+            return;
+        }
+        if (state.actionMenuTrigger) {
+            state.actionMenuTrigger.setAttribute("aria-expanded", "false");
+        }
+        nodes.actionMenu.hidden = true;
+        state.actionMenuToken = "";
+        state.actionMenuTrigger = null;
+    }
+
+    function positionAccountActionMenu(trigger) {
+        const rect = trigger.getBoundingClientRect();
+        const menu = nodes.actionMenu;
+        const viewportWidth = document.documentElement.clientWidth;
+        const viewportHeight = document.documentElement.clientHeight;
+        const menuWidth = Math.max(menu.offsetWidth, 142);
+        const menuHeight = Math.max(menu.offsetHeight, 46);
+        const left = Math.max(8, Math.min(rect.right - menuWidth, viewportWidth - menuWidth - 8));
+        const preferredTop = rect.bottom + 6;
+        const top = preferredTop + menuHeight <= viewportHeight - 8
+            ? preferredTop
+            : Math.max(8, rect.top - menuHeight - 6);
+        menu.style.left = left + "px";
+        menu.style.top = top + "px";
+    }
+
+    function openAccountActionMenu(trigger, user) {
+        if (!nodes.actionMenu || !user || state.isBusy) {
+            return;
+        }
+        closeAccountActionMenu();
+        state.actionMenuToken = trigger.dataset.accountToken || "";
+        state.actionMenuTrigger = trigger;
+        const actionButton = nodes.actionMenu.querySelector('[data-admin-action-menu-item="admin"]');
+        if (actionButton) {
+            actionButton.textContent = user.is_admin ? "取消管理员" : "设为管理员";
+            actionButton.disabled = false;
+        }
+        nodes.actionMenu.hidden = false;
+        trigger.setAttribute("aria-expanded", "true");
+        positionAccountActionMenu(trigger);
+    }
+
+    function getAccountActionUser(token) {
+        return token ? state.accountActionRegistry.get(token) || null : null;
+    }
+
+    function setSidebarActive(targetId) {
+        (nodes.sidebarLinks || []).forEach(function (link) {
+            link.classList.toggle("is-active", link.dataset.adminSidebarLink === targetId);
+        });
+    }
+
+    function bindSidebarNavigation() {
+        const panels = [
+            document.getElementById("admin-accounts"),
+            document.getElementById("admin-redemptions"),
+            document.getElementById("admin-orders"),
+            document.getElementById("admin-score-guess")
+        ].filter(Boolean);
+
+        (nodes.sidebarLinks || []).forEach(function (link) {
+            link.addEventListener("click", function () {
+                setSidebarActive(link.dataset.adminSidebarLink || "admin-accounts");
+            });
+        });
+
+        if (!("IntersectionObserver" in window) || !panels.length) {
+            return;
+        }
+
+        const observer = new IntersectionObserver(function (entries) {
+            const visible = entries.filter(function (entry) { return entry.isIntersecting; });
+            if (!visible.length) {
+                return;
+            }
+            visible.sort(function (a, b) { return b.intersectionRatio - a.intersectionRatio; });
+            setSidebarActive(visible[0].target.id);
+        }, {
+            rootMargin: "-86px 0px -55% 0px",
+            threshold: [0.08, 0.25, 0.5]
+        });
+        panels.forEach(function (panel) { observer.observe(panel); });
     }
 
     function renderRedemptions() {
@@ -609,10 +891,14 @@
 
             state.users = Array.isArray(response.data) ? response.data : [];
             state.hasAdminAccess = true;
+            state.lastSuccessfulUserLoad = new Date();
+            renderDashboardStats();
             renderRows();
             setStatus(doneMessage || "列表已刷新。", "good");
         } catch (error) {
             state.hasAdminAccess = false;
+            state.users = [];
+            state.accountActionRegistry.clear();
             const message = getFriendlyError(error);
             renderAccess(message, message === NO_PERMISSION_TEXT ? "warning" : "warning");
         } finally {
@@ -783,7 +1069,7 @@
             '</div>'
         ].join("");
         nodes.modalForm.dataset.mode = "points";
-        nodes.modalForm.dataset.bossIndex = String(state.users.indexOf(user));
+        state.modalAccount = user;
         nodes.modalBody.querySelector("input").focus();
     }
 
@@ -873,7 +1159,7 @@
         nodes.modal.hidden = true;
         nodes.modalForm.reset();
         nodes.modalForm.removeAttribute("data-mode");
-        nodes.modalForm.removeAttribute("data-boss-index");
+        state.modalAccount = null;
         nodes.modalForm.removeAttribute("data-redemption-index");
         nodes.modalForm.removeAttribute("data-review-status");
         nodes.modalForm.removeAttribute("data-paid-order-index");
@@ -883,8 +1169,7 @@
     }
 
     async function submitPoints() {
-        const index = Number(nodes.modalForm.dataset.bossIndex);
-        const user = state.users[index];
+        const user = state.modalAccount;
         const amount = Number(nodes.modalForm.elements.amount.value);
         const reason = String(nodes.modalForm.elements.reason.value || "").trim().slice(0, 120);
 
@@ -1297,7 +1582,7 @@
                 return;
             }
 
-            const user = state.users[Number(button.dataset.index)];
+            const user = getAccountActionUser(button.dataset.accountToken);
             if (!user) {
                 return;
             }
@@ -1306,10 +1591,85 @@
                 openPointsModal(user);
             } else if (button.dataset.adminAction === "block") {
                 toggleBlocked(user);
-            } else if (button.dataset.adminAction === "admin") {
-                toggleAdmin(user);
+            } else if (button.dataset.adminAction === "more") {
+                openAccountActionMenu(button, user);
             }
         });
+
+        if (nodes.accountQuery) {
+            nodes.accountQuery.addEventListener("input", function () {
+                state.accountView.query = nodes.accountQuery.value || "";
+                state.accountView.page = 1;
+                renderRows();
+            });
+        }
+
+        if (nodes.accountStatusFilter) {
+            nodes.accountStatusFilter.addEventListener("change", function () {
+                state.accountView.status = nodes.accountStatusFilter.value || "all";
+                state.accountView.page = 1;
+                renderRows();
+            });
+        }
+
+        if (nodes.accountPagination) {
+            nodes.accountPagination.addEventListener("click", function (event) {
+                const button = event.target.closest("[data-admin-account-page]");
+                if (!button || button.disabled) {
+                    return;
+                }
+                const pages = getAccountPageData();
+                const request = button.dataset.adminAccountPage;
+                const targetPage = request === "next"
+                    ? pages.page + 1
+                    : (request === "previous" ? pages.page - 1 : Number(request));
+                if (!Number.isFinite(targetPage)) {
+                    return;
+                }
+                state.accountView.page = Math.min(Math.max(1, targetPage), Math.max(1, pages.totalPages));
+                renderRows();
+            });
+        }
+
+        if (nodes.actionMenu) {
+            nodes.actionMenu.addEventListener("click", function (event) {
+                const button = event.target.closest("[data-admin-action-menu-item]");
+                if (!button || button.disabled) {
+                    return;
+                }
+                const user = getAccountActionUser(state.actionMenuToken);
+                closeAccountActionMenu();
+                if (user && button.dataset.adminActionMenuItem === "admin") {
+                    toggleAdmin(user);
+                }
+            });
+            nodes.actionMenu.addEventListener("focusout", function () {
+                window.setTimeout(function () {
+                    if (!nodes.actionMenu.hidden && !nodes.actionMenu.contains(document.activeElement) && document.activeElement !== state.actionMenuTrigger) {
+                        closeAccountActionMenu();
+                    }
+                }, 0);
+            });
+        }
+
+        document.addEventListener("pointerdown", function (event) {
+            if (!nodes.actionMenu || nodes.actionMenu.hidden) {
+                return;
+            }
+            if (!nodes.actionMenu.contains(event.target) && event.target !== state.actionMenuTrigger) {
+                closeAccountActionMenu();
+            }
+        });
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape") {
+                closeAccountActionMenu();
+            }
+        });
+        window.addEventListener("resize", closeAccountActionMenu, { passive: true });
+        window.addEventListener("scroll", closeAccountActionMenu, { passive: true });
+        if (nodes.accountTableScroll) {
+            nodes.accountTableScroll.addEventListener("scroll", closeAccountActionMenu, { passive: true });
+        }
 
         if (nodes.redemptionBody) {
             nodes.redemptionBody.addEventListener("click", function (event) {
@@ -1422,6 +1782,21 @@
         nodes.refresh = $("[data-admin-refresh]");
         nodes.tableWrap = $("[data-admin-table-wrap]");
         nodes.tableBody = $("[data-admin-table-body]");
+        nodes.accountTableScroll = $("[data-admin-account-table-scroll]");
+        nodes.accountEmpty = $("[data-admin-account-empty]");
+        nodes.accountQuery = $("[data-admin-account-query]");
+        nodes.accountStatusFilter = $("[data-admin-account-status-filter]");
+        nodes.accountPagination = $("[data-admin-account-pagination]");
+        nodes.accountPageList = $("[data-admin-account-page-list]");
+        nodes.accountTotal = $("[data-admin-account-total]");
+        nodes.actionMenu = $("[data-admin-action-menu]");
+        nodes.sidebarLinks = $$("[data-admin-sidebar-link]");
+        nodes.statTotal = $("[data-admin-stat-total]");
+        nodes.statMonthly = $("[data-admin-stat-monthly]");
+        nodes.statAdmins = $("[data-admin-stat-admins]");
+        nodes.statBlocked = $("[data-admin-stat-blocked]");
+        nodes.systemStatus = $("[data-admin-system-status]");
+        nodes.lastUpdated = $("[data-admin-last-updated]");
         nodes.empty = $("[data-admin-empty]");
         nodes.redemptionPanel = $("[data-admin-redemption-panel]");
         nodes.redemptionTableWrap = $("[data-admin-redemption-table-wrap]");
@@ -1448,6 +1823,7 @@
         nodes.modalBody = $("[data-admin-modal-body]");
 
         bindEvents();
+        bindSidebarNavigation();
 
         try {
             state.client = await window.JunxueSupabaseClient.getClient();

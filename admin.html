@@ -509,34 +509,681 @@
                 margin-left: 0;
             }
         }
+
+        /* Admin is intentionally a restrained enterprise surface, separate from the public-site night theme. */
+        :root {
+            --admin-blue: #1767e8;
+            --admin-blue-deep: #0f55cb;
+            --admin-ink: #15223a;
+            --admin-muted: #6f7e96;
+            --admin-line: #e6ebf3;
+            --admin-surface: #ffffff;
+            --admin-page: #f5f7fb;
+        }
+
+        body.admin-page {
+            min-height: 100vh;
+            color: var(--admin-ink);
+            background: var(--admin-page);
+        }
+
+        .admin-page::before {
+            display: none;
+        }
+
+        .admin-page .performance-switcher {
+            display: none;
+        }
+
+        .admin-nav {
+            position: sticky;
+            top: 0;
+            z-index: 80;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 74px;
+            gap: 20px;
+            padding: 0 30px;
+            border: 0;
+            border-bottom: 1px solid var(--admin-line);
+            border-radius: 0;
+            background: rgba(255, 255, 255, .96);
+            box-shadow: 0 2px 12px rgba(34, 57, 93, .04);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .admin-brand {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            min-width: 0;
+        }
+
+        .admin-brand-mark {
+            display: grid;
+            place-items: center;
+            width: 34px;
+            height: 34px;
+            flex: 0 0 auto;
+            color: #fff;
+            border-radius: 10px;
+            background: linear-gradient(145deg, #2d7bff, #1056d8);
+            box-shadow: 0 7px 14px rgba(23, 103, 232, .22);
+        }
+
+        .admin-brand-copy {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            min-width: 0;
+        }
+
+        .admin-brand span {
+            color: #111b2d;
+            font-size: 16px;
+            font-weight: 850;
+            letter-spacing: .02em;
+        }
+
+        .admin-brand strong {
+            padding-left: 20px;
+            color: #172238;
+            border-left: 1px solid #dfe5ef;
+            font-size: 18px;
+            letter-spacing: 0;
+        }
+
+        .admin-nav-actions,
+        .admin-actions,
+        .admin-modal-actions {
+            gap: 10px;
+        }
+
+        .admin-button,
+        .admin-actions button {
+            min-height: 38px;
+            padding: 8px 13px;
+            border: 1px solid #dfe6f0;
+            border-radius: 8px;
+            background: #fff;
+            color: #52627b;
+            font-size: 13px;
+            font-weight: 750;
+            box-shadow: 0 1px 2px rgba(22, 41, 72, .03);
+        }
+
+        .admin-button:hover,
+        .admin-actions button:hover {
+            border-color: #a9c7fb;
+            color: var(--admin-blue);
+            background: #f7faff;
+            box-shadow: 0 4px 12px rgba(33, 84, 162, .08);
+        }
+
+        .admin-button--primary {
+            border-color: var(--admin-blue);
+            background: var(--admin-blue);
+            color: #fff;
+            box-shadow: 0 7px 14px rgba(23, 103, 232, .18);
+        }
+
+        .admin-button--primary:hover {
+            border-color: var(--admin-blue-deep);
+            color: #fff;
+            background: var(--admin-blue-deep);
+        }
+
+        .admin-button:disabled,
+        .admin-actions button:disabled {
+            color: #9ba7b8;
+            border-color: #e5eaf1;
+            background: #f6f8fb;
+            opacity: 1;
+            cursor: wait;
+            box-shadow: none;
+        }
+
+        .admin-shell {
+            width: auto;
+            max-width: 1460px;
+            margin: 0 auto 0 230px;
+            padding: 22px 28px 42px;
+        }
+
+        .admin-sidebar {
+            position: fixed;
+            z-index: 70;
+            top: 74px;
+            bottom: 0;
+            left: 0;
+            display: flex;
+            width: 230px;
+            flex-direction: column;
+            padding: 20px 16px;
+            border-right: 1px solid var(--admin-line);
+            background: #fff;
+        }
+
+        .admin-sidebar-nav {
+            display: grid;
+            gap: 6px;
+        }
+
+        .admin-sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            min-height: 46px;
+            padding: 10px 13px;
+            border-radius: 8px;
+            color: #61718a;
+            font-size: 14px;
+            font-weight: 750;
+            text-decoration: none;
+        }
+
+        .admin-sidebar-link svg {
+            width: 18px;
+            height: 18px;
+            flex: 0 0 auto;
+        }
+
+        .admin-sidebar-link:hover {
+            color: var(--admin-blue);
+            background: #f2f7ff;
+        }
+
+        .admin-sidebar-link.is-active {
+            color: #fff;
+            background: linear-gradient(135deg, #1f73f1, #1762db);
+            box-shadow: 0 8px 16px rgba(23, 103, 232, .18);
+        }
+
+        .admin-side-health {
+            display: grid;
+            gap: 13px;
+            margin-top: auto;
+            padding: 16px;
+            border: 1px solid #e7ecf4;
+            border-radius: 10px;
+            background: #fbfcfe;
+        }
+
+        .admin-side-health strong {
+            font-size: 13px;
+        }
+
+        .admin-side-health p,
+        .admin-side-health time {
+            margin: 0;
+            color: var(--admin-muted);
+            font-size: 12px;
+            line-height: 1.55;
+        }
+
+        .admin-health-state {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            color: #2e8a55;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .admin-health-state::before {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #27c46b;
+            box-shadow: 0 0 0 3px rgba(39, 196, 107, .12);
+            content: "";
+        }
+
+        .admin-health-state.is-pending { color: #8a98ad; }
+        .admin-health-state.is-pending::before { background: #aeb9c8; box-shadow: 0 0 0 3px rgba(174, 185, 200, .14); }
+
+        .admin-overview {
+            display: grid;
+            grid-template-columns: minmax(330px, 1.58fr) repeat(4, minmax(130px, 1fr));
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .admin-hero,
+        .admin-panel,
+        .admin-empty,
+        .admin-modal-card,
+        .admin-stat-card {
+            border: 1px solid #e8edf4;
+            border-radius: 12px;
+            background: var(--admin-surface);
+            box-shadow: 0 8px 24px rgba(31, 56, 95, .05);
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+        }
+
+        .admin-hero {
+            display: grid;
+            align-content: center;
+            gap: 14px;
+            margin: 0;
+            padding: 27px 29px;
+        }
+
+        .admin-kicker {
+            width: max-content;
+            max-width: 100%;
+            padding: 5px 11px;
+            border: 0;
+            border-radius: 999px;
+            background: #eaf2ff;
+            color: var(--admin-blue);
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .admin-title {
+            color: #142037;
+            font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+            font-size: clamp(27px, 2.4vw, 36px);
+            font-weight: 800;
+            letter-spacing: 0;
+            text-shadow: none;
+        }
+
+        .admin-copy {
+            max-width: 610px;
+            color: #586981;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        .admin-status {
+            min-height: 24px;
+            color: #6d7b91;
+            font-size: 13px;
+        }
+
+        .admin-status::before {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            margin-right: 8px;
+            vertical-align: -4px;
+            border: 1.5px solid currentColor;
+            border-radius: 6px;
+            content: "";
+        }
+
+        .admin-status.is-good { color: #237adf; }
+        .admin-status.is-warning { color: #c05621; }
+
+        .admin-stat-card {
+            display: grid;
+            min-width: 0;
+            align-content: center;
+            justify-items: center;
+            gap: 10px;
+            min-height: 210px;
+            padding: 20px 12px;
+            text-align: center;
+        }
+
+        .admin-stat-icon {
+            display: grid;
+            width: 50px;
+            height: 50px;
+            place-items: center;
+            border-radius: 50%;
+            color: var(--admin-blue);
+            background: #edf4ff;
+        }
+
+        .admin-stat-card:nth-child(3) .admin-stat-icon { color: #209b58; background: #eaf9f0; }
+        .admin-stat-card:nth-child(4) .admin-stat-icon { color: #6b4cf5; background: #f1eeff; }
+        .admin-stat-card:nth-child(5) .admin-stat-icon { color: #e78618; background: #fff4e7; }
+        .admin-stat-icon svg { width: 25px; height: 25px; }
+        .admin-stat-label { color: #687893; font-size: 13px; font-weight: 700; }
+        .admin-stat-value { color: #17233a; font-size: clamp(24px, 2vw, 31px); font-weight: 800; line-height: 1; }
+        .admin-stat-note { min-height: 18px; color: #8a98ad; font-size: 12px; }
+
+        .admin-panel {
+            margin-top: 18px;
+            overflow: visible;
+            scroll-margin-top: 94px;
+        }
+
+        .admin-panel-head {
+            padding: 22px 24px 16px;
+        }
+
+        .admin-panel-title {
+            color: #17233a;
+            font-size: 20px;
+            letter-spacing: 0;
+        }
+
+        .admin-account-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .admin-search-field,
+        .admin-filter-select {
+            min-height: 38px;
+            border: 1px solid #dfe6f0;
+            border-radius: 8px;
+            background: #fff;
+            color: #3f5069;
+            font: inherit;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .admin-search-field {
+            width: min(260px, 48vw);
+            padding: 8px 12px;
+        }
+
+        .admin-filter-select { padding: 0 28px 0 10px; }
+        .admin-search-field:focus, .admin-filter-select:focus { border-color: #8ab7fb; box-shadow: 0 0 0 3px rgba(23, 103, 232, .1); }
+
+        .admin-table-wrap {
+            border-top: 1px solid #edf1f6;
+        }
+
+        .admin-table {
+            min-width: 1110px;
+        }
+
+        .admin-table th,
+        .admin-table td {
+            padding: 15px 13px;
+            border-bottom: 1px solid #edf1f6;
+            color: #40516a;
+            font-size: 13px;
+        }
+
+        .admin-table th {
+            color: #52627b;
+            background: #f7f9fc;
+            font-weight: 800;
+        }
+
+        .admin-table tbody tr:hover { background: #fbfdff; }
+        .admin-table tbody tr:last-child td { border-bottom: 0; }
+        .admin-table th:last-child,
+        .admin-table td:last-child {
+            position: sticky;
+            right: 0;
+            z-index: 2;
+            box-shadow: -8px 0 12px rgba(246, 249, 252, .86);
+        }
+        .admin-table th:last-child { background: #f7f9fc; }
+        .admin-table td:last-child { background: #fff; }
+        .admin-table tbody tr:hover td:last-child { background: #fbfdff; }
+
+        .admin-user-cell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 150px;
+        }
+
+        .admin-user-avatar {
+            display: grid;
+            width: 34px;
+            height: 34px;
+            flex: 0 0 auto;
+            place-items: center;
+            border-radius: 50%;
+            color: var(--admin-blue);
+            background: #eaf2ff;
+            font-size: 14px;
+            font-weight: 850;
+        }
+
+        .admin-user-avatar.is-alt { color: #7752e8; background: #f0edff; }
+        .admin-user-avatar.is-green { color: #22965e; background: #eaf9f0; }
+
+        .admin-pill {
+            padding: 4px 9px;
+            border: 0;
+            border-radius: 999px;
+            background: #f1f4f8;
+            color: #68778e;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .admin-pill.is-good,
+        .admin-pill.is-approved,
+        .admin-pill.is-confirmed,
+        .admin-pill.is-completed,
+        .admin-pill.is-manual_paid,
+        .admin-pill.is-not_required,
+        .admin-pill.is-voucher_used { color: #198750; background: #e9f8ef; }
+
+        .admin-pill.is-blocked,
+        .admin-pill.is-rejected,
+        .admin-pill.is-cancelled { color: #c54f5f; background: #fff0f2; }
+
+        .admin-pill.is-admin { color: #216ed2; background: #edf4ff; }
+        .admin-pill.is-pending,
+        .admin-pill.is-need_reschedule,
+        .admin-pill.is-manual_unpaid,
+        .admin-pill.is-voucher_reserved,
+        .admin-pill.is-partial_voucher { color: #a56b1a; background: #fff7e9; }
+
+        .admin-archive-note { color: #a56b1a; }
+
+        .admin-actions { gap: 7px; flex-wrap: nowrap; }
+        .admin-actions button { min-height: 31px; padding: 5px 9px; border-color: transparent; background: #f1f6ff; color: #216ed2; font-size: 12px; }
+        .admin-actions button[data-admin-action="block"] { background: #fff1f2; color: #d45060; }
+        .admin-actions button[data-admin-action="more"] { background: #f5f7fa; color: #607087; }
+
+        .admin-account-empty {
+            padding: 30px 24px;
+            color: #728198;
+            font-size: 14px;
+        }
+
+        .admin-account-pagination,
+        .admin-score-guess-pagination {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 64px;
+            padding: 14px 24px;
+            border-top: 1px solid #edf1f6;
+            color: #65758b;
+            background: #fff;
+            overflow-x: auto;
+        }
+
+        .admin-account-pagination[hidden],
+        .admin-score-guess-pagination[hidden] { display: none; }
+        .admin-account-page-list,
+        .admin-score-guess-page-list { display: inline-flex; gap: 6px; }
+        .admin-account-page-list .admin-button,
+        .admin-score-guess-page-list .admin-button { min-width: 34px; min-height: 34px; padding: 5px 8px; }
+        .admin-account-page-list .admin-button.is-current { border-color: var(--admin-blue); color: #fff; background: var(--admin-blue); }
+        .admin-account-total,
+        .admin-score-guess-total { margin-left: auto; color: #75849a; font-size: 13px; font-weight: 700; }
+        .admin-score-guess-page-status,
+        .admin-score-guess-total { color: #75849a; }
+
+        .admin-empty {
+            margin-top: 18px;
+            padding: 24px;
+            color: #52627b;
+        }
+
+        .admin-modal { background: rgba(18, 33, 57, .34); }
+        .admin-modal-card { width: min(470px, calc(100vw - 32px)); padding: 24px; color: var(--admin-ink); }
+        .admin-modal-card h2 { color: #17233a; }
+        .admin-field span { color: #617189; }
+        .admin-field input,
+        .admin-field select,
+        .admin-field textarea { border-color: #dfe6f0; border-radius: 8px; background: #fff; color: #1d2b41; }
+        .admin-field input:focus,
+        .admin-field select:focus,
+        .admin-field textarea:focus { border-color: #8ab7fb; box-shadow: 0 0 0 3px rgba(23, 103, 232, .1); }
+
+        .admin-action-menu {
+            position: fixed;
+            z-index: 1200;
+            min-width: 142px;
+            padding: 6px;
+            border: 1px solid #dfe6f0;
+            border-radius: 9px;
+            background: #fff;
+            box-shadow: 0 14px 34px rgba(29, 51, 85, .17);
+        }
+
+        .admin-action-menu[hidden] { display: none; }
+        .admin-action-menu button { width: 100%; min-height: 34px; padding: 7px 9px; border: 0; border-radius: 6px; background: transparent; color: #53637b; font: inherit; font-size: 13px; text-align: left; cursor: pointer; }
+        .admin-action-menu button:hover, .admin-action-menu button:focus { color: var(--admin-blue); background: #f1f6ff; outline: none; }
+
+        @media (max-width: 1270px) and (min-width: 721px) {
+            .admin-overview { grid-template-columns: minmax(320px, 1.2fr) repeat(4, minmax(112px, 1fr)); }
+            .admin-shell { padding-inline: 20px; }
+            .admin-stat-card { min-height: 190px; }
+        }
+
+        @media (max-width: 1020px) and (min-width: 721px) {
+            .admin-sidebar { width: 190px; }
+            .admin-shell { margin-left: 190px; }
+            .admin-overview { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+            .admin-hero { grid-column: 1 / -1; }
+        }
+
+        @media (max-width: 720px) {
+            .admin-nav { position: relative; min-height: auto; align-items: flex-start; flex-direction: column; padding: 16px; gap: 14px; }
+            .admin-brand, .admin-brand-copy { gap: 12px; }
+            .admin-brand strong { padding-left: 12px; font-size: 15px; }
+            .admin-brand span { font-size: 14px; }
+            .admin-nav-actions { width: 100%; }
+            .admin-nav-actions .admin-pill { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+            .admin-sidebar { position: relative; top: auto; bottom: auto; width: 100%; padding: 10px 12px; border-right: 0; border-bottom: 1px solid var(--admin-line); }
+            .admin-sidebar-nav { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+            .admin-sidebar-link { min-width: max-content; min-height: 38px; padding: 8px 10px; font-size: 13px; }
+            .admin-sidebar-link svg { width: 16px; height: 16px; }
+            .admin-side-health { display: none; }
+            .admin-shell { width: min(100% - 20px, 700px); margin: 0 auto; padding: 14px 0 28px; }
+            .admin-overview { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
+            .admin-hero { grid-column: 1 / -1; padding: 20px; }
+            .admin-title { font-size: 27px; }
+            .admin-stat-card { min-height: 146px; padding: 14px 8px; }
+            .admin-stat-icon { width: 40px; height: 40px; }
+            .admin-stat-icon svg { width: 20px; height: 20px; }
+            .admin-panel { margin-top: 14px; scroll-margin-top: 12px; }
+            .admin-panel-head { align-items: stretch; padding: 18px 16px 12px; }
+            .admin-account-toolbar { align-items: stretch; }
+            .admin-search-field { width: 100%; }
+            .admin-filter-select { flex: 1; }
+            .admin-table-wrap { overflow: visible; }
+            .admin-table { min-width: 0; }
+            .admin-table tr { padding: 12px 16px; border-bottom-color: #edf1f6; }
+            .admin-table td { grid-template-columns: 92px minmax(0, 1fr); padding: 8px 0; color: #40516a; }
+            .admin-table th:last-child,
+            .admin-table td:last-child { position: static; box-shadow: none; }
+            .admin-table td::before { color: #77869c; }
+            .admin-user-cell { min-width: 0; }
+            .admin-actions { flex-wrap: wrap; }
+            .admin-account-pagination, .admin-score-guess-pagination { padding: 12px 16px; }
+            .admin-account-total, .admin-score-guess-total { margin-left: 0; }
+        }
     </style>
 </head>
 <body class="admin-page">
-    <main class="admin-shell">
-        <nav class="admin-nav" aria-label="后台导航">
-            <div class="admin-brand">
-                <span>Junxue Admin</span>
+    <header class="admin-nav" aria-label="后台顶部导航">
+        <div class="admin-brand">
+            <span class="admin-brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3 19 7v6c0 4.2-2.9 6.8-7 8-4.1-1.2-7-3.8-7-8V7l7-4Z"/><path d="m9.5 12 1.7 1.7 3.6-3.6"/></svg>
+            </span>
+            <div class="admin-brand-copy">
+                <span>JUNXUE ADMIN</span>
                 <strong>老板账号管理后台</strong>
             </div>
-            <div class="admin-nav-actions">
-                <span class="admin-pill" data-admin-identity>正在确认身份...</span>
-                <button class="admin-button admin-button--primary" type="button" data-admin-refresh>刷新列表</button>
-                <a class="admin-button" href="index.html">返回首页</a>
-            </div>
-        </nav>
+        </div>
+        <div class="admin-nav-actions">
+            <span class="admin-pill" data-admin-identity>正在确认身份...</span>
+            <button class="admin-button admin-button--primary" type="button" data-admin-refresh>刷新列表</button>
+            <a class="admin-button" href="index.html">返回首页</a>
+        </div>
+    </header>
 
-        <section class="admin-hero" aria-labelledby="admin-title">
-            <span class="admin-kicker">Boss Account Console</span>
-            <h1 class="admin-title" id="admin-title">老板账号管理后台</h1>
-            <p class="admin-copy">这里用于查看老板账号的互动状态，并执行加积分、拉黑和管理员权限调整。后台只显示脱敏信息，不展示完整邮箱、真实用户 ID 或完整 UUID。</p>
-            <div class="admin-status" data-admin-status aria-live="polite"></div>
+    <aside class="admin-sidebar" aria-label="后台功能导航">
+        <nav class="admin-sidebar-nav">
+            <a class="admin-sidebar-link is-active" href="#admin-accounts" data-admin-sidebar-link="admin-accounts">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2.2"/><path d="M5.8 17c.8-2.2 2.1-3.3 4-3.3 1.8 0 3.2 1.1 4 3.3M15 9h3M15 13h3"/></svg>
+                账号管理
+            </a>
+            <a class="admin-sidebar-link" href="#admin-redemptions" data-admin-sidebar-link="admin-redemptions">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M5 7h14v12H5z"/><path d="M8 7V5h8v2M8 12h8M9 16h.01M12 16h.01M15 16h.01"/></svg>
+                兑换申请
+            </a>
+            <a class="admin-sidebar-link" href="#admin-orders" data-admin-sidebar-link="admin-orders">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 3v4M16 3v4M8 11h8M8 15h5"/></svg>
+                预约订单
+            </a>
+            <a class="admin-sidebar-link" href="#admin-score-guess" data-admin-sidebar-link="admin-score-guess">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/><path d="m4 8 6-3 6 6 4-5"/></svg>
+                评分竞猜
+            </a>
+        </nav>
+        <section class="admin-side-health" aria-live="polite">
+            <strong>平台运行状态</strong>
+            <span class="admin-health-state is-pending" data-admin-system-status>状态待确认</span>
+            <p>最近更新时间</p>
+            <time data-admin-last-updated>--</time>
+        </section>
+    </aside>
+
+    <main class="admin-shell">
+        <section class="admin-overview" id="admin-accounts" aria-labelledby="admin-title">
+            <section class="admin-hero">
+                <span class="admin-kicker">Boss Account Console</span>
+                <h1 class="admin-title" id="admin-title">老板账号管理后台</h1>
+                <p class="admin-copy">这里用于查看老板账号的互动状态，并执行加积分、拉黑和管理员权限调整。后台只显示脱敏信息，不展示完整邮箱、真实用户 ID 或完整 UUID。</p>
+                <div class="admin-status" data-admin-status aria-live="polite"></div>
+            </section>
+            <article class="admin-stat-card">
+                <span class="admin-stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="9" cy="8" r="3"/><path d="M3.5 20c.8-3.4 2.7-5.1 5.5-5.1s4.7 1.7 5.5 5.1M16 5.5c2.5.3 4 1.8 4.5 4.2M17 15.2c1.9.5 3.1 2.1 3.5 4.8"/></svg></span>
+                <span class="admin-stat-label">老板账号总数</span><strong class="admin-stat-value" data-admin-stat-total>--</strong><span class="admin-stat-note">完整账号数据</span>
+            </article>
+            <article class="admin-stat-card">
+                <span class="admin-stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 16 9 11l4 3 7-8"/><path d="M15 6h5v5"/><path d="M4 20h16"/></svg></span>
+                <span class="admin-stat-label">本月新增账号</span><strong class="admin-stat-value" data-admin-stat-monthly>--</strong><span class="admin-stat-note">按创建时间统计</span>
+            </article>
+            <article class="admin-stat-card">
+                <span class="admin-stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3 19 7v6c0 4.2-2.9 6.8-7 8-4.1-1.2-7-3.8-7-8V7l7-4Z"/><path d="m9.5 12 1.7 1.7 3.6-3.6"/></svg></span>
+                <span class="admin-stat-label">当前管理员</span><strong class="admin-stat-value" data-admin-stat-admins>--</strong><span class="admin-stat-note">具备后台权限</span>
+            </article>
+            <article class="admin-stat-card">
+                <span class="admin-stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v2"/></svg></span>
+                <span class="admin-stat-label">被拉黑账号</span><strong class="admin-stat-value" data-admin-stat-blocked>--</strong><span class="admin-stat-note">当前限制访问</span>
+            </article>
         </section>
 
         <section class="admin-panel" data-admin-table-wrap hidden>
             <div class="admin-panel-head">
                 <h2 class="admin-panel-title">老板账号列表</h2>
+                <div class="admin-account-toolbar" aria-label="账号列表查询">
+                    <input class="admin-search-field" type="search" placeholder="搜索昵称或脱敏邮箱" autocomplete="off" data-admin-account-query>
+                    <select class="admin-filter-select" data-admin-account-status-filter aria-label="账号状态筛选">
+                        <option value="all">全部状态</option>
+                        <option value="normal">正常</option>
+                        <option value="blocked">已拉黑</option>
+                    </select>
+                </div>
             </div>
-            <div class="admin-table-wrap">
+            <div class="admin-table-wrap" data-admin-account-table-scroll>
                 <table class="admin-table">
                     <thead>
                         <tr>
@@ -556,9 +1203,16 @@
                     <tbody data-admin-table-body></tbody>
                 </table>
             </div>
+            <div class="admin-account-empty" data-admin-account-empty hidden>没有符合当前查询条件的老板账号。</div>
+            <nav class="admin-account-pagination" data-admin-account-pagination aria-label="老板账号列表分页" hidden>
+                <button class="admin-button" type="button" data-admin-account-page="previous">上一页</button>
+                <span class="admin-account-page-list" data-admin-account-page-list aria-label="选择账号列表页码"></span>
+                <button class="admin-button" type="button" data-admin-account-page="next">下一页</button>
+                <span class="admin-account-total" data-admin-account-total></span>
+            </nav>
         </section>
 
-        <section class="admin-panel" data-admin-redemption-panel hidden>
+        <section class="admin-panel" id="admin-redemptions" data-admin-redemption-panel hidden>
             <div class="admin-panel-head">
                 <h2 class="admin-panel-title">兑换申请管理</h2>
                 <div class="admin-filter-group" aria-label="兑换申请筛选">
@@ -592,7 +1246,7 @@
             </section>
         </section>
 
-        <section class="admin-panel" data-admin-paid-order-panel hidden>
+        <section class="admin-panel" id="admin-orders" data-admin-paid-order-panel hidden>
             <div class="admin-panel-head">
                 <h2 class="admin-panel-title">预约订单管理</h2>
                 <div class="admin-filter-group" aria-label="预约订单筛选">
@@ -629,7 +1283,7 @@
             </section>
         </section>
 
-        <section class="admin-panel" data-admin-score-guess-panel hidden>
+        <section class="admin-panel" id="admin-score-guess" data-admin-score-guess-panel hidden>
             <div class="admin-panel-head">
                 <h2 class="admin-panel-title">评分竞猜奖池结算</h2>
                 <button class="admin-button" type="button" data-admin-score-guess-refresh>刷新竞猜</button>
@@ -677,8 +1331,12 @@
         </div>
     </div>
 
+    <div class="admin-action-menu" data-admin-action-menu role="menu" hidden>
+        <button type="button" role="menuitem" data-admin-action-menu-item="admin"></button>
+    </div>
+
     <script src="assets/supabase-client.js?v=20260627-home-performance1"></script>
     <script src="assets/boss-visit.js?v=20260627-home-performance1"></script>
-    <script src="assets/admin.js?v=20260716-score-guess-history-pagination1"></script>
+    <script src="assets/admin.js?v=20260716-admin-enterprise-clean1"></script>
 </body>
 </html>

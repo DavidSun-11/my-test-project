@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    const VERSION = "20260716-my-admin-message-center1";
+    const VERSION = "20260716-score-guess-history-pagination1";
     const SQL_HINT = "管理员后台需要先执行数据库升级 SQL。";
     const NO_PERMISSION_TEXT = "你没有权限访问这个后台。";
     const LOGIN_TEXT = "请先登录管理员账号。";
@@ -58,6 +58,14 @@
         redemptions: [],
         paidOrders: [],
         scoreGuessSessions: [],
+        scoreGuessPagination: {
+            page: 1,
+            pageSize: 5,
+            totalCount: 0,
+            totalPages: 0,
+            isLoading: false,
+            requestToken: 0
+        },
         redemptionFilter: "pending",
         paidOrderFilter: "pending",
         deepLink: null,
@@ -89,6 +97,11 @@
     function formatNumber(value) {
         const num = Number(value);
         return Number.isFinite(num) ? String(num) : "0";
+    }
+
+    function toSafeNonnegativeInteger(value) {
+        const number = Number(value);
+        return Number.isFinite(number) && number >= 0 ? Math.floor(number) : 0;
     }
 
     function formatTime(value) {
@@ -198,7 +211,19 @@
     function getFriendlyError(error) {
         const message = error && error.message ? error.message : "";
 
-        if (/admin_get_boss_users|admin_adjust_boss_points|admin_set_boss_blocked|admin_set_live_interaction_admin|boss_account_flags|boss_visit_stats|boss_admin_actions|admin_ref|boss_point_redemptions|admin_get_boss_point_redemptions|admin_review_boss_point_redemption|boss_paid_orders|boss_service_vouchers|admin_get_boss_paid_orders|admin_update_boss_paid_order|live_score_guess|point_ledger|admin_get_live_score_guess_settlement|admin_set_live_score_guess_result|schema cache|function .* does not exist|relation .* does not exist/i.test(message)) {
+        if (/score guess session has activity|该场次存在竞猜记录/i.test(message)) {
+            return "该场次存在竞猜记录，请先完成结算。";
+        }
+
+        if (/open score guess session cannot be archived/i.test(message)) {
+            return "进行中的竞猜不能删除。";
+        }
+
+        if (/score guess session already archived/i.test(message)) {
+            return "这条竞猜记录已经删除。";
+        }
+
+        if (/admin_get_boss_users|admin_adjust_boss_points|admin_set_boss_blocked|admin_set_live_interaction_admin|boss_account_flags|boss_visit_stats|boss_admin_actions|admin_ref|boss_point_redemptions|admin_get_boss_point_redemptions|admin_review_boss_point_redemption|boss_paid_orders|boss_service_vouchers|admin_get_boss_paid_orders|admin_update_boss_paid_order|live_score_guess|point_ledger|admin_get_live_score_guess_settlement|admin_set_live_score_guess_result|admin_get_live_score_guess_sessions_page|admin_archive_live_score_guess_session|schema cache|function .* does not exist|relation .* does not exist/i.test(message)) {
             return SQL_HINT;
         }
 
@@ -272,10 +297,23 @@
 
     function setBusy(isBusy) {
         $$("[data-admin-action], [data-redemption-action], [data-admin-redemption-filter], [data-paid-order-action], [data-admin-paid-order-filter], [data-score-guess-action], [data-admin-score-guess-refresh]").forEach(function (button) {
-            button.disabled = !!isBusy;
+            button.disabled = !!isBusy || button.dataset.scoreGuessDisabled === "true";
         });
         if (nodes.refresh) {
             nodes.refresh.disabled = !!isBusy;
+        }
+    }
+
+    function setScoreGuessBusy(isBusy) {
+        state.scoreGuessPagination.isLoading = !!isBusy;
+        $$("[data-score-guess-action], [data-admin-score-guess-page], [data-admin-score-guess-refresh]").forEach(function (button) {
+            button.disabled = !!isBusy || button.dataset.scoreGuessDisabled === "true";
+        });
+        if (nodes.scoreGuessTableWrap) {
+            nodes.scoreGuessTableWrap.setAttribute("aria-busy", isBusy ? "true" : "false");
+        }
+        if (!isBusy) {
+            renderScoreGuessPagination();
         }
     }
 
@@ -450,6 +488,61 @@
         return String(id || "").slice(0, 8) || "--------";
     }
 
+    function getScoreGuessArchiveBlockReason(session) {
+        const status = session && session.status ? session.status : "closed";
+        const settlementStatus = session && session.settlement_status ? session.settlement_status : "pending";
+
+        if (status === "open") {
+            return "进行中的竞猜不能删除";
+        }
+
+        if (settlementStatus === "pending" && (
+            toSafeNonnegativeInteger(session.vote_count) > 0
+            || toSafeNonnegativeInteger(session.total_staked_points) > 0
+            || toSafeNonnegativeInteger(session.point_ledger_count) > 0
+        )) {
+            return "请先完成结算";
+        }
+
+        return "";
+    }
+
+    function renderScoreGuessPagination() {
+        if (!nodes.scoreGuessPagination) {
+            return;
+        }
+
+        const pagination = state.scoreGuessPagination;
+        if (pagination.totalCount <= 0 || pagination.totalPages <= 0) {
+            nodes.scoreGuessPagination.hidden = true;
+            nodes.scoreGuessPageStatus.textContent = "";
+            nodes.scoreGuessPageList.replaceChildren();
+            nodes.scoreGuessTotal.textContent = "";
+            return;
+        }
+
+        nodes.scoreGuessPagination.hidden = false;
+        nodes.scoreGuessPageStatus.textContent = "第 " + pagination.page + " / " + pagination.totalPages + " 页";
+        nodes.scoreGuessTotal.textContent = "共 " + pagination.totalCount + " 条记录";
+        nodes.scoreGuessPrevious.disabled = pagination.isLoading || pagination.page <= 1;
+        nodes.scoreGuessNext.disabled = pagination.isLoading || pagination.page >= pagination.totalPages;
+        nodes.scoreGuessPageList.replaceChildren();
+        const visiblePageCount = Math.min(5, pagination.totalPages);
+        const startPage = Math.max(1, Math.min(pagination.page - 2, pagination.totalPages - visiblePageCount + 1));
+        for (let page = startPage; page < startPage + visiblePageCount; page += 1) {
+            const button = document.createElement("button");
+            button.className = "admin-button";
+            button.type = "button";
+            button.textContent = String(page);
+            button.dataset.adminScoreGuessPage = String(page);
+            button.disabled = pagination.isLoading || page === pagination.page;
+            if (page === pagination.page) {
+                button.setAttribute("aria-current", "page");
+            }
+            nodes.scoreGuessPageList.appendChild(button);
+        }
+    }
+
     function renderScoreGuessSessions() {
         if (!nodes.scoreGuessPanel) {
             return;
@@ -462,7 +555,8 @@
             nodes.scoreGuessBody.innerHTML = "";
             nodes.scoreGuessTableWrap.hidden = true;
             nodes.scoreGuessEmpty.hidden = false;
-            nodes.scoreGuessEmpty.innerHTML = '<strong>暂无评分竞猜场次。</strong>';
+            nodes.scoreGuessEmpty.innerHTML = '<strong>暂无竞猜记录。</strong>';
+            renderScoreGuessPagination();
             return;
         }
 
@@ -472,9 +566,13 @@
             const status = session.status || "closed";
             const settlementStatus = session.settlement_status || "pending";
             const canSettle = status === "closed" && settlementStatus === "pending";
+            const archiveBlockReason = getScoreGuessArchiveBlockReason(session);
             const choiceOptions = SCORE_GUESS_CHOICES.map(function (choice) {
                 return '<option value="' + escapeHtml(choice) + '">' + escapeHtml(choice) + '</option>';
             }).join("");
+            const archiveButton = archiveBlockReason
+                ? '<button type="button" data-score-guess-action="archive" data-index="' + index + '" data-score-guess-disabled="true" disabled title="' + escapeHtml(archiveBlockReason) + '">删除记录</button><span class="admin-archive-note">' + escapeHtml(archiveBlockReason) + '</span>'
+                : '<button type="button" data-score-guess-action="archive" data-index="' + index + '">删除记录</button>';
 
             return [
                 '<tr>',
@@ -489,11 +587,13 @@
                         '<div class="admin-actions">',
                             canSettle ? '<label class="admin-field"><span>正确结果</span><select data-score-guess-choice="' + index + '">' + choiceOptions + '</select></label><button type="button" data-score-guess-action="settle" data-index="' + index + '">公布结果 / 结算积分</button>' : '',
                             '<button type="button" data-score-guess-action="details" data-index="' + index + '">查看明细</button>',
+                            archiveButton,
                         '</div>',
                     '</td>',
                 '</tr>'
             ].join("");
         }).join("");
+        renderScoreGuessPagination();
     }
 
     async function loadUsers(doneMessage) {
@@ -590,39 +690,63 @@
         }
     }
 
-    async function loadScoreGuessSessions(doneMessage) {
+    async function loadScoreGuessSessions(doneMessage, requestedPage) {
         if (!nodes.scoreGuessPanel) {
             return;
         }
 
-        setBusy(true);
+        if (state.scoreGuessPagination.isLoading) {
+            return;
+        }
+
+        const page = Math.max(1, Math.floor(Number(requestedPage || state.scoreGuessPagination.page) || 1));
+        const requestToken = state.scoreGuessPagination.requestToken + 1;
+        state.scoreGuessPagination.requestToken = requestToken;
+        setScoreGuessBusy(true);
         if (nodes.scoreGuessEmpty) {
             nodes.scoreGuessEmpty.hidden = false;
             nodes.scoreGuessEmpty.innerHTML = '<strong>正在读取评分竞猜场次...</strong>';
         }
 
         try {
-            const response = await state.client
-                .from("live_score_guess_sessions")
-                .select("id,title,status,created_at,ended_at,correct_choice,settlement_status,total_losing_pool,total_winning_stake,settled_at")
-                .order("created_at", { ascending: false })
-                .limit(12);
+            const response = await state.client.rpc("admin_get_live_score_guess_sessions_page", {
+                p_page: page,
+                p_page_size: state.scoreGuessPagination.pageSize
+            });
 
             if (response.error) {
                 throw response.error;
             }
 
-            state.scoreGuessSessions = Array.isArray(response.data) ? response.data : [];
+            if (requestToken !== state.scoreGuessPagination.requestToken) {
+                return;
+            }
+
+            const result = response.data && typeof response.data === "object" ? response.data : {};
+            const totalCount = toSafeNonnegativeInteger(result.total_count);
+            const totalPages = toSafeNonnegativeInteger(result.total_pages);
+            state.scoreGuessPagination.page = totalCount > 0 ? Math.max(1, toSafeNonnegativeInteger(result.page)) : 1;
+            state.scoreGuessPagination.pageSize = Math.max(1, toSafeNonnegativeInteger(result.page_size) || 5);
+            state.scoreGuessPagination.totalCount = totalCount;
+            state.scoreGuessPagination.totalPages = totalPages;
+            state.scoreGuessSessions = Array.isArray(result.items) ? result.items : [];
             renderScoreGuessSessions();
             if (doneMessage) {
                 setStatus(doneMessage, "good");
             }
         } catch (error) {
+            if (requestToken !== state.scoreGuessPagination.requestToken) {
+                return;
+            }
+            state.scoreGuessPagination.totalCount = 0;
+            state.scoreGuessPagination.totalPages = 0;
             nodes.scoreGuessTableWrap.hidden = true;
             nodes.scoreGuessEmpty.hidden = false;
             nodes.scoreGuessEmpty.innerHTML = '<strong>' + escapeHtml(getFriendlyError(error)) + '</strong>';
         } finally {
-            setBusy(false);
+            if (requestToken === state.scoreGuessPagination.requestToken) {
+                setScoreGuessBusy(false);
+            }
         }
     }
 
@@ -754,6 +878,7 @@
         nodes.modalForm.removeAttribute("data-review-status");
         nodes.modalForm.removeAttribute("data-paid-order-index");
         nodes.modalForm.removeAttribute("data-order-status");
+        nodes.modalForm.removeAttribute("data-score-guess-session-id");
         nodes.modalBody.innerHTML = "";
     }
 
@@ -940,9 +1065,58 @@
                 '<div class="admin-modal-actions"><button class="admin-button" type="button" data-modal-close>关闭</button></div>'
             ].join("");
             nodes.modalForm.dataset.mode = "score-guess-details";
+            nodes.modalForm.dataset.scoreGuessSessionId = String(session.id || "");
         } catch (error) {
             setStatus(getFriendlyError(error), "warning");
         } finally {
+            setBusy(false);
+        }
+    }
+
+    async function archiveScoreGuess(session) {
+        if (!session || !session.id) {
+            return;
+        }
+
+        const blockReason = getScoreGuessArchiveBlockReason(session);
+        if (blockReason) {
+            setStatus(blockReason === "进行中的竞猜不能删除" ? "进行中的竞猜不能删除。" : "该场次存在竞猜记录，请先完成结算。", "warning");
+            return;
+        }
+
+        const shortRef = getScoreGuessShortRef(session.id);
+        const confirmed = window.confirm("确认删除场次 #" + shortRef + " 的历史记录吗？删除后将不再出现在管理员列表中。");
+        if (!confirmed) {
+            return;
+        }
+
+        const currentPage = state.scoreGuessPagination.page;
+        const targetPage = currentPage > 1 && state.scoreGuessSessions.length === 1 ? currentPage - 1 : currentPage;
+        setBusy(true);
+        setScoreGuessBusy(true);
+        try {
+            const response = await state.client.rpc("admin_archive_live_score_guess_session", {
+                p_session_id: session.id,
+                p_reason: null
+            });
+
+            if (response.error) {
+                throw response.error;
+            }
+
+            if (nodes.modalForm.dataset.scoreGuessSessionId === String(session.id)) {
+                closeModal();
+            }
+            state.scoreGuessSessions = [];
+            nodes.scoreGuessBody.innerHTML = "";
+            setScoreGuessBusy(false);
+            await loadScoreGuessSessions("竞猜历史记录已删除。", targetPage);
+        } catch (error) {
+            setStatus(getFriendlyError(error), "warning");
+        } finally {
+            if (state.scoreGuessPagination.isLoading) {
+                setScoreGuessBusy(false);
+            }
             setBusy(false);
         }
     }
@@ -1069,6 +1243,49 @@
         }
     }
 
+    function goToScoreGuessPage(targetPage) {
+        const pagination = state.scoreGuessPagination;
+        const page = Math.floor(Number(targetPage));
+        if (pagination.isLoading || pagination.totalPages <= 0 || !Number.isFinite(page) || page < 1 || page > pagination.totalPages || page === pagination.page) {
+            return;
+        }
+        loadScoreGuessSessions(null, page);
+    }
+
+    function bindScoreGuessSwipe() {
+        if (!nodes.scoreGuessTableWrap) {
+            return;
+        }
+
+        let touchStart = null;
+        nodes.scoreGuessTableWrap.addEventListener("touchstart", function (event) {
+            if (event.touches.length !== 1 || event.target.closest("button, select, input, textarea, a, label")) {
+                touchStart = null;
+                return;
+            }
+            touchStart = {
+                x: event.touches[0].clientX,
+                y: event.touches[0].clientY
+            };
+        }, { passive: true });
+
+        nodes.scoreGuessTableWrap.addEventListener("touchend", function (event) {
+            if (!touchStart || event.changedTouches.length !== 1) {
+                touchStart = null;
+                return;
+            }
+
+            const deltaX = event.changedTouches[0].clientX - touchStart.x;
+            const deltaY = event.changedTouches[0].clientY - touchStart.y;
+            touchStart = null;
+            if (Math.abs(deltaX) < 56 || Math.abs(deltaX) <= Math.abs(deltaY) * 1.35) {
+                return;
+            }
+
+            goToScoreGuessPage(state.scoreGuessPagination.page + (deltaX < 0 ? 1 : -1));
+        }, { passive: true });
+    }
+
     function bindEvents() {
         nodes.refresh.addEventListener("click", function () {
             refreshAll("列表已刷新。");
@@ -1146,6 +1363,22 @@
             });
         }
 
+        if (nodes.scoreGuessPagination) {
+            nodes.scoreGuessPagination.addEventListener("click", function (event) {
+                const button = event.target.closest("[data-admin-score-guess-page]");
+                if (!button) {
+                    return;
+                }
+                const direction = button.dataset.adminScoreGuessPage;
+                const targetPage = direction === "next"
+                    ? state.scoreGuessPagination.page + 1
+                    : (direction === "previous" ? state.scoreGuessPagination.page - 1 : Number(direction));
+                goToScoreGuessPage(targetPage);
+            });
+        }
+
+        bindScoreGuessSwipe();
+
         if (nodes.scoreGuessBody) {
             nodes.scoreGuessBody.addEventListener("click", function (event) {
                 const button = event.target.closest("[data-score-guess-action]");
@@ -1161,6 +1394,11 @@
 
                 if (button.dataset.scoreGuessAction === "details") {
                     showScoreGuessDetails(session);
+                    return;
+                }
+
+                if (button.dataset.scoreGuessAction === "archive") {
+                    archiveScoreGuess(session);
                     return;
                 }
 
@@ -1198,6 +1436,12 @@
         nodes.scoreGuessBody = $("[data-admin-score-guess-body]");
         nodes.scoreGuessEmpty = $("[data-admin-score-guess-empty]");
         nodes.scoreGuessRefresh = $("[data-admin-score-guess-refresh]");
+        nodes.scoreGuessPagination = $("[data-admin-score-guess-pagination]");
+        nodes.scoreGuessPageStatus = $("[data-admin-score-guess-page-status]");
+        nodes.scoreGuessPageList = $("[data-admin-score-guess-page-list]");
+        nodes.scoreGuessTotal = $("[data-admin-score-guess-total]");
+        nodes.scoreGuessPrevious = $("[data-admin-score-guess-page='previous']");
+        nodes.scoreGuessNext = $("[data-admin-score-guess-page='next']");
         nodes.modal = $("[data-admin-modal]");
         nodes.modalForm = $("[data-admin-modal-form]");
         nodes.modalTitle = $("[data-admin-modal-title]");

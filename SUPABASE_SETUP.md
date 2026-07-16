@@ -4420,3 +4420,232 @@ grant execute on function public.admin_get_boss_paid_orders(text) to authenticat
 grant execute on function public.admin_get_my_page_pending_messages(text) to authenticated;
 grant execute on function public.admin_update_boss_paid_order(uuid, text, text, integer, text, text) to authenticated;
 ```
+
+## 18. 评分竞猜历史归档与分页升级 SQL
+
+用途：为管理员后台的“评分竞猜奖池结算”增加服务端分页和逻辑归档。请先完成第 16 节，再在 Supabase SQL Editor 单独执行本节。本节可以重复执行，不会删除竞猜场次、投票、积分流水或结算结果。
+
+```sql
+alter table public.live_score_guess_sessions
+  add column if not exists archived_at timestamptz;
+alter table public.live_score_guess_sessions
+  add column if not exists archived_by uuid references auth.users(id) on delete set null;
+alter table public.live_score_guess_sessions
+  add column if not exists archive_reason text;
+
+create index if not exists live_score_guess_sessions_unarchived_created_idx
+on public.live_score_guess_sessions (created_at desc, id desc)
+where archived_at is null;
+
+drop policy if exists "Anyone can read live score guess sessions" on public.live_score_guess_sessions;
+drop policy if exists "Anyone can read unarchived live score guess sessions" on public.live_score_guess_sessions;
+create policy "Anyone can read unarchived live score guess sessions"
+on public.live_score_guess_sessions
+for select
+using (
+  archived_at is null
+  or exists (
+    select 1
+    from public.live_interaction_admins admin
+    where admin.user_id = auth.uid()
+  )
+);
+
+drop function if exists public.admin_get_live_score_guess_sessions_page(integer, integer);
+create function public.admin_get_live_score_guess_sessions_page(
+  p_page integer default 1,
+  p_page_size integer default 5
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_actor uuid := auth.uid();
+  v_requested_page integer := greatest(coalesce(p_page, 1), 1);
+  v_page_size integer := least(greatest(coalesce(p_page_size, 5), 1), 50);
+  v_page integer := 1;
+  v_total_count bigint := 0;
+  v_total_pages integer := 0;
+  v_items jsonb := '[]'::jsonb;
+begin
+  if v_actor is null or not public.is_live_interaction_admin(v_actor) then
+    raise exception 'not authorized';
+  end if;
+
+  select count(*)
+  into v_total_count
+  from public.live_score_guess_sessions session
+  where session.archived_at is null;
+
+  if v_total_count > 0 then
+    v_total_pages := ceil(v_total_count::numeric / v_page_size::numeric)::integer;
+    v_page := least(v_requested_page, v_total_pages);
+
+    with page_rows as (
+      select
+        session.id,
+        session.title,
+        session.status,
+        session.created_at,
+        session.ended_at,
+        session.correct_choice,
+        coalesce(session.settlement_status, 'pending') as settlement_status,
+        greatest(coalesce(session.total_losing_pool, 0), 0) as total_losing_pool,
+        greatest(coalesce(session.total_winning_stake, 0), 0) as total_winning_stake,
+        session.settled_at
+      from public.live_score_guess_sessions session
+      where session.archived_at is null
+      order by session.created_at desc, session.id desc
+      offset ((v_page - 1) * v_page_size)
+      limit v_page_size
+    ), enriched as (
+      select
+        page_row.*,
+        coalesce(vote_stats.vote_count, 0) as vote_count,
+        coalesce(vote_stats.total_staked_points, 0) as total_staked_points,
+        coalesce(ledger_stats.point_ledger_count, 0) as point_ledger_count
+      from page_rows page_row
+      left join lateral (
+        select
+          count(*)::integer as vote_count,
+          coalesce(sum(greatest(coalesce(vote.staked_points, 0), 0)), 0)::bigint as total_staked_points
+        from public.live_score_guess_votes vote
+        where vote.session_id = page_row.id
+      ) vote_stats on true
+      left join lateral (
+        select count(*)::integer as point_ledger_count
+        from public.live_score_guess_point_ledger ledger
+        where ledger.session_id = page_row.id
+      ) ledger_stats on true
+    )
+    select coalesce(
+      jsonb_agg(
+        jsonb_build_object(
+          'id', enriched.id,
+          'title', left(coalesce(enriched.title, '评分竞猜'), 120),
+          'status', coalesce(enriched.status, 'closed'),
+          'created_at', enriched.created_at,
+          'ended_at', enriched.ended_at,
+          'correct_choice', enriched.correct_choice,
+          'settlement_status', enriched.settlement_status,
+          'total_losing_pool', enriched.total_losing_pool,
+          'total_winning_stake', enriched.total_winning_stake,
+          'settled_at', enriched.settled_at,
+          'vote_count', enriched.vote_count,
+          'total_staked_points', enriched.total_staked_points,
+          'point_ledger_count', enriched.point_ledger_count
+        )
+        order by enriched.created_at desc, enriched.id desc
+      ),
+      '[]'::jsonb
+    )
+    into v_items
+    from enriched;
+  end if;
+
+  return jsonb_build_object(
+    'page', case when v_total_count = 0 then 1 else v_page end,
+    'page_size', v_page_size,
+    'total_count', v_total_count,
+    'total_pages', v_total_pages,
+    'items', coalesce(v_items, '[]'::jsonb)
+  );
+end;
+$$;
+
+drop function if exists public.admin_archive_live_score_guess_session(uuid, text);
+create function public.admin_archive_live_score_guess_session(
+  p_session_id uuid,
+  p_reason text default null
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_actor uuid := auth.uid();
+  v_session public.live_score_guess_sessions%rowtype;
+  v_settlement_status text;
+  v_reason text := nullif(trim(coalesce(p_reason, '')), '');
+  v_vote_count bigint := 0;
+  v_staked_points bigint := 0;
+  v_ledger_count bigint := 0;
+  v_archived_at timestamptz := now();
+begin
+  if v_actor is null or not public.is_live_interaction_admin(v_actor) then
+    raise exception 'not authorized';
+  end if;
+
+  if p_session_id is null then
+    raise exception 'score guess session not found';
+  end if;
+
+  if v_reason is not null and char_length(v_reason) > 200 then
+    raise exception 'archive reason too long';
+  end if;
+
+  select *
+  into v_session
+  from public.live_score_guess_sessions session
+  where session.id = p_session_id
+  for update;
+
+  if v_session.id is null then
+    raise exception 'score guess session not found';
+  end if;
+
+  if v_session.archived_at is not null then
+    raise exception 'score guess session already archived';
+  end if;
+
+  if v_session.status = 'open' then
+    raise exception 'open score guess session cannot be archived';
+  end if;
+
+  v_settlement_status := coalesce(v_session.settlement_status, 'pending');
+  if v_settlement_status = 'pending' then
+    select
+      count(*),
+      coalesce(sum(greatest(coalesce(vote.staked_points, 0), 0)), 0)
+    into v_vote_count, v_staked_points
+    from public.live_score_guess_votes vote
+    where vote.session_id = p_session_id;
+
+    select count(*)
+    into v_ledger_count
+    from public.live_score_guess_point_ledger ledger
+    where ledger.session_id = p_session_id;
+
+    if coalesce(v_vote_count, 0) > 0
+       or coalesce(v_staked_points, 0) > 0
+       or coalesce(v_ledger_count, 0) > 0 then
+      raise exception '该场次存在竞猜记录，请先完成结算。';
+    end if;
+  elsif v_settlement_status not in ('settled', 'no_winner') then
+    raise exception 'invalid score guess settlement status';
+  end if;
+
+  update public.live_score_guess_sessions
+  set archived_at = v_archived_at,
+      archived_by = v_actor,
+      archive_reason = v_reason
+  where id = p_session_id;
+
+  return jsonb_build_object(
+    'session_id', p_session_id,
+    'archived_at', v_archived_at
+  );
+end;
+$$;
+
+revoke all on function public.admin_get_live_score_guess_sessions_page(integer, integer) from public, anon, authenticated;
+revoke all on function public.admin_archive_live_score_guess_session(uuid, text) from public, anon, authenticated;
+
+grant execute on function public.admin_get_live_score_guess_sessions_page(integer, integer) to authenticated;
+grant execute on function public.admin_archive_live_score_guess_session(uuid, text) to authenticated;
+```
+
+归档后，普通用户仍可读取所有 `archived_at is null` 的进行中和已结束场次；管理员分页 RPC同样只返回未归档记录。管理员操作始终传递完整场次 UUID，后台页面显示的 8 位短编号仅用于视觉识别。

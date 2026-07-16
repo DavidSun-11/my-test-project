@@ -245,6 +245,54 @@
             color: rgba(235, 248, 255, .93);
         }
 
+        .admin-score-guess-pagination {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 18px 18px;
+            overflow-x: auto;
+            white-space: nowrap;
+            scrollbar-width: thin;
+        }
+
+        .admin-score-guess-pagination[hidden] {
+            display: none;
+        }
+
+        .admin-score-guess-page-status,
+        .admin-score-guess-total {
+            color: rgba(218, 239, 252, .88);
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .admin-score-guess-page-list {
+            display: inline-flex;
+            gap: 6px;
+        }
+
+        .admin-score-guess-page-list .admin-button {
+            min-width: 36px;
+            padding-inline: 9px;
+        }
+
+        .admin-score-guess-total {
+            margin-left: auto;
+        }
+
+        .admin-score-guess-pagination .admin-button:disabled,
+        .admin-actions button[data-score-guess-action="archive"]:disabled {
+            cursor: not-allowed;
+        }
+
+        .admin-archive-note {
+            display: block;
+            max-width: 180px;
+            color: rgba(255, 218, 131, .84);
+            font-size: 12px;
+            line-height: 1.45;
+        }
+
         .admin-pill {
             display: inline-flex;
             padding: 4px 9px;
@@ -446,6 +494,20 @@
             .admin-actions {
                 justify-content: flex-start;
             }
+
+            [data-admin-score-guess-swipe] {
+                touch-action: pan-y;
+                overscroll-behavior-x: contain;
+            }
+
+            .admin-score-guess-pagination {
+                padding: 12px;
+                gap: 8px;
+            }
+
+            .admin-score-guess-total {
+                margin-left: 0;
+            }
         }
     </style>
 </head>
@@ -572,7 +634,7 @@
                 <h2 class="admin-panel-title">评分竞猜奖池结算</h2>
                 <button class="admin-button" type="button" data-admin-score-guess-refresh>刷新竞猜</button>
             </div>
-            <div class="admin-table-wrap" data-admin-score-guess-table-wrap hidden>
+            <div class="admin-table-wrap" data-admin-score-guess-table-wrap data-admin-score-guess-swipe hidden>
                 <table class="admin-table">
                     <thead>
                         <tr>
@@ -592,6 +654,13 @@
             <section class="admin-empty" data-admin-score-guess-empty>
                 <strong>正在读取评分竞猜场次...</strong>
             </section>
+            <nav class="admin-score-guess-pagination" data-admin-score-guess-pagination aria-label="评分竞猜历史分页" hidden>
+                <button class="admin-button" type="button" data-admin-score-guess-page="previous">上一页</button>
+                <span class="admin-score-guess-page-status" data-admin-score-guess-page-status aria-live="polite"></span>
+                <span class="admin-score-guess-page-list" data-admin-score-guess-page-list aria-label="选择竞猜历史页码"></span>
+                <button class="admin-button" type="button" data-admin-score-guess-page="next">下一页</button>
+                <span class="admin-score-guess-total" data-admin-score-guess-total></span>
+            </nav>
         </section>
 
         <section class="admin-empty" data-admin-empty>
@@ -610,6 +679,6 @@
 
     <script src="assets/supabase-client.js?v=20260627-home-performance1"></script>
     <script src="assets/boss-visit.js?v=20260627-home-performance1"></script>
-    <script src="assets/admin.js?v=20260716-my-admin-message-center1"></script>
+    <script src="assets/admin.js?v=20260716-score-guess-history-pagination1"></script>
 </body>
 </html>

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 230" fill="none">
+  <defs>
+    <linearGradient id="veil" x1="34" y1="32" x2="382" y2="206" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FCFF" stop-opacity=".08"/>
+      <stop offset=".45" stop-color="#D5D7FF" stop-opacity=".56"/>
+      <stop offset="1" stop-color="#A9E8FF" stop-opacity=".05"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-30%" width="140%" height="160%">
+      <feGaussianBlur stdDeviation="2.5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <path d="M8 174C88 103 162 85 248 107c72 18 113 8 164-38" stroke="url(#veil)" stroke-width="1.4"/>
+  <path d="M24 202c81-47 158-53 230-19 57 27 109 18 148-7" stroke="url(#veil)" stroke-width=".8" stroke-dasharray="2 8"/>
+  <path d="m85 81 4 11 11 4-11 4-4 11-4-11-11-4 11-4 4-11Zm232 55 3 8 8 3-8 3-3 8-3-8-8-3 8-3 3-8Z" fill="#F7FBFF" fill-opacity=".88" filter="url(#glow)"/>
+  <path d="m176 38 2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6Z" fill="#E4D6FF" fill-opacity=".8"/>
+</svg>

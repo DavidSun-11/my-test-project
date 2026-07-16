@@ -19,7 +19,7 @@
             --order-pink: #d9adff;
             --order-good: #8ff2ca;
             --order-warn: #ffd184;
-            --order-lake-bg: url("./assets/images/预约背景.png?v=20260716-booking-background-layer2");
+            --order-lake-bg: url("./assets/images/预约背景.png?v=20260716-order-mobile-layout-fix1");
             font-family: "Microsoft YaHei", "PingFang SC", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
         }
 
@@ -464,7 +464,7 @@
             color: #ffb7cc;
         }
 
-        @media (max-width: 900px) {
+        @media (min-width: 769px) and (max-width: 900px) {
             .order-shell {
                 width: min(100% - 24px, 720px);
                 padding-top: 12px;
@@ -489,27 +489,6 @@
 
             .order-record-meta {
                 grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 520px) {
-            .order-card,
-            .order-panel,
-            .order-empty {
-                padding: 14px;
-                border-radius: 20px;
-            }
-
-            .order-title {
-                font-size: 34px;
-            }
-
-            .order-button {
-                width: 100%;
-            }
-
-            .order-hero-crystal {
-                display: none;
             }
         }
 
@@ -935,7 +914,7 @@
             .order-form > .order-button--primary { min-height: 38px; }
         }
 
-        @media (max-width: 900px) {
+        @media (min-width: 769px) and (max-width: 900px) {
             body::before { background-position: 42% center; }
             .order-shell { width: min(100% - 20px, 720px); padding-top: 10px; }
             .order-nav { min-height: auto; padding: 12px; }
@@ -948,11 +927,224 @@
             }
         }
 
+        /* Authoritative phone layout; keep after desktop refinements to avoid cascade regressions. */
+        @media (max-width: 768px) {
+            body::before {
+                background-position: 42% center;
+            }
+
+            body .performance-switcher {
+                top: 8px;
+                right: 8px;
+                max-width: calc(100vw - 16px);
+            }
+
+            body .performance-switcher__menu {
+                max-width: calc(100vw - 16px);
+            }
+
+            .order-shell {
+                width: min(calc(100% - 16px), 720px);
+                max-width: 100%;
+                min-width: 0;
+                padding-top: 48px;
+            }
+
+            .order-nav,
+            .order-hero,
+            .order-card,
+            .order-meta,
+            .order-grid,
+            .order-panel,
+            .order-form,
+            .order-form-grid,
+            .order-field,
+            .order-voucher-box,
+            .order-records,
+            .order-record-card,
+            .order-record-meta {
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+            }
+
+            .order-nav {
+                min-height: 0;
+                padding: 12px;
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .order-brand,
+            .order-brand span,
+            .order-brand strong {
+                max-width: 100%;
+                min-width: 0;
+                white-space: normal;
+                word-break: normal;
+                overflow-wrap: break-word;
+            }
+
+            .order-actions {
+                display: grid;
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+                grid-template-columns: minmax(0, 1fr);
+                justify-content: stretch;
+            }
+
+            .order-actions .order-button {
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+            }
+
+            .order-hero,
+            .order-grid,
+            .order-form-grid,
+            .order-voucher-box,
+            .order-record-meta {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            .order-hero {
+                gap: 10px;
+                margin-bottom: 10px;
+            }
+
+            .order-card {
+                min-height: 0;
+            }
+
+            .order-card--intro {
+                min-width: 0;
+                padding: 16px 16px 88px;
+            }
+
+            .order-hero-crystal {
+                display: block;
+                right: 10px;
+                bottom: 8px;
+                width: 84px;
+                height: 76px;
+                max-width: calc(100% - 20px);
+                opacity: 0.52;
+            }
+
+            .order-title,
+            .order-copy,
+            .order-status,
+            .order-account-label,
+            .order-meta-row,
+            .order-panel,
+            .order-rule-card,
+            .order-field,
+            .order-voucher-detail,
+            .order-record-card,
+            .order-note,
+            .order-empty {
+                min-width: 0;
+                white-space: normal;
+                word-break: normal;
+                overflow-wrap: break-word;
+            }
+
+            .order-account-label strong {
+                overflow: visible;
+                text-overflow: clip;
+                white-space: normal;
+                overflow-wrap: anywhere;
+            }
+
+            .order-meta-row {
+                grid-template-columns: 34px minmax(0, 1fr) auto;
+            }
+
+            .order-meta-row span:not(.order-meta-icon) {
+                min-width: 0;
+            }
+
+            .order-meta-row strong,
+            .order-meta-icon,
+            .order-section-title svg {
+                flex-shrink: 0;
+            }
+
+            .order-panel--form {
+                order: 1;
+            }
+
+            .order-panel--guide {
+                order: 2;
+            }
+
+            .order-panel--wide {
+                grid-column: auto;
+                order: 3;
+            }
+
+            .order-field--wide,
+            .order-voucher-title {
+                grid-column: auto;
+            }
+
+            .order-field input,
+            .order-field select,
+            .order-field textarea,
+            .order-voucher-detail,
+            .order-form > .order-button--primary {
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+            }
+
+            .order-voucher-box > *,
+            .order-record-card > *,
+            .order-record-meta > * {
+                max-width: 100%;
+                min-width: 0;
+            }
+
+            .order-nav,
+            .order-card,
+            .order-panel,
+            .order-empty {
+                background: linear-gradient(145deg, rgba(61, 112, 166, 0.18), rgba(5, 22, 66, 0.23));
+            }
+        }
+
         @media (max-width: 520px) {
-            .order-shell { width: calc(100% - 16px); }
-            .order-title { font-size: 34px; }
-            .order-button, .order-field input, .order-field select, .order-field textarea { min-height: 42px; }
-            .order-account-label strong { font-size: 18px; }
+            .order-card,
+            .order-panel,
+            .order-empty {
+                padding: 14px;
+                border-radius: 20px;
+            }
+
+            .order-title {
+                font-size: 34px;
+            }
+
+            .order-button,
+            .order-field input,
+            .order-field select,
+            .order-field textarea {
+                min-height: 42px;
+            }
+
+            .order-account-label strong {
+                font-size: 18px;
+            }
+
+            .order-card--intro {
+                padding-bottom: 76px;
+            }
+
+            .order-hero-crystal {
+                width: 72px;
+                height: 66px;
+            }
         }
     </style>
 </head>
@@ -976,11 +1168,11 @@
                 <h1 class="order-title">服务预约</h1>
                 <p class="order-copy">提交后，君雪会确认时间、服务内容和最终金额。需要补款时，会通过微信 / 支付宝等方式与你线下确认。</p>
                 <div class="order-status" data-order-status aria-live="polite">正在确认登录状态...</div>
-                <img class="order-hero-crystal" src="assets/images/冰晶素材2-clean.webp?v=20260716-booking-background-layer2" alt="" aria-hidden="true">
+                <img class="order-hero-crystal" src="assets/images/冰晶素材2-clean.webp?v=20260716-order-mobile-layout-fix1" alt="" aria-hidden="true">
             </div>
             <aside class="order-card order-meta" data-order-account hidden>
                 <div class="order-account-head">
-                    <img class="order-account-emblem" src="assets/images/冰晶素材-clean.webp?v=20260716-booking-background-layer2" alt="" aria-hidden="true">
+                    <img class="order-account-emblem" src="assets/images/冰晶素材-clean.webp?v=20260716-order-mobile-layout-fix1" alt="" aria-hidden="true">
                     <div class="order-account-label">
                         <span>当前账号</span>
                         <strong data-order-display-name>--</strong>
@@ -1103,6 +1295,6 @@
     </main>
 
     <script src="assets/supabase-client.js?v=20260627-home-performance1"></script>
-    <script src="assets/order.js?v=20260716-booking-background-layer2"></script>
+    <script src="assets/order.js?v=20260716-order-mobile-layout-fix1"></script>
 </body>
 </html>

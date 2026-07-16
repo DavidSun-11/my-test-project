@@ -19,9 +19,7 @@
             --order-pink: #d9adff;
             --order-good: #8ff2ca;
             --order-warn: #ffd184;
-            --order-lake-bg: url("./assets/images/预约背景.png");
-            --order-ice-one: url("./assets/images/冰晶素材.png");
-            --order-ice-two: url("./assets/images/冰晶素材2.png");
+            --order-lake-bg: url("./assets/images/预约背景.png?v=20260715-booking-crystal-lake2");
             font-family: "Microsoft YaHei", "PingFang SC", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
         }
 
@@ -34,7 +32,7 @@
             margin: 0;
             color: var(--order-text);
             background:
-                linear-gradient(180deg, rgba(3, 12, 38, 0.28), rgba(4, 13, 40, 0.72)),
+                linear-gradient(180deg, rgba(3, 15, 48, 0.08), rgba(3, 16, 50, 0.3)),
                 var(--order-lake-bg) center / cover fixed no-repeat,
                 #061224;
         }
@@ -45,10 +43,9 @@
             inset: 0;
             pointer-events: none;
             background:
-                linear-gradient(180deg, rgba(3, 11, 36, 0.06), rgba(3, 10, 32, 0.28)),
-                linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.16), transparent) 50% 62px / min(1100px, 80vw) 1px no-repeat,
-                var(--order-ice-two) right 4% bottom 2% / min(260px, 22vw) auto no-repeat;
-            opacity: 0.82;
+                linear-gradient(90deg, rgba(2, 12, 42, 0.28) 0%, transparent 22%, transparent 72%, rgba(2, 10, 38, 0.2) 100%),
+                linear-gradient(180deg, transparent 54%, rgba(2, 12, 42, 0.2) 100%);
+            opacity: 0.72;
         }
 
         a {
@@ -173,35 +170,6 @@
         .order-card {
             border-radius: 22px;
             padding: 18px;
-        }
-
-        .order-hero > .order-card:first-child::after,
-        .order-grid > .order-panel:nth-child(2)::after {
-            content: "";
-            position: absolute;
-            z-index: 0;
-            pointer-events: none;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-size: contain;
-            opacity: 0.62;
-            mix-blend-mode: screen;
-        }
-
-        .order-hero > .order-card:first-child::after {
-            inset: 18px 14px auto auto;
-            width: clamp(130px, 17vw, 230px);
-            aspect-ratio: 1;
-            background-image: var(--order-ice-one);
-        }
-
-        .order-grid > .order-panel:nth-child(2)::after {
-            right: -30px;
-            bottom: -45px;
-            width: clamp(170px, 23vw, 300px);
-            aspect-ratio: 1;
-            background-image: var(--order-ice-two);
-            opacity: 0.3;
         }
 
         .order-kicker {
@@ -514,10 +482,457 @@
                 width: 100%;
             }
 
-            .order-hero > .order-card:first-child::after,
-            .order-grid > .order-panel:nth-child(2)::after {
-                opacity: 0.2;
+            .order-hero-crystal {
+                display: none;
             }
+        }
+
+        /* Crystal lake layout and shared ice-glass material. */
+        body {
+            isolation: isolate;
+            background-position: center top;
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            z-index: 0;
+            inset: 0;
+            pointer-events: none;
+            background:
+                radial-gradient(circle at 13% 11%, rgba(195, 229, 255, 0.12), transparent 16%),
+                radial-gradient(circle at 81% 45%, rgba(102, 139, 255, 0.09), transparent 25%);
+        }
+
+        .order-shell {
+            z-index: 1;
+            width: min(1400px, calc(100% - 32px));
+            padding: 12px 0 24px;
+        }
+
+        body::before {
+            z-index: 0;
+        }
+
+        .order-nav,
+        .order-card,
+        .order-panel,
+        .order-empty {
+            border: 1px solid rgba(198, 234, 255, 0.48);
+            background: linear-gradient(145deg, rgba(63, 121, 193, 0.18), rgba(7, 24, 68, 0.42)), rgba(8, 27, 70, 0.26);
+            box-shadow: 0 15px 42px rgba(2, 8, 35, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.22), inset 0 -1px 0 rgba(100, 185, 255, 0.08);
+            -webkit-backdrop-filter: blur(12px) saturate(1.16);
+            backdrop-filter: blur(12px) saturate(1.16);
+        }
+
+        .order-nav::after,
+        .order-card::before,
+        .order-panel::before {
+            content: "";
+            position: absolute;
+            z-index: 0;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), transparent 18%) top left / 38% 50% no-repeat, linear-gradient(315deg, rgba(130, 201, 255, 0.11), transparent 17%) bottom right / 35% 45% no-repeat;
+        }
+
+        .order-nav {
+            min-height: 66px;
+            margin-bottom: 12px;
+            padding: 8px 14px 8px 20px;
+            border-radius: 14px;
+        }
+
+        .order-brand {
+            gap: 1px;
+        }
+
+        .order-brand span {
+            color: rgba(183, 222, 255, 0.86);
+            font-size: 11px;
+            letter-spacing: 0.08em;
+        }
+
+        .order-brand strong {
+            font-size: 19px;
+        }
+
+        .order-actions {
+            gap: 8px;
+        }
+
+        .order-button {
+            min-height: 38px;
+            padding: 7px 13px;
+            border-color: rgba(196, 232, 255, 0.42);
+            border-radius: 11px;
+            background: linear-gradient(145deg, rgba(80, 135, 211, 0.2), rgba(8, 27, 70, 0.36));
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+            font-size: 14px;
+        }
+
+        .order-button--primary {
+            overflow: hidden;
+            border-color: rgba(225, 244, 255, 0.76);
+            color: #071d4c;
+            background: linear-gradient(110deg, rgba(215, 247, 255, 0.9), rgba(104, 190, 255, 0.9) 38%, rgba(169, 151, 255, 0.9));
+            box-shadow: 0 8px 24px rgba(82, 169, 255, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        .order-hero {
+            grid-template-columns: minmax(0, 1.44fr) minmax(340px, 1fr);
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .order-card {
+            min-height: 208px;
+            padding: 17px 20px;
+            border-radius: 16px;
+        }
+
+        .order-card--intro {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding-right: clamp(170px, 21%, 230px);
+        }
+
+        .order-hero-crystal {
+            position: absolute;
+            z-index: 0;
+            right: 1.5%;
+            bottom: -9%;
+            width: clamp(150px, 25%, 218px);
+            height: 108%;
+            object-fit: contain;
+            object-position: right bottom;
+            pointer-events: none;
+            opacity: 0.82;
+            filter: drop-shadow(0 0 15px rgba(121, 209, 255, 0.34));
+            mix-blend-mode: screen;
+        }
+
+        .order-card > .order-hero-crystal {
+            z-index: 0;
+        }
+
+        .order-kicker {
+            margin-bottom: 4px;
+            color: rgba(168, 218, 255, 0.9);
+            font-size: 11px;
+        }
+
+        .order-title {
+            font-size: clamp(36px, 3.6vw, 50px);
+            font-weight: 760;
+            line-height: 1.05;
+            text-shadow: 0 0 22px rgba(153, 211, 255, 0.2);
+        }
+
+        .order-copy {
+            max-width: 690px;
+            margin-top: 8px;
+            color: rgba(222, 238, 252, 0.88);
+            font-size: 14px;
+            line-height: 1.55;
+        }
+
+        .order-status {
+            min-height: 38px;
+            margin-top: 10px;
+            padding: 8px 12px 8px 35px;
+            border-color: rgba(174, 224, 255, 0.42);
+            border-radius: 10px;
+            color: rgba(222, 241, 255, 0.9);
+            background: linear-gradient(90deg, rgba(78, 155, 229, 0.19), rgba(8, 29, 72, 0.22));
+            font-size: 14px;
+            line-height: 1.45;
+        }
+
+        .order-status::before {
+            content: "";
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            width: 9px;
+            height: 9px;
+            border: 1px solid rgba(229, 249, 255, 0.9);
+            background: rgba(92, 193, 255, 0.55);
+            box-shadow: 0 0 10px rgba(121, 211, 255, 0.58);
+            transform: translateY(-50%) rotate(45deg);
+        }
+
+        .order-meta {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .order-account-head {
+            display: flex;
+            min-width: 0;
+            align-items: center;
+            gap: 13px;
+        }
+
+        .order-account-emblem {
+            width: 58px;
+            height: 58px;
+            flex: 0 0 58px;
+            object-fit: contain;
+            pointer-events: none;
+            filter: drop-shadow(0 0 12px rgba(112, 208, 255, 0.4));
+        }
+
+        .order-account-label {
+            display: grid;
+            min-width: 0;
+            gap: 2px;
+        }
+
+        .order-account-label span,
+        .order-meta-row span {
+            color: var(--order-muted);
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .order-account-label strong {
+            overflow: hidden;
+            font-size: 20px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .order-meta-row {
+            display: grid;
+            grid-template-columns: 34px minmax(0, 1fr) auto;
+            gap: 10px;
+            align-items: center;
+            min-height: 45px;
+            padding: 7px 11px;
+            border: 1px solid rgba(181, 224, 255, 0.28);
+            border-radius: 11px;
+            background: linear-gradient(90deg, rgba(65, 131, 210, 0.15), rgba(5, 22, 61, 0.23));
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09);
+        }
+
+        .order-meta-icon {
+            display: grid;
+            width: 32px;
+            height: 32px;
+            place-items: center;
+            border: 1px solid rgba(187, 232, 255, 0.3);
+            border-radius: 9px;
+            color: #bceaff;
+            background: rgba(87, 166, 237, 0.17);
+        }
+
+        .order-meta-icon svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .order-meta-row span:not(.order-meta-icon) {
+            font-size: 14px;
+        }
+
+        .order-meta-row strong {
+            color: #dff8ff;
+            font-size: 22px;
+            text-shadow: 0 0 12px rgba(127, 214, 255, 0.35);
+        }
+
+        .order-grid {
+            grid-template-columns: minmax(0, 0.76fr) minmax(0, 1fr);
+            gap: 12px;
+        }
+
+        .order-panel {
+            padding: 14px 16px;
+            border-radius: 15px;
+        }
+
+        .order-section-title {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 18px;
+        }
+
+        .order-section-title svg {
+            width: 19px;
+            height: 19px;
+            flex: 0 0 auto;
+            color: #a9e5ff;
+            filter: drop-shadow(0 0 6px rgba(123, 211, 255, 0.42));
+        }
+
+        .order-rules {
+            gap: 7px;
+            color: rgba(222, 238, 252, 0.86);
+            font-size: 14px;
+            line-height: 1.46;
+        }
+
+        .order-rule-card {
+            padding: 9px 11px;
+            border-color: rgba(190, 230, 255, 0.23);
+            border-radius: 11px;
+            background: linear-gradient(145deg, rgba(56, 112, 185, 0.12), rgba(5, 21, 57, 0.2));
+        }
+
+        .order-rule-card strong {
+            margin-bottom: 4px;
+            color: rgba(234, 248, 255, 0.98);
+            font-size: 14px;
+        }
+
+        .order-rule-card ul {
+            display: grid;
+            gap: 3px;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .order-rule-card li {
+            position: relative;
+            padding-left: 17px;
+        }
+
+        .order-rule-card li::before {
+            content: "";
+            position: absolute;
+            left: 2px;
+            top: 0.58em;
+            width: 7px;
+            height: 7px;
+            border: 1px solid rgba(225, 249, 255, 0.85);
+            background: linear-gradient(135deg, rgba(225, 249, 255, 0.9), rgba(65, 151, 255, 0.8));
+            box-shadow: 0 0 7px rgba(104, 196, 255, 0.44);
+            transform: translateY(-50%) rotate(45deg) skew(-6deg, -6deg);
+        }
+
+        .order-form,
+        .order-form-grid {
+            gap: 7px 10px;
+        }
+
+        .order-field {
+            gap: 3px;
+        }
+
+        .order-field span,
+        .order-voucher-title {
+            color: rgba(212, 233, 249, 0.86);
+            font-size: 13px;
+        }
+
+        .order-field input,
+        .order-field select,
+        .order-field textarea {
+            min-height: 40px;
+            padding: 7px 10px;
+            border-color: rgba(184, 226, 255, 0.36);
+            border-radius: 9px;
+            background: linear-gradient(145deg, rgba(45, 96, 164, 0.15), rgba(3, 18, 52, 0.34));
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 5px 14px rgba(2, 10, 35, 0.08);
+            font-size: 14px;
+        }
+
+        .order-field textarea {
+            min-height: 54px;
+            max-height: 90px;
+        }
+
+        .order-voucher-box {
+            grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+            gap: 5px 10px;
+            padding: 7px 9px;
+            border-color: rgba(196, 223, 255, 0.3);
+            border-radius: 10px;
+            background: linear-gradient(145deg, rgba(76, 91, 184, 0.15), rgba(5, 23, 62, 0.22));
+        }
+
+        .order-voucher-title {
+            grid-column: 1 / -1;
+        }
+
+        .order-voucher-detail {
+            display: grid;
+            min-height: 40px;
+            align-items: center;
+            padding: 7px 9px;
+            border: 1px solid rgba(178, 220, 255, 0.2);
+            border-radius: 9px;
+            background: rgba(5, 21, 58, 0.2);
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .order-form > .order-button--primary {
+            width: 100%;
+            min-height: 42px;
+            margin-top: 1px;
+        }
+
+        .order-record-card,
+        .order-note,
+        .order-pill {
+            border-color: rgba(188, 228, 255, 0.28);
+            background: linear-gradient(145deg, rgba(60, 117, 188, 0.13), rgba(4, 21, 58, 0.25));
+        }
+
+        .order-record-card {
+            border-radius: 12px;
+        }
+
+        @media (min-width: 1000px) and (max-height: 850px) {
+            .order-shell { padding-top: 7px; padding-bottom: 18px; }
+            .order-nav { min-height: 58px; margin-bottom: 8px; padding-top: 5px; padding-bottom: 5px; }
+            .order-hero { gap: 9px; margin-bottom: 9px; }
+            .order-card { min-height: 172px; padding-top: 12px; padding-bottom: 12px; }
+            .order-title { font-size: 39px; }
+            .order-copy { margin-top: 5px; line-height: 1.42; }
+            .order-status { min-height: 34px; margin-top: 7px; padding-top: 6px; padding-bottom: 6px; }
+            .order-account-emblem { width: 48px; height: 48px; flex-basis: 48px; }
+            .order-meta { gap: 6px; }
+            .order-meta-row { min-height: 38px; padding-top: 3px; padding-bottom: 3px; }
+            .order-grid { gap: 9px; }
+            .order-panel { padding: 10px 13px; }
+            .order-section-title { margin-bottom: 6px; font-size: 17px; }
+            .order-rules { gap: 5px; line-height: 1.35; }
+            .order-rule-card { padding: 6px 9px; }
+            .order-form, .order-form-grid { gap: 5px 8px; }
+            .order-field { gap: 2px; }
+            .order-field input, .order-field select { min-height: 38px; padding-top: 5px; padding-bottom: 5px; }
+            .order-field textarea { min-height: 44px; max-height: 54px; }
+            .order-voucher-box { padding: 5px 8px; }
+            .order-voucher-detail { min-height: 38px; padding-top: 5px; padding-bottom: 5px; }
+            .order-form > .order-button--primary { min-height: 38px; }
+        }
+
+        @media (max-width: 900px) {
+            body { background-attachment: scroll; background-position: 43% top; }
+            body::before, body::after { position: absolute; }
+            .order-shell { width: min(100% - 20px, 720px); padding-top: 10px; }
+            .order-nav { min-height: auto; padding: 12px; }
+            .order-card { min-height: 0; }
+            .order-card--intro { padding-right: 18px; }
+            .order-voucher-box { grid-template-columns: 1fr; }
+            .order-voucher-title { grid-column: auto; }
+        }
+
+        @media (max-width: 520px) {
+            .order-shell { width: calc(100% - 16px); }
+            .order-title { font-size: 34px; }
+            .order-button, .order-field input, .order-field select, .order-field textarea { min-height: 42px; }
+            .order-account-label strong { font-size: 18px; }
         }
     </style>
 </head>
@@ -536,23 +951,29 @@
         </nav>
 
         <section class="order-hero">
-            <div class="order-card">
-                <span class="order-kicker">JUNXUE BOOKING</span>
+            <div class="order-card order-card--intro">
+                <span class="order-kicker">MANUAL CONFIRMATION</span>
                 <h1 class="order-title">服务预约</h1>
                 <p class="order-copy">提交后，君雪会确认时间、服务内容和最终金额。需要补款时，会通过微信 / 支付宝等方式与你线下确认。</p>
                 <div class="order-status" data-order-status aria-live="polite">正在确认登录状态...</div>
+                <img class="order-hero-crystal" src="assets/images/冰晶素材2-clean.webp?v=20260715-booking-crystal-lake2" alt="" aria-hidden="true">
             </div>
             <aside class="order-card order-meta" data-order-account hidden>
-                <div class="order-meta-row">
-                    <span>当前账号</span>
-                    <strong data-order-display-name>--</strong>
+                <div class="order-account-head">
+                    <img class="order-account-emblem" src="assets/images/冰晶素材-clean.webp?v=20260715-booking-crystal-lake2" alt="" aria-hidden="true">
+                    <div class="order-account-label">
+                        <span>当前账号</span>
+                        <strong data-order-display-name>--</strong>
+                    </div>
                 </div>
                 <div class="order-meta-row">
+                    <span class="order-meta-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 8h14v11H5zM8 8V5h8v3M8 13h8M12 9v8" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7"/></svg></span>
                     <span>可用兑换券</span>
                     <strong data-order-voucher-count>--</strong>
                 </div>
                 <div class="order-meta-row">
-                    <span>待处理预约</span>
+                    <span class="order-meta-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 4v3m12-3v3M4 9h16M5 6h14a1 1 0 0 1 1 1v12H4V7a1 1 0 0 1 1-1Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7"/><path d="m9 14 2 2 4-4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7"/></svg></span>
+                    <span>待确认预约</span>
                     <strong data-order-open-count>--</strong>
                 </div>
             </aside>
@@ -567,8 +988,8 @@
         </section>
 
         <section class="order-grid" data-order-app hidden>
-            <div class="order-panel">
-                <h2 class="order-section-title">预约说明</h2>
+            <div class="order-panel order-panel--guide">
+                <h2 class="order-section-title"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m12 2 5 8-5 12-5-12 5-8Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.6"/><path d="m7 10 5 3 5-3M12 13v9" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.35"/></svg>预约说明</h2>
                 <div class="order-rules">
                     <article class="order-rule-card">
                         <strong>服务预约流程</strong>
@@ -583,14 +1004,14 @@
                         <ul>
                             <li>先在积分兑换页提交申请，审核通过后会生成可用兑换券。</li>
                             <li>提交预约时可以选择一张可用兑换券，提交后会暂时锁定。</li>
-                            <li>如果预约被拒绝或取消，已锁定兑换券会恢复可用。</li>
+                            <li>如果预约被拒绝或取消，已锁定的兑换券会恢复可用。</li>
                         </ul>
                     </article>
                 </div>
             </div>
 
-            <div class="order-panel">
-                <h2 class="order-section-title">提交预约</h2>
+            <div class="order-panel order-panel--form">
+                <h2 class="order-section-title"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m12 2 5 8-5 12-5-12 5-8Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.6"/><path d="m7 10 5 3 5-3M12 13v9" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.35"/></svg>提交预约</h2>
                 <form class="order-form" data-order-form>
                     <div class="order-form-grid">
                         <label class="order-field">
@@ -654,7 +1075,7 @@
             </div>
 
             <div class="order-panel order-panel--wide">
-                <h2 class="order-section-title">我的预约记录</h2>
+                <h2 class="order-section-title"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m12 2 5 8-5 12-5-12 5-8Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.6"/><path d="m7 10 5 3 5-3M12 13v9" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.35"/></svg>我的预约记录</h2>
                 <div class="order-records" data-order-records></div>
                 <div class="order-empty" data-order-record-empty hidden>暂时还没有预约记录。</div>
             </div>
@@ -662,6 +1083,6 @@
     </main>
 
     <script src="assets/supabase-client.js?v=20260627-home-performance1"></script>
-    <script src="assets/order.js?v=20260715-booking-crystal-lake1"></script>
+    <script src="assets/order.js?v=20260715-booking-crystal-lake2"></script>
 </body>
 </html>

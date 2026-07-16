@@ -21,7 +21,45 @@ description: 君雪个人网站 CodeX 工作流总规则。用于所有君雪网
 
 每次开始任务时，先读取 `AGENTS.md`；如果 `PROJECT_CONTEXT.md` 存在，也必须读取。再读取本 Skill 和本次任务直接相关的其它 Skill / 文档。
 
-## 二、通用工作规则
+## 二、任务开始前仓库同步检查
+
+这项检查适用于依赖最新仓库内容，或需要修改仓库文件的任务。纯解释、纯分析且不依赖最新文件内容的任务不必重复拉取。
+
+每次开始这类任务前，必须先运行：
+
+```bash
+git status --short
+git branch --show-current
+git fetch origin --prune
+git rev-parse HEAD
+git rev-parse origin/main
+```
+
+检查规则：
+
+- 如果工作区干净、当前分支为预期分支，并且本地可以安全 fast-forward 到 `origin/main`，先执行：
+
+  ```bash
+  git pull --ff-only origin main
+  ```
+
+- 如果 `HEAD` 已等于 `origin/main`，确认已同步后再继续任务。
+- 如果需要确认是否可 fast-forward，可使用 `git merge-base --is-ancestor HEAD origin/main`；只有本地 `HEAD` 是 `origin/main` 的祖先时，才允许执行 `git pull --ff-only origin main`。
+- 如果工作区有未提交修改、本地与远程发生分叉、当前分支不是预期分支，或无法 fast-forward，停止同步并向用户报告。不得擅自处理。
+- 为了同步，禁止执行 `git reset --hard`、`git clean`、自动 `git stash`，也不得覆盖、删除或隐藏用户本地修改。
+
+当用户明确说明某个文件已经上传到 GitHub 时，不得只检查本地文件系统，也不得直接判断文件不存在。必须先执行：
+
+```bash
+git fetch origin --prune
+git ls-tree -r --name-only origin/main -- <目标路径>
+```
+
+- 如果目标文件存在于 `origin/main`、但当前本地不存在，先按上述安全规则同步最新远程提交，再次验证本地目标文件。
+- 不得因为本地仓库版本过期，就擅自使用旧素材、相似素材或其它文件替代用户指定的新素材。
+- 同步完成后，确认当前 `HEAD`、`origin/main` 和目标文件状态，再继续实施任务。
+
+## 三、通用工作规则
 
 - 不要重做网站。
 - 只修改本次需求相关文件。
@@ -37,7 +75,7 @@ description: 君雪个人网站 CodeX 工作流总规则。用于所有君雪网
 - 不要只停留在本地 `main ahead` 状态。
 - push 后必须汇报：修改文件、每个文件改了什么、commit id、手动验证方法、兼容性注意点。
 
-## 三、任务分流规则
+## 四、任务分流规则
 
 ### 1. UI / 视觉任务
 
@@ -127,7 +165,7 @@ description: 君雪个人网站 CodeX 工作流总规则。用于所有君雪网
 - 保持君雪网站的温柔、自然、陪伴感、梦幻感。
 - 不油腻，不像后台，不像诈骗页面。
 
-## 四、缓存版本号规则
+## 五、缓存版本号规则
 
 - 修改 JS / CSS / 注入样式后，必须同步更新相关缓存版本号。
 - 尤其关注：
@@ -138,7 +176,7 @@ description: 君雪个人网站 CodeX 工作流总规则。用于所有君雪网
   - `assets/live2d-interactions-lazy.js`
 - 目的是避免 GitHub Pages 继续加载旧文件。
 
-## 五、常用检查命令
+## 六、常用检查命令
 
 基础检查：
 
@@ -159,7 +197,7 @@ rg "<script|onload=|onclick=|http://|https://|<image" assets
 
 如有命中，必须确认并处理安全问题。
 
-## 六、精简命令规则
+## 七、精简命令规则
 
 以后用户给 CodeX 的命令可以只写：
 
@@ -175,7 +213,7 @@ rg "<script|onload=|onclick=|http://|https://|<image" assets
 
 不要要求用户每次重复整套长规则。本 Skill 已经固化通用规则、UI 精修规则、素材风格规则、检查规则和汇报规则。
 
-## 七、UI 美化与素材风格规则
+## 八、UI 美化与素材风格规则
 
 ### 1. 不要只做普通风格
 
@@ -401,7 +439,7 @@ UI 精修、新页面、背景、卡片、菜单框、徽章、装饰道具等�
 - 不抢正文
 - 和君雪网站整体气质一致，但不同页面仍有差异化
 
-## 八、最终回报格式
+## 九、最终回报格式
 
 以后每次任务完成后，按这个格式回报：
 

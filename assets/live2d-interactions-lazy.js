@@ -1,6 +1,6 @@
 /* Live2D 互动模块：菜单、无奖竞答题库、英雄池转盘、咨询功能都集中在这里，方便后续继续加题。 */
 (function () {
-    const version = "20260710-ganyu-boss-name1";
+    const version = "20260716-live2d-open-meteo-accuracy1";
     if (typeof window.JunxueLive2DDebugLog !== "function") {
         window.__JUNXUE_LIVE2D_DEBUG__ = window.__JUNXUE_LIVE2D_DEBUG__ || [];
         window.JunxueLive2DDebugLog = function (message, detail) {
@@ -211,11 +211,11 @@
         clash: "对抗路"
     };
 
-    const weatherCodeLabels = {
-        0: "晴朗",
-        1: "大部晴朗",
-        2: "局部多云",
-        3: "阴天",
+    const currentWeatherCodeLabels = {
+        0: "晴",
+        1: "少云",
+        2: "多云",
+        3: "阴",
         45: "有雾",
         48: "雾凇",
         51: "小毛毛雨",
@@ -237,9 +237,40 @@
         82: "强阵雨",
         85: "阵雪",
         86: "强阵雪",
-        95: "雷暴",
-        96: "雷暴伴冰雹",
-        99: "强雷暴伴冰雹"
+        95: "雷雨",
+        96: "雷雨",
+        99: "雷雨"
+    };
+
+    const forecastWeatherCodeLabels = {
+        0: "晴",
+        1: "少云",
+        2: "多云",
+        3: "阴",
+        45: "可能有雾",
+        48: "可能有雾凇",
+        51: "可能有小毛毛雨",
+        53: "可能有毛毛雨",
+        55: "可能有较强毛毛雨",
+        56: "可能有冻毛毛雨",
+        57: "可能有较强冻毛毛雨",
+        61: "可能有小雨",
+        63: "可能有中雨",
+        65: "可能有大雨",
+        66: "可能有冻雨",
+        67: "可能有较强冻雨",
+        71: "可能有小雪",
+        73: "可能有中雪",
+        75: "可能有大雪",
+        77: "可能有雪粒",
+        80: "可能有阵雨",
+        81: "可能有较强阵雨",
+        82: "可能有强阵雨",
+        85: "可能有阵雪",
+        86: "可能有强阵雪",
+        95: "可能有雷雨",
+        96: "可能有强雷雨",
+        99: "可能有强雷雨"
     };
 
     const letters = ["A", "B", "C", "D"];
@@ -388,6 +419,8 @@
         "我会在这里，安静地陪你一会儿。"
     ];
     let musicAudio = null;
+    let weatherRequestId = 0;
+    let weatherAbortController = null;
 
     function playVoice(file) {
         const audio = new Audio(file);
@@ -541,8 +574,12 @@
         return ["今日预报", "明日预报", "后日预报"][index] || "第 " + (index + 1) + " 天预报";
     }
 
-    function getWeatherLabel(code) {
-        return weatherCodeLabels[code] || "天气变化中";
+    function getCurrentWeatherLabel(code) {
+        return currentWeatherCodeLabels[code] || "天气变化中";
+    }
+
+    function getForecastWeatherLabel(code) {
+        return forecastWeatherCodeLabels[code] || "预报天气变化中";
     }
 
     function getPrecipitationText(daily, index) {
@@ -589,37 +626,62 @@
         return [71, 73, 75, 77, 85, 86].indexOf(code) >= 0;
     }
 
-    function getCurrentPrecipitationAmount(current) {
+    function getCurrentPrecipitationDetails(current) {
         if (!current || typeof current !== "object") {
-            return null;
+            return {
+                amount: null,
+                hasRealtimePrecipitation: false
+            };
         }
 
         const keys = ["precipitation", "rain", "showers", "snowfall"];
+        const amounts = {};
         for (let index = 0; index < keys.length; index += 1) {
             const amount = getWeatherNumber(current[keys[index]]);
             if (amount !== null) {
-                return Math.max(0, amount);
+                amounts[keys[index]] = Math.max(0, amount);
             }
         }
 
-        return null;
+        const knownAmounts = Object.keys(amounts).map(function (key) {
+            return amounts[key];
+        });
+        const componentTotal = ["rain", "showers", "snowfall"].reduce(function (total, key) {
+            return total + (amounts[key] || 0);
+        }, 0);
+
+        return {
+            amount: Object.prototype.hasOwnProperty.call(amounts, "precipitation") ? Math.max(amounts.precipitation, componentTotal) : (knownAmounts.length ? componentTotal : null),
+            hasRealtimePrecipitation: knownAmounts.some(function (amount) {
+                return amount > 0;
+            })
+        };
     }
 
     function getCurrentWeatherPresentation(current) {
         const isCurrentObject = !!current && typeof current === "object";
         const code = isCurrentObject ? getWeatherCode(current.weather_code) : null;
-        const precipitationAmount = getCurrentPrecipitationAmount(current);
+        const precipitation = getCurrentPrecipitationDetails(current);
+        const precipitationAmount = precipitation.amount;
         const temperature = isCurrentObject ? getWeatherNumber(current.temperature_2m) : null;
-        const hasCurrent = isCurrentObject && (code !== null || precipitationAmount !== null || temperature !== null);
-        const hasRealtimePrecipitation = precipitationAmount !== null && precipitationAmount > 0;
+        const hasCurrentTime = isCurrentObject && typeof current.time === "string" && !!current.time.trim();
+        const hasCurrent = isCurrentObject && hasCurrentTime && (code !== null || precipitationAmount !== null || temperature !== null);
+        const hasRealtimePrecipitation = precipitation.hasRealtimePrecipitation;
         const codeImpliesRain = isRainWeatherCode(code);
         const codeImpliesSnow = isSnowWeatherCode(code);
+        const codeImpliesThunderstorm = [95, 96, 99].indexOf(code) >= 0;
         let condition = "当前实况暂不可用";
         let dialogueCode = null;
 
         if (hasCurrent) {
-            if (hasRealtimePrecipitation) {
-                condition = code === null ? "正在降水" : getWeatherLabel(code);
+            if (codeImpliesThunderstorm && hasRealtimePrecipitation) {
+                condition = "雷雨";
+                dialogueCode = code;
+            } else if (codeImpliesThunderstorm) {
+                condition = "附近有雷暴活动，当前暂无降水";
+                dialogueCode = 3;
+            } else if (hasRealtimePrecipitation) {
+                condition = code === null ? "正在降水" : getCurrentWeatherLabel(code);
                 dialogueCode = code;
             } else if (codeImpliesRain) {
                 condition = "暂无实时降雨";
@@ -628,7 +690,7 @@
                 condition = "暂无实时降雪";
                 dialogueCode = 3;
             } else if (code !== null) {
-                condition = getWeatherLabel(code);
+                condition = getCurrentWeatherLabel(code);
                 dialogueCode = code;
             } else {
                 condition = "暂无实时降雨";
@@ -651,7 +713,61 @@
     }
 
     function buildWeatherForecastUrl(place) {
-        return "https://api.open-meteo.com/v1/forecast?latitude=" + encodeURIComponent(place.latitude) + "&longitude=" + encodeURIComponent(place.longitude) + "&current=weather_code,temperature_2m,precipitation,rain,showers,snowfall&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum&timezone=auto&forecast_days=3";
+        const params = new URLSearchParams({
+            latitude: String(place.latitude),
+            longitude: String(place.longitude),
+            current: "temperature_2m,relative_humidity_2m,precipitation,rain,showers,snowfall,weather_code,wind_speed_10m,is_day",
+            daily: "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum",
+            temperature_unit: "celsius",
+            wind_speed_unit: "kmh",
+            precipitation_unit: "mm",
+            forecast_days: "3",
+            timezone: place.timezone || "auto"
+        });
+
+        return "https://api.open-meteo.com/v1/forecast?" + params.toString();
+    }
+
+    function cancelWeatherRequest() {
+        weatherRequestId += 1;
+        if (weatherAbortController) {
+            weatherAbortController.abort();
+            weatherAbortController = null;
+        }
+    }
+
+    function beginWeatherRequest() {
+        cancelWeatherRequest();
+        weatherAbortController = typeof AbortController === "function" ? new AbortController() : null;
+
+        return {
+            id: weatherRequestId,
+            controller: weatherAbortController,
+            signal: weatherAbortController ? weatherAbortController.signal : undefined
+        };
+    }
+
+    function isWeatherRequestCurrent(request) {
+        return !!request && request.id === weatherRequestId && (!request.signal || !request.signal.aborted);
+    }
+
+    function finishWeatherRequest(request) {
+        if (request && request.controller && weatherAbortController === request.controller) {
+            weatherAbortController = null;
+        }
+    }
+
+    function hasUsableDailyWeather(daily) {
+        if (!daily || typeof daily !== "object" || !Array.isArray(daily.time) || !daily.time.length) {
+            return false;
+        }
+
+        const fields = ["weather_code", "temperature_2m_max", "temperature_2m_min", "precipitation_probability_max", "precipitation_sum"];
+        return fields.some(function (field) {
+            return Array.isArray(daily[field]) && daily[field].some(function (value) {
+                return value !== null && value !== undefined && value !== "";
+            });
+        });
     }
 
     function normalizeCityName(cityName) {
@@ -659,19 +775,29 @@
     }
 
     const cityFallbackMap = {
+        "上海": {
+            name: "上海",
+            admin1: "上海",
+            country: "中国",
+            latitude: 31.2304,
+            longitude: 121.4737,
+            timezone: "Asia/Shanghai"
+        },
         "莱州": {
             name: "莱州",
             admin1: "山东",
             country: "中国",
             latitude: 37.18,
-            longitude: 119.94
+            longitude: 119.94,
+            timezone: "Asia/Shanghai"
         },
         "扬州": {
             name: "扬州",
             admin1: "江苏",
             country: "中国",
             latitude: 32.39,
-            longitude: 119.42
+            longitude: 119.42,
+            timezone: "Asia/Shanghai"
         }
     };
 
@@ -2247,6 +2373,9 @@
         }
 
         function closeDialog() {
+            if (dialog.classList.contains("is-weather")) {
+                cancelWeatherRequest();
+            }
             clearSpinTimers();
             if (dialog.classList.contains("is-score-guess")) {
                 cleanupScoreGuessRealtime();
@@ -5745,6 +5874,7 @@
         }
 
         function showWeatherInput() {
+            cancelWeatherRequest();
             setDialogMode("panel");
             recordGanyuFeature("天气");
             const favoriteCity = getMemorySnapshot().favoriteCity || "";
@@ -5788,10 +5918,12 @@
             });
             backButton.addEventListener("click", function (event) {
                 event.stopPropagation();
+                cancelWeatherRequest();
                 showEntertainmentPanel();
             });
             menuButton.addEventListener("click", function (event) {
                 event.stopPropagation();
+                cancelWeatherRequest();
                 showMenu();
             });
 
@@ -5814,65 +5946,71 @@
             const fallbackPlace = cityFallbackMap[normalizedCity];
             const encodedCity = encodeURIComponent(cityName);
             const geocodeUrl = "https://geocoding-api.open-meteo.com/v1/search?name=" + encodedCity + "&count=1&language=zh&format=json";
+            const request = beginWeatherRequest();
 
-            debugWeather("weather query start");
-            debugWeather("stale cache used", false);
+            debugWeather("api provider", "open-meteo");
+            debugWeather("query start");
+            debugWeather("cache used", false);
             result.textContent = "君雪正在翻天气书...";
             result.className = "live2d-quiz__result is-neutral";
 
             try {
-                if (fallbackPlace) {
-                    const fallbackForecastUrl = buildWeatherForecastUrl(fallbackPlace);
-                    const fallbackForecastResponse = await fetch(fallbackForecastUrl);
+                let place = fallbackPlace;
 
-                    if (!fallbackForecastResponse.ok) {
-                        throw new Error("weather-request-failed");
+                if (!place) {
+                    const geoResponse = await fetch(geocodeUrl, { signal: request.signal });
+
+                    if (!geoResponse.ok) {
+                        throw new Error("geocoding-request-failed");
                     }
 
-                    const fallbackForecastData = await fallbackForecastResponse.json();
-                    if (window.JunxueGanyuMemory && typeof window.JunxueGanyuMemory.recordWeatherCity === "function") {
-                        window.JunxueGanyuMemory.recordWeatherCity(fallbackPlace.name || cityName);
+                    const geoData = await geoResponse.json();
+                    if (!isWeatherRequestCurrent(request)) {
+                        return;
                     }
-                    renderWeatherCard(fallbackPlace, fallbackForecastData);
-                    return;
+
+                    if (!geoData.results || !geoData.results.length) {
+                        result.textContent = "君雪没有找到这个地方哦～";
+                        result.className = "live2d-quiz__result is-warning";
+                        return;
+                    }
+
+                    place = geoData.results[0];
                 }
 
-                const geoResponse = await fetch(geocodeUrl);
-
-                if (!geoResponse.ok) {
-                    throw new Error("weather-request-failed");
-                }
-
-                const geoData = await geoResponse.json();
-
-                if (!geoData.results || !geoData.results.length) {
-                    result.textContent = "君雪没有找到这个地方哦～";
-                    result.className = "live2d-quiz__result is-warning";
-                    return;
-                }
-
-                const place = geoData.results[0];
                 const forecastUrl = buildWeatherForecastUrl(place);
-                const forecastResponse = await fetch(forecastUrl);
+                debugWeather("query url built", forecastUrl);
+                const forecastResponse = await fetch(forecastUrl, { signal: request.signal });
 
                 if (!forecastResponse.ok) {
                     throw new Error("weather-request-failed");
                 }
 
                 const forecastData = await forecastResponse.json();
+                if (!isWeatherRequestCurrent(request)) {
+                    return;
+                }
+
+                const currentWeather = getCurrentWeatherPresentation(forecastData && forecastData.current);
+                const hasDaily = hasUsableDailyWeather(forecastData && forecastData.daily);
+                if (!currentWeather.hasCurrent && !hasDaily) {
+                    throw new Error("weather-data-unavailable");
+                }
+
                 if (window.JunxueGanyuMemory && typeof window.JunxueGanyuMemory.recordWeatherCity === "function") {
                     window.JunxueGanyuMemory.recordWeatherCity(place.name || cityName);
                 }
                 renderWeatherCard(place, forecastData);
             } catch (error) {
-                debugWeather("weather source", "fallback");
-                debugWeather("current condition", "none");
-                debugWeather("precipitation amount", "none");
-                debugWeather("precipitation probability", "none");
-                debugWeather("rendered condition", "天气数据暂不可用");
-                debugWeather("forecast-only mode", false);
-                result.textContent = "天气被云层挡住啦，稍后再试吧～";
+                if ((error && error.name === "AbortError") || !isWeatherRequestCurrent(request)) {
+                    return;
+                }
+
+                debugWeather("query failed", error && error.message ? error.message : "unknown-error");
+                result.textContent = "天气同步失败，请稍后再试";
                 result.className = "live2d-quiz__result is-warning";
+            } finally {
+                finishWeatherRequest(request);
             }
         }
 
@@ -5928,36 +6066,45 @@
             const minTemps = daily.temperature_2m_min || [];
             const codes = daily.weather_code || [];
             const currentWeather = getCurrentWeatherPresentation(current);
+            const hasDaily = hasUsableDailyWeather(daily);
             const forecastOnly = !currentWeather.hasCurrent;
-            const forecastProbability = getWeatherNumber((daily.precipitation_probability_max || [])[0]);
-            const renderedCondition = forecastOnly ? "今日预报：" + getWeatherLabel(getWeatherCode(codes[0])) : currentWeather.condition;
-            const currentRainText = currentWeather.precipitationAmount === null ? "暂无实时降雨" : "实时降水 " + currentWeather.precipitationAmount + "mm";
+            const renderedForecastCondition = hasDaily ? getForecastWeatherLabel(getWeatherCode(codes[0])) : "未来预报暂不可用";
+            const currentRainText = currentWeather.hasCurrent && currentWeather.precipitationAmount !== null ? "实时降水 " + currentWeather.precipitationAmount + "mm" : "实时降水暂不可用";
             const currentRow = [
                 '<article class="live2d-weather-day">',
                     '<div class="live2d-weather-day__label">当前实况</div>',
-                    '<div class="live2d-weather-day__date">' + escapeHtml(forecastOnly ? "预报时间 " + formatWeatherTime(dates[0]) : "实况更新时间 " + formatWeatherTime(current.time)) + '</div>',
-                    '<div class="live2d-weather-day__status">' + escapeHtml(forecastOnly ? "以下内容为天气预报" : currentWeather.condition) + '</div>',
+                    '<div class="live2d-weather-day__date">' + escapeHtml(currentWeather.hasCurrent ? "实况更新时间 " + formatWeatherTime(current.time) : "实况更新时间 --") + '</div>',
+                    '<div class="live2d-weather-day__status">' + escapeHtml(currentWeather.condition) + '</div>',
                     '<div class="live2d-weather-day__temp">' + (forecastOnly ? "--" : formatTemperature(current.temperature_2m)) + '</div>',
-                    '<div class="live2d-weather-day__rain">' + escapeHtml(forecastOnly ? "不代表当前正在降雨" : currentRainText) + '</div>',
+                    '<div class="live2d-weather-day__rain">' + escapeHtml(currentRainText) + '</div>',
                 '</article>'
             ].join("");
-            const rows = [0, 1, 2].map(function (index) {
+            const rows = hasDaily ? [0, 1, 2].map(function (index) {
+                const hasDay = !!dates[index];
                 return [
                     '<article class="live2d-weather-day">',
                         '<div class="live2d-weather-day__label">' + getDayLabel(index) + '</div>',
-                        '<div class="live2d-weather-day__date">' + escapeHtml(dates[index] || "") + '</div>',
-                        '<div class="live2d-weather-day__status">' + escapeHtml(getWeatherLabel(codes[index])) + '</div>',
-                        '<div class="live2d-weather-day__temp">' + formatTemperature(maxTemps[index]) + ' / ' + formatTemperature(minTemps[index]) + '</div>',
-                        '<div class="live2d-weather-day__rain">' + escapeHtml(getPrecipitationText(daily, index)) + '</div>',
+                        '<div class="live2d-weather-day__date">' + escapeHtml(dates[index] || "--") + '</div>',
+                        '<div class="live2d-weather-day__status">' + escapeHtml(hasDay ? getForecastWeatherLabel(getWeatherCode(codes[index])) : "预报暂不可用") + '</div>',
+                        '<div class="live2d-weather-day__temp">' + (hasDay ? formatTemperature(maxTemps[index]) + ' / ' + formatTemperature(minTemps[index]) : "--") + '</div>',
+                        '<div class="live2d-weather-day__rain">' + escapeHtml(hasDay ? getPrecipitationText(daily, index) : "预报降水数据暂无") + '</div>',
                     '</article>'
                 ].join("");
-            }).join("");
+            }).join("") : [
+                '<article class="live2d-weather-day">',
+                    '<div class="live2d-weather-day__label">未来预报</div>',
+                    '<div class="live2d-weather-day__date">--</div>',
+                    '<div class="live2d-weather-day__status">未来预报暂不可用</div>',
+                    '<div class="live2d-weather-day__temp">--</div>',
+                    '<div class="live2d-weather-day__rain">预报降水数据暂无</div>',
+                '</article>'
+            ].join("");
 
-            debugWeather("weather source", forecastOnly ? "forecast" : "current");
-            debugWeather("current condition", forecastOnly ? "none" : currentWeather.condition);
-            debugWeather("precipitation amount", currentWeather.precipitationAmount === null ? "none" : currentWeather.precipitationAmount);
-            debugWeather("precipitation probability", forecastProbability !== null ? Math.round(forecastProbability) + "%" : "none");
-            debugWeather("rendered condition", renderedCondition);
+            debugWeather("current code", currentWeather.code === null ? "none" : currentWeather.code);
+            debugWeather("current precipitation", currentWeather.precipitationAmount === null ? "none" : currentWeather.precipitationAmount);
+            debugWeather("daily code", hasDaily ? codes.slice(0, 3).map(getWeatherCode).join(",") : "none");
+            debugWeather("rendered current condition", currentWeather.condition);
+            debugWeather("rendered forecast condition", renderedForecastCondition);
             debugWeather("forecast-only mode", forecastOnly);
 
             function bindWeatherActions() {
@@ -5976,6 +6123,7 @@
                 if (backButton) {
                     backButton.addEventListener("click", function (event) {
                         event.stopPropagation();
+                        cancelWeatherRequest();
                         showEntertainmentPanel();
                     });
                 }

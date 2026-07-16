@@ -1,6 +1,6 @@
 /* Lightweight Live2D loader: desktop keeps dynamic Ganyu, mobile uses a stable static fallback first. */
 (function () {
-    const version = "20260716-live2d-weather-current1";
+    const version = "20260716-live2d-open-meteo-accuracy1";
     window.__JUNXUE_LIVE2D_DEBUG__ = window.__JUNXUE_LIVE2D_DEBUG__ || [];
     window.JunxueLive2DDebugLog = window.JunxueLive2DDebugLog || function (message, detail) {
         const safeMessage = String(message || "");
@@ -25,7 +25,7 @@
 
 (function () {
     const WIDGET_SCRIPT = "live2d/live2d-widget.js?v=20260613-5";
-    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260716-live2d-weather-current1";
+    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260716-live2d-open-meteo-accuracy1";
     const DRAG_SCRIPT = "assets/live2d-drag.js?v=20260629-live2d-mobile-right-drawer1";
     const FRAME_HOST_SRC = "live2d/ganyu-host.html?v=20260613-iframe1";
     const STATIC_WEBP = "assets/images/price-ganyu-showcase.webp";

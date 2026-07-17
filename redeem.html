@@ -418,6 +418,29 @@
             line-height: 1.65;
         }
 
+        .redeem-record-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(209, 219, 255, 0.16);
+        }
+
+        .redeem-button--archive {
+            min-height: 36px;
+            padding: 7px 13px;
+            border-color: rgba(255, 143, 174, 0.42);
+            background: rgba(106, 25, 57, 0.26);
+            color: #ffd1dd;
+            flex: 0 0 auto;
+        }
+
+        .redeem-record-archive-note {
+            color: rgba(224, 241, 255, 0.66);
+            line-height: 1.5;
+        }
+
         .redeem-empty {
             text-align: center;
             color: rgba(233, 246, 255, 0.80);
@@ -481,6 +504,11 @@
 
             .redeem-record-meta {
                 grid-template-columns: 1fr;
+            }
+
+            .redeem-record-actions {
+                align-items: stretch;
+                flex-direction: column;
             }
         }
     </style>
@@ -619,6 +647,6 @@
     </main>
 
     <script src="assets/supabase-client.js?v=20260627-home-performance1"></script>
-    <script src="assets/redeem.js?v=20260714-redemption-balance-guard1"></script>
+    <script src="assets/redeem.js?v=20260717-redemption-user-archive1"></script>
 </body>
 </html>

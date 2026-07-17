@@ -4649,3 +4649,141 @@ grant execute on function public.admin_archive_live_score_guess_session(uuid, te
 ```
 
 归档后，普通用户仍可读取所有 `archived_at is null` 的进行中和已结束场次；管理员分页 RPC同样只返回未归档记录。管理员操作始终传递完整场次 UUID，后台页面显示的 8 位短编号仅用于视觉识别。
+
+## 19. 兑换申请用户归档升级 SQL
+
+用途：允许老板用户把自己已拒绝的兑换申请从个人列表中隐藏。该操作不会物理删除申请，也不会改变积分、审核状态、管理员批注、兑换券或管理员历史记录。
+
+本节可在已经完成第 15 节积分兑换升级的环境中独立、重复执行。管理员查询 RPC 不增加 `user_archived_at` 过滤，因此后台仍保留完整记录。
+
+```sql
+begin;
+
+alter table public.boss_point_redemptions
+  add column if not exists user_archived_at timestamptz;
+
+comment on column public.boss_point_redemptions.user_archived_at is
+  'When set, hides a rejected redemption from the owning user list without deleting admin history.';
+
+create index if not exists boss_point_redemptions_user_visible_created_idx
+on public.boss_point_redemptions (user_id, created_at desc)
+where user_archived_at is null;
+
+-- Keep direct table updates closed. Users archive only through the narrow RPC below.
+revoke update on table public.boss_point_redemptions from public, anon, authenticated;
+
+drop function if exists public.archive_my_boss_point_redemption(uuid);
+create function public.archive_my_boss_point_redemption(p_redeem_ref uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_actor uuid := auth.uid();
+  v_redemption public.boss_point_redemptions%rowtype;
+  v_archived_at timestamptz;
+begin
+  if v_actor is null then
+    raise exception 'not authenticated';
+  end if;
+
+  if p_redeem_ref is null then
+    raise exception '兑换申请不存在或不属于当前账号。';
+  end if;
+
+  select redemption.*
+  into v_redemption
+  from public.boss_point_redemptions redemption
+  where redemption.redeem_ref = p_redeem_ref
+    and redemption.user_id = v_actor
+  for update;
+
+  if not found then
+    raise exception '兑换申请不存在或不属于当前账号。';
+  end if;
+
+  if v_redemption.user_archived_at is not null then
+    return jsonb_build_object(
+      'archived', true,
+      'already_archived', true,
+      'redeem_ref', v_redemption.redeem_ref,
+      'archived_at', v_redemption.user_archived_at
+    );
+  end if;
+
+  if v_redemption.status is distinct from 'rejected' then
+    raise exception '只有已拒绝的兑换申请可以删除记录。';
+  end if;
+
+  update public.boss_point_redemptions redemption
+  set user_archived_at = now()
+  where redemption.redeem_ref = v_redemption.redeem_ref
+    and redemption.user_id = v_actor
+  returning redemption.user_archived_at into v_archived_at;
+
+  return jsonb_build_object(
+    'archived', true,
+    'already_archived', false,
+    'redeem_ref', v_redemption.redeem_ref,
+    'archived_at', v_archived_at
+  );
+end;
+$$;
+
+-- Remove the exact legacy no-argument signature before recreating its unchanged result contract.
+drop function if exists public.get_my_boss_point_redemptions();
+create function public.get_my_boss_point_redemptions()
+returns table (
+  redeem_ref uuid,
+  redeem_type text,
+  rank_range text,
+  quantity numeric,
+  cost_points integer,
+  user_note text,
+  admin_note text,
+  status text,
+  created_at timestamptz,
+  processed_at timestamptz
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_actor uuid := auth.uid();
+begin
+  if v_actor is null then
+    raise exception 'not authenticated';
+  end if;
+
+  return query
+  select
+    redemption.redeem_ref,
+    redemption.redeem_type,
+    redemption.rank_range,
+    redemption.quantity,
+    redemption.cost_points,
+    redemption.user_note,
+    redemption.admin_note,
+    redemption.status,
+    redemption.created_at,
+    redemption.processed_at
+  from public.boss_point_redemptions redemption
+  where redemption.user_id = v_actor
+    and redemption.user_archived_at is null
+  order by redemption.created_at desc
+  limit 50;
+end;
+$$;
+
+revoke all on function public.archive_my_boss_point_redemption(uuid) from public, anon, authenticated;
+revoke all on function public.get_my_boss_point_redemptions() from public, anon, authenticated;
+
+grant execute on function public.archive_my_boss_point_redemption(uuid) to authenticated;
+grant execute on function public.get_my_boss_point_redemptions() to authenticated;
+
+commit;
+```
+
+现有表级权限已撤销普通用户直接写入能力，本节不新增 `UPDATE` RLS 策略。用户只能通过 `archive_my_boss_point_redemption(uuid)` 修改自己的 `user_archived_at`；现有管理员审核 RPC 和 `admin_get_boss_point_redemptions(text)` 保持原样，不过滤归档字段。

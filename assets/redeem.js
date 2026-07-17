@@ -1,9 +1,10 @@
 (function () {
     "use strict";
 
-    const VERSION = "20260714-redemption-balance-guard1";
+    const VERSION = "20260717-redemption-user-archive1";
     const LOGIN_TEXT = "请先登录老板账号。";
     const SQL_HINT = "积分兑换功能需要先执行 Supabase 第 15 节 SQL。";
+    const ARCHIVE_SQL_HINT = "删除记录功能需要先执行 Supabase 第 19 节 SQL。";
     const INSUFFICIENT_POINTS_TEXT = "当前积分不足，暂时无法提交该兑换申请。";
     const PENDING_LIMIT_TEXT = "待审核申请最多 5 个，请先等待已有申请处理。";
 
@@ -51,10 +52,13 @@
         currentPoints: 0,
         pendingReservedPoints: 0,
         availablePoints: 0,
-        pendingCount: 0
+        pendingCount: 0,
+        archivingRedeemRefs: new Set(),
+        locallyArchivedRedeemRefs: new Set()
     };
 
     const nodes = {};
+    const archiveButtonRecords = new WeakMap();
 
     function $(selector) {
         return document.querySelector(selector);
@@ -144,6 +148,28 @@
         }
 
         return "兑换申请暂时没有提交成功，请稍后再试。";
+    }
+
+    function getArchiveFriendlyError(error) {
+        const message = error && error.message ? error.message : "";
+
+        if (/archive_my_boss_point_redemption|user_archived_at|schema cache|function .* does not exist/i.test(message)) {
+            return ARCHIVE_SQL_HINT;
+        }
+
+        if (/只有已拒绝|only rejected/i.test(message)) {
+            return "只有已拒绝的兑换申请可以删除记录。";
+        }
+
+        if (/不存在或不属于|redemption not found/i.test(message)) {
+            return "没有找到这条兑换申请，请刷新页面后再试。";
+        }
+
+        if (/not authenticated|JWT|auth/i.test(message)) {
+            return LOGIN_TEXT;
+        }
+
+        return "删除记录暂时没有成功，请稍后再试。";
     }
 
     function formatTime(value) {
@@ -329,6 +355,14 @@
             const typeLabel = TYPE_LABELS[record.redeem_type] || "兑换服务";
             const rankLabel = record.rank_range ? (RANK_LABELS[record.rank_range] || record.rank_range) : "无需选择";
             const adminNote = record.admin_note ? escapeHtml(record.admin_note) : "暂无管理员批注。";
+            const redeemRef = String(record.redeem_ref || "");
+            const isArchiving = state.archivingRedeemRefs.has(redeemRef);
+            const archiveAction = status === "rejected" ? [
+                '<div class="redeem-record-actions">',
+                    '<button class="redeem-button redeem-button--archive" type="button" data-redeem-action="archive"' + (state.archivingRedeemRefs.size ? ' disabled' : '') + '>' + (isArchiving ? '正在删除...' : '删除记录') + '</button>',
+                    '<small class="redeem-record-archive-note">删除仅会从你的记录中隐藏，后台审核记录仍会保留。</small>',
+                '</div>'
+            ].join("") : "";
 
             return [
                 '<article class="redeem-record-card">',
@@ -341,9 +375,20 @@
                     '</div>',
                     record.user_note ? '<div class="redeem-note">我的备注：' + escapeHtml(record.user_note) + '</div>' : '',
                     '<div class="redeem-note">管理员批注：' + adminNote + '</div>',
+                    archiveAction,
                 '</article>'
             ].join("");
         }).join("");
+
+        const archiveButtons = nodes.records.querySelectorAll('[data-redeem-action="archive"]');
+        const rejectedRecords = records.filter(function (record) {
+            return (record.status || "pending") === "rejected";
+        });
+        archiveButtons.forEach(function (button, index) {
+            if (rejectedRecords[index]) {
+                archiveButtonRecords.set(button, rejectedRecords[index]);
+            }
+        });
     }
 
     async function loadRecords(message, silent) {
@@ -353,7 +398,9 @@
                 throw response.error;
             }
 
-            state.records = Array.isArray(response.data) ? response.data : [];
+            state.records = (Array.isArray(response.data) ? response.data : []).filter(function (record) {
+                return !state.locallyArchivedRedeemRefs.has(String(record && record.redeem_ref || ""));
+            });
             renderRecords();
             if (!silent) {
                 setStatus(message || "兑换记录已同步。", "good");
@@ -364,6 +411,53 @@
                 setStatus(getFriendlyError(error), "warning");
             }
             return { ok: false, error: error };
+        }
+    }
+
+    async function archiveRedemption(record) {
+        const redeemRef = String(record && record.redeem_ref || "");
+        if (!redeemRef || (record.status || "pending") !== "rejected" || state.archivingRedeemRefs.size) {
+            return;
+        }
+
+        if (!window.confirm("确认删除这条已拒绝的兑换申请吗？删除后将不再显示。")) {
+            return;
+        }
+
+        state.archivingRedeemRefs.add(redeemRef);
+        renderRecords();
+        setStatus("正在隐藏这条兑换记录...", "neutral");
+
+        try {
+            const response = await state.client.rpc("archive_my_boss_point_redemption", {
+                p_redeem_ref: redeemRef
+            });
+            if (response.error) {
+                throw response.error;
+            }
+
+            const result = getRpcRow(response.data);
+            if (!result || result.archived !== true) {
+                throw new Error("archive response invalid");
+            }
+
+            state.locallyArchivedRedeemRefs.add(redeemRef);
+            state.records = state.records.filter(function (item) {
+                return String(item && item.redeem_ref || "") !== redeemRef;
+            });
+            renderRecords();
+
+            const recordsResult = await loadRecords("", true);
+            if (recordsResult.ok) {
+                setStatus("这条已拒绝的兑换申请已从你的记录中隐藏。", "good");
+            } else {
+                setStatus("记录已隐藏，但列表刷新失败，请稍后重新打开页面确认。", "warning");
+            }
+        } catch (error) {
+            setStatus(getArchiveFriendlyError(error), "warning");
+        } finally {
+            state.archivingRedeemRefs.delete(redeemRef);
+            renderRecords();
         }
     }
 
@@ -470,6 +564,17 @@
         nodes.rank.addEventListener("change", updateTypeUi);
         nodes.quantity.addEventListener("input", updateTypeUi);
         nodes.form.addEventListener("submit", submitRedemption);
+        nodes.records.addEventListener("click", function (event) {
+            const button = event.target.closest('[data-redeem-action="archive"]');
+            if (!button || !nodes.records.contains(button)) {
+                return;
+            }
+
+            const record = archiveButtonRecords.get(button);
+            if (record) {
+                archiveRedemption(record);
+            }
+        });
         updateTypeUi();
 
         try {

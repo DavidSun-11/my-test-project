@@ -441,6 +441,46 @@
             line-height: 1.5;
         }
 
+        .redeem-record-region {
+            min-width: 0;
+            touch-action: pan-y;
+        }
+
+        .redeem-pagination {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: nowrap;
+            gap: 10px;
+            max-width: 100%;
+            margin-top: 16px;
+            padding: 4px 2px 6px;
+            overflow-x: auto;
+            overscroll-behavior-inline: contain;
+            scrollbar-width: thin;
+        }
+
+        .redeem-pagination .redeem-button {
+            width: auto;
+            min-width: 92px;
+            flex: 0 0 auto;
+        }
+
+        .redeem-pagination-info,
+        .redeem-pagination-total {
+            flex: 0 0 auto;
+            white-space: nowrap;
+            color: rgba(232, 244, 255, 0.84);
+            font-size: 0.9rem;
+        }
+
+        .redeem-pagination-info {
+            min-width: 88px;
+            text-align: center;
+            color: #ffffff;
+            font-weight: 700;
+        }
+
         .redeem-empty {
             text-align: center;
             color: rgba(233, 246, 255, 0.80);
@@ -509,6 +549,10 @@
             .redeem-record-actions {
                 align-items: stretch;
                 flex-direction: column;
+            }
+
+            .redeem-pagination {
+                justify-content: flex-start;
             }
         }
     </style>
@@ -638,15 +682,23 @@
                 </form>
             </div>
 
-            <div class="redeem-panel" style="grid-column:1 / -1">
+            <div class="redeem-panel" style="grid-column:1 / -1" data-redeem-record-section>
                 <h2 class="redeem-section-title">我的兑换申请</h2>
-                <div class="redeem-records" data-redeem-records></div>
-                <div class="redeem-empty" data-redeem-record-empty hidden>暂时还没有兑换申请。</div>
+                <div class="redeem-record-region" data-redeem-record-region>
+                    <div class="redeem-records" data-redeem-records></div>
+                    <div class="redeem-empty" data-redeem-record-empty hidden>暂无兑换申请</div>
+                </div>
+                <nav class="redeem-pagination" data-redeem-pagination aria-label="兑换申请分页" hidden>
+                    <button class="redeem-button" type="button" data-redeem-page-prev>上一页</button>
+                    <span class="redeem-pagination-info" data-redeem-page-info aria-live="polite"></span>
+                    <button class="redeem-button" type="button" data-redeem-page-next>下一页</button>
+                    <span class="redeem-pagination-total" data-redeem-page-total></span>
+                </nav>
             </div>
         </section>
     </main>
 
     <script src="assets/supabase-client.js?v=20260627-home-performance1"></script>
-    <script src="assets/redeem.js?v=20260717-redemption-user-archive1"></script>
+    <script src="assets/redeem.js?v=20260717-redemption-pagination1"></script>
 </body>
 </html>

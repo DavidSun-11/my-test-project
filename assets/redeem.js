@@ -1,12 +1,15 @@
 (function () {
     "use strict";
 
-    const VERSION = "20260717-redemption-user-archive1";
+    const VERSION = "20260717-redemption-pagination1";
     const LOGIN_TEXT = "请先登录老板账号。";
     const SQL_HINT = "积分兑换功能需要先执行 Supabase 第 15 节 SQL。";
     const ARCHIVE_SQL_HINT = "删除记录功能需要先执行 Supabase 第 19 节 SQL。";
+    const PAGINATION_SQL_HINT = "兑换申请分页需要先执行 Supabase 第 20 节 SQL。";
     const INSUFFICIENT_POINTS_TEXT = "当前积分不足，暂时无法提交该兑换申请。";
     const PENDING_LIMIT_TEXT = "待审核申请最多 5 个，请先等待已有申请处理。";
+    const RECORDS_PAGE_SIZE = 5;
+    const SWIPE_THRESHOLD = 64;
 
     const TYPE_LABELS = {
         king_star: "王者星星",
@@ -53,12 +56,19 @@
         pendingReservedPoints: 0,
         availablePoints: 0,
         pendingCount: 0,
+        currentPage: 1,
+        pageSize: RECORDS_PAGE_SIZE,
+        totalCount: 0,
+        totalPages: 0,
+        recordsLoading: false,
+        recordsRequestBatch: 0,
         archivingRedeemRefs: new Set(),
         locallyArchivedRedeemRefs: new Set()
     };
 
     const nodes = {};
     const archiveButtonRecords = new WeakMap();
+    let recordsTouchStart = null;
 
     function $(selector) {
         return document.querySelector(selector);
@@ -117,6 +127,10 @@
 
         if (/积分不足|insufficient points/i.test(message)) {
             return INSUFFICIENT_POINTS_TEXT;
+        }
+
+        if (/get_my_boss_point_redemptions_page/i.test(message)) {
+            return PAGINATION_SQL_HINT;
         }
 
         if (/boss_point_redemptions|submit_boss_point_redemption|get_boss_redemption_balance_summary|get_my_boss_point_redemptions|schema cache|function .* does not exist|relation .* does not exist/i.test(message)) {
@@ -341,11 +355,32 @@
         }
     }
 
+    function renderPagination() {
+        if (!nodes.pagination) {
+            return;
+        }
+
+        const hasRecords = state.totalCount > 0 && state.totalPages > 0;
+        nodes.pagination.hidden = !hasRecords;
+        if (!hasRecords) {
+            setText(nodes.pageInfo, "");
+            setText(nodes.pageTotal, "");
+            return;
+        }
+
+        setText(nodes.pageInfo, "第 " + state.currentPage + " / " + state.totalPages + " 页");
+        setText(nodes.pageTotal, "共 " + state.totalCount + " 条记录");
+        nodes.pagePrev.disabled = state.recordsLoading || state.currentPage <= 1;
+        nodes.pageNext.disabled = state.recordsLoading || state.currentPage >= state.totalPages;
+    }
+
     function renderRecords() {
         const records = state.records || [];
         if (!records.length) {
             nodes.records.innerHTML = "";
+            nodes.recordEmpty.textContent = state.totalCount === 0 ? "暂无兑换申请" : "本页暂无可显示的兑换申请。";
             nodes.recordEmpty.hidden = false;
+            renderPagination();
             return;
         }
 
@@ -389,16 +424,64 @@
                 archiveButtonRecords.set(button, rejectedRecords[index]);
             }
         });
+        renderPagination();
     }
 
-    async function loadRecords(message, silent) {
+    function normalizeRecordsPage(payload) {
+        if (!payload || typeof payload !== "object") {
+            throw new Error("invalid redemption page response");
+        }
+
+        const pageSize = normalizeRpcNumber(payload.page_size, "page_size");
+        const totalCount = normalizeRpcNumber(payload.total_count, "total_count");
+        const totalPages = normalizeRpcNumber(payload.total_pages, "total_pages");
+        const page = normalizeRpcNumber(payload.page, "page");
+        const expectedTotalPages = totalCount ? Math.ceil(totalCount / RECORDS_PAGE_SIZE) : 0;
+
+        if (pageSize !== RECORDS_PAGE_SIZE || totalPages !== expectedTotalPages) {
+            throw new Error("invalid redemption page metadata");
+        }
+        if ((totalCount === 0 && page !== 1) || (totalCount > 0 && (page < 1 || page > totalPages))) {
+            throw new Error("invalid redemption page number");
+        }
+
+        return {
+            page: page,
+            pageSize: pageSize,
+            totalCount: totalCount,
+            totalPages: totalPages,
+            items: Array.isArray(payload.items) ? payload.items : []
+        };
+    }
+
+    async function loadRecords(page, message, silent) {
+        const targetPage = Math.max(Math.floor(Number(page) || 1), 1);
+        const requestBatch = state.recordsRequestBatch + 1;
+        state.recordsRequestBatch = requestBatch;
+        state.recordsLoading = true;
+        if (nodes.records) {
+            nodes.records.setAttribute("aria-busy", "true");
+        }
+        renderPagination();
+
         try {
-            const response = await state.client.rpc("get_my_boss_point_redemptions", {});
+            const response = await state.client.rpc("get_my_boss_point_redemptions_page", {
+                p_page: targetPage,
+                p_page_size: state.pageSize
+            });
             if (response.error) {
                 throw response.error;
             }
+            if (requestBatch !== state.recordsRequestBatch) {
+                return { ok: false, stale: true, error: null };
+            }
 
-            state.records = (Array.isArray(response.data) ? response.data : []).filter(function (record) {
+            const pageResult = normalizeRecordsPage(getRpcRow(response.data));
+            state.currentPage = pageResult.page;
+            state.pageSize = pageResult.pageSize;
+            state.totalCount = pageResult.totalCount;
+            state.totalPages = pageResult.totalPages;
+            state.records = pageResult.items.filter(function (record) {
                 return !state.locallyArchivedRedeemRefs.has(String(record && record.redeem_ref || ""));
             });
             renderRecords();
@@ -407,10 +490,87 @@
             }
             return { ok: true, error: null };
         } catch (error) {
+            if (requestBatch !== state.recordsRequestBatch) {
+                return { ok: false, stale: true, error: null };
+            }
             if (!silent) {
                 setStatus(getFriendlyError(error), "warning");
             }
             return { ok: false, error: error };
+        } finally {
+            if (requestBatch === state.recordsRequestBatch) {
+                state.recordsLoading = false;
+                if (nodes.records) {
+                    nodes.records.setAttribute("aria-busy", "false");
+                }
+                renderPagination();
+            }
+        }
+    }
+
+    function keepRecordsInView() {
+        if (!nodes.recordSection || typeof nodes.recordSection.scrollIntoView !== "function") {
+            return;
+        }
+        window.requestAnimationFrame(function () {
+            nodes.recordSection.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        });
+    }
+
+    async function goToRecordsPage(page) {
+        if (state.recordsLoading || state.totalPages < 1) {
+            return;
+        }
+
+        const targetPage = Math.min(Math.max(Math.floor(Number(page) || 1), 1), state.totalPages);
+        if (targetPage === state.currentPage) {
+            return;
+        }
+
+        const result = await loadRecords(targetPage, "", true);
+        if (result.ok) {
+            keepRecordsInView();
+        } else if (!result.stale) {
+            setStatus(getFriendlyError(result.error), "warning");
+        }
+    }
+
+    function handleRecordsTouchStart(event) {
+        if (state.recordsLoading || !event.touches || event.touches.length !== 1) {
+            recordsTouchStart = null;
+            return;
+        }
+        if (event.target.closest("button, a, input, select, textarea, label, [role='button']")) {
+            recordsTouchStart = null;
+            return;
+        }
+
+        recordsTouchStart = {
+            x: event.touches[0].clientX,
+            y: event.touches[0].clientY
+        };
+    }
+
+    function handleRecordsTouchEnd(event) {
+        if (!recordsTouchStart || !event.changedTouches || event.changedTouches.length !== 1) {
+            recordsTouchStart = null;
+            return;
+        }
+
+        const deltaX = event.changedTouches[0].clientX - recordsTouchStart.x;
+        const deltaY = event.changedTouches[0].clientY - recordsTouchStart.y;
+        const horizontalDistance = Math.abs(deltaX);
+        const verticalDistance = Math.abs(deltaY);
+        recordsTouchStart = null;
+
+        if (horizontalDistance < SWIPE_THRESHOLD || horizontalDistance <= verticalDistance * 1.35) {
+            return;
+        }
+
+        if (deltaX < 0 && state.currentPage < state.totalPages) {
+            goToRecordsPage(state.currentPage + 1);
+        } else if (deltaX > 0 && state.currentPage > 1) {
+            goToRecordsPage(state.currentPage - 1);
         }
     }
 
@@ -447,7 +607,7 @@
             });
             renderRecords();
 
-            const recordsResult = await loadRecords("", true);
+            const recordsResult = await loadRecords(state.currentPage, "", true);
             if (recordsResult.ok) {
                 setStatus("这条已拒绝的兑换申请已从你的记录中隐藏。", "good");
             } else {
@@ -524,7 +684,7 @@
             applyBalanceSummary(getRpcRow(response.data));
             nodes.form.reset();
             updateTypeUi();
-            const recordsResult = await loadRecords("", true);
+            const recordsResult = await loadRecords(1, "", true);
             setStatus(recordsResult.ok ? "兑换申请已提交，等待管理员审核。" : "兑换申请已提交，但记录暂时没有刷新，请稍后再试。", recordsResult.ok ? "good" : "warning");
         } catch (error) {
             const friendlyError = getFriendlyError(error);
@@ -557,13 +717,31 @@
         nodes.estimate = $("[data-redeem-estimate]");
         nodes.balanceMessage = $("[data-redeem-balance-message]");
         nodes.submit = $("[data-redeem-submit]");
+        nodes.recordSection = $("[data-redeem-record-section]");
+        nodes.recordRegion = $("[data-redeem-record-region]");
         nodes.records = $("[data-redeem-records]");
         nodes.recordEmpty = $("[data-redeem-record-empty]");
+        nodes.pagination = $("[data-redeem-pagination]");
+        nodes.pagePrev = $("[data-redeem-page-prev]");
+        nodes.pageNext = $("[data-redeem-page-next]");
+        nodes.pageInfo = $("[data-redeem-page-info]");
+        nodes.pageTotal = $("[data-redeem-page-total]");
 
         nodes.type.addEventListener("change", updateTypeUi);
         nodes.rank.addEventListener("change", updateTypeUi);
         nodes.quantity.addEventListener("input", updateTypeUi);
         nodes.form.addEventListener("submit", submitRedemption);
+        nodes.pagePrev.addEventListener("click", function () {
+            goToRecordsPage(state.currentPage - 1);
+        });
+        nodes.pageNext.addEventListener("click", function () {
+            goToRecordsPage(state.currentPage + 1);
+        });
+        nodes.recordRegion.addEventListener("touchstart", handleRecordsTouchStart, { passive: true });
+        nodes.recordRegion.addEventListener("touchend", handleRecordsTouchEnd, { passive: true });
+        nodes.recordRegion.addEventListener("touchcancel", function () {
+            recordsTouchStart = null;
+        }, { passive: true });
         nodes.records.addEventListener("click", function (event) {
             const button = event.target.closest('[data-redeem-action="archive"]');
             if (!button || !nodes.records.contains(button)) {
@@ -593,7 +771,7 @@
             nodes.loggedOut.hidden = true;
             nodes.app.hidden = false;
             nodes.account.hidden = false;
-            const results = await Promise.all([loadProfile(), loadBalanceSummary(), loadRecords("", true)]);
+            const results = await Promise.all([loadProfile(), loadBalanceSummary(), loadRecords(1, "", true)]);
             const balanceResult = results[1];
             const recordsResult = results[2];
 

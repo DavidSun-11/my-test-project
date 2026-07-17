@@ -4787,3 +4787,120 @@ commit;
 ```
 
 现有表级权限已撤销普通用户直接写入能力，本节不新增 `UPDATE` RLS 策略。用户只能通过 `archive_my_boss_point_redemption(uuid)` 修改自己的 `user_archived_at`；现有管理员审核 RPC 和 `admin_get_boss_point_redemptions(text)` 保持原样，不过滤归档字段。
+
+## 20. 兑换申请用户分页升级 SQL
+
+用途：把“我的兑换申请”改为服务端分页，每页默认返回 5 条当前用户可见记录。分页只负责列表展示；待审核申请数量、待审核占用积分和当前可兑换积分仍必须使用 `get_boss_redemption_balance_summary()` 的完整服务端汇总，不能根据当前页记录计算。
+
+本节可在已经完成第 19 节兑换申请用户归档升级的环境中独立执行。RPC 使用 `auth.uid()` 限定当前用户，并过滤 `user_archived_at is null`；管理员查询、审核、扣积分、兑换券生成和归档 RPC 均保持不变。
+
+```sql
+begin;
+
+create index if not exists boss_point_redemptions_user_visible_page_idx
+on public.boss_point_redemptions (user_id, created_at desc, redeem_ref desc)
+where user_archived_at is null;
+
+drop function if exists public.get_my_boss_point_redemptions_page(integer, integer);
+create function public.get_my_boss_point_redemptions_page(
+  p_page integer default 1,
+  p_page_size integer default 5
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_actor uuid := auth.uid();
+  v_page_size integer := least(greatest(coalesce(p_page_size, 5), 1), 50);
+  v_requested_page integer := greatest(coalesce(p_page, 1), 1);
+  v_page integer := 1;
+  v_total_count integer := 0;
+  v_total_pages integer := 0;
+  v_offset integer := 0;
+  v_items jsonb := '[]'::jsonb;
+begin
+  if v_actor is null then
+    raise exception 'not authenticated';
+  end if;
+
+  select count(*)::integer
+  into v_total_count
+  from public.boss_point_redemptions redemption
+  where redemption.user_id = v_actor
+    and redemption.user_archived_at is null;
+
+  if v_total_count = 0 then
+    return jsonb_build_object(
+      'page', 1,
+      'page_size', v_page_size,
+      'total_count', 0,
+      'total_pages', 0,
+      'items', '[]'::jsonb
+    );
+  end if;
+
+  v_total_pages := ceil(v_total_count::numeric / v_page_size)::integer;
+  v_page := least(v_requested_page, v_total_pages);
+  v_offset := (v_page - 1) * v_page_size;
+
+  select coalesce(
+    jsonb_agg(
+      jsonb_build_object(
+        'redeem_ref', page_item.redeem_ref,
+        'redeem_type', page_item.redeem_type,
+        'rank_range', page_item.rank_range,
+        'quantity', page_item.quantity,
+        'cost_points', page_item.cost_points,
+        'user_note', page_item.user_note,
+        'admin_note', page_item.admin_note,
+        'status', page_item.status,
+        'created_at', page_item.created_at,
+        'processed_at', page_item.processed_at
+      )
+      order by page_item.created_at desc, page_item.redeem_ref desc
+    ),
+    '[]'::jsonb
+  )
+  into v_items
+  from (
+    select
+      redemption.redeem_ref,
+      redemption.redeem_type,
+      redemption.rank_range,
+      redemption.quantity,
+      redemption.cost_points,
+      redemption.user_note,
+      redemption.admin_note,
+      redemption.status,
+      redemption.created_at,
+      redemption.processed_at
+    from public.boss_point_redemptions redemption
+    where redemption.user_id = v_actor
+      and redemption.user_archived_at is null
+    order by redemption.created_at desc, redemption.redeem_ref desc
+    limit v_page_size
+    offset v_offset
+  ) page_item;
+
+  return jsonb_build_object(
+    'page', v_page,
+    'page_size', v_page_size,
+    'total_count', v_total_count,
+    'total_pages', v_total_pages,
+    'items', v_items
+  );
+end;
+$$;
+
+revoke all on function public.get_my_boss_point_redemptions_page(integer, integer)
+from public, anon, authenticated;
+
+grant execute on function public.get_my_boss_point_redemptions_page(integer, integer)
+to authenticated;
+
+commit;
+```
+
+返回的 `items` 仅包含用户兑换卡片所需字段和用于归档的公开申请引用 `redeem_ref`，不返回 `user_id`、表内部主键或身份 UUID。排序固定为 `created_at desc, redeem_ref desc`，其中唯一的 `redeem_ref` 用于保证相同创建时间下的分页顺序稳定。

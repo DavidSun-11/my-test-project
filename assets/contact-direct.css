@@ -680,6 +680,240 @@ button {
     display: none !important;
 }
 
+@media (min-width: 1061px) {
+    .contact-page {
+        padding: 12px 18px;
+    }
+
+    .contact-shell {
+        min-height: calc(100vh - 24px);
+    }
+
+    .contact-topbar {
+        min-height: 76px;
+        padding: 9px 18px;
+        border-radius: 22px;
+    }
+
+    .contact-brand {
+        gap: 13px;
+    }
+
+    .contact-brand__mark {
+        width: 50px;
+        height: 50px;
+    }
+
+    .contact-brand__mark svg {
+        width: 29px;
+        height: 29px;
+    }
+
+    .contact-brand strong {
+        font-size: 1.35rem;
+    }
+
+    .contact-brand span {
+        margin-top: 2px;
+        font-size: 0.86rem;
+    }
+
+    .contact-direct-pill {
+        min-height: 40px;
+        padding: 7px 15px;
+        font-size: 0.9rem;
+    }
+
+    .contact-hero {
+        width: min(760px, calc(100% - 32px));
+        margin: 14px auto 16px;
+    }
+
+    .contact-hero__ornament {
+        gap: 9px;
+        margin-bottom: 0;
+    }
+
+    .contact-hero__ornament span {
+        width: min(132px, 20vw);
+    }
+
+    .contact-hero__ornament svg {
+        width: 23px;
+        height: 23px;
+    }
+
+    .contact-hero h1 {
+        font-size: clamp(2.8rem, 4vw, 3.8rem);
+        line-height: 0.98;
+    }
+
+    .contact-hero__lead {
+        margin-top: 8px;
+        font-size: 1.05rem;
+    }
+
+    .contact-hero__poem {
+        margin-top: 8px;
+        font-size: 0.92rem;
+    }
+
+    .contact-grid {
+        width: min(1220px, 100%);
+        gap: 16px;
+    }
+
+    .contact-card--wechat {
+        min-height: 254px;
+        padding: 38px 22px 16px;
+    }
+
+    .contact-card__ribbon {
+        width: 146px;
+        padding: 7px 16px 8px;
+        border-radius: 0 0 15px 15px;
+        font-size: 0.9rem;
+    }
+
+    .contact-card__body--wechat {
+        grid-template-columns: 108px minmax(0, 1fr);
+        gap: 22px;
+    }
+
+    .contact-card__icon--wechat {
+        width: 108px;
+        height: 108px;
+        outline-offset: 7px;
+    }
+
+    .contact-card__icon--wechat svg {
+        width: 63px;
+        height: 63px;
+    }
+
+    .contact-card__heading strong,
+    .contact-card--secondary strong {
+        font-size: 1.3rem;
+    }
+
+    .contact-card__heading small {
+        padding: 4px 10px;
+        font-size: 0.72rem;
+    }
+
+    .contact-card__value {
+        margin-top: 8px;
+        font-size: clamp(1.48rem, 1.9vw, 1.78rem);
+    }
+
+    .contact-card__note {
+        margin-top: 14px;
+        padding-top: 9px;
+        font-size: 0.82rem;
+    }
+
+    .contact-card__copy {
+        right: 16px;
+        bottom: 11px;
+    }
+
+    .contact-secondary-list {
+        gap: 10px;
+    }
+
+    .contact-card--secondary {
+        grid-template-columns: 64px minmax(0, 1fr) 26px;
+        gap: 15px;
+        min-height: 122px;
+        padding: 14px 18px;
+        border-radius: 15px;
+    }
+
+    .contact-card--secondary .contact-card__icon {
+        width: 64px;
+        height: 64px;
+    }
+
+    .contact-card--secondary .contact-card__icon svg {
+        width: 38px;
+        height: 38px;
+    }
+
+    .contact-card--secondary .contact-card__value {
+        margin-top: 5px;
+        font-size: clamp(1.2rem, 1.55vw, 1.4rem);
+    }
+
+    .contact-advice {
+        padding: 12px 12px 10px;
+        border-radius: 17px;
+    }
+
+    .contact-advice h2 {
+        gap: 8px;
+        margin-bottom: 8px;
+        font-size: 1.13rem;
+    }
+
+    .contact-advice__list {
+        gap: 5px;
+    }
+
+    .contact-advice article {
+        grid-template-columns: 40px minmax(0, 1fr);
+        gap: 9px;
+        padding: 7px 8px;
+        border-radius: 11px;
+    }
+
+    .contact-advice__icon {
+        width: 38px;
+        height: 38px;
+    }
+
+    .contact-advice__icon svg {
+        width: 22px;
+        height: 22px;
+    }
+
+    .contact-advice article strong {
+        font-size: 0.9rem;
+    }
+
+    .contact-advice article p {
+        margin-top: 1px;
+        font-size: 0.7rem;
+        line-height: 1.35;
+    }
+
+    .contact-advice__thanks {
+        margin-top: 8px;
+        font-size: 0.72rem;
+    }
+
+    .contact-actions {
+        gap: 14px;
+        margin-top: 14px;
+    }
+
+    .contact-action {
+        min-width: 206px;
+        min-height: 50px;
+        padding: 10px 24px;
+        font-size: 1rem;
+    }
+
+    .contact-action svg {
+        width: 22px;
+        height: 22px;
+    }
+
+    .contact-footer {
+        padding: 12px 16px 0;
+        font-size: 0.84rem;
+    }
+}
+
 @media (max-width: 1060px) {
     .contact-grid {
         grid-template-columns: minmax(300px, 1.08fr) minmax(280px, 0.92fr);

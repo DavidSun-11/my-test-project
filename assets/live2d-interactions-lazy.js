@@ -1,6 +1,6 @@
 /* Live2D 互动模块：菜单、无奖竞答题库、英雄池转盘、咨询功能都集中在这里，方便后续继续加题。 */
 (function () {
-    const version = "20260716-live2d-open-meteo-accuracy1";
+    const version = "20260717-contact-direct-moon-garden1";
     if (typeof window.JunxueLive2DDebugLog !== "function") {
         window.__JUNXUE_LIVE2D_DEBUG__ = window.__JUNXUE_LIVE2D_DEBUG__ || [];
         window.JunxueLive2DDebugLog = function (message, detail) {
@@ -2848,7 +2848,7 @@
                 '<span class="live2d-panel-copy">想咨询陪玩、复盘或互动合作，可以从这里找到我。</span>'
             ].join("");
             options.classList.add("live2d-consult-grid");
-            addConsultCard("查看联系方式", "联系方式需按页面提示付款后手动查看，请不要重复支付。", false, function () {
+            addConsultCard("查看联系方式", "联系方式可直接查看，进入页面后可一键复制。", false, function () {
                 recordGanyuFeature("查看联系方式");
                 restoreStaticCardAfterMobileSubmenu();
                 window.location.href = "contact.html";
@@ -2856,7 +2856,7 @@
             addConsultCard("返回", "回到认识君雪", false, function () {
                 showKnowJunxuePanel();
             });
-            result.textContent = "联系方式需按页面提示付款后手动查看，请不要重复支付。";
+            result.textContent = "联系方式可直接查看，进入页面后可一键复制。";
             result.className = "live2d-quiz__result is-neutral";
             showDialog();
         }

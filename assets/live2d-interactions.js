@@ -1,6 +1,6 @@
 /* Live2D 轻量启动脚本：首屏只保留开场提示、点击入口和懒加载控制。 */
 (function () {
-    const version = "20260717-contact-direct-moon-garden1";
+    const version = "20260718-live2d-bubble-recursion1";
     if (typeof window.JunxueLive2DDebugLog !== "function") {
         window.__JUNXUE_LIVE2D_DEBUG__ = window.__JUNXUE_LIVE2D_DEBUG__ || [];
         window.JunxueLive2DDebugLog = function (message, detail) {
@@ -31,7 +31,7 @@
 
     window.__JUNXUE_LIVE2D_INTERACTIONS_INSTALLED__ = true;
 
-    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260717-contact-direct-moon-garden1";
+    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260718-live2d-bubble-recursion1";
     const BOSS_NAME_FALLBACK = "旅行者";
     if (typeof window.enableGanyuMemory !== "boolean") {
         window.enableGanyuMemory = true;
@@ -146,6 +146,7 @@
     let currentBossNameUserId = "";
     let lastDragStartDialogueAt = 0;
     let popupSyncFrame = 0;
+    let popupSyncInProgress = false;
     const bossNameState = window.JunxueGanyuBossNameState || {
         displayName: BOSS_NAME_FALLBACK,
         loading: false,
@@ -545,20 +546,50 @@
         }, 360);
     }
 
-    function syncOpeningBubblePosition() {
-        if (openingBubble && openingBubble.textContent) {
-            positionLive2DPopup(openingBubble, {
-                width: 328,
-                height: 96,
-                offsetY: 56
-            });
+    function syncBubbleNodePosition(bubble, options) {
+        if (!bubble || !bubble.textContent) {
+            return;
         }
 
-        syncCompanionBubblePosition();
+        positionLive2DPopup(bubble, options);
+    }
+
+    function syncOpeningBubblePosition() {
+        syncBubbleNodePosition(openingBubble, {
+            width: 328,
+            height: 96,
+            offsetY: 56
+        });
     }
 
     function syncCompanionBubblePosition() {
-        syncOpeningBubblePosition();
+        const bubble = companionBubble || openingBubble;
+        const usesOpeningBubble = bubble === openingBubble;
+        syncBubbleNodePosition(bubble, usesOpeningBubble ? {
+            width: 328,
+            height: 96,
+            offsetY: 56
+        } : {
+            width: 318,
+            height: 92,
+            offsetY: 62
+        });
+    }
+
+    function syncVisibleBubblePositions() {
+        if (popupSyncInProgress) {
+            return;
+        }
+
+        popupSyncInProgress = true;
+        try {
+            syncOpeningBubblePosition();
+            if (companionBubble && companionBubble !== openingBubble) {
+                syncCompanionBubblePosition();
+            }
+        } finally {
+            popupSyncInProgress = false;
+        }
     }
 
     function schedulePopupPositionSync() {
@@ -568,7 +599,7 @@
 
         popupSyncFrame = window.requestAnimationFrame(function () {
             popupSyncFrame = 0;
-            syncOpeningBubblePosition();
+            syncVisibleBubblePositions();
         });
     }
 
@@ -1593,9 +1624,9 @@
                 schedulePopupPositionSync();
             }
         });
-        window.setTimeout(syncOpeningBubblePosition, 500);
-        window.setTimeout(syncOpeningBubblePosition, 1500);
-        window.setTimeout(syncOpeningBubblePosition, 3000);
+        window.setTimeout(syncVisibleBubblePositions, 500);
+        window.setTimeout(syncVisibleBubblePositions, 1500);
+        window.setTimeout(syncVisibleBubblePositions, 3000);
         currentMemoryState = countGanyuVisitOnce();
         memoryMessage = buildGanyuMemoryMessage(currentMemoryState);
         if (!memoryMessage) {

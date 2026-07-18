@@ -417,6 +417,47 @@
             padding: 5px 10px;
         }
 
+        .my-profile-account-row {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            min-width: 0;
+        }
+
+        .my-account-switch {
+            min-height: 32px;
+            padding: 5px 11px;
+            border: 1px solid rgba(204, 231, 255, 0.3);
+            border-radius: 999px;
+            background: rgba(84, 104, 178, 0.2);
+            color: rgba(239, 246, 255, 0.9);
+            font: inherit;
+            font-size: 12px;
+            font-weight: 800;
+            line-height: 1.2;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+        }
+
+        .my-account-switch:hover,
+        .my-account-switch:focus-visible {
+            border-color: rgba(224, 238, 255, 0.62);
+            background: rgba(111, 139, 218, 0.34);
+            outline: none;
+        }
+
+        .my-account-switch:active {
+            transform: translateY(1px);
+        }
+
+        .my-account-switch:disabled {
+            cursor: wait;
+            opacity: 0.62;
+            transform: none;
+        }
+
         .my-soft-badge {
             padding: 6px 11px;
         }
@@ -3104,6 +3145,22 @@
                 font-size: 10.5px !important;
             }
         }
+
+        @media (max-width: 768px) {
+            .my-profile-account-row {
+                gap: 6px;
+            }
+
+            .my-account-switch {
+                min-height: 30px;
+                max-width: 100%;
+                padding: 4px 10px;
+                border-color: rgba(126, 111, 218, 0.24);
+                background: rgba(239, 235, 255, 0.82);
+                color: #5c5793;
+                font-size: 12px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -3142,7 +3199,10 @@
                     </div>
                     <div class="my-profile-info">
                         <h2 class="my-profile-name" data-my-display-name data-short-name="星湖旅人">星湖昵称：星湖旅人</h2>
-                        <span class="my-account-badge">星湖账号</span>
+                        <div class="my-profile-account-row">
+                            <span class="my-account-badge">星湖账号</span>
+                            <button class="my-account-switch" type="button" data-my-account-switch>切换账号</button>
+                        </div>
                         <p class="my-muted my-profile-note">这张头像会陪你留在星湖里，换设备登录后也能看到。<span class="my-avatar-format-note">支持 JPG、PNG、WebP，最大 3MB。</span></p>
                     </div>
                 </div>
@@ -3429,6 +3489,6 @@
 </div>
 
 <script src="assets/supabase-client.js?v=20260627-home-performance1"></script>
-<script src="assets/my.js?v=20260716-my-avatar-copy1"></script>
+<script src="assets/my.js?v=20260718-my-account-switch1"></script>
 </body>
 </html>

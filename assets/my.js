@@ -1,9 +1,10 @@
 (function () {
     "use strict";
 
-    const VERSION = "20260716-my-avatar-copy1";
+    const VERSION = "20260718-my-account-switch1";
     const BOSS_LOGIN_URL = "boss-register.html?mode=login&redirect=index";
     const BOSS_REGISTER_URL = "boss-register.html?mode=register&redirect=index";
+    const BOSS_SWITCH_LOGIN_URL = "boss-register.html?mode=login&redirect=my.html";
     const AVATAR_BUCKET = "boss-avatars";
     const MAX_AVATAR_SOURCE_BYTES = 3 * 1024 * 1024;
     const MAX_AVATAR_UPLOAD_BYTES = 3 * 1024 * 1024;
@@ -21,6 +22,7 @@
     const MOBILE_MESSAGE_MAX_AGE_MS = 90 * 24 * 60 * 60 * 1000;
     const MOBILE_MESSAGE_READ_RETENTION_MS = 180 * 24 * 60 * 60 * 1000;
     const MOBILE_MESSAGE_READ_STORAGE_PREFIX = "junxue:starlake-message-read:";
+    const BOSS_NICKNAME_CACHE_PREFIX = "junxueBossNickname:";
     const MOBILE_MESSAGE_LOGIN_URL = "index.html?bossLogin=1";
     const ADMIN_MESSAGE_CACHE_MS = 60 * 1000;
     const ADMIN_MESSAGE_RPC = "admin_get_my_page_pending_messages";
@@ -75,6 +77,7 @@
         session: null,
         profile: null,
         avatarPath: "",
+        avatarPreviewObjectUrl: "",
         avatarUploadInFlight: false,
         checkinStatus: null,
         loadingToken: 0,
@@ -115,6 +118,9 @@
             redemptions: []
         },
         authSubscription: null,
+        accountRequestGeneration: 0,
+        accountSwitchInFlight: false,
+        accountSwitchRedirected: false,
         activeModal: "",
         lastModalTrigger: null
     };
@@ -138,6 +144,7 @@
         avatarInput: $("[data-my-avatar-input]"),
         avatarButton: $("[data-my-avatar-button]"),
         avatarStatus: $("[data-my-avatar-status]"),
+        accountSwitchButton: $("[data-my-account-switch]"),
         refreshButton: $("[data-my-refresh]"),
         checkinButton: $("[data-my-checkin-button]"),
         benefitCheckinButton: $("[data-my-benefit-checkin]"),
@@ -177,6 +184,46 @@
 
     function safeTrim(value) {
         return String(value || "").replace(/\s+/g, " ").trim();
+    }
+
+    function createShortHash(value) {
+        let hash = 2166136261;
+        const text = String(value || "");
+
+        for (let index = 0; index < text.length; index += 1) {
+            hash ^= text.charCodeAt(index);
+            hash = Math.imul(hash, 16777619);
+        }
+
+        return (hash >>> 0).toString(36);
+    }
+
+    function createAccountRequestContext() {
+        return {
+            generation: state.accountRequestGeneration,
+            userId: getCurrentSessionUserId()
+        };
+    }
+
+    function isAccountRequestCurrent(context) {
+        return !!context
+            && !!context.userId
+            && context.generation === state.accountRequestGeneration
+            && context.userId === getCurrentSessionUserId();
+    }
+
+    function captureAccountCleanupContext(session) {
+        const userId = session && session.user ? String(session.user.id || "") : "";
+        const userHash = userId ? createShortHash(userId) : "";
+
+        return {
+            userId: userId,
+            userHash: userHash,
+            cacheKeys: userId ? [
+                MOBILE_MESSAGE_READ_STORAGE_PREFIX + userId,
+                BOSS_NICKNAME_CACHE_PREFIX + userHash
+            ] : []
+        };
     }
 
     function setText(node, value) {
@@ -441,7 +488,11 @@
         setHidden(nodes.avatarPlaceholder, true);
     }
 
-    async function renderCloudAvatar(path) {
+    async function renderCloudAvatar(path, requestContext) {
+        const context = requestContext || createAccountRequestContext();
+        if (!isAccountRequestCurrent(context)) {
+            return false;
+        }
         if (!path) {
             renderEmptyAvatar();
             return false;
@@ -449,23 +500,36 @@
 
         try {
             const url = await getReadableCloudAvatarUrl(path);
+            if (!isAccountRequestCurrent(context)) {
+                return false;
+            }
             applyCloudAvatarUrl(url);
             return true;
         } catch (error) {
+            if (!isAccountRequestCurrent(context)) {
+                return false;
+            }
             renderEmptyAvatar();
             setAvatarStatus(isAvatarSetupError(error) ? "头像上传功能还需要完成云端配置。" : "头像暂时读取失败，请稍后再试。");
             return false;
         }
     }
 
-    async function loadProfile() {
+    async function loadProfile(requestContext) {
+        const context = requestContext || createAccountRequestContext();
+        if (!isAccountRequestCurrent(context)) {
+            return;
+        }
         try {
             const response = await state.client
                 .from("boss_profiles")
                 .select("display_name,avatar_path,avatar_updated_at")
-                .eq("user_id", state.session.user.id)
+                .eq("user_id", context.userId)
                 .maybeSingle();
 
+            if (!isAccountRequestCurrent(context)) {
+                return;
+            }
             if (response.error) {
                 throw response.error;
             }
@@ -473,8 +537,11 @@
             state.profile = response.data || null;
             state.avatarPath = response.data && response.data.avatar_path ? String(response.data.avatar_path) : "";
             renderProfile(state.profile);
-            await renderCloudAvatar(state.avatarPath);
+            await renderCloudAvatar(state.avatarPath, context);
         } catch (error) {
+            if (!isAccountRequestCurrent(context)) {
+                return;
+            }
             if (isAvatarSetupError(error)) {
                 setAvatarStatus("头像上传功能还需要完成云端配置。");
 
@@ -482,12 +549,18 @@
                     const fallback = await state.client
                         .from("boss_profiles")
                         .select("display_name")
-                        .eq("user_id", state.session.user.id)
+                        .eq("user_id", context.userId)
                         .maybeSingle();
 
+                    if (!isAccountRequestCurrent(context)) {
+                        return;
+                    }
                     state.profile = fallback.data || null;
                     renderProfile(state.profile);
                 } catch (fallbackError) {
+                    if (!isAccountRequestCurrent(context)) {
+                        return;
+                    }
                     renderProfile(null);
                 }
                 renderEmptyAvatar();
@@ -532,10 +605,17 @@
         updateOpenModal();
     }
 
-    async function loadCheckinStatus(message) {
+    async function loadCheckinStatus(message, requestContext) {
+        const context = requestContext || createAccountRequestContext();
+        if (!isAccountRequestCurrent(context)) {
+            return;
+        }
         try {
             const response = await state.client.rpc("get_boss_checkin_status", { p_month: null });
 
+            if (!isAccountRequestCurrent(context)) {
+                return;
+            }
             if (response.error) {
                 throw response.error;
             }
@@ -544,6 +624,9 @@
             state.mobileMessageSources.checkin = "success";
             renderCheckinStatus(normalizeCheckinRow(response.data), message);
         } catch (error) {
+            if (!isAccountRequestCurrent(context)) {
+                return;
+            }
             state.mobileMessageSources.checkin = "error";
             console.warn("[star-lake-messages] query failed: checkin unavailable.");
             if (isCheckinSetupError(error)) {
@@ -590,12 +673,16 @@
         }
 
         state.checkinInFlight = true;
+        const context = createAccountRequestContext();
         setCheckinButtonsBusy(true, "签到中...");
         let setupFailed = false;
 
         try {
             const response = await state.client.rpc("claim_boss_daily_checkin", {});
 
+            if (!isAccountRequestCurrent(context)) {
+                return;
+            }
             if (response.error) {
                 throw response.error;
             }
@@ -603,6 +690,9 @@
             const status = normalizeCheckinRow(response.data);
             renderCheckinStatus(status, status.message || (status.alreadySigned ? "今天已经签到过啦。" : "签到成功。"));
         } catch (error) {
+            if (!isAccountRequestCurrent(context)) {
+                return;
+            }
             if (isCheckinSetupError(error)) {
                 setupFailed = true;
                 state.checkinUnavailable = true;
@@ -622,6 +712,9 @@
             setCheckinMessage("签到暂时失败，请稍后再试。");
             updateOpenModal();
         } finally {
+            if (!isAccountRequestCurrent(context)) {
+                return;
+            }
             state.checkinInFlight = false;
             if (!setupFailed && !(state.checkinStatus && (state.checkinStatus.signedToday || state.checkinStatus.alreadySigned))) {
                 setCheckinButtonsBusy(false, "立即签到");
@@ -709,37 +802,61 @@
         }
     }
 
-    async function loadMobileMessageOrders() {
+    async function loadMobileMessageOrders(requestContext) {
+        const context = requestContext || createAccountRequestContext();
+        if (!isAccountRequestCurrent(context)) {
+            return;
+        }
         try {
             const response = await state.client.rpc("get_my_boss_paid_orders", {});
+            if (!isAccountRequestCurrent(context)) {
+                return;
+            }
             if (response.error) {
                 throw response.error;
             }
             state.mobileMessageOrders = Array.isArray(response.data) ? response.data : [];
             state.mobileMessageSources.orders = "success";
         } catch (error) {
+            if (!isAccountRequestCurrent(context)) {
+                return;
+            }
             state.mobileMessageOrders = [];
             state.mobileMessageSources.orders = "error";
             console.warn("[star-lake-messages] query failed: appointments unavailable.");
         } finally {
-            state.mobileMessageOrdersLoaded = true;
+            if (isAccountRequestCurrent(context)) {
+                state.mobileMessageOrdersLoaded = true;
+            }
         }
     }
 
-    async function loadMobileMessageRedemptions() {
+    async function loadMobileMessageRedemptions(requestContext) {
+        const context = requestContext || createAccountRequestContext();
+        if (!isAccountRequestCurrent(context)) {
+            return;
+        }
         try {
             const response = await state.client.rpc("get_my_boss_point_redemptions", {});
+            if (!isAccountRequestCurrent(context)) {
+                return;
+            }
             if (response.error) {
                 throw response.error;
             }
             state.mobileMessageRedemptions = Array.isArray(response.data) ? response.data : [];
             state.mobileMessageSources.redemptions = "success";
         } catch (error) {
+            if (!isAccountRequestCurrent(context)) {
+                return;
+            }
             state.mobileMessageRedemptions = [];
             state.mobileMessageSources.redemptions = "error";
             console.warn("[star-lake-messages] query failed: redemptions unavailable.");
         } finally {
-            state.mobileMessageRedemptionsLoaded = true;
+            if (isAccountRequestCurrent(context)) {
+                state.mobileMessageRedemptionsLoaded = true;
+            }
         }
     }
 
@@ -1338,6 +1455,30 @@
         );
     }
 
+    function renderAccountSwitchModal(message, type) {
+        const busy = state.accountSwitchInFlight;
+        const statusMessage = message || "确认退出当前账号并切换其他老板账号吗？";
+        const statusClass = type === "error" ? "my-alert is-warning" : "my-alert";
+
+        setModalContent(
+            "切换账号",
+            "退出后可以登录其他老板账号，当前设备外的登录不会受到影响。",
+            "<div class=\"my-modal-grid\"><div class=\"" + statusClass + "\" data-my-account-switch-status role=\"status\" aria-live=\"polite\">" + escapeHtml(statusMessage) + "</div></div>",
+            "<button class=\"my-button\" type=\"button\" data-my-modal-close" + (busy ? " disabled" : "") + ">取消</button>" +
+                "<button class=\"my-button my-button--primary\" type=\"button\" data-my-account-switch-confirm" + (busy ? " disabled" : "") + ">" + (busy ? "正在切换账号…" : "确认切换") + "</button>"
+        );
+    }
+
+    function setAccountSwitchBusy(busy) {
+        state.accountSwitchInFlight = !!busy;
+        if (nodes.accountSwitchButton) {
+            nodes.accountSwitchButton.disabled = !!busy;
+        }
+        if (state.activeModal === "switch-account") {
+            renderAccountSwitchModal(busy ? "正在切换账号…" : "确认退出当前账号并切换其他老板账号吗？");
+        }
+    }
+
     function updateOpenModal() {
         if (!state.activeModal || !nodes.modal || nodes.modal.hidden) {
             return;
@@ -1357,6 +1498,10 @@
         }
         if (state.activeModal === "settings") {
             renderSettingsModal();
+            return;
+        }
+        if (state.activeModal === "switch-account") {
+            renderAccountSwitchModal();
             return;
         }
         if (state.activeModal === "messages") {
@@ -1386,6 +1531,9 @@
 
     function closeModal() {
         if (!nodes.modal) {
+            return;
+        }
+        if (state.activeModal === "switch-account" && state.accountSwitchInFlight) {
             return;
         }
 
@@ -1428,12 +1576,12 @@
             return;
         }
         state.mobileMessageInFlight = true;
-        const userId = getCurrentSessionUserId();
+        const context = createAccountRequestContext();
         try {
             if (state.mobileMessageLoadPromise) {
                 await state.mobileMessageLoadPromise;
             }
-            if (userId !== getCurrentSessionUserId() || state.activeModal !== "messages") {
+            if (!isAccountRequestCurrent(context) || state.activeModal !== "messages") {
                 return;
             }
             renderStarlakeMessagesModal(markMobileMessagesRead(buildMobileMessageItems()));
@@ -1441,13 +1589,15 @@
                 loadAdminMessages(false);
             }
         } finally {
-            state.mobileMessageInFlight = false;
+            if (isAccountRequestCurrent(context)) {
+                state.mobileMessageInFlight = false;
+            }
         }
     }
 
     async function refreshMessageCenter() {
-        const userId = getCurrentSessionUserId();
-        if (!state.client || !userId || state.mobileMessageInFlight) {
+        const context = createAccountRequestContext();
+        if (!state.client || !context.userId || state.mobileMessageInFlight) {
             return;
         }
 
@@ -1458,12 +1608,12 @@
         refreshOpenStarlakeMessages();
         try {
             await Promise.allSettled([
-                loadCheckinStatus(),
-                loadMobileMessageOrders(),
-                loadMobileMessageRedemptions(),
-                loadAdminIdentity()
+                loadCheckinStatus(undefined, context),
+                loadMobileMessageOrders(context),
+                loadMobileMessageRedemptions(context),
+                loadAdminIdentity(context)
             ]);
-            if (userId !== getCurrentSessionUserId()) {
+            if (!isAccountRequestCurrent(context)) {
                 return;
             }
             markMobileMessagesRead(buildMobileMessageItems());
@@ -1472,7 +1622,9 @@
                 await loadAdminMessages(true);
             }
         } finally {
-            state.mobileMessageInFlight = false;
+            if (isAccountRequestCurrent(context)) {
+                state.mobileMessageInFlight = false;
+            }
         }
     }
 
@@ -1611,10 +1763,16 @@
         return "";
     }
 
-    async function loadAvatarImageSource(file) {
+    async function loadAvatarImageSource(file, requestContext) {
         if (typeof window.createImageBitmap === "function") {
             try {
                 const bitmap = await window.createImageBitmap(file, { imageOrientation: "from-image" });
+                if (!isAccountRequestCurrent(requestContext)) {
+                    if (bitmap && typeof bitmap.close === "function") {
+                        bitmap.close();
+                    }
+                    throw new Error("stale-avatar-request");
+                }
                 if (bitmap && bitmap.width > 0 && bitmap.height > 0) {
                     return {
                         source: bitmap,
@@ -1641,6 +1799,9 @@
             function releaseUrl() {
                 if (url) {
                     URL.revokeObjectURL(url);
+                    if (state.avatarPreviewObjectUrl === url) {
+                        state.avatarPreviewObjectUrl = "";
+                    }
                     url = "";
                 }
             }
@@ -1658,6 +1819,11 @@
 
             image.decoding = "async";
             image.onload = function () {
+                if (!isAccountRequestCurrent(requestContext)) {
+                    cleanup();
+                    reject(new Error("stale-avatar-request"));
+                    return;
+                }
                 const width = image.naturalWidth || image.width;
                 const height = image.naturalHeight || image.height;
                 releaseUrl();
@@ -1681,7 +1847,11 @@
             };
 
             try {
+                if (!isAccountRequestCurrent(requestContext)) {
+                    throw new Error("stale-avatar-request");
+                }
                 url = URL.createObjectURL(file);
+                state.avatarPreviewObjectUrl = url;
                 image.src = url;
             } catch (error) {
                 cleanup();
@@ -1771,10 +1941,13 @@
         refreshOpenStarlakeMessages();
     }
 
-    async function loadAdminIdentity() {
-        const userId = getCurrentSessionUserId();
+    async function loadAdminIdentity(requestContext) {
+        const context = requestContext || createAccountRequestContext();
+        const userId = context.userId;
         if (!state.client || !userId) {
-            clearAdminAccess("");
+            if (isAccountRequestCurrent(context)) {
+                clearAdminAccess("");
+            }
             return false;
         }
 
@@ -1785,7 +1958,7 @@
                 .eq("user_id", userId)
                 .maybeSingle();
 
-            if (getCurrentSessionUserId() !== userId) {
+            if (!isAccountRequestCurrent(context)) {
                 return false;
             }
             if (response.error) {
@@ -1803,6 +1976,9 @@
             updateMobileMessageBadge();
             return state.isAdmin;
         } catch (error) {
+            if (!isAccountRequestCurrent(context)) {
+                return false;
+            }
             console.warn("[star-lake-messages] admin identity check unavailable.");
             clearAdminAccess("");
             return false;
@@ -1840,19 +2016,20 @@
         };
     }
 
-    function isAdminMessageRequestCurrent(token, userId) {
+    function isAdminMessageRequestCurrent(token, userId, requestContext) {
         return token === state.adminMessageRequestToken
             && userId === getCurrentSessionUserId()
+            && isAccountRequestCurrent(requestContext)
             && state.isAdmin
             && state.adminMessageOwnerUserId === userId;
     }
 
-    async function loadAdminMessageSource(messageType, token, userId) {
+    async function loadAdminMessageSource(messageType, token, userId, requestContext) {
         try {
             const response = await state.client.rpc(ADMIN_MESSAGE_RPC, {
                 p_message_type: messageType
             });
-            if (!isAdminMessageRequestCurrent(token, userId)) {
+            if (!isAdminMessageRequestCurrent(token, userId, requestContext)) {
                 return;
             }
             if (response.error) {
@@ -1860,7 +2037,7 @@
             }
 
             const payload = normalizeAdminMessagePayload(response.data, messageType);
-            if (!isAdminMessageRequestCurrent(token, userId)) {
+            if (!isAdminMessageRequestCurrent(token, userId, requestContext)) {
                 return;
             }
             state.adminMessageTotals[messageType] = payload.total;
@@ -1868,7 +2045,7 @@
             state.adminMessageSources[messageType] = "success";
             refreshOpenStarlakeMessages();
         } catch (error) {
-            if (!isAdminMessageRequestCurrent(token, userId)) {
+            if (!isAdminMessageRequestCurrent(token, userId, requestContext)) {
                 return;
             }
             if (isAdminMessageSetupError(error)) {
@@ -1896,7 +2073,8 @@
     }
 
     function loadAdminMessages(force) {
-        const userId = getCurrentSessionUserId();
+        const requestContext = createAccountRequestContext();
+        const userId = requestContext.userId;
         if (!state.client || !state.isAdmin || !userId) {
             return Promise.resolve();
         }
@@ -1922,10 +2100,10 @@
         refreshOpenStarlakeMessages();
 
         const promise = Promise.allSettled([
-            loadAdminMessageSource("orders", token, userId),
-            loadAdminMessageSource("redemptions", token, userId)
+            loadAdminMessageSource("orders", token, userId, requestContext),
+            loadAdminMessageSource("redemptions", token, userId, requestContext)
         ]).then(function () {
-            if (!isAdminMessageRequestCurrent(token, userId)) {
+            if (!isAdminMessageRequestCurrent(token, userId, requestContext)) {
                 return;
             }
             if (state.adminMessageSources.orders === "success" && state.adminMessageSources.redemptions === "success") {
@@ -2001,14 +2179,14 @@
         return current;
     }
 
-    async function compressAvatar(file, detectedMime) {
+    async function compressAvatar(file, detectedMime, requestContext) {
         let imageSource = null;
         let bestResult = null;
         let webpSupported = true;
         let fallbackType = "";
 
         try {
-            imageSource = await loadAvatarImageSource(file);
+            imageSource = await loadAvatarImageSource(file, requestContext);
             const width = imageSource.width;
             const height = imageSource.height;
             const longestEdge = Math.max(width, height);
@@ -2092,13 +2270,11 @@
         return Math.random().toString(36).slice(2, 14);
     }
 
-    function buildAvatarPath(extension) {
-        const userId = state.session && state.session.user ? String(state.session.user.id || "") : "";
+    function buildAvatarPath(extension, userId) {
         return userId + "/avatar-" + Date.now() + "-" + getAvatarRandomToken() + "." + extension;
     }
 
-    function isCurrentUserAvatarPath(path) {
-        const userId = state.session && state.session.user ? String(state.session.user.id || "") : "";
+    function isCurrentUserAvatarPath(path, userId) {
         const source = String(path || "");
         const parts = source.split("/");
 
@@ -2111,8 +2287,12 @@
             });
     }
 
-    async function removeOwnedAvatar(path) {
-        if (!path || !isCurrentUserAvatarPath(path)) {
+    async function removeOwnedAvatar(path, requestContext) {
+        const context = requestContext || createAccountRequestContext();
+        if (!isAccountRequestCurrent(context)) {
+            return false;
+        }
+        if (!path || !isCurrentUserAvatarPath(path, context.userId)) {
             if (path) {
                 console.warn("[JunxueMy] skipped avatar cleanup outside the current user directory.");
             }
@@ -2120,6 +2300,9 @@
         }
 
         const response = await state.client.storage.from(AVATAR_BUCKET).remove([path]);
+        if (!isAccountRequestCurrent(context)) {
+            return false;
+        }
         if (response.error) {
             throw response.error;
         }
@@ -2147,10 +2330,14 @@
         return "头像上传失败，请稍后再试。";
     }
 
-    async function saveAvatarPath(path) {
+    async function saveAvatarPath(path, requestContext) {
+        const context = requestContext || createAccountRequestContext();
+        if (!isAccountRequestCurrent(context)) {
+            return false;
+        }
         const displayName = safeTrim(state.profile && state.profile.display_name) || getMetadataDisplayName(state.session.user) || "星湖用户";
         const payload = {
-            user_id: state.session.user.id,
+            user_id: context.userId,
             display_name: displayName,
             avatar_path: path,
             avatar_updated_at: new Date().toISOString()
@@ -2161,6 +2348,9 @@
             .select("display_name,avatar_path,avatar_updated_at")
             .maybeSingle();
 
+        if (!isAccountRequestCurrent(context)) {
+            return false;
+        }
         if (response.error) {
             throw response.error;
         }
@@ -2168,6 +2358,7 @@
         state.profile = response.data || payload;
         state.avatarPath = path;
         renderProfile(state.profile);
+        return true;
     }
 
     async function uploadAvatar(file) {
@@ -2182,6 +2373,7 @@
         }
 
         state.avatarUploadInFlight = true;
+        const context = createAccountRequestContext();
         setBusy(nodes.avatarButton, true, "处理中...");
         setAvatarStatus("正在压缩头像…");
 
@@ -2193,11 +2385,17 @@
 
         try {
             const detectedMime = await detectAvatarMime(file);
+            if (!isAccountRequestCurrent(context)) {
+                return;
+            }
             if (!detectedMime || detectedMime !== file.type) {
                 throw new Error("invalid-avatar-file");
             }
 
-            compressed = await compressAvatar(file, detectedMime);
+            compressed = await compressAvatar(file, detectedMime, context);
+            if (!isAccountRequestCurrent(context)) {
+                return;
+            }
             if (!compressed || !compressed.blob) {
                 throw new Error("canvas-blob-failed");
             }
@@ -2205,7 +2403,7 @@
                 throw new Error("compressed-avatar-too-large");
             }
 
-            nextPath = buildAvatarPath(compressed.extension);
+            nextPath = buildAvatarPath(compressed.extension, context.userId);
             setBusy(nodes.avatarButton, true, "上传中...");
             setAvatarStatus("正在上传头像…");
 
@@ -2215,20 +2413,29 @@
                 upsert: false
             });
 
+            if (!isAccountRequestCurrent(context)) {
+                return;
+            }
             if (uploadResponse.error) {
                 throw uploadResponse.error;
             }
 
-            await saveAvatarPath(nextPath);
+            await saveAvatarPath(nextPath, context);
+            if (!isAccountRequestCurrent(context)) {
+                return;
+            }
             profileUpdated = true;
 
             const signedUrl = await getReadableCloudAvatarUrl(nextPath);
+            if (!isAccountRequestCurrent(context)) {
+                return;
+            }
             applyCloudAvatarUrl(signedUrl);
             newAvatarReadable = true;
 
             if (oldPath && oldPath !== nextPath) {
                 try {
-                    await removeOwnedAvatar(oldPath);
+                    await removeOwnedAvatar(oldPath, context);
                 } catch (removeError) {
                     console.warn("[JunxueMy] old avatar cleanup failed.");
                 }
@@ -2236,10 +2443,13 @@
 
             setAvatarStatus("已同步到星湖");
         } catch (error) {
+            if (!isAccountRequestCurrent(context)) {
+                return;
+            }
             if (profileUpdated && !newAvatarReadable) {
                 try {
-                    await saveAvatarPath(oldPath);
-                    await renderCloudAvatar(oldPath);
+                    await saveAvatarPath(oldPath, context);
+                    await renderCloudAvatar(oldPath, context);
                 } catch (rollbackError) {
                     console.warn("[JunxueMy] avatar path rollback failed.");
                 }
@@ -2247,7 +2457,7 @@
 
             if (nextPath) {
                 try {
-                    await removeOwnedAvatar(nextPath);
+                    await removeOwnedAvatar(nextPath, context);
                 } catch (cleanupError) {
                     console.warn("[JunxueMy] new avatar cleanup failed.");
                 }
@@ -2256,6 +2466,9 @@
             setAvatarStatus(getAvatarErrorMessage(error));
         } finally {
             compressed = null;
+            if (!isAccountRequestCurrent(context)) {
+                return;
+            }
             state.avatarUploadInFlight = false;
             setBusy(nodes.avatarButton, false, "更换头像");
             if (nodes.avatarInput) {
@@ -2267,6 +2480,10 @@
     async function refreshAll(message) {
         const token = state.loadingToken + 1;
         state.loadingToken = token;
+        const context = createAccountRequestContext();
+        if (!isAccountRequestCurrent(context)) {
+            return;
+        }
         setAvatarStatus("正在读取星湖资料...");
         setCheckinMessage("正在读取签到状态...");
         state.mobileMessageSources.checkin = "loading";
@@ -2278,14 +2495,14 @@
         state.mobileMessageRedemptions = [];
 
         state.mobileMessageLoadPromise = Promise.allSettled([
-            loadProfile(),
-            loadCheckinStatus(message),
-            loadMobileMessageOrders(),
-            loadMobileMessageRedemptions(),
-            loadAdminIdentity()
+            loadProfile(context),
+            loadCheckinStatus(message, context),
+            loadMobileMessageOrders(context),
+            loadMobileMessageRedemptions(context),
+            loadAdminIdentity(context)
         ]);
         await state.mobileMessageLoadPromise;
-        if (token !== state.loadingToken) {
+        if (token !== state.loadingToken || !isAccountRequestCurrent(context)) {
             return;
         }
         updateMobileMessageBadge();
@@ -2296,7 +2513,10 @@
         }
     }
 
-    function resetSessionBoundState() {
+    function resetAccountScopedState(cleanupContext) {
+        const cacheKeys = cleanupContext && Array.isArray(cleanupContext.cacheKeys) ? cleanupContext.cacheKeys : [];
+
+        state.accountRequestGeneration += 1;
         state.loadingToken += 1;
         state.mobileMessageInFlight = false;
         state.mobileMessageLoadPromise = null;
@@ -2310,13 +2530,55 @@
         state.mobileMessageReadState = {};
         state.mobileMessageDiagnosticsLogged = false;
         state.checkinStatus = null;
+        state.checkinInFlight = false;
+        state.checkinUnavailable = false;
         state.profile = null;
         state.avatarPath = "";
+        state.avatarUploadInFlight = false;
+        if (state.avatarPreviewObjectUrl) {
+            try {
+                window.URL.revokeObjectURL(state.avatarPreviewObjectUrl);
+            } catch (error) {}
+            state.avatarPreviewObjectUrl = "";
+        }
         state.isAdmin = false;
         state.adminCheckLoaded = false;
         state.adminCheckFailed = false;
+        state.session = null;
         resetAdminMessageData("");
         setAdminShortcutVisible(false);
+        cacheKeys.forEach(function (key) {
+            try {
+                window.localStorage.removeItem(key);
+            } catch (error) {}
+        });
+        renderEmptyAvatar();
+        setText(nodes.displayName, "星湖昵称：星湖旅人");
+        if (nodes.displayName) {
+            nodes.displayName.dataset.shortName = "星湖旅人";
+        }
+        setText(nodes.accountType, "星湖账号");
+        setText(nodes.registeredAt, "--");
+        setText(nodes.points, "--");
+        setText(nodes.exchangePoints, "--");
+        setText(nodes.totalCheckins, "--");
+        setText(nodes.currentStreak, "--");
+        setText(nodes.monthlyCheckins, "--");
+        setText(nodes.todayStatus, "--");
+        setText(nodes.todayStatusCopy, "--");
+        setText(nodes.todayDate, "--");
+        setText(nodes.rewardPoints, "--");
+        setAvatarStatus("");
+        setCheckinMessage("");
+        setBusy(nodes.avatarButton, false, "更换头像");
+        setCheckinButtonsBusy(false, "立即签到");
+        if (nodes.avatarInput) {
+            nodes.avatarInput.value = "";
+        }
+        state.accountSwitchInFlight = false;
+        if (nodes.accountSwitchButton) {
+            nodes.accountSwitchButton.disabled = false;
+        }
         if (nodes.mobileMessageBadge) {
             nodes.mobileMessageBadge.hidden = true;
             nodes.mobileMessageBadge.textContent = "0";
@@ -2325,6 +2587,56 @@
             link.classList.remove("has-unread");
             link.setAttribute("aria-label", "消息");
         });
+        if (nodes.modal && !nodes.modal.hidden) {
+            closeModal();
+        }
+        if (nodes.modalBody) {
+            nodes.modalBody.replaceChildren();
+        }
+        if (nodes.modalActions) {
+            nodes.modalActions.replaceChildren();
+        }
+        setText(nodes.modalTitle, "我的星湖");
+        setText(nodes.modalSubtitle, "登录后查看账号资料。");
+        renderLoggedOut();
+    }
+
+    async function switchAccount() {
+        if (state.accountSwitchInFlight || state.accountSwitchRedirected) {
+            return;
+        }
+
+        if (!state.client || !state.session || !state.session.user) {
+            if (!state.accountSwitchRedirected) {
+                state.accountSwitchRedirected = true;
+                window.location.replace(BOSS_SWITCH_LOGIN_URL);
+            }
+            return;
+        }
+
+        const cleanupContext = captureAccountCleanupContext(state.session);
+        setAccountSwitchBusy(true);
+
+        try {
+            const response = await state.client.auth.signOut({ scope: "local" });
+            if (response.error) {
+                throw response.error;
+            }
+
+            resetAccountScopedState(cleanupContext);
+            if (!state.accountSwitchRedirected) {
+                state.accountSwitchRedirected = true;
+                window.location.replace(BOSS_SWITCH_LOGIN_URL);
+            }
+        } catch (error) {
+            state.accountSwitchInFlight = false;
+            if (nodes.accountSwitchButton) {
+                nodes.accountSwitchButton.disabled = false;
+            }
+            if (state.activeModal === "switch-account" && nodes.modal && !nodes.modal.hidden) {
+                renderAccountSwitchModal("账号切换失败，请稍后再试。", "error");
+            }
+        }
     }
 
     async function bootstrapAuthenticatedSession() {
@@ -2338,10 +2650,11 @@
         await refreshAll();
     }
 
-    async function handleAuthStateChange(nextSession) {
+    async function handleAuthStateChange(event, nextSession) {
+        const previousSession = state.session;
         const previousUserId = getCurrentSessionUserId();
         const nextUserId = nextSession && nextSession.user ? String(nextSession.user.id || "") : "";
-        if (previousUserId === nextUserId) {
+        if (previousUserId === nextUserId && event !== "SIGNED_OUT") {
             state.session = nextSession || null;
             return;
         }
@@ -2349,19 +2662,16 @@
         if (nodes.modal && !nodes.modal.hidden) {
             closeModal();
         }
-        resetSessionBoundState();
+        resetAccountScopedState(captureAccountCleanupContext(previousSession));
         state.session = nextSession || null;
         if (!nextUserId) {
-            renderLoggedOut();
             return;
         }
 
         try {
             await bootstrapAuthenticatedSession();
         } catch (error) {
-            resetSessionBoundState();
-            state.session = null;
-            renderLoggedOut();
+            resetAccountScopedState(captureAccountCleanupContext(state.session));
             console.debug("[JunxueMy] session change refresh failed.");
         }
     }
@@ -2388,7 +2698,7 @@
 
             const authListener = state.client.auth.onAuthStateChange(function (event, nextSession) {
                 window.setTimeout(function () {
-                    handleAuthStateChange(nextSession);
+                    handleAuthStateChange(event, nextSession);
                 }, 0);
             });
             state.authSubscription = authListener && authListener.data ? authListener.data.subscription : null;
@@ -2422,6 +2732,15 @@
                     return;
                 }
                 uploadAvatar(file);
+            });
+        }
+
+        if (nodes.accountSwitchButton) {
+            nodes.accountSwitchButton.addEventListener("click", function () {
+                if (state.accountSwitchInFlight || !state.session || !state.session.user) {
+                    return;
+                }
+                openModal("switch-account", nodes.accountSwitchButton);
             });
         }
 
@@ -2476,6 +2795,11 @@
 
         if (nodes.modal) {
             nodes.modal.addEventListener("click", function (event) {
+                if (event.target.closest("[data-my-account-switch-confirm]")) {
+                    switchAccount();
+                    return;
+                }
+
                 const adminMessageItem = event.target.closest("[data-my-admin-message-type][data-my-admin-message-index]");
                 if (adminMessageItem) {
                     const messageType = adminMessageItem.getAttribute("data-my-admin-message-type");

@@ -2,7 +2,7 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>我的星湖 - 君雪</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <script src="assets/performance-mode.js?v=20260613-2"></script>
@@ -1358,7 +1358,7 @@
             }
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 767px), (max-width: 932px) and (orientation: landscape) {
             :root {
                 --mobile-ink: #34336f;
                 --mobile-text: #555b90;
@@ -2098,7 +2098,7 @@
                 display: grid;
                 grid-template-columns: minmax(0, 1fr);
                 width: 100%;
-                padding: 0 18px calc(18px + env(safe-area-inset-bottom) * 0.4);
+                padding: 0 18px calc(18px + env(safe-area-inset-bottom));
             }
 
             .my-modal.is-mobile-message .my-modal-actions .my-button {
@@ -2454,7 +2454,7 @@
             }
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 767px), (max-width: 932px) and (orientation: landscape) {
             body {
                 background-image:
                     linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, rgba(239, 247, 255, 0.13) 42%, rgba(246, 241, 255, 0.42) 100%),
@@ -2831,7 +2831,7 @@
             .my-mobile-tabbar {
                 bottom: max(10px, env(safe-area-inset-bottom));
                 min-height: 72px;
-                padding-bottom: calc(8px + env(safe-area-inset-bottom) * 0.35);
+                padding-bottom: calc(8px + env(safe-area-inset-bottom));
             }
         }
 
@@ -3036,7 +3036,7 @@
             }
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 767px), (max-width: 932px) and (orientation: landscape) {
             .my-checkin-card {
                 align-content: start;
                 gap: 5px;
@@ -3146,7 +3146,7 @@
             }
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 767px), (max-width: 932px) and (orientation: landscape) {
             .my-profile-account-row {
                 gap: 6px;
             }
@@ -3162,6 +3162,7 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="assets/responsive-layout.css?v=20260719-responsive-layout-system1">
 </head>
 <body>
 <main class="my-page" aria-labelledby="my-title">

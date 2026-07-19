@@ -1,3 +1,4 @@
+/* 20260719-responsive-layout-system1 */
 :root {
     color-scheme: light;
     --contact-ink: #27368f;
@@ -680,7 +681,7 @@ button {
     display: none !important;
 }
 
-@media (min-width: 1061px) {
+@media (min-width: 1100px) {
     .contact-page {
         padding: 12px 18px;
     }
@@ -914,7 +915,7 @@ button {
     }
 }
 
-@media (max-width: 1060px) {
+@media (min-width: 768px) and (max-width: 1099px) {
     .contact-grid {
         grid-template-columns: minmax(300px, 1.08fr) minmax(280px, 0.92fr);
     }
@@ -928,7 +929,7 @@ button {
     }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 767px), (max-width: 932px) and (orientation: landscape) {
     body::before {
         background-image: url("images/contact-moon-garden-mobile.webp");
         background-position: center top;

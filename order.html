@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>服务预约 - 君雪</title>
     <script src="assets/performance-mode.js?v=20260613-2"></script>
     <style>
@@ -464,7 +464,7 @@
             color: #ffb7cc;
         }
 
-        @media (min-width: 769px) and (max-width: 900px) {
+        @media (min-width: 768px) and (max-width: 900px) {
             .order-shell {
                 width: min(100% - 24px, 720px);
                 padding-top: 12px;
@@ -914,7 +914,7 @@
             .order-form > .order-button--primary { min-height: 38px; }
         }
 
-        @media (min-width: 769px) and (max-width: 900px) {
+        @media (min-width: 768px) and (max-width: 900px) {
             body::before { background-position: 42% center; }
             .order-shell { width: min(100% - 20px, 720px); padding-top: 10px; }
             .order-nav { min-height: auto; padding: 12px; }
@@ -928,7 +928,7 @@
         }
 
         /* Authoritative phone layout; keep after desktop refinements to avoid cascade regressions. */
-        @media (max-width: 768px) {
+        @media (max-width: 767px), (max-width: 932px) and (orientation: landscape) {
             body::before {
                 background-position: 42% center;
             }
@@ -1147,6 +1147,7 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="assets/responsive-layout.css?v=20260719-responsive-layout-system1">
 </head>
 <body>
     <main class="order-shell">

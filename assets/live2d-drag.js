@@ -1,6 +1,6 @@
 /* Live2D direct drag: drag the Ganyu model area, while simple clicks still open the menu. */
 (function () {
-    const version = "20260629-live2d-mobile-right-drawer1";
+    const version = "20260719-responsive-layout-system1";
     if (typeof window.JunxueLive2DDebugLog !== "function") {
         window.__JUNXUE_LIVE2D_DEBUG__ = window.__JUNXUE_LIVE2D_DEBUG__ || [];
         window.JunxueLive2DDebugLog = function (message, detail) {
@@ -58,6 +58,8 @@
     let currentPosition = null;
     let suppressNextClickUntil = 0;
     let resizeFrame = 0;
+    let stageResizeObserver = null;
+    let observedStage = null;
 
     function debugMobile(message) {
         if (window.console && typeof window.console.debug === "function") {
@@ -148,10 +150,11 @@
             }
         }
 
+        const viewport = getViewportSize();
         return rect.right > 0 &&
             rect.bottom > 0 &&
-            rect.left < window.innerWidth &&
-            rect.top < window.innerHeight;
+            rect.left < viewport.width &&
+            rect.top < viewport.height;
     }
 
     function firstUsableNode(selectors) {
@@ -213,11 +216,12 @@
             }
         }
 
+        const viewport = getViewportSize();
         return {
             left: 10,
-            top: Math.max(0, window.innerHeight - 500),
+            top: Math.max(0, viewport.height - 500),
             right: 310,
-            bottom: window.innerHeight - 96,
+            bottom: viewport.height - 96,
             width: 260,
             height: 400
         };
@@ -231,7 +235,16 @@
         return Math.min(Math.max(value, min), max);
     }
 
+    function getViewportSize() {
+        const viewport = window.visualViewport;
+        return {
+            width: Math.max(1, Math.floor((viewport && viewport.width) || window.innerWidth || document.documentElement.clientWidth || 1)),
+            height: Math.max(1, Math.floor((viewport && viewport.height) || window.innerHeight || document.documentElement.clientHeight || 1))
+        };
+    }
+
     function clampPosition(position) {
+        const viewport = getViewportSize();
         const rect = getStageRect();
         const width = Math.max(1, rect.width || 260);
         const height = Math.max(1, rect.height || 400);
@@ -239,9 +252,9 @@
 
         if (stage === getStaticCard()) {
             const margin = 12;
-            const bottomReserve = Math.max(96, Math.round((window.innerHeight || 640) * 0.16));
-            const maxLeft = Math.max(margin, window.innerWidth - width - margin);
-            const maxTop = Math.max(margin, window.innerHeight - height - bottomReserve);
+            const bottomReserve = Math.max(96, Math.round(viewport.height * 0.16));
+            const maxLeft = Math.max(margin, viewport.width - width - margin);
+            const maxTop = Math.max(margin, viewport.height - height - bottomReserve);
 
             return {
                 left: clamp(position.left, margin, maxLeft),
@@ -250,9 +263,9 @@
         }
 
         const minLeft = EDGE_LIMITS.leftVisible - width;
-        const maxLeft = Math.max(minLeft, window.innerWidth - EDGE_LIMITS.rightVisible);
+        const maxLeft = Math.max(minLeft, viewport.width - EDGE_LIMITS.rightVisible);
         const minTop = EDGE_LIMITS.topVisible - height;
-        const maxTop = Math.max(minTop, window.innerHeight - EDGE_LIMITS.bottomVisible);
+        const maxTop = Math.max(minTop, viewport.height - EDGE_LIMITS.bottomVisible);
 
         return {
             left: clamp(position.left, minLeft, maxLeft),
@@ -265,8 +278,9 @@
             const parsed = raw ? JSON.parse(raw) : null;
 
             if (parsed && Number.isFinite(parsed.left) && Number.isFinite(parsed.top)) {
-                const maxOffsetX = Math.max(window.innerWidth || 0, 360) * 3;
-                const maxOffsetY = Math.max(window.innerHeight || 0, 640) * 3;
+                const viewport = getViewportSize();
+                const maxOffsetX = Math.max(viewport.width, 360) * 3;
+                const maxOffsetY = Math.max(viewport.height, 640) * 3;
 
                 if (Math.abs(parsed.left) > maxOffsetX || Math.abs(parsed.top) > maxOffsetY) {
                     console.warn("Live2D saved position ignored because it is far outside the viewport.", parsed);
@@ -656,12 +670,31 @@
         resizeFrame = window.requestAnimationFrame(syncAfterResize);
     }
 
+    function observeStageSize(stage) {
+        if (!stage || typeof window.ResizeObserver !== "function" || observedStage === stage) {
+            return;
+        }
+
+        if (!stageResizeObserver) {
+            stageResizeObserver = new window.ResizeObserver(scheduleResizeSync);
+        }
+        if (observedStage) {
+            stageResizeObserver.unobserve(observedStage);
+        }
+
+        observedStage = stage;
+        stageResizeObserver.observe(stage);
+    }
+
     function syncRuntimeDom() {
         removeLegacyDragButton();
 
-        if (!getStage()) {
+        const stage = getStage();
+        if (!stage) {
             return;
         }
+
+        observeStageSize(stage);
 
         getDragTargets().forEach(bindDragTarget);
 
@@ -691,6 +724,11 @@
         });
 
         window.addEventListener("resize", scheduleResizeSync);
+        window.addEventListener("orientationchange", scheduleResizeSync);
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener("resize", scheduleResizeSync);
+            window.visualViewport.addEventListener("scroll", scheduleResizeSync, { passive: true });
+        }
     }
 
     window.JunxueLive2DDrag = window.JunxueLive2DDrag || {};

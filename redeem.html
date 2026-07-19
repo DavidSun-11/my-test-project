@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>积分兑换 - 君雪的小站</title>
     <script src="assets/performance-mode.js?v=20260613-2"></script>
     <style>
@@ -490,7 +490,7 @@
             display: none !important;
         }
 
-        @media (max-width: 860px) {
+        @media (max-width: 767px), (max-width: 932px) and (orientation: landscape) {
             body::before {
                 inset: 0;
                 background-position: center top;
@@ -556,6 +556,7 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="assets/responsive-layout.css?v=20260719-responsive-layout-system1">
 </head>
 <body>
     <main class="redeem-shell">

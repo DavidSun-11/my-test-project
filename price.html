@@ -2,7 +2,7 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>君雪收费咨询</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <script src="assets/performance-mode.js?v=20260613-2"></script>
@@ -1625,7 +1625,7 @@
             to { opacity: 0; transform: translate(-50%, -50%) scale(5); }
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 767px), (max-width: 932px) and (orientation: landscape) {
             :root {
                 --price-anchor-offset: 86px;
             }
@@ -1945,7 +1945,8 @@
             }
         }
     </style>
-    <link rel="stylesheet" href="assets/consult-pages.css?v=20260627-consult-mobile-split1">
+    <link rel="stylesheet" href="assets/consult-pages.css?v=20260719-responsive-layout-system1">
+    <link rel="stylesheet" href="assets/responsive-layout.css?v=20260719-responsive-layout-system1">
 </head>
 <body class="consult-page consult-home-page">
 <div class="price-bg-overlay" aria-hidden="true"></div>
@@ -2455,6 +2456,6 @@ document.addEventListener("click", function (event) {
 })();
 </script>
 <script src="assets/consult-pages.js?v=20260627-consult-mobile-split1"></script>
-<script src="assets/live2d-loader.js?v=20260718-live2d-bubble-recursion1" data-live2d-autoload="manual"></script>
+<script src="assets/live2d-loader.js?v=20260719-responsive-layout-system1" data-live2d-autoload="manual"></script>
 </body>
 </html>

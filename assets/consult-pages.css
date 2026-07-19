@@ -1,4 +1,4 @@
-/* 20260627-consult-mobile-split1 */
+/* 20260719-responsive-layout-system1 */
 
 .consult-mobile-view {
     display: none;
@@ -431,13 +431,13 @@ html.performance-low .consult-mobile-cta {
     backdrop-filter: none;
 }
 
-@media (min-width: 769px) {
+@media (min-width: 768px) {
     .consult-detail-page .consult-glass-nav {
         width: min(100%, 620px);
     }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px), (max-width: 932px) and (orientation: landscape) {
     .consult-desktop-view {
         display: none;
     }

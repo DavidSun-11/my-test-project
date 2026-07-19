@@ -2,7 +2,7 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>君雪的个人网站</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <script src="assets/performance-mode.js?v=20260613-2"></script>
@@ -825,7 +825,7 @@
             }
         }
 
-        @media (max-width: 760px) {
+        @media (max-width: 767px), (max-width: 932px) and (orientation: landscape) {
             .home-boss-status {
                 top: max(12px, env(safe-area-inset-top));
                 left: max(12px, env(safe-area-inset-left));
@@ -884,7 +884,7 @@
         }
 
         /* 20260626-home-mobile-hero-position-polish1 */
-        @media (max-width: 768px) {
+        @media (max-width: 767px), (max-width: 932px) and (orientation: landscape) {
             .home-bg-video {
                 display: none;
             }
@@ -1188,6 +1188,7 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="assets/responsive-layout.css?v=20260719-responsive-layout-system1">
 </head>
 
 <body>
@@ -1306,9 +1307,8 @@
 const pagePerformance = window.JunxuePerformanceMode;
 const isLowPerformance = !!(pagePerformance && pagePerformance.isLow && pagePerformance.isLow());
 const isFullEffectMode = !!(pagePerformance && pagePerformance.requestedMode === "high");
-const isMobileViewport = window.matchMedia("(max-width: 768px)").matches ||
-    window.matchMedia("(pointer: coarse)").matches ||
-    /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "");
+const isMobileViewport = window.matchMedia("(max-width: 767px)").matches ||
+    window.matchMedia("(max-width: 932px) and (orientation: landscape)").matches;
 const manualHighEffectRequestKey = "junxueManualHighEffectRequestedAt";
 const manualHighEffectWindowMs = 30000;
 const light = document.querySelector(".cursor-light");
@@ -1527,7 +1527,7 @@ document.addEventListener("click", (e) => {
 </script>
 <script src="assets/supabase-client.js?v=20260627-home-performance1"></script>
 <script src="assets/boss-visit.js?v=20260627-home-performance1"></script>
-<script src="assets/live2d-loader.js?v=20260718-live2d-bubble-recursion1" data-live2d-autoload="home"></script>
+<script src="assets/live2d-loader.js?v=20260719-responsive-layout-system1" data-live2d-autoload="home"></script>
 <script src="assets/home-boss-status-guide.js?v=20260702-boss-auth-unified1"></script>
 </body>
 </html>

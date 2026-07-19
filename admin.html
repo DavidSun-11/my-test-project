@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>老板账号管理后台 - 君雪</title>
     <script src="assets/performance-mode.js?v=20260613-2"></script>
     <style>
@@ -431,7 +431,7 @@
             box-shadow: 0 0 0 3px rgba(112, 210, 255, .14);
         }
 
-        @media (max-width: 720px) {
+        @media (max-width: 767px), (max-width: 932px) and (orientation: landscape) {
             .admin-shell {
                 width: min(100% - 20px, 560px);
                 padding-top: 14px;
@@ -1049,20 +1049,20 @@
         .admin-action-menu button { width: 100%; min-height: 34px; padding: 7px 9px; border: 0; border-radius: 6px; background: transparent; color: #53637b; font: inherit; font-size: 13px; text-align: left; cursor: pointer; }
         .admin-action-menu button:hover, .admin-action-menu button:focus { color: var(--admin-blue); background: #f1f6ff; outline: none; }
 
-        @media (max-width: 1270px) and (min-width: 721px) {
+        @media (max-width: 1270px) and (min-width: 768px) {
             .admin-overview { grid-template-columns: minmax(320px, 1.2fr) repeat(4, minmax(112px, 1fr)); }
             .admin-shell { padding-inline: 20px; }
             .admin-stat-card { min-height: 190px; }
         }
 
-        @media (max-width: 1020px) and (min-width: 721px) {
+        @media (max-width: 1020px) and (min-width: 768px) {
             .admin-sidebar { width: 190px; }
             .admin-shell { margin-left: 190px; }
             .admin-overview { grid-template-columns: repeat(4, minmax(0, 1fr)); }
             .admin-hero { grid-column: 1 / -1; }
         }
 
-        @media (max-width: 720px) {
+        @media (max-width: 767px), (max-width: 932px) and (orientation: landscape) {
             .admin-nav { position: relative; min-height: auto; align-items: flex-start; flex-direction: column; padding: 16px; gap: 14px; }
             .admin-brand, .admin-brand-copy { gap: 12px; }
             .admin-brand strong { padding-left: 12px; font-size: 15px; }
@@ -1099,6 +1099,7 @@
             .admin-account-total, .admin-score-guess-total { margin-left: 0; }
         }
     </style>
+    <link rel="stylesheet" href="assets/responsive-layout.css?v=20260719-responsive-layout-system1">
 </head>
 <body class="admin-page">
     <header class="admin-nav" aria-label="后台顶部导航">

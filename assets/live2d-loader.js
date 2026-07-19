@@ -1,6 +1,6 @@
 /* Lightweight Live2D loader: desktop keeps dynamic Ganyu, mobile uses a stable static fallback first. */
 (function () {
-    const version = "20260718-live2d-bubble-recursion1";
+    const version = "20260719-responsive-layout-system1";
     window.__JUNXUE_LIVE2D_DEBUG__ = window.__JUNXUE_LIVE2D_DEBUG__ || [];
     window.JunxueLive2DDebugLog = window.JunxueLive2DDebugLog || function (message, detail) {
         const safeMessage = String(message || "");
@@ -25,8 +25,8 @@
 
 (function () {
     const WIDGET_SCRIPT = "live2d/live2d-widget.js?v=20260613-5";
-    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260718-live2d-bubble-recursion1";
-    const DRAG_SCRIPT = "assets/live2d-drag.js?v=20260629-live2d-mobile-right-drawer1";
+    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260719-responsive-layout-system1";
+    const DRAG_SCRIPT = "assets/live2d-drag.js?v=20260719-responsive-layout-system1";
     const FRAME_HOST_SRC = "live2d/ganyu-host.html?v=20260613-iframe1";
     const STATIC_WEBP = "assets/images/price-ganyu-showcase.webp";
     const STATIC_PNG = "assets/images/price-ganyu-showcase.png";
@@ -105,10 +105,12 @@
     const performanceMode = window.JunxuePerformanceMode;
     const isLowPerformance = !!(performanceMode && typeof performanceMode.isLow === "function" && performanceMode.isLow());
     const isHomeAutoload = autoloadMode === "home";
-    const isMobileViewport = window.matchMedia && window.matchMedia("(max-width: 768px)").matches;
+    const isMobileViewport = window.matchMedia && (
+        window.matchMedia("(max-width: 767px)").matches ||
+        window.matchMedia("(max-width: 932px) and (orientation: landscape)").matches
+    );
     const isCoarsePointer = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
-    const isMobileUserAgent = /Android|iPhone|iPad|iPod|Mobile|HarmonyOS/i.test(navigator.userAgent || "");
-    const useIframeMobile = !!(isMobileViewport || isCoarsePointer || isMobileUserAgent);
+    const useIframeMobile = !!(isMobileViewport || isCoarsePointer);
     const lowModeHint = "流畅模式下甘雨不会自动出现，点击这里显示甘雨。";
     const loaderState = window.JunxueLive2DLoader || {
         loading: false,
@@ -171,7 +173,7 @@
             "html.performance-low .ganyu-static-card:active{transform:none;box-shadow:inset 0 0 8px rgba(255,255,255,.06);}",
             "html.performance-low .ganyu-static-card.is-dynamic-ready .ganyu-static-card__visual{opacity:.42;filter:none;}",
             "html.performance-low .ganyu-static-card__dynamic{box-shadow:none;}",
-            "@media(max-width:768px){.live2d-load-control{left:12px;bottom:max(84px,calc(env(safe-area-inset-bottom) + 72px));}.live2d-load-control__button{min-height:34px;padding:0 13px;font-size:12px}.live2d-load-control__status{max-width:min(78vw,240px);font-size:12px;}#ganyu-live2d-frame-shell{left:10px;bottom:max(88px,calc(env(safe-area-inset-bottom) + 84px));width:min(54vw,204px);height:min(58vh,360px);}.ganyu-static-card{left:14px;bottom:max(82px,calc(env(safe-area-inset-bottom) + 76px));width:clamp(132px,40vw,168px);max-width:46vw;max-height:32vh;padding:7px;border-radius:16px;box-shadow:0 0 18px rgba(90,213,255,.22),0 12px 26px rgba(2,10,30,.22),inset 0 0 12px rgba(255,255,255,.10);}.ganyu-static-card__visual{min-height:86px;max-height:17vh;border-radius:12px;}.ganyu-static-card__visual picture,.ganyu-static-card__visual img{min-height:86px;max-height:17vh;}.ganyu-static-card__visual img{border-radius:12px;}.ganyu-static-card__body{gap:4px;padding:7px 3px 2px;}.ganyu-static-card__title{font-size:12px;}.ganyu-static-card__hint,.ganyu-static-card__status{font-size:10.5px;line-height:1.34;}.ganyu-static-card__dynamic{min-height:28px;padding:0 10px;font-size:11px;box-shadow:0 0 10px rgba(109,217,255,.16);}}"
+            "@media(max-width:767px),(max-width:932px) and (orientation:landscape){.live2d-load-control{left:max(12px,env(safe-area-inset-left));bottom:max(84px,calc(env(safe-area-inset-bottom) + 72px));}.live2d-load-control__button{min-height:34px;padding:0 13px;font-size:12px}.live2d-load-control__status{max-width:min(78vw,240px);font-size:12px;}#ganyu-live2d-frame-shell{left:max(10px,env(safe-area-inset-left));bottom:max(88px,calc(env(safe-area-inset-bottom) + 84px));width:min(54vw,204px);height:min(58vh,360px);height:min(58dvh,360px);}.ganyu-static-card{left:max(14px,env(safe-area-inset-left));bottom:max(82px,calc(env(safe-area-inset-bottom) + 76px));width:clamp(132px,40vw,168px);max-width:46vw;max-height:32vh;max-height:32dvh;padding:7px;border-radius:16px;box-shadow:0 0 18px rgba(90,213,255,.22),0 12px 26px rgba(2,10,30,.22),inset 0 0 12px rgba(255,255,255,.10);}.ganyu-static-card__visual{min-height:86px;max-height:17vh;max-height:17dvh;border-radius:12px;}.ganyu-static-card__visual picture,.ganyu-static-card__visual img{min-height:86px;max-height:17vh;max-height:17dvh;}.ganyu-static-card__visual img{border-radius:12px;}.ganyu-static-card__body{gap:4px;padding:7px 3px 2px;}.ganyu-static-card__title{font-size:12px;}.ganyu-static-card__hint,.ganyu-static-card__status{font-size:10.5px;line-height:1.34;}.ganyu-static-card__dynamic{min-height:28px;padding:0 10px;font-size:11px;box-shadow:0 0 10px rgba(109,217,255,.16);}}"
         ].join("");
         document.head.appendChild(style);
     }
@@ -608,12 +610,21 @@
         return isStaticCardVisible() || hasActuallyVisibleLive2D();
     }
 
+    function getViewportSize() {
+        const viewport = window.visualViewport;
+        return {
+            width: Math.max(1, Math.floor((viewport && viewport.width) || window.innerWidth || document.documentElement.clientWidth || 1)),
+            height: Math.max(1, Math.floor((viewport && viewport.height) || window.innerHeight || document.documentElement.clientHeight || 1))
+        };
+    }
+
     function parseSavedPosition(raw) {
         try {
             const parsed = raw ? JSON.parse(raw) : null;
             if (parsed && Number.isFinite(parsed.left) && Number.isFinite(parsed.top)) {
-                const maxOffsetX = Math.max(window.innerWidth || 0, 360) * 3;
-                const maxOffsetY = Math.max(window.innerHeight || 0, 640) * 3;
+                const viewport = getViewportSize();
+                const maxOffsetX = Math.max(viewport.width, 360) * 3;
+                const maxOffsetY = Math.max(viewport.height, 640) * 3;
                 if (Math.abs(parsed.left) > maxOffsetX || Math.abs(parsed.top) > maxOffsetY) {
                     return null;
                 }
@@ -639,12 +650,13 @@
     }
 
     function clampPosition(position, rect) {
+        const viewport = getViewportSize();
         const width = Math.max(1, rect && rect.width ? rect.width : 180);
         const height = Math.max(1, rect && rect.height ? rect.height : 220);
         const minLeft = 8;
-        const maxLeft = Math.max(minLeft, window.innerWidth - width - 8);
+        const maxLeft = Math.max(minLeft, viewport.width - width - 8);
         const minTop = 8;
-        const maxTop = Math.max(minTop, window.innerHeight - height - 84);
+        const maxTop = Math.max(minTop, viewport.height - height - 84);
         return {
             left: clamp(position.left, minLeft, maxLeft),
             top: clamp(position.top, minTop, maxTop)

@@ -1,6 +1,6 @@
 /* Live2D 互动模块：菜单、无奖竞答题库、英雄池转盘、咨询功能都集中在这里，方便后续继续加题。 */
 (function () {
-    const version = "20260718-live2d-bubble-recursion1";
+    const version = "20260719-responsive-layout-system1";
     if (typeof window.JunxueLive2DDebugLog !== "function") {
         window.__JUNXUE_LIVE2D_DEBUG__ = window.__JUNXUE_LIVE2D_DEBUG__ || [];
         window.JunxueLive2DDebugLog = function (message, detail) {
@@ -49,6 +49,23 @@
     const CHECKIN_ALREADY_SIGNED_TEXT = "今天已经签到过啦，明天再来见甘雨吧。";
     const BLOCKED_INTERACTION_TEXT = "当前账号暂时不能参与互动，如有疑问可以联系君雪。";
     const BOSS_PROFILE_SCRIPT_LOAD_ERROR_TEXT = "老板资料脚本暂时没有加载完成，请刷新页面后再试。";
+    const MOBILE_LAYOUT_QUERY = "(max-width: 767px)";
+    const MOBILE_LANDSCAPE_QUERY = "(max-width: 932px) and (orientation: landscape)";
+
+    function isMobileLayoutViewport() {
+        return !!(window.matchMedia && (
+            window.matchMedia(MOBILE_LAYOUT_QUERY).matches ||
+            window.matchMedia(MOBILE_LANDSCAPE_QUERY).matches
+        ));
+    }
+
+    function getResponsiveViewportSize() {
+        const viewport = window.visualViewport;
+        return {
+            width: Math.max(1, Math.floor((viewport && viewport.width) || window.innerWidth || document.documentElement.clientWidth || 1)),
+            height: Math.max(1, Math.floor((viewport && viewport.height) || window.innerHeight || document.documentElement.clientHeight || 1))
+        };
+    }
     let scoreGuessRealtimeChannels = [];
     let scoreGuessRealtimeWarningShown = false;
     let scoreGuessState = {
@@ -1020,11 +1037,11 @@
             ".score-guess-panel__actions{display:flex;flex-wrap:wrap;gap:9px;justify-content:flex-end;padding:11px;border:1px solid rgba(154,217,255,.34);border-radius:16px;background:linear-gradient(145deg,rgba(255,255,255,.07),rgba(90,165,224,.1));}",
             ".score-guess-panel__actions .score-guess-action--soft:last-child{opacity:.82;}",
             ".score-guess-panel__footer-note{padding:10px 12px;border:1px solid rgba(169,226,255,.34);border-radius:14px;background:rgba(11,31,59,.36);color:rgba(220,240,255,.88);font-size:12px;line-height:1.5;}",
-            "@media (max-width:768px){.live2d-quiz.is-main-menu .live2d-quiz__menu,.score-guess-grid,.score-guess-status,.score-guess-actions{grid-template-columns:1fr;}.live2d-menu-title,.score-guess-title{font-size:18px;}.live2d-menu-user,.score-guess-account,.score-guess-pill{font-size:11px;}.score-guess-option{min-height:70px;padding-left:44px!important;}.score-guess-option::before{left:13px;top:15px;width:20px;height:20px;}.score-guess-panel__header{grid-template-columns:1fr;}.score-guess-panel__state{justify-self:start;}.score-guess-panel__meta{grid-template-columns:1fr;}.score-guess-panel__options{grid-template-columns:1fr;}.score-guess-panel__actions{display:grid;grid-template-columns:1fr;}.score-guess-panel__actions .live2d-quiz__option{width:100%;min-width:0;}.score-guess-panel__title{font-size:20px;}}",
-            "@media (max-width:768px){.live2d-quiz.is-main-menu,.live2d-quiz.is-live2d-submenu-drawer{transform:none!important;width:clamp(188px,58vw,320px)!important;max-width:calc(100vw - 16px)!important;max-height:min(42dvh,320px)!important;padding:0!important;}.live2d-menu-panel{height:min(42dvh,320px)!important;min-height:0!important;max-height:min(42dvh,320px)!important;border-radius:26px;}.live2d-menu-panel::before{inset:8px;border-radius:20px;}.live2d-menu-panel::after{opacity:.42;height:24%;}.live2d-menu-panel__ornament{left:16%;right:16%;top:18px;}.live2d-menu-panel__moon{top:8px;width:30px;height:30px;}.live2d-menu-panel__moon::after{display:none;}.live2d-menu-beautiful-content,.live2d-menu-panel__content{min-height:0;padding:38px 18px 18px;overflow:hidden;}.live2d-quiz.is-main-menu .live2d-quiz__question,.live2d-quiz.is-live2d-submenu-drawer .live2d-quiz__question{margin-bottom:8px!important;}.live2d-quiz.is-main-menu .live2d-menu-title{font-size:18px;}.live2d-quiz.is-main-menu .live2d-menu-user{font-size:10px;padding:4px 8px;}.live2d-quiz.is-main-menu .live2d-quiz__options,.live2d-quiz.is-live2d-submenu-drawer .live2d-quiz__options{min-height:0;width:100%;}.live2d-quiz.is-main-menu .live2d-quiz__menu{grid-template-columns:1fr!important;gap:10px!important;width:100%;min-height:0;max-height:calc(min(42dvh,320px) - 126px)!important;overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch;}.live2d-quiz.is-live2d-submenu-drawer .live2d-consult-grid{display:grid!important;grid-template-columns:1fr!important;gap:8px!important;width:100%;min-height:0;max-height:calc(min(42dvh,320px) - 118px)!important;overflow-y:auto!important;overflow-x:hidden!important;padding:1px 4px 2px 1px;box-sizing:border-box;-webkit-overflow-scrolling:touch;}.live2d-quiz.is-live2d-submenu-drawer .live2d-consult-card{appearance:none;-webkit-appearance:none;display:grid!important;gap:3px;width:100%;min-width:0;min-height:42px;padding:8px 10px!important;border:1px solid rgba(183,239,255,.42)!important;border-radius:14px!important;background:linear-gradient(145deg,rgba(34,78,118,.58),rgba(27,47,91,.52))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 8px 18px rgba(0,12,38,.14)!important;color:rgba(240,252,255,.96)!important;text-align:left;pointer-events:auto!important;touch-action:manipulation;}.live2d-quiz.is-live2d-submenu-drawer .live2d-consult-card__title{font-size:12px;font-weight:840;line-height:1.2;}.live2d-quiz.is-live2d-submenu-drawer .live2d-consult-card__desc{font-size:10.5px;line-height:1.3;color:rgba(207,235,250,.82);}.live2d-quiz.is-main-menu .live2d-quiz__option{width:100%;min-width:0;min-height:42px!important;padding:8px 30px!important;font-size:12px!important;letter-spacing:.03em;}.live2d-quiz.is-main-menu .live2d-quiz__option::before{left:10px!important;width:17px!important;height:17px!important;}.live2d-quiz.is-main-menu .live2d-quiz__close,.live2d-quiz.is-live2d-submenu-drawer .live2d-quiz__close{right:13px!important;top:13px!important;width:28px!important;height:28px!important;}.live2d-quiz.is-main-menu::after,.live2d-quiz.is-live2d-submenu-drawer::after{height:42px;opacity:.42;}}",
-            "@media (max-width:768px){.live2d-quiz.is-live2d-submenu-drawer{width:min(88vw,390px)!important;max-width:calc(100vw - 16px)!important;max-height:min(52dvh,420px)!important;}.live2d-quiz.is-live2d-submenu-drawer .live2d-menu-panel{height:min(52dvh,420px)!important;max-height:min(52dvh,420px)!important;}.live2d-quiz.is-live2d-submenu-drawer .live2d-menu-beautiful-content,.live2d-quiz.is-live2d-submenu-drawer .live2d-menu-panel__content{padding:40px 18px 18px;overflow:hidden;}.live2d-quiz.is-live2d-submenu-drawer .live2d-consult-grid{max-height:calc(min(52dvh,420px) - 122px)!important;overflow-y:auto!important;overflow-x:hidden!important;}.live2d-quiz.is-live2d-submenu-drawer .live2d-consult-card{min-height:48px;padding:9px 11px!important;}}",
-            "@media (max-width:768px){.live2d-quiz.is-main-menu{--mobile-main-menu-height:min(52.5dvh,400px);max-height:var(--mobile-main-menu-height)!important;}.live2d-quiz.is-main-menu .live2d-menu-panel{height:var(--mobile-main-menu-height)!important;max-height:var(--mobile-main-menu-height)!important;}.live2d-quiz.is-main-menu .live2d-quiz__menu{max-height:calc(var(--mobile-main-menu-height) - 126px)!important;}}",
-            "@media (max-width:768px){.live2d-quiz.is-wheel,.live2d-quiz.is-score-guess,.live2d-quiz.is-weather,.live2d-quiz.is-music,.live2d-quiz.is-fortune,.live2d-quiz.is-memory,.live2d-quiz.is-checkin,.live2d-quiz.is-boss-auth,.live2d-quiz.is-boss-review{width:min(92vw,520px)!important;max-width:calc(100vw - 24px)!important;max-height:calc(100vh - 88px)!important;overflow-y:auto!important;overflow-x:hidden!important;box-sizing:border-box;z-index:10035!important;}.live2d-quiz.is-wheel .live2d-quiz__options,.live2d-quiz.is-weather .live2d-quiz__options,.live2d-quiz.is-music .live2d-quiz__options,.live2d-quiz.is-fortune .live2d-quiz__options,.live2d-quiz.is-memory .live2d-quiz__options,.live2d-quiz.is-checkin .live2d-quiz__options,.live2d-quiz.is-boss-auth .live2d-quiz__options,.live2d-quiz.is-boss-review .live2d-quiz__options{max-width:100%;overflow-x:hidden;}}",
+            "@media (max-width:767px),(max-width:932px) and (orientation:landscape){.live2d-quiz.is-main-menu .live2d-quiz__menu,.score-guess-grid,.score-guess-status,.score-guess-actions{grid-template-columns:1fr;}.live2d-menu-title,.score-guess-title{font-size:18px;}.live2d-menu-user,.score-guess-account,.score-guess-pill{font-size:11px;}.score-guess-option{min-height:70px;padding-left:44px!important;}.score-guess-option::before{left:13px;top:15px;width:20px;height:20px;}.score-guess-panel__header{grid-template-columns:1fr;}.score-guess-panel__state{justify-self:start;}.score-guess-panel__meta{grid-template-columns:1fr;}.score-guess-panel__options{grid-template-columns:1fr;}.score-guess-panel__actions{display:grid;grid-template-columns:1fr;}.score-guess-panel__actions .live2d-quiz__option{width:100%;min-width:0;}.score-guess-panel__title{font-size:20px;}}",
+            "@media (max-width:767px),(max-width:932px) and (orientation:landscape){.live2d-quiz.is-main-menu,.live2d-quiz.is-live2d-submenu-drawer{transform:none!important;width:clamp(188px,58vw,320px)!important;max-width:calc(100vw - 16px)!important;max-height:min(42dvh,320px)!important;padding:0!important;}.live2d-menu-panel{height:min(42dvh,320px)!important;min-height:0!important;max-height:min(42dvh,320px)!important;border-radius:26px;}.live2d-menu-panel::before{inset:8px;border-radius:20px;}.live2d-menu-panel::after{opacity:.42;height:24%;}.live2d-menu-panel__ornament{left:16%;right:16%;top:18px;}.live2d-menu-panel__moon{top:8px;width:30px;height:30px;}.live2d-menu-panel__moon::after{display:none;}.live2d-menu-beautiful-content,.live2d-menu-panel__content{min-height:0;padding:38px 18px 18px;overflow:hidden;}.live2d-quiz.is-main-menu .live2d-quiz__question,.live2d-quiz.is-live2d-submenu-drawer .live2d-quiz__question{margin-bottom:8px!important;}.live2d-quiz.is-main-menu .live2d-menu-title{font-size:18px;}.live2d-quiz.is-main-menu .live2d-menu-user{font-size:10px;padding:4px 8px;}.live2d-quiz.is-main-menu .live2d-quiz__options,.live2d-quiz.is-live2d-submenu-drawer .live2d-quiz__options{min-height:0;width:100%;}.live2d-quiz.is-main-menu .live2d-quiz__menu{grid-template-columns:1fr!important;gap:10px!important;width:100%;min-height:0;max-height:calc(min(42dvh,320px) - 126px)!important;overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch;}.live2d-quiz.is-live2d-submenu-drawer .live2d-consult-grid{display:grid!important;grid-template-columns:1fr!important;gap:8px!important;width:100%;min-height:0;max-height:calc(min(42dvh,320px) - 118px)!important;overflow-y:auto!important;overflow-x:hidden!important;padding:1px 4px 2px 1px;box-sizing:border-box;-webkit-overflow-scrolling:touch;}.live2d-quiz.is-live2d-submenu-drawer .live2d-consult-card{appearance:none;-webkit-appearance:none;display:grid!important;gap:3px;width:100%;min-width:0;min-height:42px;padding:8px 10px!important;border:1px solid rgba(183,239,255,.42)!important;border-radius:14px!important;background:linear-gradient(145deg,rgba(34,78,118,.58),rgba(27,47,91,.52))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 8px 18px rgba(0,12,38,.14)!important;color:rgba(240,252,255,.96)!important;text-align:left;pointer-events:auto!important;touch-action:manipulation;}.live2d-quiz.is-live2d-submenu-drawer .live2d-consult-card__title{font-size:12px;font-weight:840;line-height:1.2;}.live2d-quiz.is-live2d-submenu-drawer .live2d-consult-card__desc{font-size:10.5px;line-height:1.3;color:rgba(207,235,250,.82);}.live2d-quiz.is-main-menu .live2d-quiz__option{width:100%;min-width:0;min-height:42px!important;padding:8px 30px!important;font-size:12px!important;letter-spacing:.03em;}.live2d-quiz.is-main-menu .live2d-quiz__option::before{left:10px!important;width:17px!important;height:17px!important;}.live2d-quiz.is-main-menu .live2d-quiz__close,.live2d-quiz.is-live2d-submenu-drawer .live2d-quiz__close{right:13px!important;top:13px!important;width:28px!important;height:28px!important;}.live2d-quiz.is-main-menu::after,.live2d-quiz.is-live2d-submenu-drawer::after{height:42px;opacity:.42;}}",
+            "@media (max-width:767px),(max-width:932px) and (orientation:landscape){.live2d-quiz.is-live2d-submenu-drawer{width:min(88vw,390px)!important;max-width:calc(100vw - 16px)!important;max-height:min(52dvh,420px)!important;}.live2d-quiz.is-live2d-submenu-drawer .live2d-menu-panel{height:min(52dvh,420px)!important;max-height:min(52dvh,420px)!important;}.live2d-quiz.is-live2d-submenu-drawer .live2d-menu-beautiful-content,.live2d-quiz.is-live2d-submenu-drawer .live2d-menu-panel__content{padding:40px 18px 18px;overflow:hidden;}.live2d-quiz.is-live2d-submenu-drawer .live2d-consult-grid{max-height:calc(min(52dvh,420px) - 122px)!important;overflow-y:auto!important;overflow-x:hidden!important;}.live2d-quiz.is-live2d-submenu-drawer .live2d-consult-card{min-height:48px;padding:9px 11px!important;}}",
+            "@media (max-width:767px),(max-width:932px) and (orientation:landscape){.live2d-quiz.is-main-menu{--mobile-main-menu-height:min(52.5dvh,400px);max-height:var(--mobile-main-menu-height)!important;}.live2d-quiz.is-main-menu .live2d-menu-panel{height:var(--mobile-main-menu-height)!important;max-height:var(--mobile-main-menu-height)!important;}.live2d-quiz.is-main-menu .live2d-quiz__menu{max-height:calc(var(--mobile-main-menu-height) - 126px)!important;}}",
+            "@media (max-width:767px),(max-width:932px) and (orientation:landscape){.live2d-quiz.is-wheel,.live2d-quiz.is-score-guess,.live2d-quiz.is-weather,.live2d-quiz.is-music,.live2d-quiz.is-fortune,.live2d-quiz.is-memory,.live2d-quiz.is-checkin,.live2d-quiz.is-boss-auth,.live2d-quiz.is-boss-review{width:min(92vw,520px)!important;max-width:calc(100vw - 24px)!important;max-height:calc(100vh - 88px)!important;overflow-y:auto!important;overflow-x:hidden!important;box-sizing:border-box;z-index:10035!important;}.live2d-quiz.is-wheel .live2d-quiz__options,.live2d-quiz.is-weather .live2d-quiz__options,.live2d-quiz.is-music .live2d-quiz__options,.live2d-quiz.is-fortune .live2d-quiz__options,.live2d-quiz.is-memory .live2d-quiz__options,.live2d-quiz.is-checkin .live2d-quiz__options,.live2d-quiz.is-boss-auth .live2d-quiz__options,.live2d-quiz.is-boss-review .live2d-quiz__options{max-width:100%;overflow-x:hidden;}}",
             "@media (max-width:360px){.live2d-quiz.is-main-menu{width:min(74vw,300px)!important;max-width:calc(100vw - 16px)!important;}.live2d-quiz.is-main-menu .live2d-quiz__option{padding-left:28px!important;padding-right:24px!important;font-size:11.5px!important;}}",
             "@media (prefers-reduced-motion:reduce){.live2d-quiz.is-main-menu::before,.live2d-quiz.is-main-menu::after,.live2d-quiz.is-main-menu .live2d-quiz__option::after,.live2d-menu-beautiful-wave,.live2d-menu-panel::after{animation:none!important;transition:none!important;}.live2d-menu-beautiful-wave,.live2d-menu-panel::after{opacity:.22;}.live2d-quiz.is-main-menu::after{opacity:.28;}.live2d-quiz.is-main-menu .live2d-quiz__option:hover:not(:disabled){transform:none;}}",
             "html.performance-low .live2d-quiz.is-main-menu,html.performance-low .live2d-quiz.is-score-guess{box-shadow:0 12px 28px rgba(3,18,42,.38),inset 0 1px 0 rgba(255,255,255,.18);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);}",
@@ -1073,7 +1090,7 @@
             ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-action--danger{border-color:rgba(255,198,216,.86);background:linear-gradient(135deg,rgba(245,105,156,.72),rgba(132,94,220,.72));}",
             ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-action--soft{opacity:.9;}",
             ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__footer-note{padding:11px 13px!important;border:1px solid rgba(169,226,255,.36)!important;border-radius:15px!important;background:rgba(11,31,59,.4)!important;color:rgba(220,240,255,.9)!important;font-size:13px!important;line-height:1.55!important;}",
-            "@media (max-width:768px){.live2d-quiz.is-score-guess{width:min(92vw,calc(100vw - 24px));max-height:calc(100vh - 72px);padding:14px!important;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"]{gap:13px!important;padding:15px!important;border-radius:22px;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__header,.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__meta,.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__options{grid-template-columns:1fr!important;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__status-pill{justify-self:start;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__title{font-size:25px;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-option{grid-template-columns:48px 1fr auto;min-height:82px!important;padding:13px!important;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-option__badge{width:48px;height:48px;border-radius:16px;font-size:17px;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-option__name{font-size:18px;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__actions{display:grid!important;grid-template-columns:1fr!important;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-action{width:100%;min-width:0;}}",
+            "@media (max-width:767px),(max-width:932px) and (orientation:landscape){.live2d-quiz.is-score-guess{width:min(92vw,calc(100vw - 24px));max-height:calc(100vh - 72px);padding:14px!important;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"]{gap:13px!important;padding:15px!important;border-radius:22px;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__header,.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__meta,.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__options{grid-template-columns:1fr!important;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__status-pill{justify-self:start;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__title{font-size:25px;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-option{grid-template-columns:48px 1fr auto;min-height:82px!important;padding:13px!important;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-option__badge{width:48px;height:48px;border-radius:16px;font-size:17px;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-option__name{font-size:18px;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__actions{display:grid!important;grid-template-columns:1fr!important;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-action{width:100%;min-width:0;}}",
             ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"]{gap:18px!important;max-width:min(760px,calc(100vw - 32px))!important;margin:0 auto!important;padding:30px 30px 24px!important;border-radius:28px!important;border:1px solid rgba(165,232,255,.78)!important;background:radial-gradient(circle at 50% -8%,rgba(148,228,255,.38),transparent 32%),radial-gradient(circle at 98% 10%,rgba(188,126,255,.2),transparent 28%),radial-gradient(circle at 8% 92%,rgba(88,201,255,.16),transparent 32%),linear-gradient(155deg,rgba(5,20,47,.9),rgba(16,48,86,.76) 52%,rgba(18,30,70,.82))!important;box-shadow:0 0 0 1px rgba(229,252,255,.18),0 28px 70px rgba(0,12,38,.48),0 0 42px rgba(90,205,255,.34),inset 0 1px 0 rgba(255,255,255,.3),inset 0 -34px 68px rgba(88,92,190,.18)!important;-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);}",
             ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"]::before{left:28px!important;right:28px!important;height:3px!important;background:linear-gradient(90deg,transparent,rgba(244,254,255,.98),rgba(132,221,255,.86),transparent)!important;box-shadow:0 0 24px rgba(124,225,255,.7)!important;}",
             ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"]::after{right:-48px!important;top:70px!important;width:190px!important;height:190px!important;background:radial-gradient(circle,rgba(108,214,255,.18),rgba(176,130,255,.08) 42%,transparent 68%)!important;}",
@@ -1109,7 +1126,7 @@
             ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-action{min-height:48px!important;min-width:154px!important;padding:12px 18px!important;border-radius:999px!important;font-size:15px!important;}",
             ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-action--primary{background:linear-gradient(135deg,rgba(87,213,255,.92),rgba(168,118,255,.82))!important;box-shadow:0 0 26px rgba(102,213,255,.38),inset 0 1px 0 rgba(255,255,255,.32)!important;}",
             ".score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__footer-note{text-align:center!important;color:rgba(195,227,247,.9)!important;background:linear-gradient(90deg,transparent,rgba(98,183,240,.12),transparent)!important;border-color:rgba(169,226,255,.28)!important;}",
-            "@media (max-width:768px){.live2d-quiz.is-score-guess{width:min(92vw,calc(100vw - 24px))!important;max-height:calc(100vh - 88px)!important;padding:12px!important;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"]{max-width:92vw!important;gap:13px!important;padding:16px!important;border-radius:22px!important;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__header{padding:0 34px 2px!important;align-items:flex-start!important;text-align:left!important;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__heading{align-items:flex-start!important;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__title-row{justify-content:flex-start!important;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__title{font-size:27px!important;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__question{font-size:16px!important;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__meta,.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__options{grid-template-columns:1fr!important;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__meta-item{min-height:62px!important;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-option{grid-template-columns:50px 1fr auto!important;min-height:86px!important;padding:13px!important;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-option__badge{width:50px!important;height:50px!important;border-radius:16px!important;font-size:17px!important;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-option__name{font-size:18px!important;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__actions{display:grid!important;grid-template-columns:1fr!important;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-action{width:100%!important;min-width:0!important;}}",
+            "@media (max-width:767px),(max-width:932px) and (orientation:landscape){.live2d-quiz.is-score-guess{width:min(92vw,calc(100vw - 24px))!important;max-height:calc(100vh - 88px)!important;padding:12px!important;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"]{max-width:92vw!important;gap:13px!important;padding:16px!important;border-radius:22px!important;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__header{padding:0 34px 2px!important;align-items:flex-start!important;text-align:left!important;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__heading{align-items:flex-start!important;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__title-row{justify-content:flex-start!important;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__title{font-size:27px!important;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__question{font-size:16px!important;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__meta,.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__options{grid-template-columns:1fr!important;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__meta-item{min-height:62px!important;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-option{grid-template-columns:50px 1fr auto!important;min-height:86px!important;padding:13px!important;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-option__badge{width:50px!important;height:50px!important;border-radius:16px!important;font-size:17px!important;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-option__name{font-size:18px!important;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__actions{display:grid!important;grid-template-columns:1fr!important;}.score-guess-panel[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-action{width:100%!important;min-width:0!important;}}",
             ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"]{display:flex!important;flex-direction:column!important;gap:14px!important;width:100%!important;max-width:820px!important;max-height:calc(100vh - 104px)!important;overflow-y:auto!important;overflow-x:hidden!important;padding:22px 24px 18px!important;border-radius:28px!important;border:1px solid rgba(177,236,255,.82)!important;background:radial-gradient(circle at 50% -10%,rgba(158,231,255,.4),transparent 33%),radial-gradient(circle at 96% 10%,rgba(191,134,255,.22),transparent 30%),linear-gradient(155deg,rgba(5,20,47,.92),rgba(16,47,86,.78) 54%,rgba(18,31,70,.84))!important;box-shadow:0 0 0 1px rgba(230,252,255,.18),0 30px 74px rgba(0,12,38,.5),0 0 48px rgba(91,207,255,.36),inset 0 1px 0 rgba(255,255,255,.32),inset 0 -34px 68px rgba(88,92,190,.18)!important;-webkit-backdrop-filter:blur(20px) saturate(1.16);backdrop-filter:blur(20px) saturate(1.16);box-sizing:border-box!important;}",
             ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__header{display:flex!important;flex-direction:column!important;align-items:center!important;text-align:center!important;gap:6px!important;padding:0 42px 2px!important;border:0!important;background:transparent!important;box-shadow:none!important;}",
             ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__heading{display:contents!important;}",
@@ -1150,7 +1167,7 @@
             ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-action--danger{border-color:rgba(255,198,216,.86)!important;background:linear-gradient(135deg,rgba(245,105,156,.72),rgba(132,94,220,.72))!important;}",
             ".score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__footer-note{text-align:center!important;padding:11px 13px!important;border:1px solid rgba(169,226,255,.28)!important;border-radius:15px!important;background:linear-gradient(90deg,transparent,rgba(98,183,240,.12),transparent)!important;color:rgba(195,227,247,.9)!important;font-size:13px!important;line-height:1.55!important;}",
             "@media (max-width:720px){.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"]{width:min(92vw,520px)!important;padding:20px!important;gap:13px!important;border-radius:22px!important;}.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__header{padding:0 34px 2px!important;align-items:flex-start!important;text-align:left!important;}.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__title{font-size:28px!important;}.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__meta,.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__options,.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-stake,.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-settlement{grid-template-columns:1fr!important;}.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-option{grid-template-columns:50px 1fr auto!important;min-height:86px!important;padding:13px!important;}.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-option__badge{width:50px!important;height:50px!important;border-radius:16px!important;font-size:17px!important;}.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-panel__actions{display:grid!important;grid-template-columns:1fr!important;}.score-guess-panel.score-guess-panel--final[data-score-guess-ui-version=\"20260620-score-guess-polish3\"] .score-guess-action{width:100%!important;min-width:0!important;}}",
-            "@media (max-width:768px){.live2d-opening-bubble,.live2d-quiz-exit-bubble,.live2d-idle-bubble{width:min(92vw,320px);max-width:calc(100vw - 24px);font-size:13px;box-sizing:border-box;}body.keyboard-open .live2d-opening-bubble,body.keyboard-open .live2d-quiz-exit-bubble,body.keyboard-open .live2d-idle-bubble{left:50%!important;right:auto!important;top:max(12px,env(safe-area-inset-top))!important;bottom:auto!important;width:min(92vw,320px)!important;max-width:calc(100vw - 24px)!important;max-height:min(54vh,320px);overflow:auto;transform:translateX(-50%)!important;}}"
+            "@media (max-width:767px),(max-width:932px) and (orientation:landscape){.live2d-opening-bubble,.live2d-quiz-exit-bubble,.live2d-idle-bubble{width:min(92vw,320px);max-width:calc(100vw - 24px);font-size:13px;box-sizing:border-box;}body.keyboard-open .live2d-opening-bubble,body.keyboard-open .live2d-quiz-exit-bubble,body.keyboard-open .live2d-idle-bubble{left:50%!important;right:auto!important;top:max(12px,env(safe-area-inset-top))!important;bottom:auto!important;width:min(92vw,320px)!important;max-width:calc(100vw - 24px)!important;max-height:min(54vh,320px);overflow:auto;transform:translateX(-50%)!important;}}"
         ].join("");
         document.head.appendChild(style);
     }
@@ -1479,12 +1496,14 @@
         const margin = settings.margin || 8;
         const fallbackWidth = settings.width || 330;
         const fallbackHeight = settings.height || 160;
-        const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
-        const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+        const viewport = getResponsiveViewportSize();
+        const viewportWidth = viewport.width;
+        const viewportHeight = viewport.height;
         const mobileMaxWidthRatio = typeof settings.mobileMaxWidthRatio === "number" ? settings.mobileMaxWidthRatio : 0.72;
         const mobileMaxWidth = Math.max(160, Math.floor(viewportWidth * mobileMaxWidthRatio));
         const desktopMaxWidth = Math.max(160, viewportWidth - margin * 2);
-        const popupWidth = Math.min(node.offsetWidth || fallbackWidth, viewportWidth <= 768 ? mobileMaxWidth : desktopMaxWidth);
+        const mobileLayout = isMobileLayoutViewport();
+        const popupWidth = Math.min(node.offsetWidth || fallbackWidth, mobileLayout ? mobileMaxWidth : desktopMaxWidth);
         const popupHeight = node.offsetHeight || fallbackHeight;
         const maxLeft = Math.max(margin, viewportWidth - popupWidth - margin);
         const maxTop = Math.max(margin, viewportHeight - popupHeight - margin);
@@ -1501,7 +1520,7 @@
         let nextLeft = candidates[2].left;
         let nextTop = candidates[2].top;
 
-        node.style.maxWidth = viewportWidth <= 768 ? (Math.round(mobileMaxWidthRatio * 100) + "vw") : "calc(100vw - " + (margin * 2) + "px)";
+        node.style.maxWidth = mobileLayout ? (Math.round(mobileMaxWidthRatio * 100) + "vw") : "calc(100vw - " + (margin * 2) + "px)";
 
         function overlapsHead(left, top) {
             const right = left + popupWidth;
@@ -1572,6 +1591,7 @@
         let fortuneProcessTimer = null;
         let dialogMode = "menu";
         let popupSyncFrame = 0;
+        let popupResizeObserver = null;
         let beautifulMenuShell = null;
         let mobileMenuStage = "closed";
 
@@ -1829,9 +1849,11 @@
                 return;
             }
 
-            const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
-            const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-            const margin = viewportWidth <= 768 ? 12 : 18;
+            const viewport = getResponsiveViewportSize();
+            const viewportWidth = viewport.width;
+            const viewportHeight = viewport.height;
+            const mobileLayout = isMobileLayoutViewport();
+            const margin = mobileLayout ? 12 : 18;
             const rect = dialog.getBoundingClientRect();
             const width = rect.width || dialog.offsetWidth || 320;
             const height = rect.height || dialog.offsetHeight || 240;
@@ -1840,7 +1862,7 @@
             const currentLeft = Number.parseFloat(dialog.style.left || rect.left || 0);
             const currentTop = Number.parseFloat(dialog.style.top || rect.top || 0);
             const centeredLeft = Math.max(margin, Math.floor((viewportWidth - width) / 2));
-            const nextLeft = viewportWidth <= 768 ? centeredLeft : clamp(currentLeft, margin, maxLeft);
+            const nextLeft = mobileLayout ? centeredLeft : clamp(currentLeft, margin, maxLeft);
             const nextTop = clamp(currentTop, margin, maxTop);
 
             dialog.style.left = nextLeft + "px";
@@ -1876,12 +1898,11 @@
         }
 
         function isMobileViewport() {
-            return (window.innerWidth || document.documentElement.clientWidth || 0) <= 768;
+            return isMobileLayoutViewport();
         }
 
         function prepareMobileSubmenuDrawer(key) {
-            const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
-            if (viewportWidth > 768) {
+            if (!isMobileLayoutViewport()) {
                 dialog.classList.remove("is-live2d-submenu-drawer");
                 dialog.removeAttribute("data-live2d-submenu-key");
                 return;
@@ -1992,8 +2013,7 @@
         }
 
         function updateMobileMenuAnchorPosition() {
-            const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
-            if (viewportWidth > 768 || !isMobileDrawerDialog()) {
+            if (!isMobileLayoutViewport() || !isMobileDrawerDialog()) {
                 return;
             }
 
@@ -2002,7 +2022,9 @@
                 return;
             }
 
-            const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+            const viewport = getResponsiveViewportSize();
+            const viewportWidth = viewport.width;
+            const viewportHeight = viewport.height;
             const card = getStaticCardAnchor();
             if (!isVisibleStaticCardAnchor(card)) {
                 forceMobileMenuViewportFallback();
@@ -2055,8 +2077,9 @@
         }
 
         function updateMobileSubmenuViewportPosition() {
-            const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
-            const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+            const viewport = getResponsiveViewportSize();
+            const viewportWidth = viewport.width;
+            const viewportHeight = viewport.height;
             const margin = 8;
             const width = Math.min(Math.round(viewportWidth * 0.88), 390, Math.max(160, viewportWidth - margin * 2));
             const maxHeight = Math.min(Math.round(viewportHeight * 0.52), 420, Math.max(180, viewportHeight - margin * 2));
@@ -2099,12 +2122,13 @@
         }
 
         function updateMobileFeatureViewportPosition() {
-            const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
-            if (viewportWidth > 768 || !isMobileFeatureDialog()) {
+            if (!isMobileLayoutViewport() || !isMobileFeatureDialog()) {
                 return;
             }
 
-            const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+            const viewport = getResponsiveViewportSize();
+            const viewportWidth = viewport.width;
+            const viewportHeight = viewport.height;
             const margin = 12;
             const width = Math.min(Math.round(viewportWidth * 0.92), 520, Math.max(180, viewportWidth - margin * 2));
             const maxHeight = Math.max(220, viewportHeight - 88);
@@ -2179,8 +2203,7 @@
         }
 
         function debugMobileMenuShellCleanup() {
-            const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
-            if (viewportWidth > 768) {
+            if (!isMobileLayoutViewport()) {
                 return;
             }
 
@@ -2197,8 +2220,7 @@
         }
 
         function forceMobileMenuViewportFallback() {
-            const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
-            if (viewportWidth > 768 || !isMobileDrawerDialog()) {
+            if (!isMobileLayoutViewport() || !isMobileDrawerDialog()) {
                 return;
             }
 
@@ -2209,6 +2231,7 @@
             dialog.style.setProperty("top", "max(18px, env(safe-area-inset-top))", "important");
             dialog.style.setProperty("bottom", "auto", "important");
             dialog.style.setProperty("transform", "none", "important");
+            const viewportWidth = getResponsiveViewportSize().width;
             dialog.style.setProperty("width", viewportWidth <= 360 ? "min(74vw, 300px)" : "clamp(188px, 58vw, 320px)", "important");
             dialog.style.setProperty("max-width", "calc(100vw - 16px)", "important");
             dialog.style.setProperty("--mobile-main-menu-height", "min(52.5dvh, 400px)");
@@ -2222,7 +2245,7 @@
             const isMainMenu = dialog.classList.contains("is-main-menu");
             const submenuKey = getMobileDrawerKey();
             const isMobileSubmenuDrawer = dialog.classList.contains("is-live2d-submenu-drawer");
-            const debugScope = (window.innerWidth || 0) <= 768 ? "live2d-mobile" : "live2d-pc";
+            const debugScope = isMobileLayoutViewport() ? "live2d-mobile" : "live2d-pc";
             if (isMobileSubmenuDrawer && debugScope === "live2d-mobile") {
                 debugLive2DMenu(debugScope, "submenu showDialog called: " + submenuKey);
                 publishStaticDebugStatus("mobile submenu showDialog called: " + submenuKey);
@@ -2380,7 +2403,7 @@
             if (dialog.classList.contains("is-score-guess")) {
                 cleanupScoreGuessRealtime();
             }
-            const debugScope = (window.innerWidth || 0) <= 768 ? "live2d-mobile" : "live2d-pc";
+            const debugScope = isMobileLayoutViewport() ? "live2d-mobile" : "live2d-pc";
             debugLive2DMenu(debugScope, "menu close");
             if (debugScope === "live2d-mobile") {
                 publishStaticDebugStatus("mobile menu close");
@@ -2475,7 +2498,7 @@
             let lastOptionOpenAt = 0;
 
             function getMenuOptionScope() {
-                return (window.innerWidth || 0) <= 768 ? "live2d-mobile" : "live2d-pc";
+                return isMobileLayoutViewport() ? "live2d-mobile" : "live2d-pc";
             }
 
             function getMenuOptionDebugKey(event) {
@@ -2555,7 +2578,7 @@
         function addMainMenuOption(label, key, onClick) {
             const button = addOption(label, function (currentButton, event) {
                 const currentKey = currentButton && currentButton.dataset ? currentButton.dataset.live2dMenuKey : "";
-                const scope = (window.innerWidth || 0) <= 768 ? "live2d-mobile" : "live2d-pc";
+                const scope = isMobileLayoutViewport() ? "live2d-mobile" : "live2d-pc";
                 if (currentKey !== key) {
                     debugLive2DMenu(scope, "menu option ignored: key mismatch", {
                         expected: key,
@@ -2739,7 +2762,7 @@
         function showEntertainmentPanel() {
             clearDialog();
             setDialogMode("menu");
-            if ((window.innerWidth || 0) <= 768) {
+            if (isMobileLayoutViewport()) {
                 debugLive2DMenu("live2d-mobile", "showEntertainmentPanel called");
                 publishStaticDebugStatus("mobile showEntertainmentPanel called");
             }
@@ -2770,7 +2793,7 @@
         function showLiveInteractionPanel() {
             clearDialog();
             setDialogMode("menu");
-            if ((window.innerWidth || 0) <= 768) {
+            if (isMobileLayoutViewport()) {
                 debugLive2DMenu("live2d-mobile", "showLiveInteractionPanel called");
                 publishStaticDebugStatus("mobile showLiveInteractionPanel called");
             }
@@ -2808,7 +2831,7 @@
         function showKnowJunxuePanel() {
             clearDialog();
             setDialogMode("menu");
-            if ((window.innerWidth || 0) <= 768) {
+            if (isMobileLayoutViewport()) {
                 debugLive2DMenu("live2d-mobile", "showKnowJunxuePanel called");
                 publishStaticDebugStatus("mobile showKnowJunxuePanel called");
             }
@@ -5342,7 +5365,7 @@
         function showConsultPanel() {
             clearDialog();
             setDialogMode("menu");
-            if ((window.innerWidth || 0) <= 768) {
+            if (isMobileLayoutViewport()) {
                 debugLive2DMenu("live2d-mobile", "showConsultPanel called");
                 publishStaticDebugStatus("mobile showConsultPanel called");
             }
@@ -6352,6 +6375,14 @@
         window.addEventListener("resize", scheduleLive2DPopupPositions);
         window.addEventListener("orientationchange", scheduleLive2DPopupPositions);
         window.addEventListener("scroll", scheduleLive2DPopupPositions, { passive: true });
+        if (typeof window.ResizeObserver === "function") {
+            popupResizeObserver = new window.ResizeObserver(scheduleLive2DPopupPositions);
+            popupResizeObserver.observe(dialog);
+        }
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener("resize", scheduleLive2DPopupPositions);
+            window.visualViewport.addEventListener("scroll", scheduleLive2DPopupPositions, { passive: true });
+        }
         document.addEventListener("visibilitychange", function () {
             if (!document.hidden) {
                 scheduleLive2DPopupPositions();

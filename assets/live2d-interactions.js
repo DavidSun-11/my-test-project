@@ -1,6 +1,6 @@
 /* Live2D 轻量启动脚本：首屏只保留开场提示、点击入口和懒加载控制。 */
 (function () {
-    const version = "20260718-live2d-bubble-recursion1";
+    const version = "20260719-responsive-layout-system1";
     if (typeof window.JunxueLive2DDebugLog !== "function") {
         window.__JUNXUE_LIVE2D_DEBUG__ = window.__JUNXUE_LIVE2D_DEBUG__ || [];
         window.JunxueLive2DDebugLog = function (message, detail) {
@@ -31,10 +31,19 @@
 
     window.__JUNXUE_LIVE2D_INTERACTIONS_INSTALLED__ = true;
 
-    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260718-live2d-bubble-recursion1";
+    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260719-responsive-layout-system1";
     const BOSS_NAME_FALLBACK = "旅行者";
+    const MOBILE_LAYOUT_QUERY = "(max-width: 767px)";
+    const MOBILE_LANDSCAPE_QUERY = "(max-width: 932px) and (orientation: landscape)";
     if (typeof window.enableGanyuMemory !== "boolean") {
         window.enableGanyuMemory = true;
+    }
+
+    function isMobileLayoutViewport() {
+        return !!(window.matchMedia && (
+            window.matchMedia(MOBILE_LAYOUT_QUERY).matches ||
+            window.matchMedia(MOBILE_LANDSCAPE_QUERY).matches
+        ));
     }
 
     const memoryStorageKeys = {
@@ -392,7 +401,7 @@
             ".live2d-quiz-exit-bubble.is-fading{opacity:0;transform:translateY(-6px);}",
             ".live2d-companion-bubble{display:none!important;}",
             "#oml2d-tips{display:none!important;}",
-            "@media (max-width:768px){.live2d-opening-bubble,.live2d-quiz-exit-bubble{width:min(92vw,320px);max-width:calc(100vw - 24px);font-size:13px;box-sizing:border-box;}body.keyboard-open .live2d-opening-bubble,body.keyboard-open .live2d-quiz-exit-bubble{left:50%!important;right:auto!important;top:max(12px,env(safe-area-inset-top))!important;bottom:auto!important;width:min(92vw,320px)!important;max-width:calc(100vw - 24px)!important;max-height:min(54vh,320px);overflow:auto;transform:translateX(-50%)!important;}}"
+            "@media (max-width:767px),(max-width:932px) and (orientation:landscape){.live2d-opening-bubble,.live2d-quiz-exit-bubble{width:min(92vw,320px);max-width:calc(100vw - 24px);font-size:13px;box-sizing:border-box;}body.keyboard-open .live2d-opening-bubble,body.keyboard-open .live2d-quiz-exit-bubble{left:50%!important;right:auto!important;top:max(12px,env(safe-area-inset-top))!important;bottom:auto!important;width:min(92vw,320px)!important;max-width:calc(100vw - 24px)!important;max-height:min(54vh,320px);max-height:min(54dvh,320px);overflow:auto;transform:translateX(-50%)!important;}}"
         ].join("");
         document.head.appendChild(style);
     }
@@ -460,7 +469,8 @@
         const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
         const mobileMaxWidth = Math.max(160, Math.floor(viewportWidth * 0.72));
         const desktopMaxWidth = Math.max(160, viewportWidth - settings.margin * 2);
-        const popupWidth = Math.min(node.offsetWidth || settings.width, viewportWidth <= 768 ? mobileMaxWidth : desktopMaxWidth);
+        const mobileLayout = isMobileLayoutViewport();
+        const popupWidth = Math.min(node.offsetWidth || settings.width, mobileLayout ? mobileMaxWidth : desktopMaxWidth);
         const popupHeight = node.offsetHeight || settings.height;
         const maxLeft = Math.max(settings.margin, viewportWidth - popupWidth - settings.margin);
         const maxTop = Math.max(settings.margin, viewportHeight - popupHeight - settings.margin);
@@ -475,7 +485,7 @@
         let nextLeft = candidates[2].left;
         let nextTop = candidates[2].top;
 
-        node.style.maxWidth = viewportWidth <= 768 ? "72vw" : "calc(100vw - " + (settings.margin * 2) + "px)";
+        node.style.maxWidth = mobileLayout ? "72vw" : "calc(100vw - " + (settings.margin * 2) + "px)";
 
         function overlapsHead(left, top) {
             const right = left + popupWidth;
@@ -1619,6 +1629,11 @@
         window.setTimeout(bindLive2DRoots, 3000);
         window.addEventListener("live2d-stage-position-changed", schedulePopupPositionSync);
         window.addEventListener("resize", schedulePopupPositionSync);
+        window.addEventListener("orientationchange", schedulePopupPositionSync);
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener("resize", schedulePopupPositionSync);
+            window.visualViewport.addEventListener("scroll", schedulePopupPositionSync, { passive: true });
+        }
         document.addEventListener("visibilitychange", function () {
             if (!document.hidden) {
                 schedulePopupPositionSync();

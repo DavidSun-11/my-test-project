@@ -1,6 +1,6 @@
 /* Live2D 互动模块：菜单、无奖竞答题库、英雄池转盘、咨询功能都集中在这里，方便后续继续加题。 */
 (function () {
-    const version = "20260730-mobile-live2d-effects1";
+    const version = "20260730-mobile-live2d-menu-drag1";
     if (typeof window.JunxueLive2DDebugLog !== "function") {
         window.__JUNXUE_LIVE2D_DEBUG__ = window.__JUNXUE_LIVE2D_DEBUG__ || [];
         window.JunxueLive2DDebugLog = function (message, detail) {
@@ -84,6 +84,7 @@
         loadingPromise: null
     };
     let live2dMainMenuRenderToken = 0;
+    const MOBILE_MENU_POSITION_KEY = "junxue-live2d-mobile-menu-position";
 
     function getLive2DOpenSource() {
         return window.__JUNXUE_LIVE2D_OPEN_SOURCE__ || "";
@@ -1043,6 +1044,7 @@
             "@media (max-width:767px),(max-width:932px) and (orientation:landscape){.live2d-quiz.is-main-menu{--mobile-main-menu-height:min(52.5dvh,400px);max-height:var(--mobile-main-menu-height)!important;}.live2d-quiz.is-main-menu .live2d-menu-panel{height:var(--mobile-main-menu-height)!important;max-height:var(--mobile-main-menu-height)!important;}.live2d-quiz.is-main-menu .live2d-quiz__menu{max-height:calc(var(--mobile-main-menu-height) - 126px)!important;}}",
             "@media (max-width:767px),(max-width:932px) and (orientation:landscape){.live2d-quiz.is-wheel,.live2d-quiz.is-score-guess,.live2d-quiz.is-weather,.live2d-quiz.is-music,.live2d-quiz.is-fortune,.live2d-quiz.is-memory,.live2d-quiz.is-checkin,.live2d-quiz.is-boss-auth,.live2d-quiz.is-boss-review{width:min(92vw,520px)!important;max-width:calc(100vw - 24px)!important;max-height:calc(100vh - 88px)!important;overflow-y:auto!important;overflow-x:hidden!important;box-sizing:border-box;z-index:10035!important;}.live2d-quiz.is-wheel .live2d-quiz__options,.live2d-quiz.is-weather .live2d-quiz__options,.live2d-quiz.is-music .live2d-quiz__options,.live2d-quiz.is-fortune .live2d-quiz__options,.live2d-quiz.is-memory .live2d-quiz__options,.live2d-quiz.is-checkin .live2d-quiz__options,.live2d-quiz.is-boss-auth .live2d-quiz__options,.live2d-quiz.is-boss-review .live2d-quiz__options{max-width:100%;overflow-x:hidden;}}",
             "@media (max-width:360px){.live2d-quiz.is-main-menu{width:min(74vw,300px)!important;max-width:calc(100vw - 16px)!important;}.live2d-quiz.is-main-menu .live2d-quiz__option{padding-left:28px!important;padding-right:24px!important;font-size:11.5px!important;}}",
+            "@media (max-width:767px),(max-width:932px) and (orientation:landscape){.live2d-quiz.is-main-menu{width:clamp(180px,52vw,210px)!important;max-width:calc(100vw - 16px)!important;max-height:min(46dvh,340px)!important;--mobile-main-menu-height:min(46dvh,340px);}.live2d-quiz.is-main-menu .live2d-menu-panel{height:var(--mobile-main-menu-height)!important;max-height:var(--mobile-main-menu-height)!important;}.live2d-quiz.is-main-menu .live2d-menu-beautiful-content,.live2d-quiz.is-main-menu .live2d-menu-panel__content{padding:36px 14px 14px;}.live2d-quiz.is-main-menu .live2d-quiz__menu{gap:8px!important;max-height:calc(var(--mobile-main-menu-height) - 108px)!important;}.live2d-quiz.is-main-menu .live2d-quiz__option{min-height:40px!important;padding:7px 28px!important;font-size:12px!important;}.live2d-quiz.is-main-menu .live2d-quiz__option::before{left:10px!important;width:17px!important;height:17px!important;}.live2d-quiz.is-main-menu .live2d-menu-header{touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none;}.live2d-quiz.is-main-menu.is-mobile-menu-dragging .live2d-menu-header{cursor:grabbing;}.live2d-quiz.is-main-menu.is-mobile-menu-dragging{user-select:none;-webkit-user-select:none;}}",
             "@media (prefers-reduced-motion:reduce){.live2d-quiz.is-main-menu::before,.live2d-quiz.is-main-menu::after,.live2d-quiz.is-main-menu .live2d-quiz__option::after,.live2d-menu-beautiful-wave,.live2d-menu-panel::after{animation:none!important;transition:none!important;}.live2d-menu-beautiful-wave,.live2d-menu-panel::after{opacity:.22;}.live2d-quiz.is-main-menu::after{opacity:.28;}.live2d-quiz.is-main-menu .live2d-quiz__option:hover:not(:disabled){transform:none;}}",
             "html.performance-low .live2d-quiz.is-main-menu,html.performance-low .live2d-quiz.is-score-guess{box-shadow:0 12px 28px rgba(3,18,42,.38),inset 0 1px 0 rgba(255,255,255,.18);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);}",
             ".live2d-quiz.is-score-guess .live2d-quiz__question:empty{display:none;}",
@@ -1594,6 +1596,9 @@
         let popupResizeObserver = null;
         let beautifulMenuShell = null;
         let mobileMenuStage = "closed";
+        let mobileMenuDragFrame = 0;
+        let mobileMenuDragState = null;
+        let mobileMenuDragBound = false;
 
         function disableBeautifulMenuShell() {
             if (!beautifulMenuShell) {
@@ -1927,6 +1932,32 @@
             return preferred || document.querySelector("[data-live2d-static-card='true'].ganyu-static-card") || document.querySelector(".ganyu-static-card");
         }
 
+        function getMobileGanyuAnchor() {
+            const shell = document.querySelector("#ganyu-live2d-frame-shell");
+            if (shell && !shell.classList.contains("is-loading") && isVisibleLive2DShell(shell)) {
+                return {
+                    node: shell,
+                    type: "dynamic",
+                    rect: shell.getBoundingClientRect()
+                };
+            }
+
+            const card = getStaticCardAnchor();
+            if (isVisibleStaticCardAnchor(card)) {
+                return {
+                    node: card,
+                    type: "static",
+                    rect: card.getBoundingClientRect()
+                };
+            }
+
+            return {
+                node: null,
+                type: "viewport",
+                rect: null
+            };
+        }
+
         function hideStaticCardForMobileSubmenu(key) {
             if (!isMobileViewport()) {
                 return;
@@ -1999,17 +2030,49 @@
         }
 
         function getMobileMenuPreferredWidth(cardRect, viewportWidth, margin, gap) {
-            const baseWidth = viewportWidth <= 360 ? Math.min(300, Math.max(188, viewportWidth * 0.74)) : Math.min(320, Math.max(188, viewportWidth * 0.58));
+            const baseWidth = Math.min(210, Math.max(180, viewportWidth * 0.52));
             const rightSpace = viewportWidth - cardRect.right - gap - margin;
             const leftSpace = cardRect.left - gap - margin;
             const bestSideSpace = Math.max(rightSpace, leftSpace);
             const viewportWidthLimit = viewportWidth - margin * 2;
 
-            if (bestSideSpace >= 156) {
+            if (bestSideSpace >= 180) {
                 return Math.floor(Math.min(baseWidth, bestSideSpace, viewportWidthLimit));
             }
 
             return Math.floor(Math.min(baseWidth, viewportWidthLimit));
+        }
+
+        function readMobileMenuPosition() {
+            try {
+                const stored = JSON.parse(window.localStorage.getItem(MOBILE_MENU_POSITION_KEY) || "null");
+                if (stored && Number.isFinite(Number(stored.x)) && Number.isFinite(Number(stored.y))) {
+                    return {
+                        x: clamp(Number(stored.x), 0, 1),
+                        y: clamp(Number(stored.y), 0, 1)
+                    };
+                }
+            } catch (error) {}
+            return null;
+        }
+
+        function saveMobileMenuPosition(rect, viewportWidth, viewportHeight, margin) {
+            const maxLeft = Math.max(margin, viewportWidth - rect.width - margin);
+            const maxTop = Math.max(margin, viewportHeight - rect.height - margin);
+            const normalized = {
+                x: maxLeft > margin ? clamp(rect.left / maxLeft, 0, 1) : 0,
+                y: maxTop > margin ? clamp(rect.top / maxTop, 0, 1) : 0
+            };
+            try {
+                window.localStorage.setItem(MOBILE_MENU_POSITION_KEY, JSON.stringify(normalized));
+            } catch (error) {}
+            return normalized;
+        }
+
+        function clearMobileMenuPosition() {
+            try {
+                window.localStorage.removeItem(MOBILE_MENU_POSITION_KEY);
+            } catch (error) {}
         }
 
         function updateMobileMenuAnchorPosition() {
@@ -2025,26 +2088,26 @@
             const viewport = getResponsiveViewportSize();
             const viewportWidth = viewport.width;
             const viewportHeight = viewport.height;
-            const card = getStaticCardAnchor();
-            if (!isVisibleStaticCardAnchor(card)) {
+            const anchor = getMobileGanyuAnchor();
+            if (!anchor.rect) {
                 forceMobileMenuViewportFallback();
-                debugLive2DMenu("live2d-mobile", "menu shell remains: static card anchor missing");
+                debugLive2DMenu("live2d-mobile", "menu shell remains: mobile Ganyu anchor missing");
                 publishStaticDebugStatus("mobile menu shell remains: static card anchor missing");
                 return;
             }
 
-            const cardRect = card.getBoundingClientRect();
+            const anchorRect = anchor.rect;
             const margin = 8;
             const gap = 10;
-            const menuWidth = getMobileMenuPreferredWidth(cardRect, viewportWidth, margin, gap);
-            const fallbackHeight = Math.min(Math.max(180, viewportHeight * 0.525), 400);
+            const menuWidth = getMobileMenuPreferredWidth(anchorRect, viewportWidth, margin, gap);
+            const fallbackHeight = Math.min(Math.max(180, viewportHeight * 0.46), 340);
 
             dialog.style.setProperty("position", "fixed", "important");
             dialog.style.setProperty("z-index", "10030", "important");
             dialog.style.setProperty("width", menuWidth + "px", "important");
             dialog.style.setProperty("max-width", "calc(100vw - 16px)", "important");
-            dialog.style.setProperty("--mobile-main-menu-height", "min(52.5dvh, 400px)");
-            dialog.style.setProperty("max-height", "var(--mobile-main-menu-height, min(52.5dvh, 400px))", "important");
+            dialog.style.setProperty("--mobile-main-menu-height", "min(46dvh, 340px)");
+            dialog.style.setProperty("max-height", "var(--mobile-main-menu-height, min(46dvh, 340px))", "important");
             dialog.style.setProperty("transform", "none", "important");
             dialog.style.setProperty("visibility", "visible", "important");
             dialog.style.setProperty("opacity", "1", "important");
@@ -2052,28 +2115,154 @@
 
             const popupWidth = Math.min(dialog.offsetWidth || menuWidth, viewportWidth - margin * 2);
             const popupHeight = Math.min(dialog.offsetHeight || fallbackHeight, fallbackHeight);
-            const rightCandidate = cardRect.right + gap;
-            const leftCandidate = cardRect.left - gap - popupWidth;
+            const rightCandidate = anchorRect.right + gap;
+            const leftCandidate = anchorRect.left - gap - popupWidth;
             const canFitRight = rightCandidate + popupWidth <= viewportWidth - margin;
             const canFitLeft = leftCandidate >= margin;
-            const nextLeft = canFitRight ? rightCandidate : canFitLeft ? leftCandidate : clamp(rightCandidate, margin, Math.max(margin, viewportWidth - popupWidth - margin));
-            const preferredTop = cardRect.top + Math.min(10, Math.max(0, cardRect.height * 0.08));
-            const nextTop = clamp(preferredTop, margin, Math.max(margin, viewportHeight - popupHeight - margin));
+            const savedPosition = readMobileMenuPosition();
+            const maxLeft = Math.max(margin, viewportWidth - popupWidth - margin);
+            const maxTop = Math.max(margin, viewportHeight - popupHeight - margin);
+            const preferredLeft = canFitRight ? rightCandidate : canFitLeft ? leftCandidate : clamp(rightCandidate, margin, maxLeft);
+            const preferredTop = anchorRect.top + Math.min(10, Math.max(0, anchorRect.height * 0.08));
+            const nextLeft = savedPosition ? clamp(savedPosition.x * maxLeft, margin, maxLeft) : preferredLeft;
+            const nextTop = savedPosition ? clamp(savedPosition.y * maxTop, margin, maxTop) : clamp(preferredTop, margin, maxTop);
 
             dialog.style.setProperty("left", Math.round(nextLeft) + "px", "important");
             dialog.style.setProperty("top", Math.round(nextTop) + "px", "important");
             dialog.style.setProperty("right", "auto", "important");
             dialog.style.setProperty("bottom", "auto", "important");
 
-            debugLive2DMenu("live2d-mobile", "menu anchored to static card", {
-                card: getElementDebugInfo(card),
+            debugLive2DMenu("live2d-mobile", "menu anchored to " + anchor.type + " Ganyu", {
+                anchor: getElementDebugInfo(anchor.node),
                 left: Math.round(nextLeft),
                 top: Math.round(nextTop),
                 width: Math.round(popupWidth)
             });
-            publishStaticDebugStatus("mobile menu anchored to static card");
             debugLive2DMenu("live2d-mobile", "menu position updated");
             publishStaticDebugStatus("mobile menu position updated");
+        }
+
+        function scheduleMobileMenuDragFrame() {
+            if (mobileMenuDragFrame) {
+                return;
+            }
+
+            mobileMenuDragFrame = window.requestAnimationFrame(function () {
+                mobileMenuDragFrame = 0;
+                if (!mobileMenuDragState || !mobileMenuDragState.dragging) {
+                    return;
+                }
+
+                const viewport = getResponsiveViewportSize();
+                const rect = dialog.getBoundingClientRect();
+                const margin = 8;
+                const maxLeft = Math.max(margin, viewport.width - rect.width - margin);
+                const maxTop = Math.max(margin, viewport.height - rect.height - margin);
+                const nextLeft = clamp(mobileMenuDragState.startLeft + mobileMenuDragState.deltaX, margin, maxLeft);
+                const nextTop = clamp(mobileMenuDragState.startTop + mobileMenuDragState.deltaY, margin, maxTop);
+
+                dialog.style.setProperty("left", Math.round(nextLeft) + "px", "important");
+                dialog.style.setProperty("top", Math.round(nextTop) + "px", "important");
+                dialog.style.setProperty("right", "auto", "important");
+                dialog.style.setProperty("bottom", "auto", "important");
+            });
+        }
+
+        function getMobileMenuDragHeader(target) {
+            if (!target || !target.closest) {
+                return null;
+            }
+
+            const header = target.closest(".live2d-menu-header");
+            return header && dialog.contains(header) ? header : null;
+        }
+
+        function finishMobileMenuDrag(event, cancelled) {
+            const state = mobileMenuDragState;
+            if (!state) {
+                return;
+            }
+
+            if (mobileMenuDragFrame) {
+                window.cancelAnimationFrame(mobileMenuDragFrame);
+                mobileMenuDragFrame = 0;
+            }
+
+            if (state.dragging && !cancelled) {
+                const rect = dialog.getBoundingClientRect();
+                const viewport = getResponsiveViewportSize();
+                saveMobileMenuPosition(rect, viewport.width, viewport.height, 8);
+            }
+
+            if (event && dialog.hasPointerCapture && dialog.hasPointerCapture(state.pointerId)) {
+                dialog.releasePointerCapture(state.pointerId);
+            }
+            dialog.classList.remove("is-mobile-menu-dragging");
+            mobileMenuDragState = null;
+        }
+
+        function bindMobileMenuDrag() {
+            if (mobileMenuDragBound) {
+                return;
+            }
+
+            mobileMenuDragBound = true;
+            dialog.addEventListener("pointerdown", function (event) {
+                if (!isMobileLayoutViewport() || !dialog.classList.contains("is-main-menu") || event.isPrimary === false) {
+                    return;
+                }
+
+                const header = getMobileMenuDragHeader(event.target);
+                if (!header || (event.button !== undefined && event.button !== 0)) {
+                    return;
+                }
+
+                const rect = dialog.getBoundingClientRect();
+                mobileMenuDragState = {
+                    pointerId: event.pointerId,
+                    startX: event.clientX,
+                    startY: event.clientY,
+                    startLeft: rect.left,
+                    startTop: rect.top,
+                    deltaX: 0,
+                    deltaY: 0,
+                    dragging: false
+                };
+            });
+
+            dialog.addEventListener("pointermove", function (event) {
+                const state = mobileMenuDragState;
+                if (!state || state.pointerId !== event.pointerId) {
+                    return;
+                }
+
+                state.deltaX = event.clientX - state.startX;
+                state.deltaY = event.clientY - state.startY;
+                if (!state.dragging && Math.hypot(state.deltaX, state.deltaY) < 8) {
+                    return;
+                }
+
+                if (!state.dragging) {
+                    state.dragging = true;
+                    dialog.classList.add("is-mobile-menu-dragging");
+                    if (dialog.setPointerCapture) {
+                        dialog.setPointerCapture(event.pointerId);
+                    }
+                }
+
+                event.preventDefault();
+                scheduleMobileMenuDragFrame();
+            });
+
+            dialog.addEventListener("pointerup", function (event) {
+                if (mobileMenuDragState && mobileMenuDragState.pointerId === event.pointerId && mobileMenuDragState.dragging) {
+                    event.preventDefault();
+                }
+                finishMobileMenuDrag(event, false);
+            });
+            dialog.addEventListener("pointercancel", function (event) {
+                finishMobileMenuDrag(event, true);
+            });
         }
 
         function updateMobileSubmenuViewportPosition() {
@@ -2232,10 +2421,10 @@
             dialog.style.setProperty("bottom", "auto", "important");
             dialog.style.setProperty("transform", "none", "important");
             const viewportWidth = getResponsiveViewportSize().width;
-            dialog.style.setProperty("width", viewportWidth <= 360 ? "min(74vw, 300px)" : "clamp(188px, 58vw, 320px)", "important");
+            dialog.style.setProperty("width", "clamp(180px, 52vw, 210px)", "important");
             dialog.style.setProperty("max-width", "calc(100vw - 16px)", "important");
-            dialog.style.setProperty("--mobile-main-menu-height", "min(52.5dvh, 400px)");
-            dialog.style.setProperty("max-height", "var(--mobile-main-menu-height, min(52.5dvh, 400px))", "important");
+            dialog.style.setProperty("--mobile-main-menu-height", "min(46dvh, 340px)");
+            dialog.style.setProperty("max-height", "var(--mobile-main-menu-height, min(46dvh, 340px))", "important");
             dialog.style.setProperty("visibility", "visible", "important");
             dialog.style.setProperty("opacity", "1", "important");
             dialog.style.setProperty("pointer-events", "auto", "important");
@@ -6371,7 +6560,10 @@
         }
 
         window.addEventListener("live2d-stage-position-changed", scheduleLive2DPopupPositions);
-        window.addEventListener("live2d-stage-drag-finished", scheduleLive2DPopupPositions);
+        window.addEventListener("live2d-stage-drag-finished", function () {
+            clearMobileMenuPosition();
+            scheduleLive2DPopupPositions();
+        });
         window.addEventListener("resize", scheduleLive2DPopupPositions);
         window.addEventListener("orientationchange", scheduleLive2DPopupPositions);
         window.addEventListener("scroll", scheduleLive2DPopupPositions, { passive: true });
@@ -6397,6 +6589,7 @@
             event.stopPropagation();
             closeDialog();
         });
+        bindMobileMenuDrag();
 
         document.addEventListener("keydown", function (event) {
             if (event.key === "Escape") {

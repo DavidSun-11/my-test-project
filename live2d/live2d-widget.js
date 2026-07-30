@@ -961,6 +961,9 @@
 
         try {
             await ensureRuntime();
+            postHostMessage("ganyu-host-runtime-ready", {
+                dprCap: getLive2DDprCap()
+            });
         } catch (error) {
             console.error("Live2D runtime load failed", {
                 stage: "runtime",
@@ -987,6 +990,10 @@
             });
             return;
         }
+
+        postHostMessage("ganyu-host-model-ready", {
+            modelPath: modelPath
+        });
 
         watchLive2DReady();
 

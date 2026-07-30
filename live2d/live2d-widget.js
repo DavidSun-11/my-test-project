@@ -40,6 +40,22 @@
     let pausedPixiTicker = null;
     let canvasContextListenerInstalled = false;
     let hostRenderingPaused = false;
+    let mobileFitFrame = 0;
+    let mobileFitReason = "resize";
+    let mobileFitLifecycleBound = false;
+    let mobileStageResizeObserver = null;
+    let stableModelBounds = null;
+    let parentResizeMetrics = {};
+    const mobileFitState = {
+        applied: false,
+        baseScale: 0,
+        baseX: 0,
+        baseY: 0,
+        userOffsetX: 0,
+        userOffsetY: 0,
+        stageWidth: 0,
+        stageHeight: 0
+    };
 
     window.JunxueLive2DRenderInfo = Object.assign({
         usesCanvas: false,
@@ -58,6 +74,11 @@
         dprCap: getLive2DDprCap(),
         dprInjected: false,
         fallbackToOriginalResolution: false,
+        canvasCssSize: null,
+        canvasBackingSize: null,
+        rendererScreenSize: null,
+        modelVisualBounds: null,
+        mobileFit: null,
         runtime: "oh-my-live2d@0.19.3",
         runtimeSource: ""
     }, window.JunxueLive2DRenderInfo || {});
@@ -150,6 +171,269 @@
 
     function getHostCanvasFallback() {
         return config.hostMode ? document.querySelector("#live2d-widget canvas, canvas") : null;
+    }
+
+    function getLive2DRuntimeInstance() {
+        return window.__JUNXUE_LIVE2D_RUNTIME_INSTANCE__ || null;
+    }
+
+    function cloneModelBounds(bounds) {
+        if (!bounds || !Number.isFinite(Number(bounds.width)) || !Number.isFinite(Number(bounds.height))) {
+            return null;
+        }
+
+        const width = Number(bounds.width);
+        const height = Number(bounds.height);
+
+        if (width <= 0 || height <= 0) {
+            return null;
+        }
+
+        return {
+            x: Number(bounds.x) || 0,
+            y: Number(bounds.y) || 0,
+            width: width,
+            height: height
+        };
+    }
+
+    function getStableModelBounds(model) {
+        if (stableModelBounds) {
+            return stableModelBounds;
+        }
+
+        if (!model) {
+            return null;
+        }
+
+        let bounds = null;
+
+        try {
+            if (typeof model.getLocalBounds === "function") {
+                bounds = cloneModelBounds(model.getLocalBounds());
+            }
+        } catch (error) {
+            bounds = null;
+        }
+
+        if (!bounds) {
+            const scale = Number(model.scale && model.scale.x) || 1;
+            bounds = cloneModelBounds({
+                x: 0,
+                y: 0,
+                width: Number(model.width) / scale,
+                height: Number(model.height) / scale
+            });
+        }
+
+        if (bounds) {
+            stableModelBounds = bounds;
+        }
+
+        return stableModelBounds;
+    }
+
+    function getMobileStageSize(stage) {
+        const rect = stage && stage.getBoundingClientRect ? stage.getBoundingClientRect() : null;
+
+        return {
+            width: Math.max(1, Math.round((stage && stage.clientWidth) || (rect && rect.width) || 1)),
+            height: Math.max(1, Math.round((stage && stage.clientHeight) || (rect && rect.height) || 1))
+        };
+    }
+
+    function getMobileFitPadding() {
+        const safeAreaBottom = Number(parentResizeMetrics.safeAreaBottom) || 0;
+
+        return {
+            left: 8,
+            right: 8,
+            top: 8,
+            bottom: Math.max(10, Math.min(24, 10 + safeAreaBottom))
+        };
+    }
+
+    function getModelVisualBounds(bounds, scale, x, y) {
+        return {
+            left: x + bounds.x * scale,
+            top: y + bounds.y * scale,
+            right: x + (bounds.x + bounds.width) * scale,
+            bottom: y + (bounds.y + bounds.height) * scale,
+            width: bounds.width * scale,
+            height: bounds.height * scale
+        };
+    }
+
+    function captureCurrentModelUserOffset(model) {
+        if (!mobileFitState.applied || !model) {
+            return;
+        }
+
+        const modelX = Number(model.x);
+        const modelY = Number(model.y);
+
+        if (Number.isFinite(modelX) && Number.isFinite(modelY)) {
+            mobileFitState.userOffsetX = modelX - mobileFitState.baseX;
+            mobileFitState.userOffsetY = modelY - mobileFitState.baseY;
+        }
+    }
+
+    function fitMobileLive2DModel(reason) {
+        if (!config.hostMode) {
+            return false;
+        }
+
+        const runtime = getLive2DRuntimeInstance();
+        const stage = getPrimaryStage();
+        const model = runtime && runtime.models ? runtime.models.model : null;
+
+        if (!runtime || !model || !stage) {
+            return false;
+        }
+
+        const stageSize = getMobileStageSize(stage);
+        if (!stageSize.width || !stageSize.height) {
+            return false;
+        }
+
+        if (mobileFitState.applied) {
+            captureCurrentModelUserOffset(model);
+        }
+
+        if (runtime.pixiApp && typeof runtime.pixiApp.resize === "function") {
+            runtime.pixiApp.resize();
+        }
+        updateCanvasRenderInfo();
+
+        const bounds = getStableModelBounds(model);
+        if (!bounds) {
+            return false;
+        }
+
+        const padding = getMobileFitPadding();
+        const availableWidth = Math.max(1, stageSize.width - padding.left - padding.right);
+        const availableHeight = Math.max(1, stageSize.height - padding.top - padding.bottom);
+        const configuredScale = Math.max(0.001, Number(config.mobileScale) || 0.058);
+        const scale = Math.min(
+            configuredScale,
+            availableWidth / bounds.width,
+            availableHeight / bounds.height
+        );
+        const configuredPosition = Array.isArray(config.mobilePosition) ? config.mobilePosition : [0, 0];
+        const baseX = Number(configuredPosition[0]) || 0;
+        const baseY = stageSize.height - padding.bottom - (bounds.y + bounds.height) * scale;
+        const offsetX = mobileFitState.userOffsetX;
+        const offsetY = mobileFitState.userOffsetY;
+        const unclampedX = baseX + offsetX;
+        const unclampedY = baseY + offsetY;
+        const minX = padding.left - bounds.x * scale;
+        const maxX = stageSize.width - padding.right - (bounds.x + bounds.width) * scale;
+        const minY = padding.top - bounds.y * scale;
+        const maxY = stageSize.height - padding.bottom - (bounds.y + bounds.height) * scale;
+        const finalX = Math.min(Math.max(unclampedX, Math.min(minX, maxX)), Math.max(minX, maxX));
+        const finalY = Math.min(Math.max(unclampedY, Math.min(minY, maxY)), Math.max(minY, maxY));
+
+        runtime.setModelScale(scale);
+        runtime.setModelPosition({ x: finalX, y: finalY });
+
+        const visualBounds = getModelVisualBounds(bounds, scale, finalX, finalY);
+        const fullyVisible = visualBounds.left >= padding.left - 0.5 &&
+            visualBounds.top >= padding.top - 0.5 &&
+            visualBounds.right <= stageSize.width - padding.right + 0.5 &&
+            visualBounds.bottom <= stageSize.height - padding.bottom + 0.5;
+
+        mobileFitState.applied = true;
+        mobileFitState.baseScale = scale;
+        mobileFitState.baseX = baseX;
+        mobileFitState.baseY = baseY;
+        mobileFitState.stageWidth = stageSize.width;
+        mobileFitState.stageHeight = stageSize.height;
+        window.JunxueLive2DRenderInfo.modelVisualBounds = rectToObject({
+            left: visualBounds.left,
+            top: visualBounds.top,
+            right: visualBounds.right,
+            bottom: visualBounds.bottom,
+            width: visualBounds.width,
+            height: visualBounds.height
+        });
+        window.JunxueLive2DRenderInfo.mobileFit = {
+            reason: reason || "ready",
+            baseScale: scale,
+            baseX: baseX,
+            baseY: baseY,
+            userOffsetX: offsetX,
+            userOffsetY: offsetY,
+            stageWidth: stageSize.width,
+            stageHeight: stageSize.height,
+            fullyVisible: fullyVisible
+        };
+
+        console.debug("[live2d-layout] mobile fit start", {
+            reason: reason || "ready",
+            viewportHeight: Number(parentResizeMetrics.viewportHeight) || window.innerHeight,
+            canvasCssSize: window.JunxueLive2DRenderInfo.canvasCssSize,
+            rendererScreenSize: window.JunxueLive2DRenderInfo.rendererScreenSize,
+            modelScale: scale,
+            modelPositionY: finalY,
+            modelVisualBounds: window.JunxueLive2DRenderInfo.modelVisualBounds,
+            userOffsetPreserved: { x: offsetX, y: offsetY },
+            modelFullyVisible: fullyVisible
+        });
+        return fullyVisible;
+    }
+
+    function scheduleMobileLive2DFit(reason) {
+        if (!config.hostMode) {
+            return;
+        }
+
+        mobileFitReason = reason || mobileFitReason || "resize";
+        if (mobileFitFrame) {
+            return;
+        }
+
+        mobileFitFrame = window.requestAnimationFrame(function () {
+            mobileFitFrame = 0;
+            const fitReason = mobileFitReason || "resize";
+            mobileFitReason = "resize";
+            const stage = getPrimaryStage();
+            const size = getMobileStageSize(stage);
+
+            if (mobileFitState.applied && mobileFitState.stageWidth === size.width && mobileFitState.stageHeight === size.height && fitReason === "resize") {
+                return;
+            }
+
+            fitMobileLive2DModel(fitReason);
+            updateCanvasRenderInfo();
+            window.dispatchEvent(new CustomEvent("live2d-stage-position-changed"));
+        });
+    }
+
+    function bindMobileFitLifecycle() {
+        if (!config.hostMode || mobileFitLifecycleBound) {
+            return;
+        }
+
+        mobileFitLifecycleBound = true;
+        const stage = getPrimaryStage();
+
+        if (stage && typeof window.ResizeObserver === "function") {
+            mobileStageResizeObserver = new window.ResizeObserver(function () {
+                scheduleMobileLive2DFit("resize");
+            });
+            mobileStageResizeObserver.observe(stage);
+        }
+        window.addEventListener("resize", function () {
+            scheduleMobileLive2DFit("resize");
+        });
+        window.addEventListener("orientationchange", function () {
+            scheduleMobileLive2DFit("orientation");
+        });
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener("resize", function () {
+                scheduleMobileLive2DFit("resize");
+            });
+        }
     }
 
     function isStyleVisible(node) {
@@ -306,6 +590,8 @@
     function updateCanvasRenderInfo() {
         const snapshot = getLive2DVisibilitySnapshot();
         const canvas = snapshot.canvas || document.querySelector("#oml2d-canvas, .oml2d-canvas, #oml2d-stage canvas, canvas");
+        const runtime = getLive2DRuntimeInstance();
+        const renderer = runtime && runtime.pixiApp ? runtime.pixiApp.renderer : null;
         const canvasCount = document.querySelectorAll("#oml2d-canvas, .oml2d-canvas, #oml2d-stage canvas").length;
         const stageCount = document.querySelectorAll("#oml2d-main, .oml2d-main, #oml2d-stage, .oml2d-stage").length;
         let contextName = "";
@@ -335,6 +621,18 @@
         window.JunxueLive2DRenderInfo.visibilityProblem = snapshot.problem;
         window.JunxueLive2DRenderInfo.stageRect = snapshot.stageRect;
         window.JunxueLive2DRenderInfo.canvasRect = snapshot.canvasRect;
+        window.JunxueLive2DRenderInfo.canvasCssSize = canvas && canvas.getBoundingClientRect ? {
+            width: Math.round(canvas.getBoundingClientRect().width),
+            height: Math.round(canvas.getBoundingClientRect().height)
+        } : null;
+        window.JunxueLive2DRenderInfo.canvasBackingSize = canvas ? {
+            width: Number(canvas.width) || 0,
+            height: Number(canvas.height) || 0
+        } : null;
+        window.JunxueLive2DRenderInfo.rendererScreenSize = renderer && renderer.screen ? {
+            width: Number(renderer.screen.width) || 0,
+            height: Number(renderer.screen.height) || 0
+        } : null;
         window.JunxueLive2DRenderInfo.actualContext = contextName;
         window.JunxueLive2DRenderInfo.dprCap = getLive2DDprCap();
         window.JunxueLive2DRenderInfo.dprInjected = runtimeInjectedDpr;
@@ -459,7 +757,10 @@
         cleanupDuplicateLive2DNodes();
         window.__JUNXUE_LIVE2D_READY__ = true;
         window.__JUNXUE_LIVE2D_INSTANCE__ = findReadyContainer();
+        bindMobileFitLifecycle();
+        fitMobileLive2DModel("ready");
         updateCanvasRenderInfo();
+        scheduleMobileLive2DFit("ready");
         bindCanvasContextEvents();
         hideBootstrapWidget();
         postHostMessage("ganyu-host-ready", {
@@ -1025,7 +1326,7 @@
                 return;
             }
 
-            window.OML2D.loadOml2d(options);
+            window.__JUNXUE_LIVE2D_RUNTIME_INSTANCE__ = window.OML2D.loadOml2d(options) || null;
             window.setTimeout(function () {
                 if (findReadyContainer()) {
                     markLive2DReady();
@@ -1129,17 +1430,33 @@
             hostRenderingPaused = false;
             resumeRenderLoop();
         },
-        resize: function () {
+        resize: function (detail) {
+            parentResizeMetrics = Object.assign({}, parentResizeMetrics, detail || {});
+            const runtime = getLive2DRuntimeInstance();
+
+            if (runtime && runtime.pixiApp && typeof runtime.pixiApp.resize === "function") {
+                runtime.pixiApp.resize();
+            }
             updateCanvasRenderInfo();
+            scheduleMobileLive2DFit("resize");
             window.dispatchEvent(new CustomEvent("live2d-stage-position-changed"));
         },
         destroy: function () {
             hostRenderingPaused = true;
             window.clearTimeout(loadTimer);
+            if (mobileFitFrame) {
+                window.cancelAnimationFrame(mobileFitFrame);
+                mobileFitFrame = 0;
+            }
+            if (mobileStageResizeObserver) {
+                mobileStageResizeObserver.disconnect();
+                mobileStageResizeObserver = null;
+            }
             if (readyObserver) {
                 readyObserver.disconnect();
                 readyObserver = null;
             }
+            window.__JUNXUE_LIVE2D_RUNTIME_INSTANCE__ = null;
             pauseRenderLoop();
         }
     };

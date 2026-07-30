@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Ganyu Live2D Host</title>
     <link rel="stylesheet" href="live2d-widget.css?v=20260613-6">
     <style>
@@ -93,7 +93,7 @@
             },
             mobileStageStyle: {
                 width: 168,
-                height: 340
+                height: 390
             },
             dprCap: 1.5,
             parentOrigin: window.location.origin,
@@ -132,10 +132,10 @@
             );
         }
 
-        function controlRuntime(command) {
+        function controlRuntime(command, detail) {
             var control = window.JunxueLive2DHostControl;
             if (control && typeof control[command] === "function") {
-                control[command]();
+                control[command](detail || {});
             }
         }
 
@@ -153,7 +153,7 @@
 
             if (data.type === "show" || data.type === "resume" || data.type === "resize") {
                 document.body.classList.remove("is-host-hidden");
-                controlRuntime(data.type === "resize" ? "resize" : "resume");
+                controlRuntime(data.type === "resize" ? "resize" : "resume", data);
             }
 
             if (data.type === "recover") {
@@ -181,6 +181,6 @@
 
         postHostMessage("ganyu-host-script-loaded");
     </script>
-    <script src="live2d-widget.js?v=20260730-mobile-live2d-menu-drag1"></script>
+    <script src="live2d-widget.js?v=20260730-mobile-live2d-voice-layout1"></script>
 </body>
 </html>

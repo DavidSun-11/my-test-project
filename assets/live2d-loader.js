@@ -1,6 +1,6 @@
 /* Lightweight Live2D loader: desktop stays dynamic; mobile effects mode uses the same model through a guarded iframe host. */
 (function () {
-    const version = "20260730-mobile-live2d-menu-drag1";
+    const version = "20260730-mobile-live2d-voice-layout1";
     window.__JUNXUE_LIVE2D_DEBUG__ = window.__JUNXUE_LIVE2D_DEBUG__ || [];
     window.JunxueLive2DDebugLog = window.JunxueLive2DDebugLog || function (message, detail) {
         const safeMessage = String(message || "");
@@ -24,7 +24,7 @@
 })();
 
 (function () {
-    const CACHE_VERSION = "20260730-mobile-live2d-menu-drag1";
+    const CACHE_VERSION = "20260730-mobile-live2d-voice-layout1";
     const WIDGET_SCRIPT = "live2d/live2d-widget.js?v=" + CACHE_VERSION;
     const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=" + CACHE_VERSION;
     const DRAG_SCRIPT = "assets/live2d-drag.js?v=" + CACHE_VERSION;
@@ -221,7 +221,7 @@
             "html.performance-low .ganyu-static-card:active{transform:none;box-shadow:inset 0 0 8px rgba(255,255,255,.06);}",
             "html.performance-low .ganyu-static-card.is-dynamic-ready .ganyu-static-card__visual{opacity:.42;filter:none;}",
             "html.performance-low .ganyu-static-card__dynamic{box-shadow:none;}",
-            "@media(max-width:767px),(max-width:932px) and (orientation:landscape){.live2d-load-control{left:max(12px,env(safe-area-inset-left));bottom:max(84px,calc(env(safe-area-inset-bottom) + 72px));}.live2d-load-control__button{min-height:34px;padding:0 13px;font-size:12px}.live2d-load-control__status{max-width:min(78vw,240px);font-size:12px;}#ganyu-live2d-frame-shell{--live2d-mobile-width:clamp(125px,40vw,168px);--live2d-mobile-height:clamp(250px,38dvh,340px);left:max(10px,env(safe-area-inset-left));bottom:max(88px,calc(env(safe-area-inset-bottom) + 84px));width:var(--live2d-mobile-width);height:var(--live2d-mobile-height);}.ganyu-static-card{left:max(14px,env(safe-area-inset-left));bottom:max(82px,calc(env(safe-area-inset-bottom) + 76px));width:clamp(132px,40vw,168px);max-width:46vw;max-height:32vh;max-height:32dvh;padding:7px;border-radius:16px;box-shadow:0 0 18px rgba(90,213,255,.22),0 12px 26px rgba(2,10,30,.22),inset 0 0 12px rgba(255,255,255,.10);}.ganyu-static-card__visual{min-height:86px;max-height:17vh;max-height:17dvh;border-radius:12px;}.ganyu-static-card__visual picture,.ganyu-static-card__visual img{min-height:86px;max-height:17vh;max-height:17dvh;}.ganyu-static-card__visual img{border-radius:12px;}.ganyu-static-card__body{gap:4px;padding:7px 3px 2px;}.ganyu-static-card__title{font-size:12px;}.ganyu-static-card__hint,.ganyu-static-card__status{font-size:10.5px;line-height:1.34;}.ganyu-static-card__dynamic{min-height:28px;padding:0 10px;font-size:11px;box-shadow:0 0 10px rgba(109,217,255,.16);}}@media(max-width:767px) and (max-height:700px){#ganyu-live2d-frame-shell{--live2d-mobile-height:clamp(220px,32dvh,280px);}}@media(max-width:932px) and (orientation:landscape){#ganyu-live2d-frame-shell{--live2d-mobile-width:clamp(110px,26vw,150px);--live2d-mobile-height:clamp(180px,52dvh,250px);bottom:max(62px,calc(env(safe-area-inset-bottom) + 54px));}}"
+            "@media(max-width:767px),(max-width:932px) and (orientation:landscape){.live2d-load-control{left:max(12px,env(safe-area-inset-left));bottom:max(84px,calc(env(safe-area-inset-bottom) + 72px));}.live2d-load-control__button{min-height:34px;padding:0 13px;font-size:12px}.live2d-load-control__status{max-width:min(78vw,240px);font-size:12px;}#ganyu-live2d-frame-shell{--live2d-mobile-width:clamp(125px,40vw,168px);--live2d-mobile-height:clamp(280px,44dvh,390px);left:max(10px,env(safe-area-inset-left));bottom:max(88px,calc(env(safe-area-inset-bottom) + 84px));width:var(--live2d-mobile-width);height:var(--live2d-mobile-height);}.ganyu-static-card{left:max(14px,env(safe-area-inset-left));bottom:max(82px,calc(env(safe-area-inset-bottom) + 76px));width:clamp(132px,40vw,168px);max-width:46vw;max-height:32vh;max-height:32dvh;padding:7px;border-radius:16px;box-shadow:0 0 18px rgba(90,213,255,.22),0 12px 26px rgba(2,10,30,.22),inset 0 0 12px rgba(255,255,255,.10);}.ganyu-static-card__visual{min-height:86px;max-height:17vh;max-height:17dvh;border-radius:12px;}.ganyu-static-card__visual picture,.ganyu-static-card__visual img{min-height:86px;max-height:17vh;max-height:17dvh;}.ganyu-static-card__visual img{border-radius:12px;}.ganyu-static-card__body{gap:4px;padding:7px 3px 2px;}.ganyu-static-card__title{font-size:12px;}.ganyu-static-card__hint,.ganyu-static-card__status{font-size:10.5px;line-height:1.34;}.ganyu-static-card__dynamic{min-height:28px;padding:0 10px;font-size:11px;box-shadow:0 0 10px rgba(109,217,255,.16);}}@media(max-width:767px) and (max-height:700px){#ganyu-live2d-frame-shell{--live2d-mobile-height:clamp(240px,36dvh,300px);}}@media(max-width:932px) and (orientation:landscape){#ganyu-live2d-frame-shell{--live2d-mobile-width:clamp(110px,26vw,150px);--live2d-mobile-height:clamp(200px,56dvh,280px);bottom:max(62px,calc(env(safe-area-inset-bottom) + 54px));}}"
         ].join("");
         document.head.appendChild(style);
     }
@@ -703,6 +703,31 @@
         return {
             width: Math.max(1, Math.floor((viewport && viewport.width) || window.innerWidth || document.documentElement.clientWidth || 1)),
             height: Math.max(1, Math.floor((viewport && viewport.height) || window.innerHeight || document.documentElement.clientHeight || 1))
+        };
+    }
+
+    function getSafeAreaBottom() {
+        const probe = document.createElement("div");
+
+        probe.style.cssText = "position:fixed;left:-9999px;bottom:0;width:0;height:0;padding-bottom:env(safe-area-inset-bottom);visibility:hidden;pointer-events:none;";
+        document.body.appendChild(probe);
+        const value = Number.parseFloat(window.getComputedStyle(probe).paddingBottom) || 0;
+        probe.remove();
+        return Math.max(0, Math.round(value));
+    }
+
+    function getFrameResizeInfo() {
+        const viewport = getViewportSize();
+        const shell = getFrameShell();
+        const shellRect = shell && shell.getBoundingClientRect ? shell.getBoundingClientRect() : null;
+
+        return {
+            viewportWidth: viewport.width,
+            viewportHeight: viewport.height,
+            safeAreaBottom: getSafeAreaBottom(),
+            bottomReserve: shellRect ? Math.max(0, Math.round(viewport.height - shellRect.bottom)) : 0,
+            shellWidth: shellRect ? Math.round(shellRect.width) : 0,
+            shellHeight: shellRect ? Math.round(shellRect.height) : 0
         };
     }
 
@@ -1370,6 +1395,7 @@
 
         loaderState.state = MOBILE_STATES.destroying;
         clearMobileAttemptTimers();
+        window.dispatchEvent(new CustomEvent("junxue-live2d-runtime-destroy"));
         sendFrameMessage("destroy", { reason: reason || "destroy" });
         removeFrameShell();
         loaderState.attemptId = 0;
@@ -1567,6 +1593,7 @@
             if (shell) {
                 shell.classList.remove("is-loading");
             }
+            sendFrameMessage("resize", getFrameResizeInfo());
             const card = getStaticCard();
             if (card) {
                 card.classList.add("is-dynamic-ready");
@@ -1753,7 +1780,7 @@
         mobileResizeFrame = window.requestAnimationFrame(function () {
             mobileResizeFrame = 0;
             if (loaderState.state === MOBILE_STATES.ready && getFrameShell()) {
-                sendFrameMessage("resize");
+                sendFrameMessage("resize", getFrameResizeInfo());
             }
             if (window.JunxueLive2DDrag && typeof window.JunxueLive2DDrag.scheduleSync === "function") {
                 window.JunxueLive2DDrag.scheduleSync();

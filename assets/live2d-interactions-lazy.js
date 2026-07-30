@@ -1,6 +1,6 @@
 /* Live2D 互动模块：菜单、无奖竞答题库、英雄池转盘、咨询功能都集中在这里，方便后续继续加题。 */
 (function () {
-    const version = "20260730-mobile-live2d-menu-drag1";
+    const version = "20260730-mobile-live2d-voice-layout1";
     if (typeof window.JunxueLive2DDebugLog !== "function") {
         window.__JUNXUE_LIVE2D_DEBUG__ = window.__JUNXUE_LIVE2D_DEBUG__ || [];
         window.JunxueLive2DDebugLog = function (message, detail) {
@@ -440,64 +440,54 @@
     let weatherRequestId = 0;
     let weatherAbortController = null;
 
-    function playVoice(file) {
-        const audio = new Audio(file);
+    function waitForLive2DVoiceManager() {
+        if (window.JunxueLive2DVoice && typeof window.JunxueLive2DVoice.playLive2DVoice === "function") {
+            return Promise.resolve(window.JunxueLive2DVoice);
+        }
 
-        audio.volume = 0.8;
         return new Promise(function (resolve) {
-            let done = false;
-            const timer = window.setTimeout(finish, 15000);
-
-            function finish() {
-                if (done) {
+            let settled = false;
+            let timeoutId = 0;
+            const finish = function () {
+                if (settled) {
                     return;
                 }
 
-                done = true;
-                window.clearTimeout(timer);
-                resolve();
+                settled = true;
+                window.removeEventListener("junxue-live2d-voice-ready", finish);
+                if (timeoutId) {
+                    window.clearTimeout(timeoutId);
+                    timeoutId = 0;
+                }
+                resolve(window.JunxueLive2DVoice || null);
+            };
+
+            window.addEventListener("junxue-live2d-voice-ready", finish, { once: true });
+            timeoutId = window.setTimeout(finish, 1000);
+        });
+    }
+
+    function playVoice(file) {
+        if (!file) {
+            return Promise.resolve(false);
+        }
+
+        return waitForLive2DVoiceManager().then(function (manager) {
+            if (!manager || typeof manager.playLive2DVoice !== "function") {
+                return false;
             }
 
-            audio.addEventListener("ended", finish, { once: true });
-            audio.addEventListener("error", finish, { once: true });
-            audio.play().catch(finish);
+            return manager.playLive2DVoice(file, "lazy");
         });
     }
 
     function playOpeningVoice() {
-        const audio = new Audio(openingVoicePath);
-
-        audio.volume = 0.8;
-        return new Promise(function (resolve) {
-            let done = false;
-            let started = false;
-            const timer = window.setTimeout(finish, 8000);
-
-            function finish() {
-                if (done) {
-                    return;
-                }
-
-                done = true;
-                window.clearTimeout(timer);
-                resolve(started);
+        return waitForLive2DVoiceManager().then(function (manager) {
+            if (!manager || typeof manager.playLive2DVoice !== "function") {
+                return false;
             }
 
-            function markStarted() {
-                started = true;
-            }
-
-            audio.addEventListener("ended", finish, { once: true });
-            audio.addEventListener("error", finish, { once: true });
-
-            const playRequest = audio.play();
-
-            if (playRequest && typeof playRequest.then === "function") {
-                playRequest.then(markStarted).catch(finish);
-                return;
-            }
-
-            markStarted();
+            return manager.playLive2DVoice(openingVoicePath, "opening-lazy");
         });
     }
 

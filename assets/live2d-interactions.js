@@ -1,6 +1,6 @@
 /* Live2D 轻量启动脚本：首屏只保留开场提示、点击入口和懒加载控制。 */
 (function () {
-    const version = "20260730-mobile-live2d-menu-drag1";
+    const version = "20260730-mobile-live2d-voice-layout1";
     if (typeof window.JunxueLive2DDebugLog !== "function") {
         window.__JUNXUE_LIVE2D_DEBUG__ = window.__JUNXUE_LIVE2D_DEBUG__ || [];
         window.JunxueLive2DDebugLog = function (message, detail) {
@@ -31,7 +31,7 @@
 
     window.__JUNXUE_LIVE2D_INTERACTIONS_INSTALLED__ = true;
 
-    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260730-mobile-live2d-menu-drag1";
+    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260730-mobile-live2d-voice-layout1";
     const BOSS_NAME_FALLBACK = "旅行者";
     const MOBILE_LAYOUT_QUERY = "(max-width: 767px)";
     const MOBILE_LANDSCAPE_QUERY = "(max-width: 932px) and (orientation: landscape)";
@@ -348,41 +348,256 @@
         }, true);
     }
 
-    function playOpeningVoice() {
-        const audio = new Audio(openingVoicePath);
+    function createLive2DVoiceManager() {
+        if (window.JunxueLive2DVoice && typeof window.JunxueLive2DVoice.playLive2DVoice === "function") {
+            return window.JunxueLive2DVoice;
+        }
 
+        const audio = new Audio();
+        let token = 0;
+        let active = null;
+        let destroyed = false;
+        let listenersBound = false;
+        let lifecycleBound = false;
+
+        audio.preload = "auto";
         audio.volume = 0.8;
-        return new Promise(function (resolve) {
-            let done = false;
-            let started = false;
-            const timer = window.setTimeout(finish, 8000);
 
-            function finish() {
-                if (done) {
-                    return;
-                }
+        function safeKey(src, key) {
+            return String(key || src || "voice").split("/").pop().replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 80);
+        }
 
-                done = true;
-                window.clearTimeout(timer);
-                resolve(started);
+        function voiceLog(message, detail) {
+            if (window.console && typeof window.console.debug === "function") {
+                window.console.debug("[live2d-voice] " + message, detail || "");
             }
+        }
 
-            function markStarted() {
-                started = true;
-            }
+        function clearAudioSource() {
+            audio.pause();
+            try {
+                audio.currentTime = 0;
+            } catch (error) {}
+            audio.removeAttribute("src");
+            try {
+                audio.load();
+            } catch (error) {}
+        }
 
-            audio.addEventListener("ended", finish, { once: true });
-            audio.addEventListener("error", finish, { once: true });
-
-            const playRequest = audio.play();
-
-            if (playRequest && typeof playRequest.then === "function") {
-                playRequest.then(markStarted).catch(finish);
+        function resolveActive(result) {
+            if (!active) {
                 return;
             }
 
-            markStarted();
-        });
+            const request = active;
+            active = null;
+            clearAudioSource();
+            request.resolve(!!result);
+            voiceLog("voice cleanup", { key: request.key, token: request.token });
+        }
+
+        function handleVoiceEnded() {
+            if (!active || active.token !== token) {
+                return;
+            }
+
+            resolveActive(true);
+        }
+
+        function handleVoiceError() {
+            if (!active || active.token !== token) {
+                return;
+            }
+
+            voiceLog("voice load failed", { key: active.key, token: active.token });
+            resolveActive(false);
+        }
+
+        function handleVoiceAbort() {
+            if (!active || active.token !== token) {
+                return;
+            }
+
+            resolveActive(false);
+        }
+
+        function bindAudioListeners() {
+            if (listenersBound) {
+                return;
+            }
+
+            listenersBound = true;
+            audio.addEventListener("ended", handleVoiceEnded);
+            audio.addEventListener("error", handleVoiceError);
+            audio.addEventListener("abort", handleVoiceAbort);
+        }
+
+        function unbindAudioListeners() {
+            if (!listenersBound) {
+                return;
+            }
+
+            listenersBound = false;
+            audio.removeEventListener("ended", handleVoiceEnded);
+            audio.removeEventListener("error", handleVoiceError);
+            audio.removeEventListener("abort", handleVoiceAbort);
+        }
+
+        function stopCurrentLive2DVoice(reason) {
+            const previous = active;
+
+            token += 1;
+            active = null;
+            if (previous) {
+                previous.resolve(false);
+                voiceLog("previous voice stopped", { key: previous.key, token: previous.token, reason: reason || "replace" });
+            }
+            clearAudioSource();
+            voiceLog("voice cleanup", { reason: reason || "stop", token: token });
+        }
+
+        function playLive2DVoice(src, key) {
+            const source = String(src || "").trim();
+
+            if (!source) {
+                return Promise.resolve(false);
+            }
+
+            if (destroyed) {
+                destroyed = false;
+                bindAudioListeners();
+                bindLifecycleListeners();
+            }
+
+            bindAudioListeners();
+            stopCurrentLive2DVoice("replace");
+            const requestToken = token;
+            const requestKey = safeKey(source, key);
+
+            voiceLog("play requested", { key: requestKey, token: requestToken });
+            return new Promise(function (resolve) {
+                active = {
+                    token: requestToken,
+                    key: requestKey,
+                    resolve: resolve,
+                    started: false
+                };
+                audio.src = source;
+
+                let playRequest;
+                try {
+                    playRequest = audio.play();
+                } catch (error) {
+                    voiceLog("voice play rejected", { key: requestKey, token: requestToken });
+                    resolveActive(false);
+                    return;
+                }
+
+                if (playRequest && typeof playRequest.then === "function") {
+                    playRequest.then(function () {
+                        if (!active || active.token !== requestToken || token !== requestToken) {
+                            voiceLog("stale callback ignored", { key: requestKey, token: requestToken });
+                            return;
+                        }
+
+                        active.started = true;
+                        voiceLog("voice started", { key: requestKey, token: requestToken });
+                    }).catch(function () {
+                        if (!active || active.token !== requestToken || token !== requestToken) {
+                            voiceLog("stale callback ignored", { key: requestKey, token: requestToken });
+                            return;
+                        }
+
+                        voiceLog("voice play rejected", { key: requestKey, token: requestToken });
+                        resolveActive(false);
+                    });
+                    return;
+                }
+
+                if (active && active.token === requestToken && token === requestToken) {
+                    active.started = true;
+                    voiceLog("voice started", { key: requestKey, token: requestToken });
+                }
+            });
+        }
+
+        function destroy() {
+            stopCurrentLive2DVoice("destroy");
+            unbindAudioListeners();
+            unbindLifecycleListeners();
+            audio.removeAttribute("src");
+            try {
+                audio.load();
+            } catch (error) {}
+            destroyed = true;
+        }
+
+        function handleVisibilityChange() {
+            if (document.hidden) {
+                stopCurrentLive2DVoice("hidden");
+            }
+        }
+
+        function handlePagehide() {
+            stopCurrentLive2DVoice("pagehide");
+        }
+
+        function handleRuntimeDestroy() {
+            stopCurrentLive2DVoice("runtime-destroy");
+        }
+
+        function handleBeforeUnload() {
+            destroy();
+        }
+
+        function bindLifecycleListeners() {
+            if (lifecycleBound) {
+                return;
+            }
+
+            lifecycleBound = true;
+            document.addEventListener("visibilitychange", handleVisibilityChange);
+            window.addEventListener("pagehide", handlePagehide);
+            window.addEventListener("junxue-live2d-runtime-destroy", handleRuntimeDestroy);
+            window.addEventListener("beforeunload", handleBeforeUnload, { once: true });
+        }
+
+        function unbindLifecycleListeners() {
+            if (!lifecycleBound) {
+                return;
+            }
+
+            lifecycleBound = false;
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+            window.removeEventListener("pagehide", handlePagehide);
+            window.removeEventListener("junxue-live2d-runtime-destroy", handleRuntimeDestroy);
+            window.removeEventListener("beforeunload", handleBeforeUnload);
+        }
+
+        bindAudioListeners();
+        bindLifecycleListeners();
+
+        const manager = {
+            playLive2DVoice: playLive2DVoice,
+            stopCurrentLive2DVoice: stopCurrentLive2DVoice,
+            destroy: destroy
+        };
+
+        window.JunxueLive2DVoice = manager;
+        window.dispatchEvent(new CustomEvent("junxue-live2d-voice-ready"));
+        return manager;
+    }
+
+    createLive2DVoiceManager();
+
+    function playOpeningVoice() {
+        const manager = window.JunxueLive2DVoice;
+
+        if (!manager || typeof manager.playLive2DVoice !== "function") {
+            return Promise.resolve(false);
+        }
+
+        return manager.playLive2DVoice(openingVoicePath, "opening");
     }
 
     function ensureOpeningBubbleStyles() {
@@ -874,21 +1089,19 @@
             return;
         }
 
-        try {
-            const audio = new Audio(file);
+        const manager = window.JunxueLive2DVoice;
 
-            audio.volume = 0.8;
-            audio.addEventListener("error", function () {
-                pushLive2DDebug("optional voice load failed", {
-                    reason: "audio error"
-                });
-            }, { once: true });
-            audio.play().catch(function () {
+        if (!manager || typeof manager.playLive2DVoice !== "function") {
+            return;
+        }
+
+        manager.playLive2DVoice(file, "companion").then(function (played) {
+            if (!played) {
                 pushLive2DDebug("optional voice play skipped", {
-                    reason: "play rejected"
+                    reason: "play rejected or replaced"
                 });
-            });
-        } catch (error) {}
+            }
+        });
     }
 
     function getLive2DStageNode() {

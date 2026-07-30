@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    const VERSION = "20260718-my-account-switch1";
+    const VERSION = "20260730-my-mobile-quick-pages1";
     const BOSS_LOGIN_URL = "boss-register.html?mode=login&redirect=index";
     const BOSS_REGISTER_URL = "boss-register.html?mode=register&redirect=index";
     const BOSS_SWITCH_LOGIN_URL = "boss-register.html?mode=login&redirect=my.html";
@@ -147,16 +147,19 @@
         accountSwitchButton: $("[data-my-account-switch]"),
         refreshButton: $("[data-my-refresh]"),
         checkinButton: $("[data-my-checkin-button]"),
-        benefitCheckinButton: $("[data-my-benefit-checkin]"),
+        quickGrid: $("[data-my-quick-grid]"),
+        quickItems: $$("[data-my-mobile-quick-page]"),
+        quickPager: $("[data-my-quick-pager]"),
+        quickPrev: $("[data-my-quick-prev]"),
+        quickNext: $("[data-my-quick-next]"),
+        quickStatus: $("[data-my-quick-status]"),
         points: $("[data-my-points]"),
         exchangePoints: $("[data-my-exchange-points]"),
         totalCheckins: $("[data-my-total-checkins]"),
         currentStreak: $("[data-my-current-streak]"),
         monthlyCheckins: $("[data-my-monthly-checkins]"),
         todayStatus: $("[data-my-today-status]"),
-        todayStatusCopy: $("[data-my-today-status-copy]"),
         todayDate: $("[data-my-today-date]"),
-        rewardPoints: $("[data-my-reward-points]"),
         checkinMessage: $("[data-my-checkin-message]"),
         checkinSection: $("[data-my-checkin-section]"),
         actionNodes: $$("[data-my-action]"),
@@ -236,6 +239,96 @@
         if (node) {
             node.hidden = !!hidden;
         }
+    }
+
+    const quickPagerState = {
+        page: 1,
+        totalPages: 1,
+        mobileQuery: window.matchMedia ? window.matchMedia("(max-width: 768px)") : null
+    };
+
+    function isMobileQuickPagerActive() {
+        return !!(quickPagerState.mobileQuery && quickPagerState.mobileQuery.matches);
+    }
+
+    function getVisibleQuickPages() {
+        const pages = {};
+        nodes.quickItems.forEach(function (item) {
+            if (item.hidden) {
+                return;
+            }
+            const page = Math.max(1, Number(item.getAttribute("data-my-mobile-quick-page")) || 1);
+            pages[page] = true;
+        });
+        return Object.keys(pages).map(Number).sort(function (left, right) {
+            return left - right;
+        });
+    }
+
+    function renderQuickPager() {
+        if (!nodes.quickPager || !nodes.quickItems.length) {
+            return;
+        }
+
+        if (!isMobileQuickPagerActive()) {
+            quickPagerState.page = 1;
+            nodes.quickPager.hidden = true;
+            if (nodes.quickGrid) {
+                nodes.quickGrid.removeAttribute("data-my-visible-quick-count");
+            }
+            nodes.quickItems.forEach(function (item) {
+                item.removeAttribute("data-my-mobile-hidden");
+                item.removeAttribute("aria-hidden");
+                item.removeAttribute("tabindex");
+            });
+            return;
+        }
+
+        const pages = getVisibleQuickPages();
+        const totalPages = pages.length || 1;
+        if (pages.indexOf(quickPagerState.page) === -1) {
+            quickPagerState.page = pages[pages.length - 1] || 1;
+        }
+        quickPagerState.totalPages = totalPages;
+
+        let visibleCount = 0;
+        nodes.quickItems.forEach(function (item) {
+            const itemPage = Math.max(1, Number(item.getAttribute("data-my-mobile-quick-page")) || 1);
+            const shouldHide = itemPage !== quickPagerState.page || item.hidden;
+            if (shouldHide) {
+                item.setAttribute("data-my-mobile-hidden", "true");
+                item.setAttribute("aria-hidden", "true");
+                item.setAttribute("tabindex", "-1");
+                return;
+            }
+            item.removeAttribute("data-my-mobile-hidden");
+            item.removeAttribute("aria-hidden");
+            item.removeAttribute("tabindex");
+            visibleCount += 1;
+        });
+        if (nodes.quickGrid) {
+            nodes.quickGrid.setAttribute("data-my-visible-quick-count", String(visibleCount));
+        }
+
+        nodes.quickPager.hidden = totalPages <= 1;
+        if (nodes.quickPrev) {
+            nodes.quickPrev.disabled = quickPagerState.page <= pages[0];
+        }
+        if (nodes.quickNext) {
+            nodes.quickNext.disabled = quickPagerState.page >= pages[pages.length - 1];
+        }
+        if (nodes.quickStatus) {
+            const visibleIndex = Math.max(1, pages.indexOf(quickPagerState.page) + 1);
+            nodes.quickStatus.textContent = "第 " + visibleIndex + " / " + totalPages + " 页";
+        }
+    }
+
+    function moveQuickPage(direction) {
+        const pages = getVisibleQuickPages();
+        const currentIndex = pages.indexOf(quickPagerState.page);
+        const nextIndex = Math.min(Math.max((currentIndex === -1 ? 0 : currentIndex) + direction, 0), pages.length - 1);
+        quickPagerState.page = pages[nextIndex] || 1;
+        renderQuickPager();
     }
 
     function setAvatarStatus(message) {
@@ -577,7 +670,6 @@
         state.checkinStatus = status || null;
         const signed = isSigned(status);
         const todayText = status ? (signed ? "今天已签到" : "今天还没签到") : "--";
-        const rewardText = status && status.rewardPoints ? String(status.rewardPoints) : "--";
 
         setText(nodes.points, status ? String(status.totalPoints) : "--");
         setText(nodes.exchangePoints, status ? String(status.totalPoints) : "--");
@@ -585,18 +677,11 @@
         setText(nodes.currentStreak, status ? String(status.currentStreak) + " 天" : "--");
         setText(nodes.monthlyCheckins, status ? String(status.monthlyCheckins) + " 天" : "--");
         setText(nodes.todayStatus, todayText);
-        setText(nodes.todayStatusCopy, todayText);
         setText(nodes.todayDate, status && status.todayDate ? String(status.todayDate).slice(0, 10) : "--");
-        setText(nodes.rewardPoints, rewardText);
 
         if (nodes.checkinButton) {
             nodes.checkinButton.disabled = !!signed;
             nodes.checkinButton.textContent = signed ? "今天已签到" : "立即签到";
-        }
-
-        if (nodes.benefitCheckinButton) {
-            nodes.benefitCheckinButton.disabled = !!signed;
-            nodes.benefitCheckinButton.textContent = signed ? "今天已签到" : "立即签到";
         }
 
         setCheckinMessage(message || (signed ? "今日已完成签到。" : "今日还可以签到。"));
@@ -641,10 +726,6 @@
                     nodes.checkinButton.disabled = true;
                     nodes.checkinButton.textContent = "暂未开启";
                 }
-                if (nodes.benefitCheckinButton) {
-                    nodes.benefitCheckinButton.disabled = true;
-                    nodes.benefitCheckinButton.textContent = "暂未开启";
-                }
                 updateOpenModal();
                 return;
             }
@@ -655,7 +736,6 @@
 
     function setCheckinButtonsBusy(busy, label) {
         setBusy(nodes.checkinButton, busy, label);
-        setBusy(nodes.benefitCheckinButton, busy, label);
 
         const modalCheckinButton = $("[data-my-modal-checkin]");
         if (modalCheckinButton) {
@@ -700,10 +780,6 @@
                 if (nodes.checkinButton) {
                     nodes.checkinButton.disabled = true;
                     nodes.checkinButton.textContent = "暂未开启";
-                }
-                if (nodes.benefitCheckinButton) {
-                    nodes.benefitCheckinButton.disabled = true;
-                    nodes.benefitCheckinButton.textContent = "暂未开启";
                 }
                 updateOpenModal();
                 return;
@@ -1913,6 +1989,7 @@
     function setAdminShortcutVisible(visible) {
         if (nodes.adminShortcut) {
             nodes.adminShortcut.hidden = !visible;
+            renderQuickPager();
         }
     }
 
@@ -2565,9 +2642,7 @@
         setText(nodes.currentStreak, "--");
         setText(nodes.monthlyCheckins, "--");
         setText(nodes.todayStatus, "--");
-        setText(nodes.todayStatusCopy, "--");
         setText(nodes.todayDate, "--");
-        setText(nodes.rewardPoints, "--");
         setAvatarStatus("");
         setCheckinMessage("");
         setBusy(nodes.avatarButton, false, "更换头像");
@@ -2754,9 +2829,26 @@
             nodes.checkinButton.addEventListener("click", claimCheckin);
         }
 
-        if (nodes.benefitCheckinButton) {
-            nodes.benefitCheckinButton.addEventListener("click", claimCheckin);
+        if (nodes.quickPrev) {
+            nodes.quickPrev.addEventListener("click", function () {
+                moveQuickPage(-1);
+            });
         }
+
+        if (nodes.quickNext) {
+            nodes.quickNext.addEventListener("click", function () {
+                moveQuickPage(1);
+            });
+        }
+
+        if (quickPagerState.mobileQuery) {
+            if (typeof quickPagerState.mobileQuery.addEventListener === "function") {
+                quickPagerState.mobileQuery.addEventListener("change", renderQuickPager);
+            } else if (typeof quickPagerState.mobileQuery.addListener === "function") {
+                quickPagerState.mobileQuery.addListener(renderQuickPager);
+            }
+        }
+        renderQuickPager();
 
         nodes.actionNodes.forEach(function (node) {
             node.addEventListener("click", function (event) {

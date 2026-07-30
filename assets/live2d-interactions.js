@@ -1,6 +1,6 @@
 /* Live2D 轻量启动脚本：首屏只保留开场提示、点击入口和懒加载控制。 */
 (function () {
-    const version = "20260719-responsive-layout-system1";
+    const version = "20260730-mobile-live2d-effects1";
     if (typeof window.JunxueLive2DDebugLog !== "function") {
         window.__JUNXUE_LIVE2D_DEBUG__ = window.__JUNXUE_LIVE2D_DEBUG__ || [];
         window.JunxueLive2DDebugLog = function (message, detail) {
@@ -31,7 +31,7 @@
 
     window.__JUNXUE_LIVE2D_INTERACTIONS_INSTALLED__ = true;
 
-    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260719-responsive-layout-system1";
+    const LAZY_SCRIPT_SRC = "assets/live2d-interactions-lazy.js?v=20260730-mobile-live2d-effects1";
     const BOSS_NAME_FALLBACK = "旅行者";
     const MOBILE_LAYOUT_QUERY = "(max-width: 767px)";
     const MOBILE_LANDSCAPE_QUERY = "(max-width: 932px) and (orientation: landscape)";

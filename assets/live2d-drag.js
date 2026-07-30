@@ -1,6 +1,6 @@
 /* Live2D direct drag: drag the Ganyu model area, while simple clicks still open the menu. */
 (function () {
-    const version = "20260719-responsive-layout-system1";
+    const version = "20260730-mobile-live2d-effects1";
     if (typeof window.JunxueLive2DDebugLog !== "function") {
         window.__JUNXUE_LIVE2D_DEBUG__ = window.__JUNXUE_LIVE2D_DEBUG__ || [];
         window.JunxueLive2DDebugLog = function (message, detail) {
@@ -36,6 +36,8 @@
 
     const STORAGE_KEY = "junxue-live2d-stage-position";
     const LEGACY_STORAGE_KEY = "ganyuLive2DPosition";
+    const STATIC_POSITION_KEY = "junxue-live2d-static-position";
+    const DYNAMIC_POSITION_KEY = "junxue-live2d-dynamic-position";
     const STAGE_SELECTOR = "#oml2d-stage";
     const CANVAS_SELECTOR = "#oml2d-canvas";
     const FRAME_SHELL_SELECTOR = "#ganyu-live2d-frame-shell";
@@ -56,6 +58,7 @@
 
     let dragState = null;
     let currentPosition = null;
+    let currentPositionMode = "";
     let suppressNextClickUntil = 0;
     let resizeFrame = 0;
     let stageResizeObserver = null;
@@ -169,6 +172,43 @@
         return firstUsableNode([STAGE_SELECTOR, FRAME_SHELL_SELECTOR, STATIC_CARD_SELECTOR]);
     }
 
+    function isMobileViewport() {
+        return !!(window.matchMedia && (
+            window.matchMedia("(max-width: 767px)").matches ||
+            window.matchMedia("(max-width: 932px) and (orientation: landscape)").matches
+        ));
+    }
+
+    function getStageMode(stage) {
+        if (stage && stage.matches && stage.matches(STATIC_CARD_SELECTOR)) {
+            return "mobile-static";
+        }
+        if (stage && stage.id === "ganyu-live2d-frame-shell") {
+            return "mobile-dynamic";
+        }
+        return "desktop";
+    }
+
+    function getPositionStorageKey(stage) {
+        const mode = getStageMode(stage);
+        if (mode === "mobile-static") {
+            return STATIC_POSITION_KEY;
+        }
+        if (mode === "mobile-dynamic") {
+            return DYNAMIC_POSITION_KEY;
+        }
+        return STORAGE_KEY;
+    }
+
+    function syncPositionMode(stage) {
+        const nextMode = getStageMode(stage || getStage());
+        if (currentPositionMode && currentPositionMode !== nextMode) {
+            currentPosition = null;
+        }
+        currentPositionMode = nextMode;
+        return nextMode;
+    }
+
     function getCanvas() {
         return firstUsableNode([CANVAS_SELECTOR, FRAME_SELECTOR, STATIC_CARD_SELECTOR]);
     }
@@ -250,9 +290,10 @@
         const height = Math.max(1, rect.height || 400);
         const stage = getStage();
 
-        if (stage === getStaticCard()) {
+        const stageMode = getStageMode(stage);
+        if (stageMode === "mobile-static" || (stageMode === "mobile-dynamic" && isMobileViewport())) {
             const margin = 12;
-            const bottomReserve = Math.max(96, Math.round(viewport.height * 0.16));
+            const bottomReserve = stageMode === "mobile-static" ? Math.max(96, Math.round(viewport.height * 0.16)) : Math.max(84, Math.round(viewport.height * 0.14));
             const maxLeft = Math.max(margin, viewport.width - width - margin);
             const maxTop = Math.max(margin, viewport.height - height - bottomReserve);
 
@@ -296,8 +337,14 @@
         return null;
     }
 
-    function readSavedPosition() {
+    function readSavedPosition(stage) {
         try {
+            const target = stage || getStage();
+            const mode = getStageMode(target);
+            const scoped = parseSavedPosition(localStorage.getItem(getPositionStorageKey(target)));
+            if (scoped || mode === "mobile-dynamic") {
+                return scoped;
+            }
             return parseSavedPosition(localStorage.getItem(STORAGE_KEY)) ||
                 parseSavedPosition(localStorage.getItem(LEGACY_STORAGE_KEY));
         } catch (error) {
@@ -305,9 +352,9 @@
         }
     }
 
-    function savePosition(position) {
+    function savePosition(position, stage) {
         try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(position));
+            localStorage.setItem(getPositionStorageKey(stage || getStage()), JSON.stringify(position));
         } catch (error) {
             // Keep the current in-page position when localStorage is unavailable.
         }
@@ -358,6 +405,7 @@
 
     function applyStagePosition(position, shouldSave) {
         const stage = getStage();
+        syncPositionMode(stage);
         const nextPosition = clampPosition(position);
 
         currentPosition = nextPosition;
@@ -381,7 +429,7 @@
         notifyStagePosition(nextPosition);
 
         if (shouldSave) {
-            savePosition(nextPosition);
+            savePosition(nextPosition, stage);
         }
     }
 
@@ -612,7 +660,7 @@
             }
             flushDragPosition();
             markSuppressNextClick();
-            savePosition(currentPosition || dragState.startPosition);
+            savePosition(currentPosition || dragState.startPosition, getStage());
             window.dispatchEvent(new CustomEvent("live2d-stage-drag-finished", {
                 detail: {
                     position: currentPosition || dragState.startPosition,
@@ -645,7 +693,9 @@
     }
 
     function restoreSavedPosition() {
-        const savedPosition = currentPosition || readSavedPosition();
+        const stage = getStage();
+        syncPositionMode(stage);
+        const savedPosition = currentPosition || readSavedPosition(stage);
 
         if (savedPosition) {
             applyStagePosition(savedPosition, false);
@@ -654,6 +704,7 @@
 
     function syncAfterResize() {
         resizeFrame = 0;
+        syncPositionMode(getStage());
         if (currentPosition) {
             applyStagePosition(currentPosition, true);
             return;
@@ -694,6 +745,7 @@
             return;
         }
 
+        syncPositionMode(stage);
         observeStageSize(stage);
 
         getDragTargets().forEach(bindDragTarget);

@@ -83,63 +83,102 @@
             modelName: "ganyu",
             modelPath: "models/ganyu/Ganyu1024.model3.json",
             dockedPosition: "left",
-            scale: 0.066,
-            mobileScale: 0.066,
+            scale: 0.058,
+            mobileScale: 0.058,
             position: [0, 20],
             mobilePosition: [0, 20],
             stageStyle: {
-                width: 204,
-                height: 376
+                width: 168,
+                height: 340
             },
             mobileStageStyle: {
-                width: 204,
-                height: 376
+                width: 168,
+                height: 340
             },
+            dprCap: 1.5,
+            parentOrigin: window.location.origin,
+            requestId: new URLSearchParams(window.location.search).get("requestId") || "",
+            attemptId: new URLSearchParams(window.location.search).get("attemptId") || "",
+            cacheVersion: new URLSearchParams(window.location.search).get("cacheVersion") || "",
             sayHello: false,
             disableStatusBar: true,
             messages: [""]
         };
 
-        window.addEventListener("message", function (event) {
-            var data = event.data || {};
+        var hostConfig = window.Live2DWidgetConfig;
 
-            if (!data || typeof data.type !== "string") {
+        function postHostMessage(type, detail) {
+            if (!window.parent || window.parent === window) {
                 return;
             }
 
-            if (data.type === "hide") {
-                document.body.classList.add("is-host-hidden");
+            window.parent.postMessage(Object.assign({
+                type: type,
+                requestId: hostConfig.requestId,
+                attemptId: hostConfig.attemptId,
+                cacheVersion: hostConfig.cacheVersion
+            }, detail || {}), hostConfig.parentOrigin);
+        }
+
+        function isCurrentParentMessage(event, data) {
+            return !!(
+                event &&
+                data &&
+                event.origin === hostConfig.parentOrigin &&
+                event.source === window.parent &&
+                String(data.requestId || "") === String(hostConfig.requestId || "") &&
+                String(data.attemptId || "") === String(hostConfig.attemptId || "") &&
+                String(data.cacheVersion || "") === String(hostConfig.cacheVersion || "")
+            );
+        }
+
+        function controlRuntime(command) {
+            var control = window.JunxueLive2DHostControl;
+            if (control && typeof control[command] === "function") {
+                control[command]();
+            }
+        }
+
+        window.addEventListener("message", function (event) {
+            var data = event.data || {};
+
+            if (!data || typeof data.type !== "string" || !isCurrentParentMessage(event, data)) {
+                return;
             }
 
-            if (data.type === "show" || data.type === "resize") {
+            if (data.type === "hide" || data.type === "pause") {
+                document.body.classList.add("is-host-hidden");
+                controlRuntime("pause");
+            }
+
+            if (data.type === "show" || data.type === "resume" || data.type === "resize") {
                 document.body.classList.remove("is-host-hidden");
+                controlRuntime(data.type === "resize" ? "resize" : "resume");
             }
 
             if (data.type === "recover") {
                 window.location.reload();
             }
+
+            if (data.type === "destroy") {
+                controlRuntime("destroy");
+            }
         });
 
         window.addEventListener("error", function (event) {
-            if (window.parent && window.parent !== window) {
-                window.parent.postMessage({
-                    type: "ganyu-host-error",
-                    message: event.message || "host-error"
-                }, "*");
-            }
+            postHostMessage("ganyu-host-error", {
+                message: event.message || "host-error"
+            });
         });
 
         window.addEventListener("unhandledrejection", function (event) {
             var reason = event.reason || {};
 
-            if (window.parent && window.parent !== window) {
-                window.parent.postMessage({
-                    type: "ganyu-host-error",
-                    message: reason.message || String(reason || "host-promise-error")
-                }, "*");
-            }
+            postHostMessage("ganyu-host-error", {
+                message: reason.message || String(reason || "host-promise-error")
+            });
         });
     </script>
-    <script src="live2d-widget.js?v=20260614-hostfix1"></script>
+    <script src="live2d-widget.js?v=20260730-mobile-live2d-effects1"></script>
 </body>
 </html>

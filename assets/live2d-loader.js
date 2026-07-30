@@ -1,6 +1,6 @@
-/* Lightweight Live2D loader: desktop keeps dynamic Ganyu, mobile uses a stable static fallback first. */
+/* Lightweight Live2D loader: desktop stays dynamic; mobile effects mode uses the same model through a guarded iframe host. */
 (function () {
-    const version = "20260719-responsive-layout-system1";
+    const version = "20260730-mobile-live2d-effects1";
     window.__JUNXUE_LIVE2D_DEBUG__ = window.__JUNXUE_LIVE2D_DEBUG__ || [];
     window.JunxueLive2DDebugLog = window.JunxueLive2DDebugLog || function (message, detail) {
         const safeMessage = String(message || "");
@@ -24,16 +24,27 @@
 })();
 
 (function () {
-    const WIDGET_SCRIPT = "live2d/live2d-widget.js?v=20260613-5";
-    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=20260719-responsive-layout-system1";
-    const DRAG_SCRIPT = "assets/live2d-drag.js?v=20260719-responsive-layout-system1";
-    const FRAME_HOST_SRC = "live2d/ganyu-host.html?v=20260613-iframe1";
+    const CACHE_VERSION = "20260730-mobile-live2d-effects1";
+    const WIDGET_SCRIPT = "live2d/live2d-widget.js?v=" + CACHE_VERSION;
+    const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=" + CACHE_VERSION;
+    const DRAG_SCRIPT = "assets/live2d-drag.js?v=" + CACHE_VERSION;
+    const FRAME_HOST_SRC = "live2d/ganyu-host.html?v=" + CACHE_VERSION;
     const STATIC_WEBP = "assets/images/price-ganyu-showcase.webp";
     const STATIC_PNG = "assets/images/price-ganyu-showcase.png";
     const LOAD_TIMEOUT_MS = 10000;
     const AUTOLOAD_DELAY_MS = 1200;
     const STORAGE_KEY = "junxue-live2d-stage-position";
     const LEGACY_STORAGE_KEY = "ganyuLive2DPosition";
+    const STATIC_POSITION_KEY = "junxue-live2d-static-position";
+    const DYNAMIC_POSITION_KEY = "junxue-live2d-dynamic-position";
+    const MOBILE_STATES = {
+        idle: "idle",
+        static: "static",
+        loading: "loading-live2d",
+        ready: "live2d-ready",
+        failed: "live2d-failed",
+        destroying: "destroying"
+    };
     const MENU_REQUEST_EVENT = "junxue-live2d-open-menu-request";
     const STATIC_CARD_SELECTOR = "[data-live2d-static-card='true'],.ganyu-static-card";
     const STATIC_OPEN_SELECTOR = "[data-live2d-action='open-menu']";
@@ -104,6 +115,7 @@
     const autoloadMode = currentScript ? currentScript.getAttribute("data-live2d-autoload") : "manual";
     const performanceMode = window.JunxuePerformanceMode;
     const isLowPerformance = !!(performanceMode && typeof performanceMode.isLow === "function" && performanceMode.isLow());
+    const isHighPerformancePreference = !!(performanceMode && performanceMode.requestedMode === "high");
     const isHomeAutoload = autoloadMode === "home";
     const isMobileViewport = window.matchMedia && (
         window.matchMedia("(max-width: 767px)").matches ||
@@ -122,9 +134,19 @@
     let delegatedStaticPointer = null;
     let lastDelegatedStaticOpenAt = 0;
     let lastStaticButtonOpenAt = 0;
+    let requestSequence = 0;
+    let attemptSequence = 0;
+    let mobileRetryTimer = 0;
+    let mobileResizeFrame = 0;
+    let mobileAutoloadTimer = 0;
+    let lifecycleBound = false;
 
-    loaderState.mode = useIframeMobile ? "mobile-static" : "inline";
+    loaderState.mode = useIframeMobile ? (isHighPerformancePreference ? "mobile-effects" : "mobile-static") : "inline";
     loaderState.dynamicMode = useIframeMobile ? "iframe-mobile" : "inline";
+    loaderState.state = loaderState.state || MOBILE_STATES.idle;
+    loaderState.requestId = 0;
+    loaderState.attemptId = 0;
+    loaderState.retryCount = 0;
     loaderState.staticVisible = false;
     loaderState.dynamicAttempted = false;
     loaderState.dynamicReady = false;
@@ -163,7 +185,7 @@
             ".ganyu-static-card__status:empty{display:none;}",
             ".ganyu-static-card__dynamic{justify-self:center;min-height:28px;margin-top:2px;padding:0 10px;border:1px solid rgba(184,235,255,.66);border-radius:999px;background:linear-gradient(135deg,rgba(68,202,255,.48),rgba(177,122,255,.38));color:rgba(247,253,255,.96);font-size:11px;font-weight:800;white-space:nowrap;cursor:pointer;box-shadow:0 0 12px rgba(109,217,255,.18);pointer-events:auto;}",
             ".ganyu-static-card__dynamic:disabled{cursor:wait;opacity:.7;}",
-            "#ganyu-live2d-frame-shell{position:fixed;left:10px;bottom:max(86px,calc(env(safe-area-inset-bottom) + 84px));width:min(54vw,196px);height:min(58vh,360px);z-index:58;overflow:visible;background:transparent;border:0;pointer-events:none;outline:none;-webkit-tap-highlight-color:transparent;}",
+            "#ganyu-live2d-frame-shell{position:fixed;left:10px;bottom:max(86px,calc(env(safe-area-inset-bottom) + 84px));width:min(54vw,196px);height:min(58vh,360px);z-index:58;overflow:visible;background:transparent;border:0;pointer-events:none;outline:none;-webkit-tap-highlight-color:transparent;}#ganyu-live2d-frame-shell.is-loading{visibility:hidden;pointer-events:none;}",
             "#ganyu-live2d-frame{display:block;width:100%;height:100%;border:0;background:transparent;overflow:visible;pointer-events:none;outline:none;-webkit-tap-highlight-color:transparent;}",
             "#ganyu-live2d-frame-shell>.live2d-hit-area{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;border:0!important;border-radius:0!important;background:transparent!important;padding:0!important;margin:0!important;cursor:grab;touch-action:none;pointer-events:auto!important;z-index:59!important;outline:none!important;-webkit-tap-highlight-color:transparent!important;box-shadow:none!important;}",
             "#ganyu-live2d-frame-shell:focus,#ganyu-live2d-frame:focus,#ganyu-live2d-frame-shell>.live2d-hit-area:focus{outline:none!important;box-shadow:none!important;}",
@@ -173,13 +195,21 @@
             "html.performance-low .ganyu-static-card:active{transform:none;box-shadow:inset 0 0 8px rgba(255,255,255,.06);}",
             "html.performance-low .ganyu-static-card.is-dynamic-ready .ganyu-static-card__visual{opacity:.42;filter:none;}",
             "html.performance-low .ganyu-static-card__dynamic{box-shadow:none;}",
-            "@media(max-width:767px),(max-width:932px) and (orientation:landscape){.live2d-load-control{left:max(12px,env(safe-area-inset-left));bottom:max(84px,calc(env(safe-area-inset-bottom) + 72px));}.live2d-load-control__button{min-height:34px;padding:0 13px;font-size:12px}.live2d-load-control__status{max-width:min(78vw,240px);font-size:12px;}#ganyu-live2d-frame-shell{left:max(10px,env(safe-area-inset-left));bottom:max(88px,calc(env(safe-area-inset-bottom) + 84px));width:min(54vw,204px);height:min(58vh,360px);height:min(58dvh,360px);}.ganyu-static-card{left:max(14px,env(safe-area-inset-left));bottom:max(82px,calc(env(safe-area-inset-bottom) + 76px));width:clamp(132px,40vw,168px);max-width:46vw;max-height:32vh;max-height:32dvh;padding:7px;border-radius:16px;box-shadow:0 0 18px rgba(90,213,255,.22),0 12px 26px rgba(2,10,30,.22),inset 0 0 12px rgba(255,255,255,.10);}.ganyu-static-card__visual{min-height:86px;max-height:17vh;max-height:17dvh;border-radius:12px;}.ganyu-static-card__visual picture,.ganyu-static-card__visual img{min-height:86px;max-height:17vh;max-height:17dvh;}.ganyu-static-card__visual img{border-radius:12px;}.ganyu-static-card__body{gap:4px;padding:7px 3px 2px;}.ganyu-static-card__title{font-size:12px;}.ganyu-static-card__hint,.ganyu-static-card__status{font-size:10.5px;line-height:1.34;}.ganyu-static-card__dynamic{min-height:28px;padding:0 10px;font-size:11px;box-shadow:0 0 10px rgba(109,217,255,.16);}}"
+            "@media(max-width:767px),(max-width:932px) and (orientation:landscape){.live2d-load-control{left:max(12px,env(safe-area-inset-left));bottom:max(84px,calc(env(safe-area-inset-bottom) + 72px));}.live2d-load-control__button{min-height:34px;padding:0 13px;font-size:12px}.live2d-load-control__status{max-width:min(78vw,240px);font-size:12px;}#ganyu-live2d-frame-shell{--live2d-mobile-width:clamp(125px,40vw,168px);--live2d-mobile-height:clamp(250px,38dvh,340px);left:max(10px,env(safe-area-inset-left));bottom:max(88px,calc(env(safe-area-inset-bottom) + 84px));width:var(--live2d-mobile-width);height:var(--live2d-mobile-height);}.ganyu-static-card{left:max(14px,env(safe-area-inset-left));bottom:max(82px,calc(env(safe-area-inset-bottom) + 76px));width:clamp(132px,40vw,168px);max-width:46vw;max-height:32vh;max-height:32dvh;padding:7px;border-radius:16px;box-shadow:0 0 18px rgba(90,213,255,.22),0 12px 26px rgba(2,10,30,.22),inset 0 0 12px rgba(255,255,255,.10);}.ganyu-static-card__visual{min-height:86px;max-height:17vh;max-height:17dvh;border-radius:12px;}.ganyu-static-card__visual picture,.ganyu-static-card__visual img{min-height:86px;max-height:17vh;max-height:17dvh;}.ganyu-static-card__visual img{border-radius:12px;}.ganyu-static-card__body{gap:4px;padding:7px 3px 2px;}.ganyu-static-card__title{font-size:12px;}.ganyu-static-card__hint,.ganyu-static-card__status{font-size:10.5px;line-height:1.34;}.ganyu-static-card__dynamic{min-height:28px;padding:0 10px;font-size:11px;box-shadow:0 0 10px rgba(109,217,255,.16);}}@media(max-width:767px) and (max-height:700px){#ganyu-live2d-frame-shell{--live2d-mobile-height:clamp(220px,32dvh,280px);}}@media(max-width:932px) and (orientation:landscape){#ganyu-live2d-frame-shell{--live2d-mobile-width:clamp(110px,26vw,150px);--live2d-mobile-height:clamp(180px,52dvh,250px);bottom:max(62px,calc(env(safe-area-inset-bottom) + 54px));}}"
         ].join("");
         document.head.appendChild(style);
     }
 
     function isIframeMobileMode() {
         return useIframeMobile;
+    }
+
+    function isMobileEffectsMode() {
+        return isIframeMobileMode() && isHighPerformancePreference;
+    }
+
+    function shouldUseStaticMobileMode() {
+        return isIframeMobileMode() && !isMobileEffectsMode();
     }
 
     function getControl() {
@@ -224,6 +254,10 @@
         button.disabled = false;
 
         if (isIframeMobileMode()) {
+            if (loaderState.state === MOBILE_STATES.failed) {
+                button.textContent = "再试一次动态甘雨";
+                return;
+            }
             button.textContent = hasAnyVisibleGanyu() ? "隐藏甘雨" : "显示甘雨";
             return;
         }
@@ -241,10 +275,22 @@
         if (isIframeMobileMode()) {
             debugStaticMenu("show ganyu button clicked");
             setStaticDebugStatus("mobile show ganyu button clicked");
-        }
-
-        if (isIframeMobileMode()) {
             if (loaderState.loading) {
+                return;
+            }
+
+            if (isMobileEffectsMode()) {
+                if (loaderState.state === MOBILE_STATES.idle && isStaticCardVisible()) {
+                    window.clearTimeout(mobileAutoloadTimer);
+                    mobileAutoloadTimer = 0;
+                    setMobileGanyuVisible(false);
+                    return;
+                }
+                if (loaderState.state === MOBILE_STATES.ready && hasActuallyVisibleLive2D()) {
+                    setLive2DVisible(!loaderState.visible);
+                    return;
+                }
+                startMobileLive2DRequest("control");
                 return;
             }
 
@@ -284,7 +330,7 @@
         loaderState.visible = visible;
         document.body.classList.toggle("live2d-hidden", !visible);
         if (isIframeMobileMode()) {
-            sendFrameMessage(visible ? "show" : "hide");
+            sendFrameMessage(visible ? "resume" : "pause");
         }
 
         if (loaderState.loaded || isIframeMobileMode()) {
@@ -313,7 +359,7 @@
         }
 
         if (getFrameShell()) {
-            sendFrameMessage(visible ? "show" : "hide");
+            sendFrameMessage(visible ? "resume" : "pause");
         }
 
         updateRenderInfo();
@@ -398,8 +444,8 @@
 
     loaderState.setDebugStatus = setStaticDebugStatus;
 
-    function isStaticOpenButton(node) {
-        return !!(node && node.matches && node.matches(".ganyu-static-card__dynamic" + STATIC_OPEN_SELECTOR));
+    function isStaticActionButton(node) {
+        return !!(node && node.matches && node.matches(".ganyu-static-card__dynamic"));
     }
 
     function getStaticMenuTrigger(target) {
@@ -407,7 +453,7 @@
             return null;
         }
 
-        const action = target.closest(STATIC_OPEN_SELECTOR);
+        const action = target.closest(".ganyu-static-card__dynamic");
         if (action) {
             return {
                 node: action,
@@ -440,11 +486,15 @@
 
     function handleStaticOpenButtonEvent(event) {
         const button = event ? event.currentTarget : null;
-        if (!isStaticOpenButton(button)) {
+        if (!isStaticActionButton(button)) {
             return;
         }
 
         stopStaticButtonEvent(event);
+        if (button.getAttribute("data-live2d-action") === "retry-dynamic") {
+            startMobileLive2DRequest("static-retry");
+            return;
+        }
         debugStaticMenu("static button clicked");
         setStaticDebugStatus("button clicked");
 
@@ -466,7 +516,7 @@
             return;
         }
 
-        const button = card.querySelector(".ganyu-static-card__dynamic" + STATIC_OPEN_SELECTOR);
+        const button = card.querySelector(".ganyu-static-card__dynamic");
         if (!button || button.dataset.live2dOpenBound === "true") {
             return;
         }
@@ -485,7 +535,9 @@
 
         const button = card.querySelector(".ganyu-static-card__dynamic");
         if (button) {
-            button.setAttribute("data-live2d-action", "open-menu");
+            if (!button.getAttribute("data-live2d-action")) {
+                button.setAttribute("data-live2d-action", "open-menu");
+            }
             button.disabled = false;
             button.removeAttribute("disabled");
         }
@@ -503,6 +555,8 @@
         injectStyles();
         shell = document.createElement("div");
         shell.id = "ganyu-live2d-frame-shell";
+        shell.classList.add("is-loading");
+        shell.dataset.live2dRenderMode = "dynamic";
         shell.setAttribute("aria-label", "甘雨 Live2D");
 
         const frame = document.createElement("iframe");
@@ -570,18 +624,20 @@
         return card;
     }
 
-    function updateStaticCardStatus(message, buttonText) {
+    function updateStaticCardStatus(message, buttonText, action) {
         const card = ensureStaticCard();
         const status = card.querySelector(".ganyu-static-card__status");
         const button = card.querySelector(".ganyu-static-card__dynamic");
 
         status.textContent = message || "";
         button.textContent = buttonText || (loaderState.dynamicAttempted ? "再试一次对话甘雨" : "尝试对话甘雨");
+        button.setAttribute("data-live2d-action", action || "open-menu");
         button.disabled = false;
         button.removeAttribute("disabled");
     }
 
-    function showStaticFallback() {
+    function showStaticFallback(options) {
+        const settings = options || {};
         removeInlineRuntimeNodes();
         const card = ensureStaticCard();
         card.classList.remove("is-hidden");
@@ -590,9 +646,14 @@
         loaderState.staticVisible = true;
         loaderState.visible = true;
         loaderState.loaded = false;
-        loaderState.failed = false;
+        loaderState.failed = !!settings.failed;
+        if (settings.state) {
+            loaderState.state = settings.state;
+        } else if (!isMobileEffectsMode()) {
+            loaderState.state = MOBILE_STATES.static;
+        }
         document.body.classList.remove("live2d-hidden");
-        updateStaticCardStatus("", loaderState.dynamicAttempted ? "再试一次对话甘雨" : "尝试对话甘雨");
+        updateStaticCardStatus(settings.message || "", settings.buttonText || (loaderState.dynamicAttempted ? "再试一次对话甘雨" : "尝试对话甘雨"), settings.action || "open-menu");
         updateRenderInfo();
         setControlState("loaded");
         debugStaticMenu("show ganyu restored");
@@ -634,8 +695,16 @@
         return null;
     }
 
-    function getSavedPosition() {
+    function getSavedPosition(node) {
         try {
+            const isDynamic = !!(node && node.id === "ganyu-live2d-frame-shell");
+            const scopedKey = isDynamic ? DYNAMIC_POSITION_KEY : STATIC_POSITION_KEY;
+            const scopedPosition = parseSavedPosition(localStorage.getItem(scopedKey));
+
+            if (scopedPosition || isDynamic) {
+                return scopedPosition;
+            }
+
             return parseSavedPosition(localStorage.getItem(STORAGE_KEY)) || parseSavedPosition(localStorage.getItem(LEGACY_STORAGE_KEY));
         } catch (error) {
             return null;
@@ -656,7 +725,8 @@
         const minLeft = 8;
         const maxLeft = Math.max(minLeft, viewport.width - width - 8);
         const minTop = 8;
-        const maxTop = Math.max(minTop, viewport.height - height - 84);
+        const bottomReserve = Math.max(84, Math.round(viewport.height * 0.12));
+        const maxTop = Math.max(minTop, viewport.height - height - bottomReserve);
         return {
             left: clamp(position.left, minLeft, maxLeft),
             top: clamp(position.top, minTop, maxTop)
@@ -668,7 +738,7 @@
             return;
         }
 
-        const saved = getSavedPosition();
+        const saved = getSavedPosition(node);
         if (!saved) {
             return;
         }
@@ -691,7 +761,15 @@
         }
 
         const separator = FRAME_HOST_SRC.indexOf("?") === -1 ? "?" : "&";
-        frame.src = forceFresh ? FRAME_HOST_SRC + separator + "retry=" + Date.now() : FRAME_HOST_SRC;
+        const params = [
+            "requestId=" + encodeURIComponent(String(loaderState.requestId || 0)),
+            "attemptId=" + encodeURIComponent(String(loaderState.attemptId || 0)),
+            "cacheVersion=" + encodeURIComponent(CACHE_VERSION)
+        ];
+        if (forceFresh) {
+            params.push("retry=" + Date.now());
+        }
+        frame.src = FRAME_HOST_SRC + separator + params.join("&");
     }
 
     function sendFrameMessage(type, detail) {
@@ -702,7 +780,12 @@
         }
 
         try {
-            frame.contentWindow.postMessage(Object.assign({ type: type }, detail || {}), "*");
+            frame.contentWindow.postMessage(Object.assign({
+                type: type,
+                requestId: loaderState.requestId || 0,
+                attemptId: loaderState.attemptId || 0,
+                cacheVersion: CACHE_VERSION
+            }, detail || {}), window.location.origin);
         } catch (error) {}
     }
 
@@ -1224,10 +1307,174 @@
         requestOpenLive2DMenuFromStaticCard(event, event.detail || {});
     }
 
-    function startLoadTimeout() {
+    function isCurrentFrameMessage(event, data) {
+        const frame = getFrame();
+        return !!(
+            event &&
+            data &&
+            frame &&
+            event.origin === window.location.origin &&
+            event.source === frame.contentWindow &&
+            String(data.cacheVersion || "") === CACHE_VERSION &&
+            Number(data.requestId) === Number(loaderState.requestId) &&
+            Number(data.attemptId) === Number(loaderState.attemptId) &&
+            Number(loaderState.attemptId) > 0
+        );
+    }
+
+    function clearMobileAttemptTimers() {
+        window.clearTimeout(loaderState.timeout);
+        window.clearTimeout(mobileRetryTimer);
+        loaderState.timeout = 0;
+        mobileRetryTimer = 0;
+    }
+
+    function resolveCurrentFramePromise() {
+        if (typeof loaderState.frameResolve === "function") {
+            loaderState.frameResolve();
+        }
+        loaderState.frameResolve = null;
+    }
+
+    function destroyCurrentMobileFrame(reason) {
+        if (!isIframeMobileMode()) {
+            return;
+        }
+
+        loaderState.state = MOBILE_STATES.destroying;
+        clearMobileAttemptTimers();
+        sendFrameMessage("destroy", { reason: reason || "destroy" });
+        removeFrameShell();
+        loaderState.attemptId = 0;
+        loaderState.frameReady = false;
+        loaderState.frameError = false;
+        loaderState.dynamicReady = false;
+        loaderState.loading = false;
+        loaderState.promise = null;
+        resolveCurrentFramePromise();
+    }
+
+    function beginMobileLive2DAttempt(requestId, source) {
+        if (!isMobileEffectsMode() || Number(requestId) !== Number(loaderState.requestId)) {
+            return Promise.resolve();
+        }
+
+        clearMobileAttemptTimers();
+        if (getFrameShell()) {
+            destroyCurrentMobileFrame("replace-attempt");
+        }
+
+        loaderState.attemptId = ++attemptSequence;
+        loaderState.state = MOBILE_STATES.loading;
+        loaderState.mode = "mobile-effects";
+        loaderState.dynamicAttempted = true;
+        loaderState.loading = true;
+        loaderState.loaded = false;
+        loaderState.failed = false;
+        loaderState.dynamicReady = false;
+        loaderState.frameReady = false;
+        loaderState.frameError = false;
+        loaderState.visible = true;
+        loaderState.lastError = "";
+
+        showStaticFallback({
+            state: MOBILE_STATES.loading,
+            message: loaderState.retryCount ? "正在再次尝试动态甘雨……" : "正在尝试动态甘雨……",
+            buttonText: "打开甘雨菜单",
+            action: "open-menu"
+        });
+
+        const shell = ensureFrameShell();
+        shell.classList.add("is-loading");
+        shell.dataset.live2dAttemptId = String(loaderState.attemptId);
+        shell.dataset.live2dRequestId = String(loaderState.requestId);
+        setFrameSrc(loaderState.retryCount > 0);
+        setControlState("loading");
+        updateRenderInfo();
+        startLoadTimeout(loaderState.attemptId);
+
+        loaderState.promise = new Promise(function (resolve) {
+            loaderState.frameResolve = resolve;
+        });
+        return loaderState.promise;
+    }
+
+    function startMobileLive2DRequest(source) {
+        if (!isMobileEffectsMode()) {
+            showStaticFallback();
+            return Promise.resolve();
+        }
+
+        if (window.JunxueHomeEffects && typeof window.JunxueHomeEffects.pauseMobileVideoForLive2D === "function") {
+            loaderState.videoPausedForLive2D = !!window.JunxueHomeEffects.pauseMobileVideoForLive2D();
+        }
+        const requestId = ++requestSequence;
+        clearMobileAttemptTimers();
+        loaderState.requestId = requestId;
+        loaderState.retryCount = 0;
+        return beginMobileLive2DAttempt(requestId, source || "manual");
+    }
+
+    function handleMobileAttemptFailure(reason, message) {
+        if (!isMobileEffectsMode() || !loaderState.attemptId) {
+            return;
+        }
+
+        const requestId = loaderState.requestId;
+        const safeReason = reason || "mobile-live2d-failed";
+        const safeMessage = message || "动态甘雨暂时加载失败，先用静态甘雨陪你。";
+        console.warn("Live2D mobile attempt failed; keeping static fallback.", {
+            reason: safeReason,
+            requestId: requestId,
+            attemptId: loaderState.attemptId,
+            retryCount: loaderState.retryCount
+        });
+
+        destroyCurrentMobileFrame(safeReason);
+        loaderState.lastError = safeReason;
+
+        if (loaderState.retryCount < 1 && Number(requestId) === Number(loaderState.requestId)) {
+            loaderState.retryCount += 1;
+            loaderState.state = MOBILE_STATES.loading;
+            showStaticFallback({
+                state: MOBILE_STATES.loading,
+                message: "动态甘雨加载未完成，正在再试一次……",
+                buttonText: "打开甘雨菜单",
+                action: "open-menu"
+            });
+            setControlState("loading");
+            mobileRetryTimer = window.setTimeout(function () {
+                beginMobileLive2DAttempt(requestId, "automatic-retry");
+            }, 420);
+            return;
+        }
+
+        loaderState.state = MOBILE_STATES.failed;
+        loaderState.failed = true;
+        loaderState.loading = false;
+        loaderState.visible = true;
+        showStaticFallback({
+            state: MOBILE_STATES.failed,
+            failed: true,
+            message: safeMessage,
+            buttonText: "再试一次动态甘雨",
+            action: "retry-dynamic"
+        });
+        setControlState("failed", safeMessage);
+    }
+
+    function startLoadTimeout(attemptId) {
         window.clearTimeout(loaderState.timeout);
         loaderState.timeout = window.setTimeout(function () {
+            if (Number(attemptId) !== Number(loaderState.attemptId)) {
+                return;
+            }
             if (hasActuallyVisibleLive2D() && markLoadedFromExisting()) {
+                return;
+            }
+
+            if (isMobileEffectsMode()) {
+                handleMobileAttemptFailure("iframe-timeout", "动态甘雨加载超时，先用静态甘雨陪你。");
                 return;
             }
 
@@ -1260,15 +1507,14 @@
     }
 
     window.addEventListener("message", function (event) {
-        const frame = getFrame();
         const data = event.data || {};
 
-        if (!isIframeMobileMode() || !frame || event.source !== frame.contentWindow || typeof data.type !== "string") {
+        if (!isIframeMobileMode() || typeof data.type !== "string" || !isCurrentFrameMessage(event, data)) {
             return;
         }
 
         if (data.type === "ganyu-host-ready") {
-            window.clearTimeout(loaderState.timeout);
+            clearMobileAttemptTimers();
             loaderState.frameReady = true;
             loaderState.frameError = false;
             loaderState.loading = false;
@@ -1277,10 +1523,15 @@
             loaderState.visible = true;
             loaderState.dynamicReady = true;
             loaderState.lastError = "";
+            loaderState.state = MOBILE_STATES.ready;
             window.JunxueLive2DRenderInfo = Object.assign(window.JunxueLive2DRenderInfo || {}, data.renderInfo || {}, {
-                mode: "mobile-static",
+                mode: "mobile-effects",
                 contextLost: false
             });
+            const shell = getFrameShell();
+            if (shell) {
+                shell.classList.remove("is-loading");
+            }
             const card = getStaticCard();
             if (card) {
                 card.classList.add("is-dynamic-ready");
@@ -1290,41 +1541,23 @@
             updateRenderInfo();
             setLive2DVisible(true);
             loadSupportScripts();
-
-            if (typeof loaderState.frameResolve === "function") {
-                loaderState.frameResolve();
-                loaderState.frameResolve = null;
+            if (window.JunxueLive2DDrag && typeof window.JunxueLive2DDrag.scheduleSync === "function") {
+                window.JunxueLive2DDrag.scheduleSync();
             }
+
+            resolveCurrentFramePromise();
             return;
         }
 
         if (data.type === "ganyu-host-error") {
-            window.clearTimeout(loaderState.timeout);
-            loaderState.frameError = true;
-            loaderState.loading = false;
-            loaderState.loaded = false;
-            loaderState.failed = true;
-            loaderState.dynamicReady = false;
-            loaderState.promise = null;
-            loaderState.lastError = data.message || data.reason || "ganyu-host-error";
-            updateRenderInfo();
-            updateStaticCardStatus("动态甘雨暂时加载失败，先用静态甘雨陪你。", "再试一次动态甘雨");
-            setControlState("loaded");
+            handleMobileAttemptFailure(data.reason || "ganyu-host-error", data.message);
             return;
         }
 
         if (data.type === "ganyu-host-context-lost") {
-            loaderState.frameError = true;
-            loaderState.loading = false;
-            loaderState.loaded = false;
-            loaderState.failed = true;
-            loaderState.dynamicReady = false;
-            loaderState.visible = true;
-            loaderState.lastError = data.message || "webgl-context-lost";
             window.JunxueLive2DRenderInfo = window.JunxueLive2DRenderInfo || {};
             window.JunxueLive2DRenderInfo.contextLost = true;
-            showStaticFallback();
-            updateStaticCardStatus("动态甘雨暂时加载失败，先用静态甘雨陪你。", "再试一次动态甘雨");
+            handleMobileAttemptFailure("webgl-context-lost", data.message || "动态甘雨渲染中断，先用静态甘雨陪你。");
             return;
         }
 
@@ -1420,7 +1653,7 @@
 
     function recoverLive2D() {
         if (isIframeMobileMode()) {
-            tryDynamicGanyu();
+            startMobileLive2DRequest("recover");
             return;
         }
 
@@ -1453,62 +1686,70 @@
 
     function tryDynamicGanyu() {
         if (!isIframeMobileMode()) {
-            loadLive2D();
-            return;
+            return loadLive2D();
         }
-
-        showStaticFallback();
-        loaderState.dynamicAttempted = true;
-        loaderState.loading = true;
-        loaderState.failed = false;
-        loaderState.dynamicReady = false;
-        updateStaticCardStatus("正在尝试动态甘雨……", "甘雨加载中");
-        setControlState("loading");
 
         if (window.JunxueHomeEffects && typeof window.JunxueHomeEffects.pauseMobileVideoForLive2D === "function") {
             loaderState.videoPausedForLive2D = !!window.JunxueHomeEffects.pauseMobileVideoForLive2D();
         }
 
-        window.setTimeout(function () {
-            loadFrameLive2D();
-        }, 0);
+        return startMobileLive2DRequest("dynamic-request");
     }
 
     function loadFrameLive2D() {
-        if (loaderState.loading && loaderState.promise) {
-            return loaderState.promise;
+        return startMobileLive2DRequest("frame-request");
+    }
+
+    function scheduleMobileFrameLayout() {
+        if (!isIframeMobileMode() || mobileResizeFrame) {
+            return;
         }
 
-        if (loaderState.dynamicReady && hasActuallyVisibleLive2D()) {
-            setLive2DVisible(true);
-            return loadSupportScripts();
-        }
-
-        removeInlineRuntimeNodes();
-        removeFrameShell();
-        ensureFrameShell();
-        setFrameSrc(!!loaderState.retryCount);
-
-        loaderState.loading = true;
-        loaderState.loaded = false;
-        loaderState.failed = false;
-        loaderState.frameReady = false;
-        loaderState.frameError = false;
-        loaderState.visible = true;
-        document.body.classList.remove("live2d-hidden");
-        updateRenderInfo();
-        startLoadTimeout();
-
-        loaderState.promise = new Promise(function (resolve) {
-            loaderState.frameResolve = resolve;
+        mobileResizeFrame = window.requestAnimationFrame(function () {
+            mobileResizeFrame = 0;
+            if (loaderState.state === MOBILE_STATES.ready && getFrameShell()) {
+                sendFrameMessage("resize");
+            }
+            if (window.JunxueLive2DDrag && typeof window.JunxueLive2DDrag.scheduleSync === "function") {
+                window.JunxueLive2DDrag.scheduleSync();
+            }
+            if (window.JunxueGanyuTalk && typeof window.JunxueGanyuTalk.sync === "function") {
+                window.JunxueGanyuTalk.sync();
+            }
         });
-        return loaderState.promise;
+    }
+
+    function bindMobileLifecycle() {
+        if (lifecycleBound) {
+            return;
+        }
+
+        lifecycleBound = true;
+        document.addEventListener("visibilitychange", function () {
+            if (!isIframeMobileMode() || loaderState.state !== MOBILE_STATES.ready) {
+                return;
+            }
+            sendFrameMessage(document.hidden || !loaderState.visible ? "pause" : "resume");
+            if (!document.hidden) {
+                scheduleMobileFrameLayout();
+            }
+        });
+        window.addEventListener("resize", scheduleMobileFrameLayout);
+        window.addEventListener("orientationchange", scheduleMobileFrameLayout);
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener("resize", scheduleMobileFrameLayout);
+            window.visualViewport.addEventListener("scroll", scheduleMobileFrameLayout, { passive: true });
+        }
+        window.addEventListener("pagehide", function () {
+            if (isIframeMobileMode() && getFrameShell()) {
+                destroyCurrentMobileFrame("pagehide");
+            }
+        });
     }
 
     function loadLive2D() {
         if (isIframeMobileMode()) {
-            showStaticFallback();
-            return Promise.resolve();
+            return isMobileEffectsMode() ? tryDynamicGanyu() : (showStaticFallback(), Promise.resolve());
         }
 
         if (loaderState.loading) {
@@ -1553,11 +1794,27 @@
         removeInlineRuntimeNodes();
         loaderState.loaded = !isIframeMobileMode() && loaderState.loaded;
         loaderState.visible = false;
+        loaderState.state = isIframeMobileMode() ? MOBILE_STATES.idle : loaderState.state;
+        bindMobileLifecycle();
         updateRenderInfo();
 
         if (isHomeAutoload && !isLowPerformance && !isIframeMobileMode()) {
             setControlState("hidden");
             window.setTimeout(loadLive2D, AUTOLOAD_DELAY_MS);
+        } else if (isHomeAutoload && isMobileEffectsMode()) {
+            showStaticFallback({
+                state: MOBILE_STATES.idle,
+                message: "正在准备动态甘雨……",
+                buttonText: "打开甘雨菜单",
+                action: "open-menu"
+            });
+            mobileAutoloadTimer = window.setTimeout(function () {
+                mobileAutoloadTimer = 0;
+                if (!loaderState.visible || loaderState.state !== MOBILE_STATES.idle) {
+                    return;
+                }
+                tryDynamicGanyu();
+            }, AUTOLOAD_DELAY_MS);
         } else {
             setControlState("ready", isLowPerformance ? lowModeHint : "");
         }

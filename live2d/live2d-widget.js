@@ -39,6 +39,7 @@
     let fallbackBootStarted = false;
     let pausedPixiTicker = null;
     let canvasContextListenerInstalled = false;
+    let hostRenderingPaused = false;
 
     window.JunxueLive2DRenderInfo = Object.assign({
         usesCanvas: false,
@@ -90,6 +91,11 @@
     }
 
     function getLive2DDprCap() {
+        const configuredCap = Number(config.dprCap);
+        if (Number.isFinite(configuredCap) && configuredCap > 0) {
+            return Math.min(Math.max(1, configuredCap), 2);
+        }
+
         const mode = window.JunxuePerformanceMode;
 
         if (mode && typeof mode.getLive2DDprCap === "function") {
@@ -426,8 +432,11 @@
 
         try {
             window.parent.postMessage(Object.assign({
-                type: type
-            }, detail || {}), "*");
+                type: type,
+                requestId: config.requestId || "",
+                attemptId: config.attemptId || "",
+                cacheVersion: config.cacheVersion || ""
+            }, detail || {}), config.parentOrigin || window.location.origin);
         } catch (error) {}
     }
 
@@ -943,6 +952,8 @@
         window.JunxueLive2DRenderInfo.dprCap = getLive2DDprCap();
         if (!detectWebGLSupport()) {
             showWebGLWarning();
+            showFallbackMessage("webgl-unavailable");
+            return;
         }
 
         setMessage(waitingMessage, true);
@@ -1057,7 +1068,7 @@
         return window.PIXI && window.PIXI.Ticker && window.PIXI.Ticker.shared ? window.PIXI.Ticker.shared : null;
     }
 
-    function handleVisibilityChange() {
+    function pauseRenderLoop() {
         const ticker = getPixiTicker();
 
         if (!ticker) {
@@ -1065,25 +1076,72 @@
         }
 
         try {
-            if (document.hidden) {
-                if (ticker.started !== false) {
-                    pausedPixiTicker = ticker;
-                    ticker.stop();
-                }
-                return;
+            if (ticker.started !== false) {
+                pausedPixiTicker = ticker;
+                ticker.stop();
             }
+        } catch (error) {
+            console.warn("Live2D ticker pause skipped.", error);
+        }
+    }
 
-            if (pausedPixiTicker === ticker) {
+    function resumeRenderLoop() {
+        const ticker = getPixiTicker();
+
+        if (!ticker || document.hidden || hostRenderingPaused) {
+            return;
+        }
+
+        try {
+            if (pausedPixiTicker === ticker || ticker.started === false) {
                 ticker.start();
                 pausedPixiTicker = null;
-                updateCanvasRenderInfo();
-                window.dispatchEvent(new CustomEvent("live2d-stage-position-changed"));
             }
+            updateCanvasRenderInfo();
+            window.dispatchEvent(new CustomEvent("live2d-stage-position-changed"));
         } catch (error) {
             console.warn("Live2D ticker visibility optimization skipped.", error);
         }
     }
 
+    function handleVisibilityChange() {
+        if (document.hidden) {
+            pauseRenderLoop();
+            return;
+        }
+
+        resumeRenderLoop();
+    }
+
+    window.JunxueLive2DHostControl = {
+        pause: function () {
+            hostRenderingPaused = true;
+            pauseRenderLoop();
+        },
+        resume: function () {
+            hostRenderingPaused = false;
+            resumeRenderLoop();
+        },
+        resize: function () {
+            updateCanvasRenderInfo();
+            window.dispatchEvent(new CustomEvent("live2d-stage-position-changed"));
+        },
+        destroy: function () {
+            hostRenderingPaused = true;
+            window.clearTimeout(loadTimer);
+            if (readyObserver) {
+                readyObserver.disconnect();
+                readyObserver = null;
+            }
+            pauseRenderLoop();
+        }
+    };
+
     document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("pagehide", function () {
+        if (window.JunxueLive2DHostControl) {
+            window.JunxueLive2DHostControl.destroy();
+        }
+    });
     boot();
 })();

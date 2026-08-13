@@ -1,16 +1,32 @@
 /* Performance mode: auto-detect low power devices and expose a tiny shared API. */
 (function () {
-    const STORAGE_KEY = "performanceMode";
+    const LEGACY_STORAGE_KEY = "performanceMode";
+    const PREFERENCE_STORAGE_KEY = "junxuePerformanceModePreferenceV2";
+    const MIGRATION_STORAGE_KEY = "junxuePerformanceModeMigrationV2";
     const HIGH_EFFECT_REQUEST_KEY = "junxueManualHighEffectRequestedAt";
     const VALID_MODES = ["auto", "low", "high"];
     const root = document.documentElement;
+    let runtimeState = root.dataset.live2dRuntimeState || "idle";
+    let modeButton = null;
 
-    function readStoredMode() {
+    function readStorage(key) {
         try {
-            return window.localStorage.getItem(STORAGE_KEY);
+            return window.localStorage.getItem(key);
         } catch (error) {
             return null;
         }
+    }
+
+    function writeStorage(key, value) {
+        try {
+            window.localStorage.setItem(key, value);
+        } catch (error) {}
+    }
+
+    function removeStorage(key) {
+        try {
+            window.localStorage.removeItem(key);
+        } catch (error) {}
     }
 
     function normalizeMode(mode) {
@@ -21,25 +37,134 @@
         return typeof window.matchMedia === "function" && window.matchMedia(query).matches;
     }
 
-    function detectLowPerformance() {
-        const cores = navigator.hardwareConcurrency || 0;
-        const memory = navigator.deviceMemory || 0;
-        const isMobile =
-            queryMatches("(max-width: 768px)") ||
-            queryMatches("(pointer: coarse)") ||
-            /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "");
-        const lowCoreCount = cores > 0 && cores <= 4;
-        const lowMemory = memory > 0 && memory <= 4;
+    function supportsWebGL() {
+        try {
+            const canvas = document.createElement("canvas");
+            return !!(canvas.getContext("webgl2") || canvas.getContext("webgl") || canvas.getContext("experimental-webgl"));
+        } catch (error) {
+            return false;
+        }
+    }
+
+    function detectPerformanceMode() {
+        const cores = Number(navigator.hardwareConcurrency);
+        const memory = Number(navigator.deviceMemory);
+        const hasCoreSignal = Number.isFinite(cores) && cores > 0;
+        const hasMemorySignal = Number.isFinite(memory) && memory > 0;
+        const webgl = supportsWebGL();
+        const lowCoreCount = hasCoreSignal && cores <= 4;
+        const lowMemory = hasMemorySignal && memory <= 4;
+        const strongCoreCount = hasCoreSignal && cores >= 6;
+        const strongMemory = hasMemorySignal && memory >= 6;
         const reducedMotion = queryMatches("(prefers-reduced-motion: reduce)");
+        let result = "low";
+        let reason = "insufficient-capability-signals";
+
+        console.info("[live2d-mode] performance detection start");
+
+        if (!webgl) {
+            reason = "webgl-unavailable";
+        } else if (reducedMotion) {
+            reason = "reduced-motion";
+        } else if (lowCoreCount) {
+            reason = "low-cpu";
+        } else if (lowMemory) {
+            reason = "low-memory";
+        } else if (strongCoreCount && strongMemory) {
+            result = "high";
+            reason = "positive-capability-signals";
+        }
+
+        console.info("[live2d-mode] performance detection result: " + (result === "high" ? "effects" : "performance"), {
+            reason: reason
+        });
 
         return {
-            isLow: isMobile || lowCoreCount || lowMemory || reducedMotion,
+            mode: result,
             reasons: {
-                mobile: isMobile,
+                webgl: webgl,
                 lowCoreCount: lowCoreCount,
                 lowMemory: lowMemory,
-                reducedMotion: reducedMotion
+                reducedMotion: reducedMotion,
+                hasCoreSignal: hasCoreSignal,
+                hasMemorySignal: hasMemorySignal,
+                result: reason
+            },
+            isLow: result === "low"
+        };
+    }
+
+    function parseStoredPreference(raw) {
+        try {
+            const parsed = raw ? JSON.parse(raw) : null;
+            if (!parsed || parsed.version !== 2 || parsed.source !== "manual" || VALID_MODES.indexOf(parsed.mode) < 0) {
+                return null;
             }
+
+            return parsed;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function readSessionHighRequest() {
+        try {
+            return !!window.sessionStorage.getItem(HIGH_EFFECT_REQUEST_KEY);
+        } catch (error) {
+            return false;
+        }
+    }
+
+    function writeManualPreference(mode) {
+        writeStorage(PREFERENCE_STORAGE_KEY, JSON.stringify({
+            version: 2,
+            mode: mode,
+            source: "manual"
+        }));
+        removeStorage(LEGACY_STORAGE_KEY);
+        writeStorage(MIGRATION_STORAGE_KEY, "done");
+    }
+
+    function resolveStoredPreference() {
+        const v2Preference = parseStoredPreference(readStorage(PREFERENCE_STORAGE_KEY));
+
+        if (v2Preference) {
+            return {
+                mode: v2Preference.mode,
+                source: "saved"
+            };
+        }
+
+        const legacyMode = normalizeMode(readStorage(LEGACY_STORAGE_KEY));
+        const hasLegacyValue = readStorage(LEGACY_STORAGE_KEY) !== null;
+
+        if (hasLegacyValue && readStorage(MIGRATION_STORAGE_KEY) !== "done") {
+            if (legacyMode === "high" && readSessionHighRequest()) {
+                writeManualPreference("high");
+                console.info("[live2d-mode] init source: saved", { migration: "legacy-high-confirmed" });
+                return {
+                    mode: "high",
+                    source: "saved"
+                };
+            }
+
+            if (legacyMode === "low" || legacyMode === "high") {
+                removeStorage(LEGACY_STORAGE_KEY);
+                writeStorage(MIGRATION_STORAGE_KEY, "done");
+                console.info("[live2d-mode] init source: auto-detect", { migration: "legacy-unverified-cleared" });
+                return {
+                    mode: "auto",
+                    source: "auto-detect"
+                };
+            }
+
+            removeStorage(LEGACY_STORAGE_KEY);
+            writeStorage(MIGRATION_STORAGE_KEY, "done");
+        }
+
+        return {
+            mode: "auto",
+            source: "auto-detect"
         };
     }
 
@@ -78,7 +203,7 @@
             return 2;
         }
 
-        if (requestedMode === "low") {
+        if (resolvedMode === "low") {
             return 1;
         }
 
@@ -87,12 +212,6 @@
 
     function getLive2DIdleDelayMultiplier() {
         return resolvedMode === "low" ? 1.6 : 1;
-    }
-
-    function writeStoredMode(mode) {
-        try {
-            window.localStorage.setItem(STORAGE_KEY, mode);
-        } catch (error) {}
     }
 
     function markManualHighEffectRequest(mode) {
@@ -250,15 +369,22 @@
     }
 
     function getModeButtonLabel() {
+        const fallbackSuffix = runtimeState === "live2d-failed" ? "·临时回退" : runtimeState === "loading-live2d" ? "·加载中" : "";
         if (requestedMode === "high") {
-            return "特效模式";
+            return "特效模式" + fallbackSuffix;
         }
 
         if (requestedMode === "low") {
             return "流畅模式";
         }
 
-        return resolvedMode === "low" ? "自动·流畅" : "自动·特效";
+        return (resolvedMode === "low" ? "自动·流畅" : "自动·特效") + fallbackSuffix;
+    }
+
+    function refreshModeButton() {
+        if (modeButton) {
+            modeButton.textContent = getModeButtonLabel();
+        }
     }
 
     function initModeSwitcher() {
@@ -281,6 +407,7 @@
         button.className = "performance-switcher__button";
         button.type = "button";
         button.textContent = getModeButtonLabel();
+        modeButton = button;
         button.setAttribute("aria-haspopup", "true");
         button.setAttribute("aria-expanded", "false");
 
@@ -304,8 +431,9 @@
                     button.textContent = "特效加载中…";
                     button.disabled = true;
                 }
+                console.info("[live2d-mode] manual mode selected: " + mode.value);
                 markManualHighEffectRequest(mode.value);
-                writeStoredMode(mode.value);
+                writeManualPreference(mode.value);
                 window.location.reload();
             });
             menu.appendChild(option);
@@ -341,9 +469,15 @@
         document.body.appendChild(wrapper);
     }
 
-    const requestedMode = normalizeMode(readStoredMode());
-    const detected = detectLowPerformance();
-    const resolvedMode = requestedMode === "auto" ? (detected.isLow ? "low" : "high") : requestedMode;
+    const storedPreference = resolveStoredPreference();
+    const requestedMode = storedPreference.mode;
+    const detected = detectPerformanceMode();
+    const resolvedMode = requestedMode === "auto" ? detected.mode : requestedMode;
+
+    console.info("[live2d-mode] init source: " + storedPreference.source, {
+        requestedMode: requestedMode,
+        resolvedMode: resolvedMode
+    });
 
     root.classList.remove("performance-low", "performance-high");
     root.classList.add("performance-" + resolvedMode);
@@ -353,6 +487,7 @@
     window.JunxuePerformanceMode = {
         requestedMode: requestedMode,
         resolvedMode: resolvedMode,
+        source: storedPreference.source,
         reasons: detected.reasons,
         isLow: function () {
             return resolvedMode === "low";
@@ -364,6 +499,13 @@
         getLive2DIdleDelayMultiplier: getLive2DIdleDelayMultiplier,
         applyLive2DConfig: applyLive2DConfig
     };
+
+    window.addEventListener("junxue-live2d-runtime-state", function (event) {
+        const detail = event && event.detail ? event.detail : {};
+        runtimeState = String(detail.state || "idle");
+        root.dataset.live2dRuntimeState = runtimeState;
+        refreshModeButton();
+    });
 
     if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", function () {

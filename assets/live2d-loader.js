@@ -1,6 +1,6 @@
 /* Lightweight Live2D loader: desktop stays dynamic; mobile effects mode uses the same model through a guarded iframe host. */
 (function () {
-    const version = "20260730-mobile-live2d-voice-layout1";
+    const version = "20260813-live2d-mobile-mode-fit1";
     window.__JUNXUE_LIVE2D_DEBUG__ = window.__JUNXUE_LIVE2D_DEBUG__ || [];
     window.JunxueLive2DDebugLog = window.JunxueLive2DDebugLog || function (message, detail) {
         const safeMessage = String(message || "");
@@ -24,7 +24,7 @@
 })();
 
 (function () {
-    const CACHE_VERSION = "20260730-mobile-live2d-voice-layout1";
+    const CACHE_VERSION = "20260813-live2d-mobile-mode-fit1";
     const WIDGET_SCRIPT = "live2d/live2d-widget.js?v=" + CACHE_VERSION;
     const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=" + CACHE_VERSION;
     const DRAG_SCRIPT = "assets/live2d-drag.js?v=" + CACHE_VERSION;
@@ -115,8 +115,10 @@
     const currentScript = document.currentScript;
     const autoloadMode = currentScript ? currentScript.getAttribute("data-live2d-autoload") : "manual";
     const performanceMode = window.JunxuePerformanceMode;
-    const isLowPerformance = !!(performanceMode && typeof performanceMode.isLow === "function" && performanceMode.isLow());
-    const isHighPerformancePreference = !!(performanceMode && performanceMode.requestedMode === "high");
+    const requestedPerformanceMode = performanceMode && ["auto", "low", "high"].indexOf(performanceMode.requestedMode) >= 0 ? performanceMode.requestedMode : "auto";
+    const resolvedPerformanceMode = performanceMode && ["low", "high"].indexOf(performanceMode.resolvedMode) >= 0 ? performanceMode.resolvedMode : "low";
+    const performanceModeSource = performanceMode && performanceMode.source ? performanceMode.source : "auto-detect";
+    const isLowPerformance = resolvedPerformanceMode === "low";
     const isHomeAutoload = autoloadMode === "home";
     const isMobileViewport = window.matchMedia && (
         window.matchMedia("(max-width: 767px)").matches ||
@@ -141,8 +143,12 @@
     let mobileResizeFrame = 0;
     let mobileAutoloadTimer = 0;
     let lifecycleBound = false;
+    let runtimeGenerationSequence = 0;
 
-    loaderState.mode = useIframeMobile ? (isHighPerformancePreference ? "mobile-effects" : "mobile-static") : "inline";
+    loaderState.preference = requestedPerformanceMode;
+    loaderState.resolvedMode = resolvedPerformanceMode;
+    loaderState.modeSource = performanceModeSource;
+    loaderState.mode = useIframeMobile ? (resolvedPerformanceMode === "high" ? "mobile-effects" : "mobile-static") : "inline";
     loaderState.dynamicMode = useIframeMobile ? "iframe-mobile" : "inline";
     loaderState.state = loaderState.state || MOBILE_STATES.idle;
     loaderState.requestId = 0;
@@ -153,6 +159,7 @@
     loaderState.dynamicAttempted = false;
     loaderState.dynamicReady = false;
     loaderState.videoPausedForLive2D = false;
+    loaderState.runtimeGeneration = 0;
     window.JunxueLive2DLoader = loaderState;
 
     function recordMobileLoadStage(stage, detail) {
@@ -177,6 +184,33 @@
         if (window.console && typeof window.console.debug === "function") {
             window.console.debug("[Live2D timing]", entry);
         }
+    }
+
+    function logMode(message, detail) {
+        if (window.console && typeof window.console.info === "function") {
+            window.console.info("[live2d-mode] " + message, detail || "");
+        }
+    }
+
+    function logRuntime(message, detail) {
+        if (window.console && typeof window.console.info === "function") {
+            window.console.info("[live2d-runtime] " + message, detail || "");
+        }
+    }
+
+    function publishRuntimeState(state, detail) {
+        loaderState.runtimeState = state;
+        document.documentElement.dataset.live2dRuntimeState = state;
+        try {
+            window.dispatchEvent(new CustomEvent("junxue-live2d-runtime-state", {
+                detail: Object.assign({
+                    state: state,
+                    preference: loaderState.preference,
+                    resolvedMode: loaderState.resolvedMode,
+                    source: loaderState.modeSource
+                }, detail || {})
+            }));
+        } catch (error) {}
     }
 
     function injectStyles() {
@@ -231,7 +265,7 @@
     }
 
     function isMobileEffectsMode() {
-        return isIframeMobileMode() && isHighPerformancePreference;
+        return isIframeMobileMode() && resolvedPerformanceMode === "high";
     }
 
     function shouldUseStaticMobileMode() {
@@ -518,7 +552,17 @@
 
         stopStaticButtonEvent(event);
         if (button.getAttribute("data-live2d-action") === "retry-dynamic") {
-            startMobileLive2DRequest("static-retry");
+            logRuntime("retry dynamic", { source: "manual-retry" });
+            if (getFrameShell()) {
+                destroyCurrentMobileFrame("manual-retry-reset");
+            } else {
+                clearMobileAttemptTimers();
+                loaderState.loading = false;
+                loaderState.dynamicReady = false;
+                loaderState.frameReady = false;
+                loaderState.frameError = false;
+            }
+            startMobileLive2DRequest("manual-retry");
             return;
         }
         debugStaticMenu("static button clicked");
@@ -676,8 +720,12 @@
         loaderState.failed = !!settings.failed;
         if (settings.state) {
             loaderState.state = settings.state;
+            if (settings.state === MOBILE_STATES.static) {
+                publishRuntimeState(MOBILE_STATES.static, { source: "static-fallback" });
+            }
         } else if (!isMobileEffectsMode()) {
             loaderState.state = MOBILE_STATES.static;
+            publishRuntimeState("static", { source: "performance" });
         }
         document.body.classList.remove("live2d-hidden");
         updateStaticCardStatus(settings.message || "", settings.buttonText || (loaderState.dynamicAttempted ? "再试一次对话甘雨" : "尝试对话甘雨"), settings.action || "open-menu");
@@ -816,6 +864,7 @@
         const params = [
             "requestId=" + encodeURIComponent(String(loaderState.requestId || 0)),
             "attemptId=" + encodeURIComponent(String(loaderState.attemptId || 0)),
+            "runtimeGeneration=" + encodeURIComponent(String(loaderState.runtimeGeneration || 0)),
             "cacheVersion=" + encodeURIComponent(CACHE_VERSION)
         ];
         if (forceFresh) {
@@ -836,6 +885,7 @@
                 type: type,
                 requestId: loaderState.requestId || 0,
                 attemptId: loaderState.attemptId || 0,
+                runtimeGeneration: loaderState.runtimeGeneration || 0,
                 cacheVersion: CACHE_VERSION
             }, detail || {}), window.location.origin);
         } catch (error) {}
@@ -1370,6 +1420,7 @@
             String(data.cacheVersion || "") === CACHE_VERSION &&
             Number(data.requestId) === Number(loaderState.requestId) &&
             Number(data.attemptId) === Number(loaderState.attemptId) &&
+            Number(data.runtimeGeneration) === Number(loaderState.runtimeGeneration) &&
             Number(loaderState.attemptId) > 0
         );
     }
@@ -1395,6 +1446,7 @@
 
         loaderState.state = MOBILE_STATES.destroying;
         clearMobileAttemptTimers();
+        runtimeGenerationSequence += 1;
         window.dispatchEvent(new CustomEvent("junxue-live2d-runtime-destroy"));
         sendFrameMessage("destroy", { reason: reason || "destroy" });
         removeFrameShell();
@@ -1404,6 +1456,7 @@
         loaderState.dynamicReady = false;
         loaderState.loading = false;
         loaderState.promise = null;
+        publishRuntimeState("destroying", { reason: reason || "destroy" });
         resolveCurrentFramePromise();
     }
 
@@ -1418,6 +1471,7 @@
         }
 
         loaderState.attemptId = ++attemptSequence;
+        loaderState.runtimeGeneration = ++runtimeGenerationSequence;
         loaderState.state = MOBILE_STATES.loading;
         loaderState.mode = "mobile-effects";
         loaderState.dynamicAttempted = true;
@@ -1429,6 +1483,13 @@
         loaderState.frameError = false;
         loaderState.visible = true;
         loaderState.lastError = "";
+        publishRuntimeState("loading-live2d", { source: source || "manual" });
+        logRuntime("dynamic init start", {
+            source: source || "manual",
+            requestId: loaderState.requestId,
+            attemptId: loaderState.attemptId,
+            runtimeGeneration: loaderState.runtimeGeneration
+        });
 
         showStaticFallback({
             state: MOBILE_STATES.loading,
@@ -1489,6 +1550,10 @@
             attemptId: loaderState.attemptId,
             retryCount: loaderState.retryCount
         });
+        logRuntime("dynamic init failed: " + safeReason, {
+            requestId: requestId,
+            attemptId: loaderState.attemptId
+        });
 
         destroyCurrentMobileFrame(safeReason);
         loaderState.lastError = safeReason;
@@ -1504,6 +1569,7 @@
             });
             setControlState("loading");
             mobileRetryTimer = window.setTimeout(function () {
+                logRuntime("retry dynamic", { source: "automatic-retry" });
                 beginMobileLive2DAttempt(requestId, "automatic-retry");
             }, 420);
             return;
@@ -1520,6 +1586,8 @@
             buttonText: "再试一次动态甘雨",
             action: "retry-dynamic"
         });
+        publishRuntimeState("live2d-failed", { reason: safeReason, fallback: true });
+        logRuntime("fallback activated", { reason: safeReason });
         setControlState("failed", safeMessage);
     }
 
@@ -1575,6 +1643,11 @@
 
         if (data.type === "ganyu-host-ready") {
             recordMobileLoadStage("live2d-ready", data.renderInfo || {});
+            logRuntime("iframe ready", {
+                requestId: loaderState.requestId,
+                attemptId: loaderState.attemptId,
+                runtimeGeneration: loaderState.runtimeGeneration
+            });
             clearMobileAttemptTimers();
             loaderState.frameReady = true;
             loaderState.frameError = false;
@@ -1585,6 +1658,7 @@
             loaderState.dynamicReady = true;
             loaderState.lastError = "";
             loaderState.state = MOBILE_STATES.ready;
+            publishRuntimeState("live2d-ready", { visualReady: true });
             window.JunxueLive2DRenderInfo = Object.assign(window.JunxueLive2DRenderInfo || {}, data.renderInfo || {}, {
                 mode: "mobile-effects",
                 contextLost: false
@@ -1618,6 +1692,11 @@
         };
         if (stageMessages[data.type]) {
             recordMobileLoadStage(stageMessages[data.type], data);
+            if (data.type === "ganyu-host-runtime-ready") {
+                logRuntime("pixi ready");
+            } else if (data.type === "ganyu-host-model-ready") {
+                logRuntime("model ready");
+            }
             return;
         }
 
@@ -1869,6 +1948,10 @@
         loaderState.state = isIframeMobileMode() ? MOBILE_STATES.idle : loaderState.state;
         bindMobileLifecycle();
         updateRenderInfo();
+        logMode("init source: " + performanceModeSource, {
+            requestedMode: requestedPerformanceMode,
+            resolvedMode: resolvedPerformanceMode
+        });
 
         if (isHomeAutoload && !isLowPerformance && !isIframeMobileMode()) {
             setControlState("hidden");
@@ -1887,6 +1970,13 @@
                 }
                 tryDynamicGanyu();
             }, MOBILE_EFFECTS_AUTOLOAD_DELAY_MS);
+        } else if (isHomeAutoload && shouldUseStaticMobileMode()) {
+            showStaticFallback({
+                state: MOBILE_STATES.static,
+                message: "流畅模式下甘雨会以静态看板陪伴你。",
+                buttonText: "打开甘雨菜单",
+                action: "open-menu"
+            });
         } else {
             setControlState("ready", isLowPerformance ? lowModeHint : "");
         }

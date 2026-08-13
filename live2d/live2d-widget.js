@@ -46,6 +46,11 @@
     let mobileStageResizeObserver = null;
     let stableModelBounds = null;
     let parentResizeMetrics = {};
+    let activeRuntimeGeneration = Math.max(1, Number(config.runtimeGeneration) || 1);
+    let modelLoadCompleted = false;
+    let visualReadyPublished = false;
+    let hostDestroying = false;
+    let lastMobileFitSizeKey = "";
     const mobileFitState = {
         applied: false,
         baseScale: 0,
@@ -177,6 +182,49 @@
         return window.__JUNXUE_LIVE2D_RUNTIME_INSTANCE__ || null;
     }
 
+    function logRuntime(message, detail) {
+        if (window.console && typeof window.console.info === "function") {
+            window.console.info("[live2d-runtime] " + message, detail || "");
+        }
+    }
+
+    function logLayout(message, detail) {
+        if (window.console && typeof window.console.debug === "function") {
+            window.console.debug("[live2d-layout] " + message, detail || "");
+        }
+    }
+
+    function getPixiApplication(runtime) {
+        return runtime && runtime.pixiApp && runtime.pixiApp.app ? runtime.pixiApp.app : null;
+    }
+
+    function getPixiRenderer(runtime) {
+        const app = getPixiApplication(runtime);
+        return app && app.renderer ? app.renderer : null;
+    }
+
+    function getRuntimeReadiness() {
+        const runtime = getLive2DRuntimeInstance();
+        const stage = getPrimaryStage();
+        const canvas = getPrimaryCanvas() || getHostCanvasFallback();
+        const app = getPixiApplication(runtime);
+        const renderer = getPixiRenderer(runtime);
+        const model = runtime && runtime.models ? runtime.models.model : null;
+
+        if (!runtime || !stage || !canvas || !app || !renderer || !model || !modelLoadCompleted || hostDestroying) {
+            return null;
+        }
+
+        return {
+            runtime: runtime,
+            stage: stage,
+            canvas: canvas,
+            app: app,
+            renderer: renderer,
+            model: model
+        };
+    }
+
     function cloneModelBounds(bounds) {
         if (!bounds || !Number.isFinite(Number(bounds.width)) || !Number.isFinite(Number(bounds.height))) {
             return null;
@@ -213,17 +261,8 @@
                 bounds = cloneModelBounds(model.getLocalBounds());
             }
         } catch (error) {
+            logLayout("fit skipped: runtime not ready", { reason: "model-bounds-unavailable" });
             bounds = null;
-        }
-
-        if (!bounds) {
-            const scale = Number(model.scale && model.scale.x) || 1;
-            bounds = cloneModelBounds({
-                x: 0,
-                y: 0,
-                width: Number(model.width) / scale,
-                height: Number(model.height) / scale
-            });
         }
 
         if (bounds) {
@@ -278,26 +317,57 @@
         }
     }
 
-    function fitMobileLive2DModel(reason) {
+    function getMobileFitSizeKey(stageSize) {
+        const viewport = window.visualViewport;
+        const viewportWidth = Math.round((viewport && viewport.width) || window.innerWidth || 0);
+        const viewportHeight = Math.round((viewport && viewport.height) || window.innerHeight || 0);
+
+        return [stageSize.width, stageSize.height, viewportWidth, viewportHeight, Number(parentResizeMetrics.safeAreaBottom) || 0].join("x");
+    }
+
+    function hasValidMobileViewport(stageSize) {
+        const viewport = window.visualViewport;
+        const viewportHeight = Number((viewport && viewport.height) || window.innerHeight || 0);
+
+        return !document.hidden && !hostDestroying &&
+            stageSize.width >= 40 && stageSize.height >= 100 &&
+            viewportHeight >= 160;
+    }
+
+    function fitMobileLive2DModel(reason, expectedGeneration) {
         if (!config.hostMode) {
             return false;
         }
 
-        const runtime = getLive2DRuntimeInstance();
-        const stage = getPrimaryStage();
-        const model = runtime && runtime.models ? runtime.models.model : null;
-
-        if (!runtime || !model || !stage) {
+        if (Number(expectedGeneration || activeRuntimeGeneration) !== Number(activeRuntimeGeneration) || hostDestroying) {
+            logRuntime("stale callback ignored", { stage: "mobile-fit" });
             return false;
         }
 
-        const stageSize = getMobileStageSize(stage);
-        if (!stageSize.width || !stageSize.height) {
+        const readiness = getRuntimeReadiness();
+
+        if (!readiness) {
+            logLayout("fit skipped: runtime not ready", { reason: reason || "resize" });
             return false;
         }
+
+        const runtime = readiness.runtime;
+        const stageSize = getMobileStageSize(readiness.stage);
+        if (!hasValidMobileViewport(stageSize)) {
+            logLayout("fit skipped: invalid viewport", { reason: reason || "resize" });
+            return false;
+        }
+
+        const sizeKey = getMobileFitSizeKey(stageSize);
+        if (mobileFitState.applied && sizeKey === lastMobileFitSizeKey && reason === "resize" && window.JunxueLive2DRenderInfo.mobileFit && window.JunxueLive2DRenderInfo.mobileFit.fullyVisible) {
+            logLayout("fit skipped: size unchanged", { reason: reason });
+            return true;
+        }
+
+        logLayout("fit requested: " + (reason || "resize"));
 
         if (mobileFitState.applied) {
-            captureCurrentModelUserOffset(model);
+            captureCurrentModelUserOffset(readiness.model);
         }
 
         if (runtime.pixiApp && typeof runtime.pixiApp.resize === "function") {
@@ -305,8 +375,9 @@
         }
         updateCanvasRenderInfo();
 
-        const bounds = getStableModelBounds(model);
+        const bounds = getStableModelBounds(readiness.model);
         if (!bounds) {
+            logLayout("fit skipped: runtime not ready", { reason: "stable-bounds-unavailable" });
             return false;
         }
 
@@ -348,6 +419,7 @@
         mobileFitState.baseY = baseY;
         mobileFitState.stageWidth = stageSize.width;
         mobileFitState.stageHeight = stageSize.height;
+        lastMobileFitSizeKey = sizeKey;
         window.JunxueLive2DRenderInfo.modelVisualBounds = rectToObject({
             left: visualBounds.left,
             top: visualBounds.top,
@@ -368,7 +440,7 @@
             fullyVisible: fullyVisible
         };
 
-        console.debug("[live2d-layout] mobile fit start", {
+        logLayout("fit success", {
             reason: reason || "ready",
             viewportHeight: Number(parentResizeMetrics.viewportHeight) || window.innerHeight,
             canvasCssSize: window.JunxueLive2DRenderInfo.canvasCssSize,
@@ -396,16 +468,19 @@
             mobileFitFrame = 0;
             const fitReason = mobileFitReason || "resize";
             mobileFitReason = "resize";
-            const stage = getPrimaryStage();
-            const size = getMobileStageSize(stage);
+            const generation = activeRuntimeGeneration;
 
-            if (mobileFitState.applied && mobileFitState.stageWidth === size.width && mobileFitState.stageHeight === size.height && fitReason === "resize") {
+            if (hostDestroying) {
+                logRuntime("stale callback ignored", { stage: "fit-raf" });
                 return;
             }
 
-            fitMobileLive2DModel(fitReason);
+            const fitSuccess = fitMobileLive2DModel(fitReason, generation);
             updateCanvasRenderInfo();
-            window.dispatchEvent(new CustomEvent("live2d-stage-position-changed"));
+            if (fitSuccess) {
+                finalizeVisualReady("first-mobile-fit", generation);
+                window.dispatchEvent(new CustomEvent("live2d-stage-position-changed"));
+            }
         });
     }
 
@@ -591,7 +666,7 @@
         const snapshot = getLive2DVisibilitySnapshot();
         const canvas = snapshot.canvas || document.querySelector("#oml2d-canvas, .oml2d-canvas, #oml2d-stage canvas, canvas");
         const runtime = getLive2DRuntimeInstance();
-        const renderer = runtime && runtime.pixiApp ? runtime.pixiApp.renderer : null;
+        const renderer = getPixiRenderer(runtime);
         const canvasCount = document.querySelectorAll("#oml2d-canvas, .oml2d-canvas, #oml2d-stage canvas").length;
         const stageCount = document.querySelectorAll("#oml2d-main, .oml2d-main, #oml2d-stage, .oml2d-stage").length;
         let contextName = "";
@@ -743,12 +818,36 @@
         return snapshot.isVisible ? snapshot.primary : null;
     }
 
-    function markLive2DReady() {
-        if (!hasActuallyVisibleLive2D()) {
-            updateCanvasRenderInfo();
+    function hasValidVisualReadyState() {
+        const readiness = getRuntimeReadiness();
+        const renderInfo = window.JunxueLive2DRenderInfo || {};
+        const fit = renderInfo.mobileFit || {};
+        const canvasCss = renderInfo.canvasCssSize || {};
+        const canvasBacking = renderInfo.canvasBackingSize || {};
+        const rendererScreen = renderInfo.rendererScreenSize || {};
+
+        return !!(readiness && fit.fullyVisible &&
+            Number(canvasCss.width) > 0 && Number(canvasCss.height) > 0 &&
+            Number(canvasBacking.width) > 0 && Number(canvasBacking.height) > 0 &&
+            Number(rendererScreen.width) > 0 && Number(rendererScreen.height) > 0 &&
+            hasActuallyVisibleLive2D());
+    }
+
+    function finalizeVisualReady(reason, expectedGeneration) {
+        if (visualReadyPublished) {
+            return true;
+        }
+
+        if (Number(expectedGeneration || activeRuntimeGeneration) !== Number(activeRuntimeGeneration) || hostDestroying) {
+            logRuntime("stale callback ignored", { stage: "visual-ready" });
             return false;
         }
 
+        if (!hasValidVisualReadyState()) {
+            return false;
+        }
+
+        visualReadyPublished = true;
         window.clearTimeout(loadTimer);
         if (readyObserver) {
             readyObserver.disconnect();
@@ -757,16 +856,38 @@
         cleanupDuplicateLive2DNodes();
         window.__JUNXUE_LIVE2D_READY__ = true;
         window.__JUNXUE_LIVE2D_INSTANCE__ = findReadyContainer();
-        bindMobileFitLifecycle();
-        fitMobileLive2DModel("ready");
-        updateCanvasRenderInfo();
-        scheduleMobileLive2DFit("ready");
         bindCanvasContextEvents();
         hideBootstrapWidget();
+        logRuntime("visual ready", { reason: reason || "first-mobile-fit" });
         postHostMessage("ganyu-host-ready", {
             renderInfo: window.JunxueLive2DRenderInfo
         });
         return true;
+    }
+
+    function markLive2DReady() {
+        updateCanvasRenderInfo();
+        if (!config.hostMode) {
+            if (!hasActuallyVisibleLive2D()) {
+                return false;
+            }
+            window.clearTimeout(loadTimer);
+            window.__JUNXUE_LIVE2D_READY__ = true;
+            window.__JUNXUE_LIVE2D_INSTANCE__ = findReadyContainer();
+            bindCanvasContextEvents();
+            hideBootstrapWidget();
+            cleanupDuplicateLive2DNodes();
+            return true;
+        }
+
+        if (!modelLoadCompleted) {
+            logLayout("fit skipped: runtime not ready", { reason: "model-load-pending" });
+            return false;
+        }
+
+        bindMobileFitLifecycle();
+        scheduleMobileLive2DFit("model-ready");
+        return finalizeVisualReady("model-ready", activeRuntimeGeneration);
     }
 
     function showFallbackMessage(reason, details) {
@@ -822,28 +943,10 @@
         } catch (error) {}
     }
 
-    function watchLive2DReady() {
-        if (findReadyContainer()) {
-            markLive2DReady();
-            return;
-        }
-
-        readyObserver = new MutationObserver(function () {
-            if (findReadyContainer()) {
-                markLive2DReady();
-            }
-        });
-        readyObserver.observe(document.body, {
-            childList: true,
-            subtree: true
-        });
-    }
-
     function startLoadTimeout() {
         window.clearTimeout(loadTimer);
         loadTimer = window.setTimeout(function () {
-            if (findReadyContainer()) {
-                markLive2DReady();
+            if (modelLoadCompleted && markLive2DReady()) {
                 return;
             }
 
@@ -1262,6 +1365,7 @@
 
         try {
             await ensureRuntime();
+            logRuntime("pixi ready");
             postHostMessage("ganyu-host-runtime-ready", {
                 dprCap: getLive2DDprCap()
             });
@@ -1292,12 +1396,6 @@
             return;
         }
 
-        postHostMessage("ganyu-host-model-ready", {
-            modelPath: modelPath
-        });
-
-        watchLive2DReady();
-
         const oml2dOptions = {
             dockedPosition: dockedPosition,
             primaryColor: "#38d9ff",
@@ -1326,9 +1424,43 @@
                 return;
             }
 
-            window.__JUNXUE_LIVE2D_RUNTIME_INSTANCE__ = window.OML2D.loadOml2d(options) || null;
+            const runtimeGeneration = activeRuntimeGeneration;
+            const runtime = window.OML2D.loadOml2d(options) || null;
+            window.__JUNXUE_LIVE2D_RUNTIME_INSTANCE__ = runtime;
+
+            if (!runtime || typeof runtime.onLoad !== "function") {
+                throw new Error("runtime-instance-unavailable");
+            }
+
+            runtime.onLoad(function (status) {
+                if (runtimeGeneration !== activeRuntimeGeneration || runtime !== getLive2DRuntimeInstance() || hostDestroying) {
+                    logRuntime("stale callback ignored", { stage: "model-load" });
+                    return;
+                }
+
+                if (status !== "success") {
+                    return;
+                }
+
+                modelLoadCompleted = true;
+                logRuntime("model ready");
+                postHostMessage("ganyu-host-model-ready", {
+                    modelPath: modelPath
+                });
+                window.requestAnimationFrame(function () {
+                    if (runtimeGeneration !== activeRuntimeGeneration || runtime !== getLive2DRuntimeInstance() || hostDestroying) {
+                        logRuntime("stale callback ignored", { stage: "model-ready-frame" });
+                        return;
+                    }
+                    markLive2DReady();
+                });
+            });
             window.setTimeout(function () {
-                if (findReadyContainer()) {
+                if (runtimeGeneration !== activeRuntimeGeneration || runtime !== getLive2DRuntimeInstance() || hostDestroying) {
+                    logRuntime("stale callback ignored", { stage: "ready-delay" });
+                    return;
+                }
+                if (modelLoadCompleted) {
                     markLive2DReady();
                 }
             }, 1200);
@@ -1352,6 +1484,11 @@
                 runtimeUsedOriginal = true;
                 window.JunxueLive2DRenderInfo.fallbackToOriginalResolution = true;
                 console.warn("Live2D DPR injected runtime did not become ready; falling back to original resolution runtime.");
+                activeRuntimeGeneration += 1;
+                modelLoadCompleted = false;
+                visualReadyPublished = false;
+                stableModelBounds = null;
+                lastMobileFitSizeKey = "";
                 loadOriginalRuntime().then(function () {
                     startOml2D(oml2dOptions);
                 }).catch(function (error) {
@@ -1419,6 +1556,9 @@
         }
 
         resumeRenderLoop();
+        if (config.hostMode) {
+            scheduleMobileLive2DFit("visibility");
+        }
     }
 
     window.JunxueLive2DHostControl = {
@@ -1429,20 +1569,22 @@
         resume: function () {
             hostRenderingPaused = false;
             resumeRenderLoop();
+            if (config.hostMode) {
+                scheduleMobileLive2DFit("resume");
+            }
         },
         resize: function (detail) {
             parentResizeMetrics = Object.assign({}, parentResizeMetrics, detail || {});
-            const runtime = getLive2DRuntimeInstance();
-
-            if (runtime && runtime.pixiApp && typeof runtime.pixiApp.resize === "function") {
-                runtime.pixiApp.resize();
-            }
-            updateCanvasRenderInfo();
             scheduleMobileLive2DFit("resize");
-            window.dispatchEvent(new CustomEvent("live2d-stage-position-changed"));
         },
         destroy: function () {
             hostRenderingPaused = true;
+            hostDestroying = true;
+            activeRuntimeGeneration += 1;
+            modelLoadCompleted = false;
+            visualReadyPublished = false;
+            stableModelBounds = null;
+            lastMobileFitSizeKey = "";
             window.clearTimeout(loadTimer);
             if (mobileFitFrame) {
                 window.cancelAnimationFrame(mobileFitFrame);

@@ -99,6 +99,7 @@
             parentOrigin: window.location.origin,
             requestId: new URLSearchParams(window.location.search).get("requestId") || "",
             attemptId: new URLSearchParams(window.location.search).get("attemptId") || "",
+            runtimeGeneration: new URLSearchParams(window.location.search).get("runtimeGeneration") || "",
             cacheVersion: new URLSearchParams(window.location.search).get("cacheVersion") || "",
             sayHello: false,
             disableStatusBar: true,
@@ -116,6 +117,7 @@
                 type: type,
                 requestId: hostConfig.requestId,
                 attemptId: hostConfig.attemptId,
+                runtimeGeneration: hostConfig.runtimeGeneration,
                 cacheVersion: hostConfig.cacheVersion
             }, detail || {}), hostConfig.parentOrigin);
         }
@@ -128,6 +130,7 @@
                 event.source === window.parent &&
                 String(data.requestId || "") === String(hostConfig.requestId || "") &&
                 String(data.attemptId || "") === String(hostConfig.attemptId || "") &&
+                String(data.runtimeGeneration || "") === String(hostConfig.runtimeGeneration || "") &&
                 String(data.cacheVersion || "") === String(hostConfig.cacheVersion || "")
             );
         }
@@ -181,6 +184,6 @@
 
         postHostMessage("ganyu-host-script-loaded");
     </script>
-    <script src="live2d-widget.js?v=20260730-mobile-live2d-voice-layout1"></script>
+    <script src="live2d-widget.js?v=20260813-live2d-mobile-mode-fit1"></script>
 </body>
 </html>

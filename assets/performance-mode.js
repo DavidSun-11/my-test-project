@@ -4,6 +4,7 @@
     const PREFERENCE_STORAGE_KEY = "junxuePerformanceModePreferenceV2";
     const MIGRATION_STORAGE_KEY = "junxuePerformanceModeMigrationV2";
     const HIGH_EFFECT_REQUEST_KEY = "junxueManualHighEffectRequestedAt";
+    const HIGH_EFFECT_LOADING_KEY = "junxueManualHighLoadingPending";
     const VALID_MODES = ["auto", "low", "high"];
     const root = document.documentElement;
     let runtimeState = root.dataset.live2dRuntimeState || "idle";
@@ -217,12 +218,24 @@
     function markManualHighEffectRequest(mode) {
         try {
             if (mode === "high") {
-                window.sessionStorage.setItem(HIGH_EFFECT_REQUEST_KEY, String(Date.now()));
+                const timestamp = String(Date.now());
+                window.sessionStorage.setItem(HIGH_EFFECT_REQUEST_KEY, timestamp);
+                window.sessionStorage.setItem(HIGH_EFFECT_LOADING_KEY, timestamp);
                 return;
             }
 
             window.sessionStorage.removeItem(HIGH_EFFECT_REQUEST_KEY);
+            window.sessionStorage.removeItem(HIGH_EFFECT_LOADING_KEY);
         } catch (error) {}
+    }
+
+    function prepareManualHighLoadingTransition() {
+        document.querySelectorAll(".ganyu-static-card").forEach(function (card) {
+            card.classList.add("is-hidden");
+            card.classList.remove("is-hidden-for-submenu");
+            card.setAttribute("aria-hidden", "true");
+        });
+        console.info("[live2d-runtime] manual high selected");
     }
 
     function initKeyboardViewportClass() {
@@ -433,6 +446,9 @@
                 }
                 console.info("[live2d-mode] manual mode selected: " + mode.value);
                 markManualHighEffectRequest(mode.value);
+                if (mode.value === "high") {
+                    prepareManualHighLoadingTransition();
+                }
                 writeManualPreference(mode.value);
                 window.location.reload();
             });

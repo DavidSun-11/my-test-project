@@ -1,6 +1,6 @@
 /* Live2D 互动模块：菜单、无奖竞答题库、英雄池转盘、咨询功能都集中在这里，方便后续继续加题。 */
 (function () {
-    const version = "20260730-mobile-live2d-voice-layout1";
+    const version = "20260814-live2d-mobile-menu-loading1";
     if (typeof window.JunxueLive2DDebugLog !== "function") {
         window.__JUNXUE_LIVE2D_DEBUG__ = window.__JUNXUE_LIVE2D_DEBUG__ || [];
         window.JunxueLive2DDebugLog = function (message, detail) {
@@ -2344,6 +2344,7 @@
                 showMenu;
 
             debugLive2DMenu("live2d-mobile", "feature option clicked: " + key);
+            debugLive2DMenu("live2d-menu", "submenu item clicked: " + key);
             publishStaticDebugStatus("mobile feature option clicked: " + key);
             debugLive2DMenu("live2d-mobile", "feature open start: " + key);
             publishStaticDebugStatus("mobile feature open start: " + key);
@@ -2719,6 +2720,9 @@
                 const now = Date.now();
                 if (phase === "click" && now - lastOptionOpenAt < 520) {
                     debugMenuOption("ignored", "duplicate click", event);
+                    if (getMenuOptionScope() === "live2d-mobile") {
+                        debugLive2DMenu("live2d-menu", "same event ignored");
+                    }
                     return;
                 }
 
@@ -2732,7 +2736,9 @@
                 }
             }
 
-            if (window.PointerEvent) {
+            const usePointerActivation = !!window.PointerEvent && !isMobileLayoutViewport();
+            const useTouchActivation = !window.PointerEvent && !isMobileLayoutViewport();
+            if (usePointerActivation) {
                 button.addEventListener("pointerup", function (event) {
                     if (event.button !== undefined && event.button !== 0) {
                         debugMenuOption("ignored", "non-primary pointer", event);
@@ -2741,7 +2747,7 @@
 
                     openMenuOption(event, "pointerup");
                 });
-            } else {
+            } else if (useTouchActivation) {
                 button.addEventListener("touchend", function (event) {
                     openMenuOption(event, "pointerup");
                 }, { passive: false });
@@ -2767,6 +2773,10 @@
                         publishStaticDebugStatus("menu option ignored");
                     }
                     return;
+                }
+
+                if (key === "daily" && scope === "live2d-mobile") {
+                    debugLive2DMenu("live2d-menu", "entertainment trigger " + (event && event.type ? event.type : "click"));
                 }
 
                 if (key === "suggest") {
@@ -2943,6 +2953,7 @@
             setDialogMode("menu");
             if (isMobileLayoutViewport()) {
                 debugLive2DMenu("live2d-mobile", "showEntertainmentPanel called");
+                debugLive2DMenu("live2d-menu", "entertainment submenu open");
                 publishStaticDebugStatus("mobile showEntertainmentPanel called");
             }
             prepareMobileSubmenuDrawer("daily");

@@ -1,6 +1,6 @@
 /* Lightweight Live2D loader: desktop stays dynamic; mobile effects mode uses the same model through a guarded iframe host. */
 (function () {
-    const version = "20260813-live2d-mobile-mode-fit1";
+    const version = "20260814-live2d-mobile-menu-loading1";
     window.__JUNXUE_LIVE2D_DEBUG__ = window.__JUNXUE_LIVE2D_DEBUG__ || [];
     window.JunxueLive2DDebugLog = window.JunxueLive2DDebugLog || function (message, detail) {
         const safeMessage = String(message || "");
@@ -24,7 +24,7 @@
 })();
 
 (function () {
-    const CACHE_VERSION = "20260813-live2d-mobile-mode-fit1";
+    const CACHE_VERSION = "20260814-live2d-mobile-menu-loading1";
     const WIDGET_SCRIPT = "live2d/live2d-widget.js?v=" + CACHE_VERSION;
     const INTERACTIONS_SCRIPT = "assets/live2d-interactions.js?v=" + CACHE_VERSION;
     const DRAG_SCRIPT = "assets/live2d-drag.js?v=" + CACHE_VERSION;
@@ -38,6 +38,8 @@
     const LEGACY_STORAGE_KEY = "ganyuLive2DPosition";
     const STATIC_POSITION_KEY = "junxue-live2d-static-position";
     const DYNAMIC_POSITION_KEY = "junxue-live2d-dynamic-position";
+    const MANUAL_HIGH_LOADING_KEY = "junxueManualHighLoadingPending";
+    const LOADING_PLACEHOLDER_ID = "ganyu-live2d-loading-placeholder";
     const MOBILE_STATES = {
         idle: "idle",
         static: "static",
@@ -227,6 +229,7 @@
             ".live2d-load-control__button:disabled{cursor:wait;opacity:.72;}",
             ".live2d-load-control__status{max-width:min(240px,calc(100vw - 36px));padding:8px 10px;border:1px solid rgba(213,244,255,.5);border-radius:12px;background:rgba(6,22,44,.7);color:rgba(234,252,255,.86);font-size:12px;line-height:1.45;box-shadow:0 0 12px rgba(0,190,255,.14);backdrop-filter:blur(8px);}",
             ".live2d-load-control.is-hidden{display:none;}",
+            "#ganyu-live2d-loading-placeholder{position:fixed;left:10px;bottom:max(86px,calc(env(safe-area-inset-bottom) + 84px));z-index:57;width:min(54vw,196px);height:min(58vh,360px);display:grid;place-items:center;pointer-events:none;color:rgba(234,252,255,.94);font:700 12px/1.4 Arial,sans-serif;letter-spacing:.03em;text-align:center;text-shadow:0 1px 8px rgba(2,12,35,.72);}.ganyu-live2d-loading-placeholder__text{padding:7px 10px;border:1px solid rgba(206,242,255,.46);border-radius:999px;background:rgba(7,28,61,.42);box-shadow:0 0 14px rgba(103,202,255,.14);backdrop-filter:blur(6px);}",
             ".ganyu-static-card{position:fixed;left:12px;bottom:max(132px,calc(env(safe-area-inset-bottom) + 130px));z-index:57;width:clamp(154px,48vw,210px);max-width:54vw;max-height:36vh;padding:8px;border:1px solid rgba(196,238,255,.72);border-radius:18px;background:linear-gradient(145deg,rgba(13,38,78,.78),rgba(44,112,172,.52) 52%,rgba(154,118,222,.42));box-shadow:0 0 22px rgba(90,213,255,.28),0 16px 34px rgba(2,10,30,.26),inset 0 0 16px rgba(255,255,255,.12);backdrop-filter:blur(12px);font-family:Arial,sans-serif;color:rgba(239,252,255,.96);overflow:hidden;pointer-events:auto;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-user-drag:none;cursor:pointer;transition:transform .16s ease,box-shadow .16s ease;}",
             ".ganyu-static-card:focus,.ganyu-static-card:focus-visible,.ganyu-static-card__dynamic:focus,.ganyu-static-card__dynamic:focus-visible{outline:none!important;box-shadow:0 0 18px rgba(120,229,255,.26),inset 0 0 12px rgba(255,255,255,.08);}",
             ".ganyu-static-card:active{transform:scale(.985);box-shadow:0 0 28px rgba(120,229,255,.34),0 12px 26px rgba(2,10,30,.24),inset 0 0 18px rgba(255,255,255,.14);}",
@@ -255,7 +258,7 @@
             "html.performance-low .ganyu-static-card:active{transform:none;box-shadow:inset 0 0 8px rgba(255,255,255,.06);}",
             "html.performance-low .ganyu-static-card.is-dynamic-ready .ganyu-static-card__visual{opacity:.42;filter:none;}",
             "html.performance-low .ganyu-static-card__dynamic{box-shadow:none;}",
-            "@media(max-width:767px),(max-width:932px) and (orientation:landscape){.live2d-load-control{left:max(12px,env(safe-area-inset-left));bottom:max(84px,calc(env(safe-area-inset-bottom) + 72px));}.live2d-load-control__button{min-height:34px;padding:0 13px;font-size:12px}.live2d-load-control__status{max-width:min(78vw,240px);font-size:12px;}#ganyu-live2d-frame-shell{--live2d-mobile-width:clamp(125px,40vw,168px);--live2d-mobile-height:clamp(280px,44dvh,390px);left:max(10px,env(safe-area-inset-left));bottom:max(88px,calc(env(safe-area-inset-bottom) + 84px));width:var(--live2d-mobile-width);height:var(--live2d-mobile-height);}.ganyu-static-card{left:max(14px,env(safe-area-inset-left));bottom:max(82px,calc(env(safe-area-inset-bottom) + 76px));width:clamp(132px,40vw,168px);max-width:46vw;max-height:32vh;max-height:32dvh;padding:7px;border-radius:16px;box-shadow:0 0 18px rgba(90,213,255,.22),0 12px 26px rgba(2,10,30,.22),inset 0 0 12px rgba(255,255,255,.10);}.ganyu-static-card__visual{min-height:86px;max-height:17vh;max-height:17dvh;border-radius:12px;}.ganyu-static-card__visual picture,.ganyu-static-card__visual img{min-height:86px;max-height:17vh;max-height:17dvh;}.ganyu-static-card__visual img{border-radius:12px;}.ganyu-static-card__body{gap:4px;padding:7px 3px 2px;}.ganyu-static-card__title{font-size:12px;}.ganyu-static-card__hint,.ganyu-static-card__status{font-size:10.5px;line-height:1.34;}.ganyu-static-card__dynamic{min-height:28px;padding:0 10px;font-size:11px;box-shadow:0 0 10px rgba(109,217,255,.16);}}@media(max-width:767px) and (max-height:700px){#ganyu-live2d-frame-shell{--live2d-mobile-height:clamp(240px,36dvh,300px);}}@media(max-width:932px) and (orientation:landscape){#ganyu-live2d-frame-shell{--live2d-mobile-width:clamp(110px,26vw,150px);--live2d-mobile-height:clamp(200px,56dvh,280px);bottom:max(62px,calc(env(safe-area-inset-bottom) + 54px));}}"
+            "@media(max-width:767px),(max-width:932px) and (orientation:landscape){.live2d-load-control{left:max(12px,env(safe-area-inset-left));bottom:max(84px,calc(env(safe-area-inset-bottom) + 72px));}.live2d-load-control__button{min-height:34px;padding:0 13px;font-size:12px}.live2d-load-control__status{max-width:min(78vw,240px);font-size:12px;}#ganyu-live2d-frame-shell,#ganyu-live2d-loading-placeholder{--live2d-mobile-width:clamp(125px,40vw,168px);--live2d-mobile-height:clamp(280px,44dvh,390px);left:max(10px,env(safe-area-inset-left));bottom:max(88px,calc(env(safe-area-inset-bottom) + 84px));width:var(--live2d-mobile-width);height:var(--live2d-mobile-height);}.ganyu-static-card{left:max(14px,env(safe-area-inset-left));bottom:max(82px,calc(env(safe-area-inset-bottom) + 76px));width:clamp(132px,40vw,168px);max-width:46vw;max-height:32vh;max-height:32dvh;padding:7px;border-radius:16px;box-shadow:0 0 18px rgba(90,213,255,.22),0 12px 26px rgba(2,10,30,.22),inset 0 0 12px rgba(255,255,255,.10);}.ganyu-static-card__visual{min-height:86px;max-height:17vh;max-height:17dvh;border-radius:12px;}.ganyu-static-card__visual picture,.ganyu-static-card__visual img{min-height:86px;max-height:17vh;max-height:17dvh;}.ganyu-static-card__visual img{border-radius:12px;}.ganyu-static-card__body{gap:4px;padding:7px 3px 2px;}.ganyu-static-card__title{font-size:12px;}.ganyu-static-card__hint,.ganyu-static-card__status{font-size:10.5px;line-height:1.34;}.ganyu-static-card__dynamic{min-height:28px;padding:0 10px;font-size:11px;box-shadow:0 0 10px rgba(109,217,255,.16);}}@media(max-width:767px) and (max-height:700px){#ganyu-live2d-frame-shell,#ganyu-live2d-loading-placeholder{--live2d-mobile-height:clamp(240px,36dvh,300px);}}@media(max-width:932px) and (orientation:landscape){#ganyu-live2d-frame-shell,#ganyu-live2d-loading-placeholder{--live2d-mobile-width:clamp(110px,26vw,150px);--live2d-mobile-height:clamp(200px,56dvh,280px);bottom:max(62px,calc(env(safe-area-inset-bottom) + 54px));}}"
         ].join("");
         document.head.appendChild(style);
     }
@@ -418,6 +421,10 @@
             loaderState.staticVisible = visible;
         }
 
+        if (!visible) {
+            hideMobileLoadingPlaceholder();
+        }
+
         if (getFrameShell()) {
             sendFrameMessage(visible ? "resume" : "pause");
         }
@@ -461,6 +468,89 @@
 
     function getStaticCard() {
         return document.querySelector(".ganyu-static-card");
+    }
+
+    function getMobileLoadingPlaceholder() {
+        return document.getElementById(LOADING_PLACEHOLDER_ID);
+    }
+
+    function consumeManualHighLoadingTransition() {
+        if (requestedPerformanceMode !== "high") {
+            return false;
+        }
+
+        try {
+            const value = Number(window.sessionStorage.getItem(MANUAL_HIGH_LOADING_KEY));
+            window.sessionStorage.removeItem(MANUAL_HIGH_LOADING_KEY);
+            return Number.isFinite(value) && Date.now() - value >= 0 && Date.now() - value < 30000;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    function hideStaticFallbackForDynamicLoading() {
+        const card = getStaticCard();
+
+        if (card) {
+            card.classList.add("is-hidden");
+            card.classList.remove("is-hidden-for-submenu");
+            card.setAttribute("aria-hidden", "true");
+        }
+        loaderState.staticVisible = false;
+        logRuntime("static fallback hidden for loading");
+    }
+
+    function syncMobileLoadingPlaceholderToFrame() {
+        const placeholder = getMobileLoadingPlaceholder();
+        const shell = getFrameShell();
+
+        if (!placeholder || !shell || !shell.getBoundingClientRect) {
+            return;
+        }
+
+        const rect = shell.getBoundingClientRect();
+        if (rect.width <= 0 || rect.height <= 0) {
+            return;
+        }
+
+        placeholder.style.left = Math.round(rect.left) + "px";
+        placeholder.style.top = Math.round(rect.top) + "px";
+        placeholder.style.right = "auto";
+        placeholder.style.bottom = "auto";
+        placeholder.style.width = Math.round(rect.width) + "px";
+        placeholder.style.height = Math.round(rect.height) + "px";
+    }
+
+    function showMobileLoadingPlaceholder() {
+        injectStyles();
+        hideStaticFallbackForDynamicLoading();
+        let placeholder = getMobileLoadingPlaceholder();
+
+        if (!placeholder) {
+            placeholder = document.createElement("div");
+            placeholder.id = LOADING_PLACEHOLDER_ID;
+            placeholder.className = "ganyu-live2d-loading-placeholder";
+            placeholder.setAttribute("role", "status");
+            placeholder.setAttribute("aria-live", "polite");
+            placeholder.innerHTML = '<span class="ganyu-live2d-loading-placeholder__text">甘雨正在赶来～</span>';
+            document.body.appendChild(placeholder);
+        }
+
+        placeholder.hidden = false;
+        loaderState.visible = true;
+        document.body.classList.remove("live2d-hidden");
+        syncMobileLoadingPlaceholderToFrame();
+        logRuntime("loading placeholder shown");
+        return placeholder;
+    }
+
+    function hideMobileLoadingPlaceholder() {
+        const placeholder = getMobileLoadingPlaceholder();
+
+        if (placeholder && placeholder.parentNode) {
+            placeholder.parentNode.removeChild(placeholder);
+            logRuntime("loading placeholder removed");
+        }
     }
 
     function debugStaticMenu(message) {
@@ -644,6 +734,7 @@
         document.body.appendChild(shell);
         recordMobileLoadStage("iframe-created");
         applySavedPosition(shell);
+        window.requestAnimationFrame(syncMobileLoadingPlaceholderToFrame);
         return shell;
     }
 
@@ -1491,15 +1582,22 @@
             runtimeGeneration: loaderState.runtimeGeneration
         });
 
-        showStaticFallback({
-            state: MOBILE_STATES.loading,
-            message: loaderState.retryCount ? "正在再次尝试动态甘雨……" : "正在尝试动态甘雨……",
-            buttonText: "打开甘雨菜单",
-            action: "open-menu"
-        });
+        if (loaderState.cleanLoadingTransition) {
+            hideStaticFallbackForDynamicLoading();
+        } else {
+            showStaticFallback({
+                state: MOBILE_STATES.loading,
+                message: loaderState.retryCount ? "正在再次尝试动态甘雨……" : "正在尝试动态甘雨……",
+                buttonText: "打开甘雨菜单",
+                action: "open-menu"
+            });
+        }
 
         const shell = ensureFrameShell();
         shell.classList.add("is-loading");
+        if (loaderState.cleanLoadingTransition) {
+            showMobileLoadingPlaceholder();
+        }
         shell.dataset.live2dAttemptId = String(loaderState.attemptId);
         shell.dataset.live2dRequestId = String(loaderState.requestId);
         setFrameSrc(loaderState.retryCount > 0);
@@ -1561,12 +1659,16 @@
         if (loaderState.retryCount < 1 && Number(requestId) === Number(loaderState.requestId)) {
             loaderState.retryCount += 1;
             loaderState.state = MOBILE_STATES.loading;
-            showStaticFallback({
-                state: MOBILE_STATES.loading,
-                message: "动态甘雨加载未完成，正在再试一次……",
-                buttonText: "打开甘雨菜单",
-                action: "open-menu"
-            });
+            if (loaderState.cleanLoadingTransition) {
+                showMobileLoadingPlaceholder();
+            } else {
+                showStaticFallback({
+                    state: MOBILE_STATES.loading,
+                    message: "动态甘雨加载未完成，正在再试一次……",
+                    buttonText: "打开甘雨菜单",
+                    action: "open-menu"
+                });
+            }
             setControlState("loading");
             mobileRetryTimer = window.setTimeout(function () {
                 logRuntime("retry dynamic", { source: "automatic-retry" });
@@ -1579,6 +1681,8 @@
         loaderState.failed = true;
         loaderState.loading = false;
         loaderState.visible = true;
+        loaderState.cleanLoadingTransition = false;
+        hideMobileLoadingPlaceholder();
         showStaticFallback({
             state: MOBILE_STATES.failed,
             failed: true,
@@ -1587,7 +1691,7 @@
             action: "retry-dynamic"
         });
         publishRuntimeState("live2d-failed", { reason: safeReason, fallback: true });
-        logRuntime("fallback activated", { reason: safeReason });
+        logRuntime("dynamic failed, fallback restored", { reason: safeReason });
         setControlState("failed", safeMessage);
     }
 
@@ -1667,6 +1771,8 @@
             if (shell) {
                 shell.classList.remove("is-loading");
             }
+            hideMobileLoadingPlaceholder();
+            loaderState.cleanLoadingTransition = false;
             sendFrameMessage("resize", getFrameResizeInfo());
             const card = getStaticCard();
             if (card) {
@@ -1861,6 +1967,9 @@
             if (loaderState.state === MOBILE_STATES.ready && getFrameShell()) {
                 sendFrameMessage("resize", getFrameResizeInfo());
             }
+            if (loaderState.loading) {
+                syncMobileLoadingPlaceholderToFrame();
+            }
             if (window.JunxueLive2DDrag && typeof window.JunxueLive2DDrag.scheduleSync === "function") {
                 window.JunxueLive2DDrag.scheduleSync();
             }
@@ -1945,6 +2054,7 @@
         removeInlineRuntimeNodes();
         loaderState.loaded = !isIframeMobileMode() && loaderState.loaded;
         loaderState.visible = false;
+        loaderState.cleanLoadingTransition = consumeManualHighLoadingTransition();
         loaderState.state = isIframeMobileMode() ? MOBILE_STATES.idle : loaderState.state;
         bindMobileLifecycle();
         updateRenderInfo();
@@ -1957,12 +2067,18 @@
             setControlState("hidden");
             window.setTimeout(loadLive2D, AUTOLOAD_DELAY_MS);
         } else if (isHomeAutoload && isMobileEffectsMode()) {
-            showStaticFallback({
-                state: MOBILE_STATES.idle,
-                message: "正在准备动态甘雨……",
-                buttonText: "打开甘雨菜单",
-                action: "open-menu"
-            });
+            if (loaderState.cleanLoadingTransition) {
+                logRuntime("manual high selected");
+                showMobileLoadingPlaceholder();
+                setControlState("loading");
+            } else {
+                showStaticFallback({
+                    state: MOBILE_STATES.idle,
+                    message: "正在准备动态甘雨……",
+                    buttonText: "打开甘雨菜单",
+                    action: "open-menu"
+                });
+            }
             mobileAutoloadTimer = window.setTimeout(function () {
                 mobileAutoloadTimer = 0;
                 if (!loaderState.visible || loaderState.state !== MOBILE_STATES.idle) {
